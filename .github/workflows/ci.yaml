@@ -23,10 +23,10 @@ jobs:
       - name: Checkout repo code
         uses: actions/checkout@v3
 
-      - name: Install Poetry
+      - name: Install Poetry ${{ env.POETRY_VERSION }}
         run: pipx install poetry==${{ env.POETRY_VERSION }}
 
-      - name: Set up Python 3.10
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
