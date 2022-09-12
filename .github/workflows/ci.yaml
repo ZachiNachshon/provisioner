@@ -9,6 +9,11 @@ on:
     branches:
       - master
 
+env:
+  # Semantic version range syntax (3.x) or exact version of a Python version
+  PYTHON_VERSION: 3.10
+  POETRY_VERSION: 1.1.12
+
 jobs:
   build:
     name: Tests Suite
@@ -18,13 +23,15 @@ jobs:
       - name: Checkout repo code
         uses: actions/checkout@v3
 
+      - name: Install Poetry
+        run: pipx install poetry==${{ env.POETRY_VERSION }}
+
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
-          # Semantic version range syntax or exact version of a Python version
-          python-version: '3.10'
-          # python-version: '3.x'
-
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'poetry'
+          
       - name: Create virtual environment
         run: make create-update-venv
 

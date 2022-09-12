@@ -35,9 +35,9 @@ test: ## Run Unit/E2E/IT tests
 	-@rm -rf "$(PWD)/htmlcov"
 	@echo "Done."
 	@echo "\nRunning tests/coverage..."
-	-@${POETRY_WRAPPER_DEV} run coverage run -m pytest
-	-@${POETRY_WRAPPER} run coverage report
-	-@${POETRY_WRAPPER} run coverage html
+	@${POETRY_WRAPPER_DEV} run coverage run -m pytest
+	@${POETRY_WRAPPER} run coverage report
+	@${POETRY_WRAPPER} run coverage html
 	-@echo "\n====\n\nFull coverage report available on the following link:\n\n  • $(PWD)/htmlcov/index.html\n"
 
 .PHONY: help
