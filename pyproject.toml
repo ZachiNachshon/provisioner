@@ -34,7 +34,7 @@ no_implicit_optional = "True"
 show_error_codes = "True"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 typer = "^0.3.2"
 loguru = "^0.5.3"
 requests = "^2.25.1"

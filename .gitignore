@@ -37,7 +37,6 @@ utils/ansible/hosts
 cache/
 dist/
 .venv/
-poetry.lock
 
 # Tests
 htmlcov/
