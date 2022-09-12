@@ -1,0 +1,57 @@
+[tool.poetry]
+name = "provisioner"
+version = "0.1.0"
+description = "Provision anything on any remote machine"
+authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
+exclude = ["**/*_tests.py", "**/*_fakes.py"]
+packages = [
+    # { include = "tools" },
+    { include = "rpi" },
+]
+
+[tool.poetry.scripts]
+# tools = "external.python_scripts_lib.provisioner.main:app"
+# tools = "tools.main:app"
+rpi = "rpi.main:app"
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 120
+
+[tool.mypy]
+exclude = ["external"]
+ignore_missing_imports = "True"
+check_untyped_defs = "True"
+disallow_untyped_defs = "True"
+disallow_incomplete_defs = "True"
+disallow_untyped_decorators = "True"
+disallow_any_unimported = "False" # Generates an error if a component of a type becomes Any because mypy couldn’t resolve an import
+warn_return_any = "False" # Generates an error if you return a value with an Any type in a function that is annotated to return a non-Any value
+warn_unused_ignores = "True"
+no_implicit_optional = "True"
+show_error_codes = "True"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+typer = "^0.3.2"
+loguru = "^0.5.3"
+requests = "^2.25.1"
+tqdm = "^4.61.2"      # - Progress Bar for Python and CLI (https://github.com/tqdm/tqdm)
+# PyYAML = "^5.4.1"
+# GitPython = "^3.1.18" # - GitPython provides object model access to your git repository (https://github.com/gitpython-developers/GitPython)
+# #Jinja2 = "^3.0.3"      - Templating engine (https://github.com/pallets/jinja)
+# #sh = "^1.14.2"         - Subprocess replacement for Python (https://github.com/amoffat/sh)
+# #backoff = "^1.10.0"    - Function decoration for backoff and retry (https://github.com/litl/backoff)
+# #tenacity = "^8.0.1"    - General-purpose retrying library (https://github.com/jd/tenacity)
+
+[tool.poetry.dev-dependencies]
+black = "^21.6b0"
+pytest = "^6.2.4"
+mypy = "^0.910"
+coverage = "^5.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

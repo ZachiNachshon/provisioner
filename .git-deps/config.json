@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "repos": [
+      {
+        "name": "shell_scripts_lib",
+        "url": "https://github.com/ZachiNachshon/shell-scripts-lib.git",
+        "branch": "master",
+        "revision": "123"
+      }
+    ]
+  },
+  "devDependencies": {
+    "repos": [
+      {
+        "name": "shell_scripts_lib",
+        "localPath": "/Users/zachin/codebase/github/shell-scripts-lib"
+      },
+      {
+        "name": "python_scripts_lib",
+        "localPath": "/Users/zachin/codebase/github/python-scripts-lib"
+      },
+      {
+        "name": "ansible_playbooks",
+        "localPath": "/Users/zachin/codebase/github/ansible-playbooks"
+      }
+    ]
+  }
+}

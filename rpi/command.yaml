@@ -1,0 +1,4 @@
+name: rpi
+command:
+  use: rpi
+  short: "Configure a Raspberry Pi cluster"
