@@ -3,9 +3,16 @@
     "repos": [
       {
         "name": "shell_scripts_lib",
-        "url": "https://github.com/ZachiNachshon/shell-scripts-lib.git",
+        "url": "git@github.com:ZachiNachshon/shell-scripts-lib.git",
         "branch": "master",
-        "revision": "123"
+        "revision": "9e8bf3ddcfb58961ea5d8457a52bf20aca4ec2e1",
+        "excludes": ["*_test*", "*/"]
+      },
+      {
+        "name": "python_scripts_lib",
+        "url": "git@github.com:ZachiNachshon/python-scripts-lib.git",
+        "branch": "master",
+        "revision": "2862b03c91e5a201ebaf498e6c6ee2399905afd0"
       }
     ]
   },
