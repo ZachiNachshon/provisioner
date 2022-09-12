@@ -4,6 +4,7 @@ from ..infra.context import Context
 from .patterns import Patterns
 from .io_utils import IOUtils
 
+
 class FakePatterns(Patterns):
 
     registered_patterns: dict[str, str] = {}
@@ -20,7 +21,7 @@ class FakePatterns(Patterns):
     @staticmethod
     def create(ctx: Context, io_utils: IOUtils) -> "FakePatterns":
         return FakePatterns._create_fake(io_utils=io_utils)
-        
+
     def register_pattern_key(self, key: str, expected_value: str):
         # When opting to use the FakePatterns instead of mocking via @mock.patch, we'll override the run function
         self.registered_patterns[key] = expected_value

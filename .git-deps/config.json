@@ -6,6 +6,7 @@
         "url": "git@github.com:ZachiNachshon/shell-scripts-lib.git",
         "branch": "master",
         "revision": "9e8bf3ddcfb58961ea5d8457a52bf20aca4ec2e1",
+        "includes": ["runner*/", "runner/base*", "runner/poetry*"],
         "excludes": ["*_test*", "*/"]
       },
       {

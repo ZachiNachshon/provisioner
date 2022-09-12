@@ -3,6 +3,7 @@
 from ..infra.context import Context
 from .prompter import Prompter, PromptLevel
 
+
 class FakePrompter(Prompter):
 
     yes_no_response: bool = None

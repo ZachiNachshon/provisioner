@@ -5,6 +5,7 @@ from typing import Optional
 from external.python_scripts_lib.cli.state import CliGlobalArgs
 from external.python_scripts_lib.infra.log import LoggerManager
 
+
 def main_runner(
     verbose: Optional[bool] = typer.Option(False, "--verbose", "-v", help="Run command with DEBUG verbosity"),
     auto_prompt: Optional[bool] = typer.Option(

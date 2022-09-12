@@ -4,6 +4,7 @@ from typing import List, Optional
 from .process import Process
 from ..infra.context import Context
 
+
 class FakeProcess(Process):
 
     registered_commands: dict[str, str] = {}

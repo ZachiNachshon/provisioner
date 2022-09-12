@@ -3,6 +3,7 @@
 from .checks import Checks
 from ..errors.cli_errors import MissingUtilityException
 
+
 class FakeChecks(Checks):
 
     registered_utilities: dict[str, bool] = {}

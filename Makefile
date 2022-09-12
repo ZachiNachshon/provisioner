@@ -1,7 +1,7 @@
 default: help
 
-POETRY_WRAPPER=./poetry_runner.sh
-POETRY_WRAPPER_DEV=./poetry_runner_dev.sh
+POETRY_WRAPPER=./common/runners/poetry_runner.sh
+POETRY_WRAPPER_DEV=./common/runners/poetry_runner_dev.sh
 PROJECT_LOCATION=.
 
 # @rm -rf ${HOME}/Library/Caches/pypoetry

@@ -4,6 +4,7 @@ from ..infra.context import Context
 from .properties import Properties
 from .io_utils import IOUtils
 
+
 class FakeProperties(Properties):
 
     registered_properties: dict[str, str] = {}
@@ -20,7 +21,7 @@ class FakeProperties(Properties):
     @staticmethod
     def create(ctx: Context, io_utils: IOUtils) -> "FakeProperties":
         return FakeProperties._create_fake(io_utils=io_utils)
-        
+
     def register_property_key(self, key: str, expected_value: str):
         # When opting to use the FakeProperties instead of mocking via @mock.patch, we'll override its functions
         self.registered_properties[key] = expected_value

@@ -5,7 +5,8 @@ import os
 import sys
 from loguru import logger
 
-ABBREVIATE_CHARS_THRESHOLD=30
+ABBREVIATE_CHARS_THRESHOLD = 30
+
 
 def _set_log_level_names_format(level_filter, dry_run: bool = False):
     # Remove default logger
@@ -52,15 +53,17 @@ def _set_log_level_names_format(level_filter, dry_run: bool = False):
             catch=True,
         )
 
+
 class AbbreviationFormatter(logging.Formatter):
     def format(self, record):
         saved_name = record.name  # save and restore for other formatters if desired
-        parts = saved_name.split('.')
+        parts = saved_name.split(".")
         # import pdb; pdb.set_trace()
-        record.name = '.'.join(p[0] for p in parts)
+        record.name = ".".join(p[0] for p in parts)
         result = super().format(record)
         record.name = saved_name
         return result
+
 
 class LoggerManager:
     def initialize(self, verbose: bool = False, dry_run: bool = False):
@@ -86,17 +89,17 @@ class LevelFilter:
     def abbreviate(self, package_name: str) -> str:
         """
         Printing logs shorten packages
-        Example: 
+        Example:
           | DEBUG   | e.p.u.prompter:_prompt_user_input:32 - message...
         """
-        parts = package_name.split('.')
+        parts = package_name.split(".")
         if len(parts) <= 1:
             return package_name
         last = parts[len(parts) - 1]
         result = ""
         for p in parts:
             if p == last:
-               result += f"{last}"
+                result += f"{last}"
             else:
                 result += f"{p[0]}."
         return result

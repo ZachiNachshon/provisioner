@@ -30,7 +30,7 @@ class OsArch:
 
     def as_pair(self, mapping: Optional[dict[str, str]] = None) -> str:
         """
-        Return OS_ARCH pairs and allow to set a different architecture name 
+        Return OS_ARCH pairs and allow to set a different architecture name
         e.g. linux_X86_64 --> linux_amd64
         """
         result: str = "{os}_{arch}".format(os=self.os, arch=self.arch)

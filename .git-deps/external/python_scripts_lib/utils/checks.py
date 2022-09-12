@@ -6,7 +6,6 @@ from ..errors.cli_errors import MissingUtilityException
 
 
 class Checks:
-    
     @staticmethod
     def create() -> "Checks":
         logger.debug("Creating checks validator...")
