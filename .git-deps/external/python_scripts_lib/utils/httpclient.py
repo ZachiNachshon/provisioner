@@ -125,9 +125,8 @@ class HttpClient:
         return self._base_request("POST", url=url, body=body, timeout=timeout, headers=headers)
 
     def _download_file(
-        self,
-        url: str,
-        download_folder: Optional[str] = None,
+        self, url: str, 
+        download_folder: Optional[str] = None, 
         verify_already_downloaded: Optional[bool] = False,
         progress_bar: Optional[bool] = False,
     ) -> str:
@@ -149,7 +148,7 @@ class HttpClient:
             raise DownloadFileException(f"Request to {url} returned status code {r.status_code}")
 
         if progress_bar:
-            file_size = int(r.headers.get("Content-Length", 0))
+            file_size = int(r.headers.get('Content-Length', 0))
             desc = "(Unknown total file size)" if file_size == 0 else ""
             r.raw.read = functools.partial(r.raw.read, decode_content=True)
             with tqdm.wrapattr(r.raw, "read", total=file_size, desc=desc) as r_raw:

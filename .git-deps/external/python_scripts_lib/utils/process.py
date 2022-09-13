@@ -6,7 +6,6 @@ from loguru import logger
 from typing import List, Optional
 from ..infra.context import Context
 
-
 class Process:
 
     _dry_run: bool = None
@@ -33,10 +32,10 @@ class Process:
     ) -> str:
 
         if self._dry_run:
-            cmd_str = " ".join(args)
+            cmd_str = ' '.join(args)
             print(f"\n    {cmd_str}\n")
             return ""
-
+        
         logger.debug("Running process:\t{}", " ".join(args))
 
         cwd = working_dir if working_dir else os.getcwd()
@@ -59,7 +58,9 @@ class Process:
         return out
 
     def _is_tool_exist(self, name: str) -> bool:
-        output = self._run(args=["command -v " + name], fail_on_error=False, allow_single_shell_command_str=True)
+        output = self._run(
+            args=["command -v " + name], fail_on_error=False, allow_single_shell_command_str=True
+        )
         return len(output.strip()) > 0
 
     run_fn = _run

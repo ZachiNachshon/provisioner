@@ -5,7 +5,6 @@ from loguru import logger
 from ..infra.context import Context
 from ..colors.color import *
 
-
 class Printer:
 
     _dry_run: bool = None
@@ -25,7 +24,7 @@ class Printer:
     def _print(self, message: str) -> None:
         if self._dry_run and message:
             message = f"{BOLD}{MAGENTA}[DRY-RUN]{NONE} {message}"
-
+            
         print(message)
 
     print_fn = _print

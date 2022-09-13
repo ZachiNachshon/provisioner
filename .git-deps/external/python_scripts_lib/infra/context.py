@@ -16,12 +16,11 @@ class Context:
 
     @staticmethod
     def create(
-        dry_run: Optional[bool] = False,
-        verbose: Optional[bool] = False,
-        auto_prompt: Optional[bool] = False,
-        os_arch: Optional[OsArch] = None,
-    ) -> "Context":
-
+        dry_run: Optional[bool] = False, 
+        verbose: Optional[bool] = False, 
+        auto_prompt: Optional[bool] = False, 
+        os_arch: Optional[OsArch] = None) -> "Context":
+        
         try:
             ctx = Context()
             ctx.os_arch = os_arch if os_arch else OsArch()

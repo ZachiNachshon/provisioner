@@ -17,9 +17,10 @@ class CliGlobalArgs:
 
     @staticmethod
     def create(
-        verbose: Optional[bool] = False, dry_run: Optional[bool] = False, auto_prompt: Optional[bool] = False
-    ) -> None:
-
+        verbose: Optional[bool] = False, 
+        dry_run: Optional[bool] = False, 
+        auto_prompt: Optional[bool] = False) -> None:
+        
         try:
             global cli_global_args
             cli_global_args = CliGlobalArgs(verbose, dry_run, auto_prompt)
@@ -44,6 +45,5 @@ class CliGlobalArgs:
         if not cli_global_args:
             raise CliGlobalArgsNotInitialized("Global args state was not set (main.py)")
         return cli_global_args.auto_prompt
-
 
 cli_global_args: CliGlobalArgs = None

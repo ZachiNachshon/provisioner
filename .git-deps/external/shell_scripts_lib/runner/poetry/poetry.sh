@@ -1,19 +1,17 @@
 #!/bin/bash
 
+# Title         Poetry runner a.k.a Python managed virtual environment
+# Author        Zachi Nachshon <zachi.nachshon@gmail.com>
+# Supported OS  Linux & macOS
+# Description   Runs a job CLI using a local Poetry CLI, install binary if missing
+#==============================================================================
 CURRENT_FOLDER_ABS_PATH=$(dirname "${BASH_SOURCE[0]}")
 RUNNER_FOLDER_ABS_PATH=$(dirname "${CURRENT_FOLDER_ABS_PATH}")
 ROOT_FOLDER_ABS_PATH=$(dirname "${RUNNER_FOLDER_ABS_PATH}")
 
-# shellcheck source=../../logger.sh
 source "${ROOT_FOLDER_ABS_PATH}/logger.sh"
-
-# shellcheck source=../../io.sh
 source "${ROOT_FOLDER_ABS_PATH}/io.sh"
-
-# shellcheck source=../../checks.sh
 source "${ROOT_FOLDER_ABS_PATH}/checks.sh"
-
-# shellcheck source=../../props.sh
 source "${ROOT_FOLDER_ABS_PATH}/props.sh"
 
 PROPERTIES_FOLDER_PATH=${ROOT_FOLDER_ABS_PATH}/runner/poetry
@@ -84,7 +82,10 @@ poetry_set_env_configuration() {
 }
 
 poetry_create_virtual_environment() {
-  local no_dev_deps_flag=$(if is_dev_mode; then echo "--no-dev" else echo ''; fi)
+  local no_dev_deps_flag=''
+  if is_dev_mode; then 
+    echo "--no-dev" 
+  fi
   run_poetry update "${no_dev_deps_flag}"
   run_poetry install "${no_dev_deps_flag}"
   run_poetry build
@@ -175,7 +176,6 @@ verify_poetry_arguments() {
   fi
 }
 
-# Runs a job CLI using a local Poetry CLI, install binary if missing
 # Example:
 # ./runner/poetry/poetry.sh \
 #   "working_dir: /path/to/working/dir" \

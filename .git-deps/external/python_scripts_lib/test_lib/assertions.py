@@ -2,8 +2,8 @@
 
 from typing import Any, Type
 
-
 class Assertion:
+
     @staticmethod
     def expect_failure(testObj, ex_type: Type, methodToRun) -> None:
         failed = False
