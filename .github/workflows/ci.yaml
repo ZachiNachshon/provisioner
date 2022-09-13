@@ -24,18 +24,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Poetry ${{ env.POETRY_VERSION }}
-        run: pipx install poetry==${{ env.POETRY_VERSION }}
+        run: pipx install poetry==${{ env.POETRY_VERSION }} --python python${{ env.PYTHON_VERSION }}
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'poetry'
-
-      - name: Set Poetry to use Python version ${{ env.PYTHON_VERSION }}
-        run: |
-          poetry env use ${{ env.PYTHON_VERSION }}
-          poetry env info
 
       - name: Create virtual environment
         run: make create-update-venv
