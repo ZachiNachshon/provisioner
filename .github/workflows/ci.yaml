@@ -39,8 +39,12 @@ jobs:
           key: poetry
 
       - name: Create virtual environment
-        run: make create-update-venv
+        run: |
+          poetry env use ${{ env.PYTHON_VERSION }}
+          make create-update-venv
 
       - name: Run tests
-        run: make test
+        run: |
+          poetry env use ${{ env.PYTHON_VERSION }}
+          make test
       
