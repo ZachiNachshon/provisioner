@@ -13,6 +13,9 @@ def main_runner(
     dry_run: Optional[bool] = typer.Option(
         False, "--dry-run", "-d", help="Run command as NO-OP, print commands to output, do not execute"
     ),
+    os_arch: Optional[str] = typer.Option(
+        None, "--os-arch", help="Specify a OS_ARCH tuple manually"
+    ),
 ) -> None:
     """
     General purpose utilities
@@ -26,6 +29,9 @@ def main_runner(
     if auto_prompt:
         typer.echo("Auto prompt: enabled")
 
-    CliGlobalArgs.create(verbose, dry_run, auto_prompt)
+    if os_arch:
+        typer.echo(f"OS_Arch supplied manually: {os_arch}")
+
+    CliGlobalArgs.create(verbose, dry_run, auto_prompt, os_arch)
     logger_mgr = LoggerManager()
     logger_mgr.initialize(verbose, dry_run)

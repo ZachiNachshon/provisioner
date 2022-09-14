@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from typing import Optional
+from external.python_scripts_lib.utils.os import OsArch
 import typer
 from loguru import logger
 from rpi.os.install import RPiOsInstallArgs, RPiOsInstallCollaborators, RPiOsInstallRunner, RPiOsInstallArgs
@@ -24,10 +25,14 @@ def install(
     args = RPiOsInstallArgs(image_download_url=image_download_url)
     args.print()
     try:
+        os_arch_str = CliGlobalArgs.maybe_get_os_arch_flag_value()
+        os_arch = OsArch.from_string(os_arch_str) if os_arch_str else None
+        
         ctx = Context.create(
             dry_run=CliGlobalArgs.is_dry_run(),
             verbose=CliGlobalArgs.is_verbose(),
             auto_prompt=CliGlobalArgs.is_auto_prompt(),
+            os_arch=os_arch,
         )
 
         RPiOsInstallRunner().run(ctx=ctx, args=args, collaborators=RPiOsInstallCollaborators(ctx))

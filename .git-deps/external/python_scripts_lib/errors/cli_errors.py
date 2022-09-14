@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+class OsArchInvalidFlagException(Exception):
+    pass
 
 class CliApplicationException(Exception):
     pass

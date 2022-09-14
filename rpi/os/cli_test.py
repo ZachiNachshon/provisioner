@@ -52,12 +52,13 @@ class OsCliTestShould(unittest.TestCase):
         self.assertIsInstance(result.exception, CliApplicationException)
         self.assertEqual(str(result.exception), "runner failure")
 
-    def test_integration_cli_runner_success(self) -> None:
+    def test_integration_darwin_cli_runner_success(self) -> None:
         result = runner.invoke(
             app,
             [
                 "--dry-run",
                 "--auto-prompt",
+                "--os-arch=darwin_amd64",
                 "os",
                 "install",
             ],
@@ -71,3 +72,19 @@ class OsCliTestShould(unittest.TestCase):
         self.assertIn("diskutil mountDisk AUTO_PROMPT_RESPONSE", cmd_output)
         self.assertIn("sudo touch /Volumes/boot/ssh", cmd_output)
         self.assertIn("diskutil eject AUTO_PROMPT_RESPONSE", cmd_output)
+
+    def test_integration_linux_cli_runner_success(self) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "--dry-run",
+                "--auto-prompt",
+                "--os-arch=linux_amd64",
+                "os",
+                "install",
+            ],
+        )
+        cmd_output = str(result.stdout)
+        self.assertIn("lsblk -p", cmd_output)
+        self.assertIn("unzip -p DRY_RUN_DOWNLOAD_FILE_PATH | dd of=AUTO_PROMPT_RESPONSE bs=4M conv=fsync status=progress", cmd_output)
+        self.assertIn("sync", cmd_output)

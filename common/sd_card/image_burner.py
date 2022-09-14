@@ -40,7 +40,7 @@ class ImageBurnerCollaborators(Collaborators):
     def __init__(self, ctx: Context) -> None:
         self.io = IOUtils()
         self.process = Process.create(ctx)
-        self.checks = Checks.create()
+        self.checks = Checks.create(ctx)
         self.printer = Printer.create(ctx)
         self.prompter = Prompter.create(ctx)
         self.properties = Properties.create(self.io)
@@ -173,11 +173,14 @@ class ImageBurnerRunner:
         printer.print_fn("Formatting block device and burning a new image...")
         process.run_fn(
             allow_single_shell_command_str=True,
-            args=f"unzip -p {burn_image_file_path} | dd of={block_device_name} bs=4M conv=fsync status=progress",
+            args=[f"unzip -p {burn_image_file_path} | dd of={block_device_name} bs=4M conv=fsync status=progress"],
         )
 
         printer.print_fn("Flushing write-cache...")
         process.run_fn(args=["sync"])
+
+        # TODO: allow SSH access and eject disk on Linux
+
         printer.print_fn("It is now safe to remove the SD-Card !")
         return True
 

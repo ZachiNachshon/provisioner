@@ -25,7 +25,7 @@ class FakeCollaborators(Collaborators):
         print("Creating Fake collaborators...")
         self.io = FakeIOUtils.create()
         self.process = FakeProcess.create(ctx)
-        self.checks = FakeChecks.create()
+        self.checks = FakeChecks.create(ctx)
         self.prompter = FakePrompter.create(ctx)
         self.printer = FakePrinter.create(ctx)
         self.http_client = FakeHttpClient.create(ctx, self.io)
