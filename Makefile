@@ -40,6 +40,19 @@ test: ## Run Unit/E2E/IT tests
 	@${POETRY_WRAPPER} run coverage html
 	-@echo "\n====\n\nFull coverage report available on the following link:\n\n  • $(PWD)/htmlcov/index.html\n"
 
+.PHONY: test-ci
+# test-ci: fmtcheck ## Run Unit/E2E/IT tests with XML report for app.codecov.io
+test-ci: ## Run Unit/E2E/IT tests with XML report for app.codecov.io
+	@echo "Cleaning up previous runs..."
+	-@rm -rf "$(PWD)/coverage.xml"
+	@echo "Done."
+	@echo "\nRunning tests/coverage..."
+	@${POETRY_WRAPPER_DEV} run coverage run -m pytest
+	@${POETRY_WRAPPER} run coverage report
+	@${POETRY_WRAPPER} run coverage xml
+	-@echo "\n====\n\nFull coverage report available on the following link:\n\n  • $(PWD)/coverage.xml\n"
+
+
 .PHONY: help
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
