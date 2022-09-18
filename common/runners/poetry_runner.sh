@@ -1,18 +1,17 @@
 #!/bin/bash
 
 main() {
-  # Should we add dev dependencies to the Poetry virtual environment
-  local dev_mode="false"
-
   # Working directory, usually the repository root absolute path
   local working_dir=$(pwd)
+
+  # Create virtual environment if one is missing
+  local verify_venv="--verify-venv"
 
   # Trigger the Poetry runner
   ./external/shell_scripts_lib/runner/poetry/poetry.sh \
     "working_dir: ${working_dir}" \
-    "verify_venv: true" \
-    "dev_mode: ${dev_mode}" \
-    "poetry_args: $*"
+    "poetry_args: $*" \
+    "${verify_venv}"
 }
 
 main "$@"

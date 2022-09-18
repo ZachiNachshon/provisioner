@@ -12,7 +12,7 @@ on:
 env:
   # Semantic version range syntax (3.x) or exact version of a Python version
   PYTHON_VERSION: "3.10"
-  POETRY_VERSION: "1.1.12"
+  POETRY_VERSION: "1.2.1"
 
 jobs:
   build:

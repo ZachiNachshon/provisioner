@@ -10,7 +10,7 @@ from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 PROPERTIES_FILE_PATH = "rpi/os/config.properties"
 
 
-class RPiOsInstallArgs:
+class RPiOsConfigureArgs:
 
     image_download_url: str
 
@@ -18,20 +18,20 @@ class RPiOsInstallArgs:
         self.image_download_url = image_download_url
 
     def print(self) -> None:
-        logger.debug("RpiOsInstallArgs: \n" "  image_download_url: {}".format(self.image_download_url))
+        logger.debug("RPiOsConfigureArgs: \n" "  image_download_url: {}".format(self.image_download_url))
 
 
 class Collaborators:
     properties = Properties
 
 
-class RPiOsInstallCollaborators(Collaborators):
+class RPiOsConfigureCollaborators(Collaborators):
     def __init__(self, ctx: Context) -> None:
         self.io = IOUtils()
         self.properties = Properties.create(self.io)
 
 
-class RPiOsInstallRunner:
+class RPiOsConfigureRunner:
     def _read_property(self, properties: Properties, key: str) -> str:
         return properties.read_value_fn(PROPERTIES_FILE_PATH, key)
 
@@ -46,8 +46,8 @@ class RPiOsInstallRunner:
         )
         return os_raspbian_download_url
 
-    def run(self, ctx: Context, args: RPiOsInstallArgs, collaborators: Collaborators) -> None:
-        logger.debug("Inside RpiOsInstallRunner run()")
+    def run(self, ctx: Context, args: RPiOsConfigureArgs, collaborators: Collaborators) -> None:
+        logger.debug("Inside RpiOsConfigureRunner run()")
 
         image_download_url = args.image_download_url
         if args.image_download_url is None:

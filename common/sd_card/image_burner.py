@@ -3,16 +3,16 @@
 import os
 from typing import Any
 from loguru import logger
-from external.python_scripts_lib.utils.httpclient import HttpClient
-from external.python_scripts_lib.utils.patterns import Patterns
-from external.python_scripts_lib.utils.properties import Properties
-from external.python_scripts_lib.utils.io_utils import IOUtils
-from external.python_scripts_lib.utils.process import Process
-from external.python_scripts_lib.infra.context import Context
-from external.python_scripts_lib.utils.checks import Checks
-from external.python_scripts_lib.utils.printer import Printer
-from external.python_scripts_lib.utils.prompter import PromptLevel, Prompter
-from external.python_scripts_lib.colors import color
+from external.python_scripts_lib.python_scripts_lib.utils.httpclient import HttpClient
+from external.python_scripts_lib.python_scripts_lib.utils.patterns import Patterns
+from external.python_scripts_lib.python_scripts_lib.utils.properties import Properties
+from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
+from external.python_scripts_lib.python_scripts_lib.utils.process import Process
+from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from external.python_scripts_lib.python_scripts_lib.utils.checks import Checks
+from external.python_scripts_lib.python_scripts_lib.utils.printer import Printer
+from external.python_scripts_lib.python_scripts_lib.utils.prompter import PromptLevel, Prompter
+from external.python_scripts_lib.python_scripts_lib.colors import color
 
 PATTERNS_FILE_PATH = "common/sd_card/patterns.properties"
 

@@ -84,7 +84,7 @@ poetry_set_env_configuration() {
 poetry_create_virtual_environment() {
   local no_dev_deps_flag=''
   if is_dev_mode; then 
-    echo "--no-dev" 
+    no_dev_deps_flag="--without dev" 
   fi
   run_poetry update "${no_dev_deps_flag}"
   run_poetry install "${no_dev_deps_flag}"

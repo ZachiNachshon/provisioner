@@ -10,10 +10,11 @@ PROJECT_LOCATION=.
 clear-virtual-env: ## Clear Poetry virtual environments
 	@rm -rf .venv
 
+# Add -vv for debug logs
 .PHONY: create-update-venv
 create-update-venv: ## Create/Update a Python virtual env
-	@${POETRY_WRAPPER_DEV} update  # Update latest changes in pyproject.toml lock file
 	@${POETRY_WRAPPER_DEV} install # Download and install dependencies
+	@${POETRY_WRAPPER_DEV} update  # Update latest changes in pyproject.toml lock file
 	@${POETRY_WRAPPER_DEV} build   # Build a tarball package with local Python wheel
 
 .PHONY: fmt

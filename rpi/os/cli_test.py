@@ -4,7 +4,7 @@ import unittest
 from unittest import mock
 from typer.testing import CliRunner
 from rpi.main import app
-from external.python_scripts_lib.errors.cli_errors import CliApplicationException
+from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import CliApplicationException
 
 runner = CliRunner()
 

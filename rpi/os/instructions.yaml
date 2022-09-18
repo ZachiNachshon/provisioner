@@ -5,7 +5,7 @@ instructions:
       title: "Select SD-Card to install Raspbian OS"
       description: "Format an SD-Card and install Raspbian OS on it"
       showOutput: true
-      scriptFile: poetry_runner.sh run rpi os install
+      scriptFile: common/runners/poetry_runner_dev.sh run rpi --dry-run -y os install
       # scriptFile: poetry_runner.sh run rpi --verbose os install
 
     - id: os-raspbian-configure-node

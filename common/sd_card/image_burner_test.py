@@ -4,20 +4,20 @@ import unittest
 from unittest import mock
 from common.sd_card.image_burner import ImageBurnerArgs, ImageBurnerRunner, Collaborators
 
-from external.python_scripts_lib.infra.context import Context
-from external.python_scripts_lib.errors.cli_errors import MissingUtilityException, CliApplicationException
-from external.python_scripts_lib.utils.httpclient_fakes import FakeHttpClient
-from external.python_scripts_lib.utils.os import WINDOWS, LINUX, MAC_OS, OsArch
-from external.python_scripts_lib.utils.io_utils_fakes import FakeIOUtils
-from external.python_scripts_lib.utils.checks_fakes import FakeChecks
-from external.python_scripts_lib.utils.process_fakes import FakeProcess
-from external.python_scripts_lib.utils.prompter_fakes import FakePrompter
-from external.python_scripts_lib.utils.printer_fakes import FakePrinter
-from external.python_scripts_lib.utils.httpclient import HttpClient
-from external.python_scripts_lib.utils.properties_fakes import FakeProperties
-from external.python_scripts_lib.utils.patterns_fakes import FakePatterns
-from external.python_scripts_lib.test_lib.assertions import Assertion
-from external.python_scripts_lib.utils.prompter import PromptLevel, Prompter
+from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import MissingUtilityException, CliApplicationException
+from external.python_scripts_lib.python_scripts_lib.utils.httpclient_fakes import FakeHttpClient
+from external.python_scripts_lib.python_scripts_lib.utils.os import WINDOWS, LINUX, MAC_OS, OsArch
+from external.python_scripts_lib.python_scripts_lib.utils.io_utils_fakes import FakeIOUtils
+from external.python_scripts_lib.python_scripts_lib.utils.checks_fakes import FakeChecks
+from external.python_scripts_lib.python_scripts_lib.utils.process_fakes import FakeProcess
+from external.python_scripts_lib.python_scripts_lib.utils.prompter_fakes import FakePrompter
+from external.python_scripts_lib.python_scripts_lib.utils.printer_fakes import FakePrinter
+from external.python_scripts_lib.python_scripts_lib.utils.httpclient import HttpClient
+from external.python_scripts_lib.python_scripts_lib.utils.properties_fakes import FakeProperties
+from external.python_scripts_lib.python_scripts_lib.utils.patterns_fakes import FakePatterns
+from external.python_scripts_lib.python_scripts_lib.test_lib.assertions import Assertion
+from external.python_scripts_lib.python_scripts_lib.utils.prompter import PromptLevel, Prompter
 
 
 class FakeCollaborators(Collaborators):

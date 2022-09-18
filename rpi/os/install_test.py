@@ -3,11 +3,11 @@
 import unittest
 from unittest import mock
 
-from external.python_scripts_lib.infra.context import Context
 from rpi.os.install import RPiOsInstallArgs, RPiOsInstallRunner, Collaborators
-from external.python_scripts_lib.utils.os import MAC_OS, OsArch
-from external.python_scripts_lib.utils.io_utils_fakes import FakeIOUtils
-from external.python_scripts_lib.utils.properties_fakes import FakeProperties
+from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from external.python_scripts_lib.python_scripts_lib.utils.os import MAC_OS, OsArch
+from external.python_scripts_lib.python_scripts_lib.utils.io_utils_fakes import FakeIOUtils
+from external.python_scripts_lib.python_scripts_lib.utils.properties_fakes import FakeProperties
 
 
 class FakeCollaborators(Collaborators):
