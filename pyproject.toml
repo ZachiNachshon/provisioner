@@ -5,7 +5,6 @@ description = "Provision anything on any remote machine"
 authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
 exclude = ["**/*_test*", "**/*_fake*"]
 packages = [
-    # { include = "tools" },
     { include = "rpi" },
 ]
 
@@ -40,7 +39,8 @@ loguru = "^0.6.0"
 requests = "^2.28.1"
 tqdm = "^4.64.1"      # - Progress Bar for Python and CLI (https://github.com/tqdm/tqdm)
 python3-nmap = "^1.5.4"
-# PyYAML = "^5.4.1"
+python-libnmap = "^0.7.3"
+PyYAML = "^6.0"
 # GitPython = "^3.1.18" # - GitPython provides object model access to your git repository (https://github.com/gitpython-developers/GitPython)
 # #Jinja2 = "^3.0.3"      - Templating engine (https://github.com/pallets/jinja)
 # #sh = "^1.14.2"         - Subprocess replacement for Python (https://github.com/amoffat/sh)

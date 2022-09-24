@@ -38,7 +38,7 @@ class Collaborators:
 
 class ImageBurnerCollaborators(Collaborators):
     def __init__(self, ctx: Context) -> None:
-        self.io = IOUtils()
+        self.io = IOUtils.create(ctx)
         self.process = Process.create(ctx)
         self.checks = Checks.create(ctx)
         self.printer = Printer.create(ctx)

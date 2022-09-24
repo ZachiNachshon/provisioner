@@ -27,7 +27,7 @@ class Collaborators:
 
 class RPiOsConfigureCollaborators(Collaborators):
     def __init__(self, ctx: Context) -> None:
-        self.io = IOUtils()
+        self.io = IOUtils.create(ctx)
         self.properties = Properties.create(self.io)
 
 

@@ -23,7 +23,7 @@ from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompt
 class FakeCollaborators(Collaborators):
     def __init__(self, ctx: Context) -> None:
         print("Creating Fake collaborators...")
-        self.io = FakeIOUtils.create()
+        self.io = FakeIOUtils.create(ctx)
         self.process = FakeProcess.create(ctx)
         self.checks = FakeChecks.create(ctx)
         self.prompter = FakePrompter.create(ctx)
