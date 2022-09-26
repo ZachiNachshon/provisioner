@@ -33,12 +33,12 @@ class RPiOsInstallTestShould(unittest.TestCase):
                 "rpi": {
                     "os": {
                         "raspbian": {
-                            "activeSystem": "64bit",
+                            "active_system": "64bit",
                             "32bit": {
-                                "downloadUrl": "https://burn-image-test-32-bit.com"
+                                "download_url": "https://burn-image-test-32-bit.com"
                             },
                             "64bit": {
-                                "downloadUrl": "https://burn-image-test-64-bit.com"
+                                "download_url": "https://burn-image-test-64-bit.com"
                             }
                         }
                     }
@@ -48,7 +48,7 @@ class RPiOsInstallTestShould(unittest.TestCase):
         return config 
 
     @mock.patch("common.sd_card.image_burner.ImageBurnerRunner.run")
-    def test_burn_os_raspbian_with_custom_url_successfully(self, run_call: mock.MagicMock) -> None:
+    def test_burn_os_raspbian_from_custom_url_successfully(self, run_call: mock.MagicMock) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
 
         download_url = "https://burn-image-test-custom.com"

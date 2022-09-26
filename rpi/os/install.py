@@ -10,7 +10,6 @@ from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.config.config_reader import ConfigReader
 from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
 
-PROPERTIES_FILE_PATH = "rpi/os/config.properties"
 CONFIG_USER_PATH = os.path.expanduser("~/.config/.provisioner/config.yaml")
 CONFIG_INTERNAL_PATH = "rpi/config.yaml"
 
@@ -42,9 +41,9 @@ class RPiOsInstallRunner:
         logger.debug("Inside RpiOsInstallRunner run()")
 
         config: ProvisionerConfig = collaborators.config_reader.read_config_fn(
-            user_path=CONFIG_USER_PATH, 
             internal_path=CONFIG_INTERNAL_PATH, 
-            class_name=ProvisionerConfig)
+            class_name=ProvisionerConfig,
+            user_path=CONFIG_USER_PATH)
 
         image_download_url = args.image_download_url
         if args.image_download_url is None:
