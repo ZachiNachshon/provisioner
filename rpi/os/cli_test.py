@@ -53,6 +53,7 @@ class OsCliTestShould(unittest.TestCase):
         self.assertEqual(str(result.exception), "runner failure")
 
     def test_integration_darwin_cli_runner_success(self) -> None:
+        auto_prompt = "AUTO_PROMPT_RESPONSE" 
         result = runner.invoke(
             app,
             [
@@ -65,15 +66,16 @@ class OsCliTestShould(unittest.TestCase):
         )
         cmd_output = str(result.stdout)
         self.assertIn("diskutil list", cmd_output)
-        self.assertIn("diskutil unmountDisk AUTO_PROMPT_RESPONSE", cmd_output)
-        self.assertIn("unzip -p DRY_RUN_DOWNLOAD_FILE_PATH | sudo dd of=AUTO_PROMPT_RESPONSE bs=1m", cmd_output)
+        self.assertIn(f"diskutil unmountDisk {auto_prompt}", cmd_output)
+        self.assertIn(f"unzip -p DRY_RUN_DOWNLOAD_FILE_PATH | sudo dd of={auto_prompt} bs=1m", cmd_output)
         self.assertIn("sync", cmd_output)
-        self.assertIn("diskutil unmountDisk AUTO_PROMPT_RESPONSE", cmd_output)
-        self.assertIn("diskutil mountDisk AUTO_PROMPT_RESPONSE", cmd_output)
+        self.assertIn(f"diskutil unmountDisk {auto_prompt}", cmd_output)
+        self.assertIn(f"diskutil mountDisk {auto_prompt}", cmd_output)
         self.assertIn("sudo touch /Volumes/boot/ssh", cmd_output)
-        self.assertIn("diskutil eject AUTO_PROMPT_RESPONSE", cmd_output)
+        self.assertIn(f"diskutil eject {auto_prompt}", cmd_output)
 
     def test_integration_linux_cli_runner_success(self) -> None:
+        auto_prompt = "AUTO_PROMPT_RESPONSE" 
         result = runner.invoke(
             app,
             [
@@ -86,5 +88,5 @@ class OsCliTestShould(unittest.TestCase):
         )
         cmd_output = str(result.stdout)
         self.assertIn("lsblk -p", cmd_output)
-        self.assertIn("unzip -p DRY_RUN_DOWNLOAD_FILE_PATH | dd of=AUTO_PROMPT_RESPONSE bs=4M conv=fsync status=progress", cmd_output)
+        self.assertIn(f"unzip -p DRY_RUN_DOWNLOAD_FILE_PATH | dd of={auto_prompt} bs=4M conv=fsync status=progress", cmd_output)
         self.assertIn("sync", cmd_output)

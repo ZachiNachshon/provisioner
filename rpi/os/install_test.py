@@ -17,7 +17,8 @@ class FakeCollaborators(Collaborators):
     def __init__(self, ctx: Context) -> None:
         print("Creating Fake collaborators...")
         self.io = FakeIOUtils.create(ctx)
-        self.config_reader = FakeConfigReader.create(yaml_util=YamlUtil.create(self.io))
+        self.yaml_util = YamlUtil.create(ctx, self.io)
+        self.config_reader = FakeConfigReader.create(self.yaml_util)
 
 #
 # To run these directly from the terminal use:

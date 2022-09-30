@@ -5,7 +5,6 @@ from typing import Any
 from loguru import logger
 from external.python_scripts_lib.python_scripts_lib.utils.httpclient import HttpClient
 from external.python_scripts_lib.python_scripts_lib.utils.patterns import Patterns
-from external.python_scripts_lib.python_scripts_lib.utils.properties import Properties
 from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.process import Process
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
@@ -13,16 +12,16 @@ from external.python_scripts_lib.python_scripts_lib.utils.checks import Checks
 from external.python_scripts_lib.python_scripts_lib.utils.printer import Printer
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import PromptLevel, Prompter
 from external.python_scripts_lib.python_scripts_lib.colors import color
-
-PATTERNS_FILE_PATH = "common/sd_card/patterns.properties"
-
+from external.python_scripts_lib.python_scripts_lib.infra.evaluator import Evaluator
 
 class ImageBurnerArgs:
 
     image_download_url: str
+    image_download_path: str
 
-    def __init__(self, download_url: str) -> None:
+    def __init__(self, download_url: str, download_path: str) -> None:
         self.image_download_url = download_url
+        self.image_download_path = download_path
 
 
 class Collaborators:
@@ -31,8 +30,6 @@ class Collaborators:
     checks: Checks
     printer = Printer
     prompter = Prompter
-    properties = Properties
-    patterns = Patterns
     http_client = HttpClient
 
 
@@ -43,8 +40,6 @@ class ImageBurnerCollaborators(Collaborators):
         self.checks = Checks.create(ctx)
         self.printer = Printer.create(ctx)
         self.prompter = Prompter.create(ctx)
-        self.properties = Properties.create(self.io)
-        self.patterns = Patterns.create(self.io)
         self.http_client = HttpClient.create(ctx, self.io)
 
 
@@ -54,35 +49,40 @@ class ImageBurnerRunner:
 
         self.prerequisites(ctx=ctx, checks=collaborators.checks)
 
-        collaborators.printer.print_fn("Please select a block device:\n")
+        collaborators.printer.print_fn("Please select a block device:")
+        collaborators.printer.new_line_fn()
 
         block_devices = self.read_block_devices(ctx=ctx, process=collaborators.process)
-        if self.eval_step_failure(ctx, block_devices, "Cannot read block devices"):
+        if Evaluator.eval_step_failure(ctx, block_devices, "Cannot read block devices"):
             return
 
+        logger.debug("Printing available block devices")
         collaborators.printer.print_fn(block_devices)
 
         block_device_name = self.select_block_device(prompter=collaborators.prompter)
-        if self.eval_step_failure(ctx, block_device_name, "Block device was not selected, aborting"):
+        if Evaluator.eval_step_failure(ctx, block_device_name, "Block device was not selected, aborting"):
             return
 
         is_verified = self.verify_block_device_name(
             block_devices=block_devices, selected_block_device=block_device_name
         )
-        if self.eval_step_failure(ctx, is_verified, "Block device is not part of the available block devices"):
+        if Evaluator.eval_step_failure(ctx, is_verified, "Block device is not part of the available block devices"):
             return
 
         should_continue = self.ask_to_verify_block_device(
             block_device_name=block_device_name, prompter=collaborators.prompter
         )
-        if self.eval_step_failure(ctx, should_continue, "Aborted due to user request"):
+        if Evaluator.eval_step_failure(ctx, should_continue, "Aborted due to user request"):
             return
 
         image_file_path = self.download_image(
-            args.image_download_url, collaborators.http_client, collaborators.patterns, collaborators.printer
+            args.image_download_url, 
+            args.image_download_path, 
+            collaborators.http_client, 
+            collaborators.printer
         )
 
-        if self.eval_step_failure(ctx, image_file_path, "Failed to download image to burn"):
+        if Evaluator.eval_step_failure(ctx, image_file_path, "Failed to download image to burn"):
             return
 
         logger.debug(f"Burn image candidate is located at path: {image_file_path}")
@@ -95,34 +95,21 @@ class ImageBurnerRunner:
             collaborators.prompter,
             collaborators.printer,
         )
-        if self.eval_step_failure(ctx, success, "Failed burning an image"):
+        if Evaluator.eval_step_failure(ctx, success, "Failed burning an image"):
             return
-
-    def eval_step_failure(self, ctx: Context, step_response: Any, err_msg: str) -> bool:
-        result = False
-        if ctx.is_dry_run():
-            # On dry run, allow running all step commands
-            return result
-
-        if not step_response:
-            logger.critical(err_msg)
-            result = True
-
-        return result
 
     def download_image(
         self,
         image_download_url: str,
+        image_download_path: str,
         http_client: HttpClient,
-        patterns: Patterns,
         printer: Printer,
     ) -> str:
-        download_folder = self.resolve_pattern(patterns, "sd_card.image.download.path")
         filename = os.path.basename(image_download_url)
         printer.print_fn(f"Downloading image to burn. file: {filename}")
         return http_client.download_file_fn(
             url=image_download_url,
-            download_folder=download_folder,
+            download_folder=image_download_path,
             verify_already_downloaded=True,
             progress_bar=True,
         )
@@ -253,7 +240,7 @@ class ImageBurnerRunner:
         return prompter.prompt_user_input_fn("Type block device name")
 
     def read_block_devices(self, ctx: Context, process: Process) -> str:
-        logger.debug("Printing available block devices")
+        logger.debug("Reading available block devices")
         output = ""
         if ctx.os_arch.is_linux():
             output = process.run_fn(args=["lsblk", "-p"])
@@ -267,9 +254,6 @@ class ImageBurnerRunner:
             raise NotImplementedError("OS is not supported")
 
         return output
-
-    def resolve_pattern(self, patterns: Patterns, key: str) -> str:
-        return patterns.resolve_pattern_fn(PATTERNS_FILE_PATH, key)
 
     def prerequisites(self, ctx: Context, checks: Checks) -> None:
         if ctx.os_arch.is_linux():

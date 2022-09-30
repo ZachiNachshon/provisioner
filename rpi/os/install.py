@@ -22,7 +22,8 @@ class RPiOsInstallArgs:
         self.image_download_url = image_download_url
 
     def print(self) -> None:
-        logger.debug("RpiOsInstallArgs: \n" "  image_download_url: {}".format(self.image_download_url))
+        logger.debug("RpiOsInstallArgs: \n" +
+            f"  image_download_url: {self.image_download_url}")
 
 
 class Collaborators:
@@ -32,7 +33,7 @@ class Collaborators:
 class RPiOsInstallCollaborators(Collaborators):
     def __init__(self, ctx: Context) -> None:
         self.io = IOUtils.create(ctx)
-        self.yaml_util = YamlUtil.create(self.io)
+        self.yaml_util = YamlUtil.create(ctx, self.io)
         self.config_reader = ConfigReader.create(self.yaml_util)
 
 
@@ -45,10 +46,11 @@ class RPiOsInstallRunner:
             class_name=ProvisionerConfig,
             user_path=CONFIG_USER_PATH)
 
-        image_download_url = args.image_download_url
-        if args.image_download_url is None:
-            image_download_url = config.get_os_raspbian_download_url()
+        image_download_url = config.get_os_raspbian_download_url() if args.image_download_url is None else args.image_download_url
+        image_download_path = config.download_path
 
         ImageBurnerRunner().run(
-            ctx=ctx, args=ImageBurnerArgs(image_download_url), collaborators=ImageBurnerCollaborators(ctx)
+            ctx=ctx, 
+            args=ImageBurnerArgs(image_download_url, image_download_path), 
+            collaborators=ImageBurnerCollaborators(ctx)
         )

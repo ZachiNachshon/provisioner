@@ -5,9 +5,11 @@ from unittest import mock
 from common.sd_card.image_burner import ImageBurnerArgs, ImageBurnerRunner, Collaborators
 
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from external.python_scripts_lib.python_scripts_lib.config.config_reader_fakes import FakeConfigReader
 from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import MissingUtilityException, CliApplicationException
 from external.python_scripts_lib.python_scripts_lib.utils.httpclient_fakes import FakeHttpClient
 from external.python_scripts_lib.python_scripts_lib.utils.os import WINDOWS, LINUX, MAC_OS, OsArch
+from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
 from external.python_scripts_lib.python_scripts_lib.utils.io_utils_fakes import FakeIOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.checks_fakes import FakeChecks
 from external.python_scripts_lib.python_scripts_lib.utils.process_fakes import FakeProcess
@@ -15,7 +17,6 @@ from external.python_scripts_lib.python_scripts_lib.utils.prompter_fakes import 
 from external.python_scripts_lib.python_scripts_lib.utils.printer_fakes import FakePrinter
 from external.python_scripts_lib.python_scripts_lib.utils.httpclient import HttpClient
 from external.python_scripts_lib.python_scripts_lib.utils.properties_fakes import FakeProperties
-from external.python_scripts_lib.python_scripts_lib.utils.patterns_fakes import FakePatterns
 from external.python_scripts_lib.python_scripts_lib.test_lib.assertions import Assertion
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import PromptLevel, Prompter
 
@@ -29,8 +30,9 @@ class FakeCollaborators(Collaborators):
         self.prompter = FakePrompter.create(ctx)
         self.printer = FakePrinter.create(ctx)
         self.http_client = FakeHttpClient.create(ctx, self.io)
-        self.patterns = FakePatterns.create(ctx, self.io)
         self.properties = FakeProperties.create(ctx, self.io)
+        self.yaml_util = YamlUtil.create(ctx, self.io)
+        self.config_reader = FakeConfigReader.create(self.yaml_util)
 
 
 #
@@ -395,13 +397,14 @@ class ImageBurnerTestShould(unittest.TestCase):
             download_image.return_value = None
 
             image_download_url = "https://burn-image-test.download.com"
+            image_download_path = "/path/to/downloaded/image"
 
             cols = self.create_fake_collaborators(ctx)
             runner = ImageBurnerRunner()
-            runner.run(ctx=ctx, args=ImageBurnerArgs(image_download_url), collaborators=cols)
+            runner.run(ctx=ctx, args=ImageBurnerArgs(image_download_url, image_download_path), collaborators=cols)
 
             self.assertEqual(1, download_image.call_count)
-            download_image.assert_called_once_with(image_download_url, cols.http_client, cols.patterns, cols.printer)
+            download_image.assert_called_once_with(image_download_url, image_download_path, cols.http_client, cols.printer)
 
     def test_burn_image_run_fail_to_burn_image(self) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
@@ -430,7 +433,10 @@ class ImageBurnerTestShould(unittest.TestCase):
 
             cols = self.create_fake_collaborators(ctx)
             runner = ImageBurnerRunner()
-            runner.run(ctx=ctx, args=ImageBurnerArgs("https://burn-image-test.download.com"), collaborators=cols)
+            runner.run(
+                ctx=ctx, 
+                args=ImageBurnerArgs("https://burn-image-test.download.com", "/path/to/downloaded/image"), 
+                collaborators=cols)
 
             self.assertEqual(1, burn_image.call_count)
             burn_image.assert_called_once_with(
@@ -457,16 +463,20 @@ class ImageBurnerTestShould(unittest.TestCase):
         fake_http_client = mock.MagicMock(name="http-client", spec=HttpClient)
 
         download_url = "https://burn-image-test.com"
-        expected_download_folder = "/path/to/downloaded/image/file"
+        download_path = "/path/to/downloaded/image"
 
         cols = self.create_fake_collaborators(ctx)
-        cols.patterns.register_pattern_key(key="sd_card.image.download.path", expected_value=expected_download_folder)
-
+        
         runner = ImageBurnerRunner()
-        path = runner.download_image(download_url, fake_http_client, cols.patterns, cols.printer)
+        path = runner.download_image(
+            download_url, 
+            download_path,
+            fake_http_client,
+            cols.printer)
+
         fake_http_client.download_file_fn.assert_called_once_with(
             url=download_url,
             verify_already_downloaded=True,
-            download_folder=expected_download_folder,
+            download_folder=download_path,
             progress_bar=True,
         )

@@ -29,6 +29,7 @@ fmtcheck: ## Validate Python code format with Black style standards (https://bla
 typecheck: ## Check for Python static types errors (https://mypy.readthedocs.io/en/stable/index.html)
 	@${POETRY_WRAPPER_DEV} run mypy */**/*.py
 
+# To test a single test file run - poetry run coverage run -m pytest python_scripts_lib/utils/network_test.py
 .PHONY: test
 # test: fmtcheck ## Run Unit/E2E/IT tests
 test: ## Run Unit/E2E/IT tests
