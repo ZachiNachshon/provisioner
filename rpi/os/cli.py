@@ -28,7 +28,7 @@ def install(
     try:
         os_arch_str = CliGlobalArgs.maybe_get_os_arch_flag_value()
         os_arch = OsArch.from_string(os_arch_str) if os_arch_str else None
-        
+
         ctx = Context.create(
             dry_run=CliGlobalArgs.is_dry_run(),
             verbose=CliGlobalArgs.is_verbose(),
@@ -45,12 +45,8 @@ def install(
 @os_cli_app.command(name="configure")
 @logger.catch(reraise=True)
 def configure(
-    node_username: Optional[str] = typer.Option(
-        None, help="RPi node username", envvar="NODE_USERNAME"
-    ),
-    node_password: Optional[str] = typer.Option(
-        None, help="RPi node password", envvar="NODE_PASSWORD"
-    ),
+    node_username: Optional[str] = typer.Option(None, help="RPi node username", envvar="NODE_USERNAME"),
+    node_password: Optional[str] = typer.Option(None, help="RPi node password", envvar="NODE_PASSWORD"),
     ip_discovery_range: Optional[str] = typer.Option(
         None, help="LAN network IP discovery range", envvar="IP_DISCOVERY_RANGE"
     ),
@@ -59,12 +55,14 @@ def configure(
     Select a remote Raspberry Pi node to configure Raspbian OS software and hardware settings.
     Configuration is aimed for an optimal headless Raspberry Pi used as a Kubernetes cluster node.
     """
-    args = RPiOsConfigureArgs(node_username=node_username, node_password=node_password, ip_discovery_range=ip_discovery_range)
+    args = RPiOsConfigureArgs(
+        node_username=node_username, node_password=node_password, ip_discovery_range=ip_discovery_range
+    )
     args.print()
     try:
         os_arch_str = CliGlobalArgs.maybe_get_os_arch_flag_value()
         os_arch = OsArch.from_string(os_arch_str) if os_arch_str else None
-        
+
         ctx = Context.create(
             dry_run=CliGlobalArgs.is_dry_run(),
             verbose=CliGlobalArgs.is_verbose(),

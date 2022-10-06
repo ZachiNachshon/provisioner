@@ -14,6 +14,7 @@ from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompt
 from external.python_scripts_lib.python_scripts_lib.colors import color
 from external.python_scripts_lib.python_scripts_lib.infra.evaluator import Evaluator
 
+
 class ImageBurnerArgs:
 
     image_download_url: str
@@ -76,10 +77,7 @@ class ImageBurnerRunner:
             return
 
         image_file_path = self.download_image(
-            args.image_download_url, 
-            args.image_download_path, 
-            collaborators.http_client, 
-            collaborators.printer
+            args.image_download_url, args.image_download_path, collaborators.http_client, collaborators.printer
         )
 
         if Evaluator.eval_step_failure(ctx, image_file_path, "Failed to download image to burn"):

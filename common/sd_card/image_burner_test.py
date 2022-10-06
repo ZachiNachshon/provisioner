@@ -6,7 +6,10 @@ from common.sd_card.image_burner import ImageBurnerArgs, ImageBurnerRunner, Coll
 
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.config.config_reader_fakes import FakeConfigReader
-from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import MissingUtilityException, CliApplicationException
+from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
+    MissingUtilityException,
+    CliApplicationException,
+)
 from external.python_scripts_lib.python_scripts_lib.utils.httpclient_fakes import FakeHttpClient
 from external.python_scripts_lib.python_scripts_lib.utils.os import WINDOWS, LINUX, MAC_OS, OsArch
 from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
@@ -404,7 +407,9 @@ class ImageBurnerTestShould(unittest.TestCase):
             runner.run(ctx=ctx, args=ImageBurnerArgs(image_download_url, image_download_path), collaborators=cols)
 
             self.assertEqual(1, download_image.call_count)
-            download_image.assert_called_once_with(image_download_url, image_download_path, cols.http_client, cols.printer)
+            download_image.assert_called_once_with(
+                image_download_url, image_download_path, cols.http_client, cols.printer
+            )
 
     def test_burn_image_run_fail_to_burn_image(self) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
@@ -434,9 +439,10 @@ class ImageBurnerTestShould(unittest.TestCase):
             cols = self.create_fake_collaborators(ctx)
             runner = ImageBurnerRunner()
             runner.run(
-                ctx=ctx, 
-                args=ImageBurnerArgs("https://burn-image-test.download.com", "/path/to/downloaded/image"), 
-                collaborators=cols)
+                ctx=ctx,
+                args=ImageBurnerArgs("https://burn-image-test.download.com", "/path/to/downloaded/image"),
+                collaborators=cols,
+            )
 
             self.assertEqual(1, burn_image.call_count)
             burn_image.assert_called_once_with(
@@ -466,13 +472,9 @@ class ImageBurnerTestShould(unittest.TestCase):
         download_path = "/path/to/downloaded/image"
 
         cols = self.create_fake_collaborators(ctx)
-        
+
         runner = ImageBurnerRunner()
-        path = runner.download_image(
-            download_url, 
-            download_path,
-            fake_http_client,
-            cols.printer)
+        path = runner.download_image(download_url, download_path, fake_http_client, cols.printer)
 
         fake_http_client.download_file_fn.assert_called_once_with(
             url=download_url,

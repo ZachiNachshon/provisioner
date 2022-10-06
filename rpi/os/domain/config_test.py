@@ -4,14 +4,17 @@ import os
 import unittest
 
 from rpi.os.domain.config import ProvisionerConfig
-from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import FailedToSerializeConfiguration, NotInitialized
+from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
+    FailedToSerializeConfiguration,
+    NotInitialized,
+)
 from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
 
-class ProvisionerConfigTestShould(unittest.TestCase):
 
+class ProvisionerConfigTestShould(unittest.TestCase):
     def test_config_partial_merge_with_user_config(self):
         ctx = Context.create()
         yaml_util = YamlUtil.create(ctx=ctx, io_utils=IOUtils.create(ctx))
@@ -25,7 +28,7 @@ provisioner:
           download_url: http://download-url-64-bit.com
         32bit:
           download_url: http://download-url-32-bit.com
-"""        
+"""
         internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, class_name=ProvisionerConfig)
 
         user_yaml_str = """
@@ -67,7 +70,7 @@ provisioner:
     ansible:
       playbook:
         path: external/ansible_playbooks/playbooks/roles/rpi_config_node
-"""        
+"""
         internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, class_name=ProvisionerConfig)
 
         user_yaml_str = """
@@ -102,8 +105,10 @@ provisioner:
         self.assertEqual(merged_config_obj.ip_discovery_range, "1.1.1.1/24")
         self.assertEqual(merged_config_obj.node_username, "pi-user")
         self.assertEqual(merged_config_obj.node_password, "raspberry-user")
-        self.assertEqual(merged_config_obj.ansible_playbook_folder_path, "external/ansible_playbooks/playbooks/roles/rpi_config_node-user")
-
+        self.assertEqual(
+            merged_config_obj.ansible_playbook_folder_path,
+            "external/ansible_playbooks/playbooks/roles/rpi_config_node-user",
+        )
 
     def test_config_fail_on_invalid_user_config(self):
         ctx = Context.create()
@@ -130,7 +135,7 @@ provisioner:
           download_url: http://download-url-64-bit.com
         32bit:
           download_url: http://download-url-32-bit.com
-"""        
+"""
         internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, class_name=ProvisionerConfig)
         internal_config_obj.get_os_raspbian_download_url()
         self.assertEqual(internal_config_obj.download_url_32bit, "http://download-url-32-bit.com")

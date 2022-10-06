@@ -15,4 +15,4 @@ instructions:
       \t\t• Hardware (mem-split, camera, GPU, audio etc...)\n
       \t\t• System   (keyboard, hostname, timezone, locale etc...)"
       showOutput: true
-      scriptFile: poetry_runner.sh run rpi os configure
+      scriptFile: common/runners/poetry_runner_dev.sh run rpi os configure

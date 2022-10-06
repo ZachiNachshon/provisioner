@@ -53,7 +53,7 @@ class OsCliTestShould(unittest.TestCase):
         self.assertEqual(str(result.exception), "runner failure")
 
     def test_integration_darwin_cli_runner_success(self) -> None:
-        auto_prompt = "AUTO_PROMPT_RESPONSE" 
+        auto_prompt = "AUTO_PROMPT_RESPONSE"
         result = runner.invoke(
             app,
             [
@@ -75,7 +75,7 @@ class OsCliTestShould(unittest.TestCase):
         self.assertIn(f"diskutil eject {auto_prompt}", cmd_output)
 
     def test_integration_linux_cli_runner_success(self) -> None:
-        auto_prompt = "AUTO_PROMPT_RESPONSE" 
+        auto_prompt = "AUTO_PROMPT_RESPONSE"
         result = runner.invoke(
             app,
             [
@@ -88,5 +88,7 @@ class OsCliTestShould(unittest.TestCase):
         )
         cmd_output = str(result.stdout)
         self.assertIn("lsblk -p", cmd_output)
-        self.assertIn(f"unzip -p DRY_RUN_DOWNLOAD_FILE_PATH | dd of={auto_prompt} bs=4M conv=fsync status=progress", cmd_output)
+        self.assertIn(
+            f"unzip -p DRY_RUN_DOWNLOAD_FILE_PATH | dd of={auto_prompt} bs=4M conv=fsync status=progress", cmd_output
+        )
         self.assertIn("sync", cmd_output)

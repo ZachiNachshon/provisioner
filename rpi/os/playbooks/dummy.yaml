@@ -1,0 +1,29 @@
+---
+- name: Playbook dummy
+  hosts: selected_hosts
+  gather_facts: no
+  tasks:
+    - name: dummy
+      include_tasks: ../../../external/ansible_playbooks/playbooks/hello_world.yaml
+      vars:
+          name: "Zachi"
+
+  # roles:
+  #   # - role: ../../external/ansible_playbooks/playbooks/roles/path_local_bin
+  #   - role: external/ansible_playbooks/playbooks/roles/path_local_bin
+  #     tags: ['hello_world']
+
+  # roles:
+  #   - role: ../../external/ansible_playbooks/playbooks/roles/rpi_config_node
+  #     tags: ['rpi_config_node']
+
+# - name: Configure a RPi node
+#   hosts: selected_hosts
+#   gather_facts: no
+#   tasks:
+#     - name: Prepare playbook variables
+#       set_fact:
+#         host_name: "{{ host_name }}"
+#         static_ip: "{{ static_ip }}"
+#         gateway_address: "{{ gateway_address }}"
+#         dns_address: "{{ dns_address }}"

@@ -22,8 +22,7 @@ class RPiOsInstallArgs:
         self.image_download_url = image_download_url
 
     def print(self) -> None:
-        logger.debug("RpiOsInstallArgs: \n" +
-            f"  image_download_url: {self.image_download_url}")
+        logger.debug("RpiOsInstallArgs: \n" + f"  image_download_url: {self.image_download_url}")
 
 
 class Collaborators:
@@ -42,15 +41,16 @@ class RPiOsInstallRunner:
         logger.debug("Inside RpiOsInstallRunner run()")
 
         config: ProvisionerConfig = collaborators.config_reader.read_config_fn(
-            internal_path=CONFIG_INTERNAL_PATH, 
-            class_name=ProvisionerConfig,
-            user_path=CONFIG_USER_PATH)
+            internal_path=CONFIG_INTERNAL_PATH, class_name=ProvisionerConfig, user_path=CONFIG_USER_PATH
+        )
 
-        image_download_url = config.get_os_raspbian_download_url() if args.image_download_url is None else args.image_download_url
+        image_download_url = (
+            config.get_os_raspbian_download_url() if args.image_download_url is None else args.image_download_url
+        )
         image_download_path = config.download_path
 
         ImageBurnerRunner().run(
-            ctx=ctx, 
-            args=ImageBurnerArgs(image_download_url, image_download_path), 
-            collaborators=ImageBurnerCollaborators(ctx)
+            ctx=ctx,
+            args=ImageBurnerArgs(image_download_url, image_download_path),
+            collaborators=ImageBurnerCollaborators(ctx),
         )

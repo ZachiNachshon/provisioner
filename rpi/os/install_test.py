@@ -13,12 +13,14 @@ from external.python_scripts_lib.python_scripts_lib.config.config_reader_fakes i
 
 CONFIG_INTERNAL_PATH = "rpi/config.yaml"
 
+
 class FakeCollaborators(Collaborators):
     def __init__(self, ctx: Context) -> None:
         print("Creating Fake collaborators...")
         self.io = FakeIOUtils.create(ctx)
         self.yaml_util = YamlUtil.create(ctx, self.io)
         self.config_reader = FakeConfigReader.create(self.yaml_util)
+
 
 #
 # To run these directly from the terminal use:
@@ -29,24 +31,22 @@ class RPiOsInstallTestShould(unittest.TestCase):
         return FakeCollaborators(ctx)
 
     def create_fake_config(self) -> ProvisionerConfig:
-        config = ProvisionerConfig({
-            "provisioner": {
-                "rpi": {
-                    "os": {
-                        "raspbian": {
-                            "active_system": "64bit",
-                            "32bit": {
-                                "download_url": "https://burn-image-test-32-bit.com"
-                            },
-                            "64bit": {
-                                "download_url": "https://burn-image-test-64-bit.com"
+        config = ProvisionerConfig(
+            {
+                "provisioner": {
+                    "rpi": {
+                        "os": {
+                            "raspbian": {
+                                "active_system": "64bit",
+                                "32bit": {"download_url": "https://burn-image-test-32-bit.com"},
+                                "64bit": {"download_url": "https://burn-image-test-64-bit.com"},
                             }
                         }
                     }
                 }
             }
-        })
-        return config 
+        )
+        return config
 
     @mock.patch("common.sd_card.image_burner.ImageBurnerRunner.run")
     def test_burn_os_raspbian_from_custom_url_successfully(self, run_call: mock.MagicMock) -> None:
