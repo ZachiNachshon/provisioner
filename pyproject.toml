@@ -38,8 +38,6 @@ python = "^3.10"
 typer = "^0.6.1"
 loguru = "^0.6.0"
 requests = "^2.28.1"
-# Before removing this package, need to update http_client to use rich progress
-tqdm = "^4.64.1"      # - Progress Bar for Python and CLI (https://github.com/tqdm/tqdm)
 rich = "^12.5.1"      # - Progress Bar for Python and CLI (https://github.com/Textualize/rich)
 python3-nmap = "^1.5.4"
 python-libnmap = "^0.7.3"

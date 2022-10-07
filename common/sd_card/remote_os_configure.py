@@ -38,7 +38,6 @@ class Collaborators:
     process = Process
     printer = Printer
     prompter = Prompter
-    progress_indicator = ProgressIndicator
     ansible_runner = AnsibleRunner
     network_util: NetworkUtil
 
@@ -48,11 +47,10 @@ class RemoteMachineConfigureCollaborators(Collaborators):
         self.io = IOUtils.create(ctx)
         self.checks = Checks.create(ctx)
         self.process = Process.create(ctx)
-        self.printer = Printer.create(ctx)
+        self.printer = Printer.create(ctx, ProgressIndicator.create(ctx, self.io))
         self.prompter = Prompter.create(ctx)
         self.ansible_runner = AnsibleRunner.create(ctx, self.io, self.process)
-        self.progress_indicator = ProgressIndicator.create(ctx)
-        self.network_util = NetworkUtil.create(ctx, self.progress_indicator)
+        self.network_util = NetworkUtil.create(ctx, self.printer)
 
 
 class RemoteMachineConfigureRunner:
@@ -79,7 +77,7 @@ class RemoteMachineConfigureRunner:
 
         collaborators.printer.new_line_fn()
 
-        output = collaborators.progress_indicator.status.long_running_process_fn(
+        output = collaborators.printer.progress_indicator.status.long_running_process_fn(
             call=lambda: collaborators.ansible_runner.run_fn(
                 working_dir=collaborators.io.get_current_directory_fn(),
                 username=username,
@@ -89,7 +87,7 @@ class RemoteMachineConfigureRunner:
                 selected_hosts=[HostIpPair(host=hostname, ip_address=host_ip_address)],
             ),
             desc_run="Running Ansible playbook",
-            desc_end="Ansible playbook finished."
+            desc_end="Ansible playbook finished.",
         )
 
         collaborators.printer.new_line_fn()

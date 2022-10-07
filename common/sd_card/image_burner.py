@@ -3,6 +3,7 @@
 import os
 from typing import Any
 from loguru import logger
+from external.python_scripts_lib.python_scripts_lib.utils.progress_indicator import ProgressIndicator
 from external.python_scripts_lib.python_scripts_lib.utils.httpclient import HttpClient
 from external.python_scripts_lib.python_scripts_lib.utils.patterns import Patterns
 from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
@@ -39,9 +40,9 @@ class ImageBurnerCollaborators(Collaborators):
         self.io = IOUtils.create(ctx)
         self.process = Process.create(ctx)
         self.checks = Checks.create(ctx)
-        self.printer = Printer.create(ctx)
+        self.printer = Printer.create(ctx, ProgressIndicator.create(ctx, self.io))
         self.prompter = Prompter.create(ctx)
-        self.http_client = HttpClient.create(ctx, self.io)
+        self.http_client = HttpClient.create(ctx, self.io, self.printer)
 
 
 class ImageBurnerRunner:

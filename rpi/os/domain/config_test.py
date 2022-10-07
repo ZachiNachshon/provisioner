@@ -106,7 +106,7 @@ provisioner:
         self.assertEqual(merged_config_obj.node_username, "pi-user")
         self.assertEqual(merged_config_obj.node_password, "raspberry-user")
         self.assertEqual(
-            merged_config_obj.ansible_playbook_folder_path,
+            merged_config_obj.ansible_playbook_file_path,
             "external/ansible_playbooks/playbooks/roles/rpi_config_node-user",
         )
 

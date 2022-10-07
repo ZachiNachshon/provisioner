@@ -40,7 +40,7 @@ class FakeCollaborators(Collaborators):
 
 #
 # To run these directly from the terminal use:
-#  poetry run rpi --dry-run os install
+#  poetry run rpi --dry-run --verbose --auto-prompt os install
 #
 class ImageBurnerTestShould(unittest.TestCase):
     def create_fake_collaborators(self, ctx: Context) -> FakeCollaborators:
