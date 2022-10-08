@@ -263,5 +263,5 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
             prompter=cols.prompter,
         )
 
-        # self.assertIsNotNone(ip_address)
+        self.assertIsNotNone(ip_address)
         self.assertEqual(ip_address, expected_ip_address)
