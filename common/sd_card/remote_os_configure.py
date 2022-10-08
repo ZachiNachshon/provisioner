@@ -33,12 +33,12 @@ class RemoteMachineConfigureArgs:
 
 
 class Collaborators:
-    io = IOUtils
+    io: IOUtils
     checks: Checks
-    process = Process
-    printer = Printer
-    prompter = Prompter
-    ansible_runner = AnsibleRunner
+    process: Process
+    printer: Printer
+    prompter: Prompter
+    ansible_runner: AnsibleRunner
     network_util: NetworkUtil
 
 
@@ -172,12 +172,11 @@ class RemoteMachineConfigureRunner:
         for scan_item in scan_dict:
             options_dict.append(scan_dict[scan_item])
 
-        selected_scanned_item: tuple[str, int] = prompter.prompt_user_selection_fn(
+        selected_scanned_item: dict = prompter.prompt_user_selection_fn(
             message="Please choose a network device", options=options_dict
         )
 
-        selected_ip_addr = selected_scanned_item["ip_address"] if selected_scanned_item is not None else None
-        return selected_ip_addr
+        return selected_scanned_item["ip_address"] if selected_scanned_item is not None else None
 
     def prerequisites(self, ctx: Context, checks: Checks) -> None:
         if ctx.os_arch.is_linux():

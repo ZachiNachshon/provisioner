@@ -5,7 +5,6 @@ from unittest import mock
 from common.sd_card.image_burner import ImageBurnerArgs, ImageBurnerRunner, Collaborators
 
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
-from external.python_scripts_lib.python_scripts_lib.config.config_reader_fakes import FakeConfigReader
 from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
     MissingUtilityException,
     CliApplicationException,
@@ -33,9 +32,6 @@ class FakeCollaborators(Collaborators):
         self.prompter = FakePrompter.create(ctx)
         self.printer = FakePrinter.create(ctx)
         self.http_client = FakeHttpClient.create(ctx, self.io)
-        self.properties = FakeProperties.create(ctx, self.io)
-        self.yaml_util = YamlUtil.create(ctx, self.io)
-        self.config_reader = FakeConfigReader.create(self.yaml_util)
 
 
 #
@@ -142,7 +138,7 @@ class ImageBurnerTestShould(unittest.TestCase):
         os_image_file_path = "/path/to/image/file"
 
         cols = self.create_fake_collaborators(ctx)
-        cols.prompter.set_yes_no_response(False)
+        cols.prompter.register_yes_no_prompt("ARE YOU SURE YOU WANT TO FORMAT BLOCK DEVICE", False)
 
         runner = ImageBurnerRunner()
         result = runner.burn_image_linux(
@@ -157,6 +153,7 @@ class ImageBurnerTestShould(unittest.TestCase):
         os_image_file_path = "/path/to/image/file"
 
         cols = self.create_fake_collaborators(ctx)
+        cols.prompter.register_yes_no_prompt("ARE YOU SURE YOU WANT TO FORMAT BLOCK DEVICE", True)
         cols.process.register_command(
             cmd_str=f"unzip -p {os_image_file_path} | dd of={block_device_name} bs=4M conv=fsync status=progress",
             expected_output="",
@@ -179,7 +176,7 @@ class ImageBurnerTestShould(unittest.TestCase):
         os_image_file_path = "/path/to/image/file"
 
         cols = self.create_fake_collaborators(ctx)
-        cols.prompter.set_yes_no_response(False)
+        cols.prompter.register_yes_no_prompt("ARE YOU SURE YOU WANT TO FORMAT BLOCK DEVICE", False)
 
         runner = ImageBurnerRunner()
         result = runner.burn_image_darwin(
@@ -195,6 +192,7 @@ class ImageBurnerTestShould(unittest.TestCase):
         os_image_file_path = "/path/to/image/file"
 
         cols = self.create_fake_collaborators(ctx)
+        cols.prompter.register_yes_no_prompt("ARE YOU SURE YOU WANT TO FORMAT BLOCK DEVICE", True)
         cols.process.register_command(
             cmd_str=f"diskutil unmountDisk {block_device_name}",
             expected_output="",
