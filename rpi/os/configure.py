@@ -17,7 +17,6 @@ from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlU
 
 CONFIG_USER_PATH = os.path.expanduser("~/.config/.provisioner/config.yaml")
 CONFIG_INTERNAL_PATH = "rpi/config.yaml"
-ANSIBLE_PLAYBOOK_FOLDER_PATH = "external/ansible_playbooks/playbooks/roles/rpi_config_node"
 
 
 class RPiOsConfigureArgs:
