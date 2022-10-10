@@ -22,7 +22,7 @@ class RPiOsInstallArgs:
         self.image_download_url = image_download_url
 
     def print(self) -> None:
-        logger.debug("RpiOsInstallArgs: \n" + f"  image_download_url: {self.image_download_url}")
+        logger.debug("RpiOsInstallArgs: \n" + f"  image_download_url: {self.image_download_url}\n")
 
 
 class Collaborators:

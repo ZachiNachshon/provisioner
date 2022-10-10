@@ -14,6 +14,9 @@ from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
 
 
+# To run as a single test target:
+# poetry run coverage run -m pytest rpi/os/domain/config_test.py
+# 
 class ProvisionerConfigTestShould(unittest.TestCase):
     def test_config_partial_merge_with_user_config(self):
         ctx = Context.create()
@@ -24,10 +27,9 @@ provisioner:
     os:
       raspbian:
         active_system: 64bit
-        64bit:
-          download_url: http://download-url-64-bit.com
-        32bit:
-          download_url: http://download-url-32-bit.com
+        download_url:
+          64bit: http://download-url-64-bit.com
+          32bit: http://download-url-32-bit.com
 """
         internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, class_name=ProvisionerConfig)
 
@@ -37,9 +39,8 @@ provisioner:
     os:
       raspbian:
         active_system: 32bit
-        32bit:
-          download_url: http://download-url-32-bit-user.com
-
+        download_url:
+          32bit: http://download-url-32-bit-user.com
 """
         user_config_obj = yaml_util.read_string_fn(yaml_str=user_yaml_str, class_name=ProvisionerConfig)
         merged_config_obj = internal_config_obj.merge(user_config_obj)
@@ -57,19 +58,22 @@ provisioner:
       raspbian:
         active_system: 64bit
         download_path: $HOME/temp/rpi_raspios_image
-        64bit:
-          download_url: http://download-url-64-bit.com
-        32bit:
-          download_url: http://download-url-32-bit.com
+        download_url:
+          64bit: http://download-url-64-bit.com
+          32bit: http://download-url-32-bit.com
 
     node:
-      ip_discovery_range: 192.168.1.100/24
+      ip_discovery_range: 192.168.1.1/24
       username: pi
       password: raspberry
+      gw_ip_address: 192.168.1.1
+      dns_ip_address: 192.168.1.1
 
     ansible:
-      playbook:
-        path: external/ansible_playbooks/playbooks/roles/rpi_config_node
+      playbooks:
+        configure_os: rpi/os/playbooks/configure_os.yaml
+        configure_network: rpi/os/playbooks/configure_network.yaml
+        wait_for_network: rpi/os/playbooks/wait_for_network.yaml
 """
         internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, class_name=ProvisionerConfig)
 
@@ -80,20 +84,22 @@ provisioner:
       raspbian:
         active_system: 32bit
         download_path: $HOME/temp/rpi_raspios_image_user
-        64bit:
-          download_url: http://download-url-64-bit-user.com
-        32bit:
-          download_url: http://download-url-32-bit-user.com
+        download_url:
+          64bit: http://download-url-64-bit-user.com
+          32bit: http://download-url-32-bit-user.com
 
     node:
       ip_discovery_range: 1.1.1.1/24
       username: pi-user
       password: raspberry-user
+      gw_ip_address: 1.1.1.1
+      dns_ip_address: 2.2.2.2
 
     ansible:
-      playbook:
-        path: external/ansible_playbooks/playbooks/roles/rpi_config_node-user
-
+      playbooks:
+        configure_os: rpi/os/playbooks/configure_os_user.yaml
+        configure_network: rpi/os/playbooks/configure_network_user.yaml
+        wait_for_network: rpi/os/playbooks/wait_for_network_user.yaml
 """
         user_config_obj = yaml_util.read_string_fn(yaml_str=user_yaml_str, class_name=ProvisionerConfig)
         merged_config_obj = internal_config_obj.merge(user_config_obj)
@@ -105,9 +111,19 @@ provisioner:
         self.assertEqual(merged_config_obj.ip_discovery_range, "1.1.1.1/24")
         self.assertEqual(merged_config_obj.node_username, "pi-user")
         self.assertEqual(merged_config_obj.node_password, "raspberry-user")
+        self.assertEqual(merged_config_obj.gw_ip_address, "1.1.1.1")
+        self.assertEqual(merged_config_obj.dns_ip_address, "2.2.2.2")
         self.assertEqual(
-            merged_config_obj.ansible_playbook_file_path,
-            "external/ansible_playbooks/playbooks/roles/rpi_config_node-user",
+            merged_config_obj.ansible_playbook_path_configure_os,
+            "rpi/os/playbooks/configure_os_user.yaml",
+        )
+        self.assertEqual(
+            merged_config_obj.ansible_playbook_path_configure_network,
+            "rpi/os/playbooks/configure_network_user.yaml",
+        )
+        self.assertEqual(
+            merged_config_obj.ansible_playbook_path_wait_for_network,
+            "rpi/os/playbooks/wait_for_network_user.yaml",
         )
 
     def test_config_fail_on_invalid_user_config(self):
@@ -131,10 +147,9 @@ provisioner:
     os:
       raspbian:
         active_system: 32bit
-        64bit:
-          download_url: http://download-url-64-bit.com
-        32bit:
-          download_url: http://download-url-32-bit.com
+        download_url:
+          64bit: http://download-url-64-bit.com
+          32bit: http://download-url-32-bit.com
 """
         internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, class_name=ProvisionerConfig)
         internal_config_obj.get_os_raspbian_download_url()

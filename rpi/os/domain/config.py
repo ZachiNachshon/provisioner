@@ -14,7 +14,12 @@ class ProvisionerConfig(SerializationBase):
     ip_discovery_range: str = None
     node_username: str = None
     node_password: str = None
-    ansible_playbook_file_path: str = None
+    gw_ip_address: str = None
+    dns_ip_address: str = None
+
+    ansible_playbook_path_configure_os: str = None
+    ansible_playbook_path_configure_network: str = None
+    ansible_playbook_path_wait_for_network: str = None
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
@@ -22,14 +27,16 @@ class ProvisionerConfig(SerializationBase):
     def _parse_os_block(self, os_block: dict):
         if "raspbian" in os_block:
             raspbian_block = os_block["raspbian"]
-            if "active_system" in raspbian_block:
-                self.active_system = raspbian_block["active_system"]
             if "download_path" in raspbian_block:
                 self.download_path = raspbian_block["download_path"]
-            if "32bit" in raspbian_block:
-                self.download_url_32bit = raspbian_block["32bit"]["download_url"]
-            if "64bit" in raspbian_block:
-                self.download_url_64bit = raspbian_block["64bit"]["download_url"]
+            if "active_system" in raspbian_block:
+                self.active_system = raspbian_block["active_system"]
+            if "download_url" in raspbian_block:
+                download_url_block = raspbian_block["download_url"]
+                if "32bit" in download_url_block:
+                    self.download_url_32bit = download_url_block["32bit"]
+                if "64bit" in download_url_block:
+                    self.download_url_64bit = download_url_block["64bit"]
 
     def _parse_node_block(self, node_block: dict):
         if "ip_discovery_range" in node_block:
@@ -38,12 +45,20 @@ class ProvisionerConfig(SerializationBase):
             self.node_username = node_block["username"]
         if "password" in node_block:
             self.node_password = node_block["password"]
+        if "gw_ip_address" in node_block:
+            self.gw_ip_address = node_block["gw_ip_address"]
+        if "dns_ip_address" in node_block:
+            self.dns_ip_address = node_block["dns_ip_address"]
 
     def _parse_ansible_block(self, ansible_block: dict):
-        if "playbook" in ansible_block:
-            playbook_block = ansible_block["playbook"]
-            if "path" in playbook_block:
-                self.ansible_playbook_file_path = playbook_block["path"]
+        if "playbooks" in ansible_block:
+            playbooks_block = ansible_block["playbooks"]
+            if "configure_os" in playbooks_block:
+                self.ansible_playbook_path_configure_os = playbooks_block["configure_os"]
+            if "configure_network" in playbooks_block:
+                self.ansible_playbook_path_configure_network = playbooks_block["configure_network"]
+            if "wait_for_network" in playbooks_block:
+                self.ansible_playbook_path_wait_for_network = playbooks_block["wait_for_network"]
 
     def _try_parse_config(self, dict_obj: dict):
         provisioner_data = dict_obj["provisioner"]
@@ -82,8 +97,20 @@ class ProvisionerConfig(SerializationBase):
         if other.node_password:
             self.node_password = other.node_password
 
-        if other.ansible_playbook_file_path:
-            self.ansible_playbook_file_path = other.ansible_playbook_file_path
+        if other.gw_ip_address:
+            self.gw_ip_address = other.gw_ip_address
+
+        if other.dns_ip_address:
+            self.dns_ip_address = other.dns_ip_address
+
+        if other.ansible_playbook_path_configure_os:
+            self.ansible_playbook_path_configure_os = other.ansible_playbook_path_configure_os
+
+        if other.ansible_playbook_path_configure_network:
+            self.ansible_playbook_path_configure_network = other.ansible_playbook_path_configure_network
+
+        if other.ansible_playbook_path_wait_for_network:
+            self.ansible_playbook_path_wait_for_network = other.ansible_playbook_path_wait_for_network
 
         return self
 

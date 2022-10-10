@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import unittest
 from unittest import mock
 from typer.testing import CliRunner
@@ -144,14 +145,15 @@ class OsCliTestShould(unittest.TestCase):
                 "configure",
             ],
         )
+        working_dir = os.getcwd()
         cmd_output = str(result.stdout)
         self.assertIn(
-            "bash \
+            f"bash \
 ./external/shell_scripts_lib/runner/ansible/ansible.sh \
-working_dir: /Users/zachin/codebase/github/provisioner \
+working_dir: {working_dir} \
 username: AUTO_PROMPT_RESPONSE \
 password: AUTO_PROMPT_RESPONSE \
-playbook_path: rpi/os/playbooks/dummy.yaml \
+playbook_path: rpi/os/playbooks/configure_os.yaml \
 selected_host: AUTO_PROMPT_RESPONSE \
 None \
 ansible_var: host_name=AUTO_PROMPT_RESPONSE \
@@ -170,14 +172,15 @@ ansible_var: host_name=AUTO_PROMPT_RESPONSE \
                 "configure",
             ],
         )
+        working_dir = os.getcwd()
         cmd_output = str(result.stdout)
         self.assertIn(
-            "bash \
+            f"bash \
 ./external/shell_scripts_lib/runner/ansible/ansible.sh \
-working_dir: /Users/zachin/codebase/github/provisioner \
+working_dir: {working_dir} \
 username: AUTO_PROMPT_RESPONSE \
 password: AUTO_PROMPT_RESPONSE \
-playbook_path: rpi/os/playbooks/dummy.yaml \
+playbook_path: rpi/os/playbooks/configure_os.yaml \
 selected_host: AUTO_PROMPT_RESPONSE \
 None \
 ansible_var: host_name=AUTO_PROMPT_RESPONSE \

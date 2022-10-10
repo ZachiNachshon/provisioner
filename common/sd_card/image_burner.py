@@ -54,48 +54,59 @@ class ImageBurnerRunner:
         collaborators.printer.print_fn("Please select a block device:")
         collaborators.printer.new_line_fn()
 
-        block_devices = self.read_block_devices(ctx=ctx, process=collaborators.process)
-        if Evaluator.eval_step_failure(ctx, block_devices, "Cannot read block devices"):
-            return
+        block_devices = Evaluator.eval_step_failure_throws(
+            call=lambda: self.read_block_devices(ctx=ctx, process=collaborators.process),
+            ctx=ctx,
+            err_msg="Cannot read block devices",
+        )
 
         logger.debug("Printing available block devices")
         collaborators.printer.print_fn(block_devices)
 
-        block_device_name = self.select_block_device(prompter=collaborators.prompter)
-        if Evaluator.eval_step_failure(ctx, block_device_name, "Block device was not selected, aborting"):
-            return
-
-        is_verified = self.verify_block_device_name(
-            block_devices=block_devices, selected_block_device=block_device_name
-        )
-        if Evaluator.eval_step_failure(ctx, is_verified, "Block device is not part of the available block devices"):
-            return
-
-        should_continue = self.ask_to_verify_block_device(
-            block_device_name=block_device_name, prompter=collaborators.prompter
-        )
-        if Evaluator.eval_step_failure(ctx, should_continue, "Aborted due to user request"):
-            return
-
-        image_file_path = self.download_image(
-            args.image_download_url, args.image_download_path, collaborators.http_client, collaborators.printer
+        block_device_name = Evaluator.eval_step_failure_throws(
+            call=lambda: self.select_block_device(prompter=collaborators.prompter),
+            ctx=ctx,
+            err_msg="Block device was not selected, aborting",
         )
 
-        if Evaluator.eval_step_failure(ctx, image_file_path, "Failed to download image to burn"):
-            return
+        Evaluator.eval_step_failure_throws(
+            call=lambda: self.verify_block_device_name(
+                block_devices=block_devices, selected_block_device=block_device_name
+            ),
+            ctx=ctx,
+            err_msg="Block device is not part of the available block devices",
+        )
+
+        Evaluator.eval_step_failure_throws(
+            call=lambda: self.ask_to_verify_block_device(
+                block_device_name=block_device_name, prompter=collaborators.prompter
+            ),
+            ctx=ctx,
+            err_msg="Aborted due to user request",
+        )
+
+        image_file_path = Evaluator.eval_step_failure_throws(
+            call=lambda: self.download_image(
+                args.image_download_url, args.image_download_path, collaborators.http_client, collaborators.printer
+            ),
+            ctx=ctx,
+            err_msg="Failed to download image to burn",
+        )
 
         logger.debug(f"Burn image candidate is located at path: {image_file_path}")
 
-        success = self.burn_image(
-            ctx,
-            block_device_name,
-            image_file_path,
-            collaborators.process,
-            collaborators.prompter,
-            collaborators.printer,
+        Evaluator.eval_step_failure_throws(
+            call=lambda: self.burn_image(
+                ctx,
+                block_device_name,
+                image_file_path,
+                collaborators.process,
+                collaborators.prompter,
+                collaborators.printer,
+            ),
+            ctx=ctx,
+            err_msg="Failed burning an image",
         )
-        if Evaluator.eval_step_failure(ctx, success, "Failed burning an image"):
-            return
 
     def download_image(
         self,

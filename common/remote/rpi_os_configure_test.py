@@ -2,7 +2,7 @@
 
 import unittest
 from unittest import mock
-from common.sd_card.remote_os_configure import RemoteMachineConfigureArgs, RemoteMachineConfigureRunner, Collaborators
+from common.remote.rpi_os_configure import RemoteMachineOsConfigureArgs, RemoteMachineOsConfigureRunner, Collaborators
 
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
@@ -44,12 +44,12 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
     def create_fake_collaborators(self, ctx: Context) -> FakeCollaborators:
         return FakeCollaborators(ctx)
 
-    def create_fake_configure_args(self) -> RemoteMachineConfigureArgs:
-        return RemoteMachineConfigureArgs(
+    def create_fake_configure_args(self) -> RemoteMachineOsConfigureArgs:
+        return RemoteMachineOsConfigureArgs(
             node_username="test-user",
             node_password="test-password",
             ip_discovery_range="1.1.1.1/24",
-            ansible_playbook_file_path="/test/path/ansible/playbook.yaml",
+            ansible_playbook_path_configure_os="/test/path/ansible/playbook.yaml",
         )
 
     def test_prerequisites_fail_missing_utility(self) -> None:
@@ -57,7 +57,7 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
 
         cols = self.create_fake_collaborators(ctx)
 
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         Assertion.expect_failure(
             self, ex_type=MissingUtilityException, methodToRun=lambda: runner.prerequisites(ctx, cols.checks)
         )
@@ -67,7 +67,7 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
 
         cols = self.create_fake_collaborators(ctx)
         cols.checks.register_utility("docker")
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         Assertion.expect_success(self, methodToRun=lambda: runner.prerequisites(ctx, cols.checks))
 
     def test_prerequisites_darwin_success(self) -> None:
@@ -75,13 +75,13 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
 
         cols = self.create_fake_collaborators(ctx)
         cols.checks.register_utility("docker")
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         Assertion.expect_success(self, methodToRun=lambda: runner.prerequisites(ctx, cols.checks))
 
     def test_prerequisites_fail_on_os_not_supported(self) -> None:
         ctx = Context.create(os_arch=OsArch(os=WINDOWS, arch="test_arch", os_release="test_os_release"))
 
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         Assertion.expect_failure(self, ex_type=NotImplementedError, methodToRun=lambda: runner.prerequisites(ctx, None))
 
         ctx = Context.create(
@@ -89,7 +89,7 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
             verbose=False,
             dry_run=False,
         )
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         Assertion.expect_failure(self, ex_type=NotImplementedError, methodToRun=lambda: runner.prerequisites(ctx, None))
 
     def test_get_host_ip_address_manual(self) -> None:
@@ -100,7 +100,7 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
         cols.prompter.register_yes_no_prompt("Scan LAN network for RPi IP address at range", False)
         cols.prompter.register_user_input_prompt("Enter RPi node IP address", expected_ip_address)
 
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         output = runner._get_host_ip_address(collaborators=cols, ip_discovery_range=None)
 
         self.assertEqual(expected_ip_address, output)
@@ -113,11 +113,11 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
         cols.prompter.register_yes_no_prompt("Scan LAN network for RPi IP address at range", True)
 
         with mock.patch.object(
-            RemoteMachineConfigureRunner, "_run_ip_address_selection_flow"
+            RemoteMachineOsConfigureRunner, "_run_ip_address_selection_flow"
         ) as run_ip_address_selection_flow:
 
             run_ip_address_selection_flow.return_value = expected_ip_address
-            runner = RemoteMachineConfigureRunner()
+            runner = RemoteMachineOsConfigureRunner()
             output = runner._get_host_ip_address(collaborators=cols, ip_discovery_range=None)
 
             self.assertEqual(1, run_ip_address_selection_flow.call_count)
@@ -127,8 +127,8 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
         args = self.create_fake_configure_args()
 
-        with mock.patch.object(RemoteMachineConfigureRunner, "prerequisites") as prerequisites, mock.patch.object(
-            RemoteMachineConfigureRunner, "_get_host_ip_address"
+        with mock.patch.object(RemoteMachineOsConfigureRunner, "prerequisites") as prerequisites, mock.patch.object(
+            RemoteMachineOsConfigureRunner, "_get_host_ip_address"
         ) as get_host_ip_address:
 
             prerequisites.return_value = True
@@ -136,7 +136,7 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
 
             cols = self.create_fake_collaborators(ctx)
 
-            runner = RemoteMachineConfigureRunner()
+            runner = RemoteMachineOsConfigureRunner()
             runner.run(ctx=ctx, args=args, collaborators=cols)
 
             self.assertEqual(1, get_host_ip_address.call_count)
@@ -157,7 +157,7 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
         cols.prompter.register_user_input_prompt("Enter RPi node password", expected_password)
         cols.prompter.register_user_input_prompt("Enter RPi node host name", expected_hostname)
 
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         ssh_info_tuple = runner._get_ssh_connection_info(
             ctx, cols.printer, cols.prompter, expected_ip_address, args.node_username, args.node_password
         )
@@ -175,7 +175,7 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
         args = self.create_fake_configure_args()
 
         cols.prompter.register_user_input_prompt("Enter RPi node user", None)
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         ssh_info_tuple = runner._get_ssh_connection_info(
             ctx, cols.printer, cols.prompter, expected_ip_address, args.node_username, args.node_password
         )
@@ -193,7 +193,7 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
 
         cols.prompter.register_user_input_prompt("Enter RPi node user", expected_username)
         cols.prompter.register_user_input_prompt("Enter RPi node password", None)
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         ssh_info_tuple = runner._get_ssh_connection_info(
             ctx, cols.printer, cols.prompter, expected_ip_address, args.node_username, args.node_password
         )
@@ -213,7 +213,7 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
         cols.prompter.register_user_input_prompt("Enter RPi node user", expected_username)
         cols.prompter.register_user_input_prompt("Enter RPi node password", expected_password)
         cols.prompter.register_user_input_prompt("Enter RPi node host name", None)
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         ssh_info_tuple = runner._get_ssh_connection_info(
             ctx, cols.printer, cols.prompter, expected_ip_address, args.node_username, args.node_password
         )
@@ -226,7 +226,7 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
         cols = self.create_fake_collaborators(ctx)
         args = self.create_fake_configure_args()
 
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         ip_address = runner._run_ip_address_selection_flow(
             ip_discovery_range=args.ip_discovery_range,
             network_util=cols.network_util,
@@ -254,7 +254,7 @@ class RemoteMachineConfigureTestShould(unittest.TestCase):
         cols.network_util.register_scan_result(args.ip_discovery_range, expected_scanned_result)
         cols.prompter.register_user_selection_prompt("Please choose a network device", expected_scanned_result)
 
-        runner = RemoteMachineConfigureRunner()
+        runner = RemoteMachineOsConfigureRunner()
         ip_address = runner._run_ip_address_selection_flow(
             ip_discovery_range=args.ip_discovery_range,
             network_util=cols.network_util,

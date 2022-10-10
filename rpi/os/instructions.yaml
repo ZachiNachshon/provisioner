@@ -6,7 +6,6 @@ instructions:
       description: "Format an SD-Card and install Raspbian OS on it"
       showOutput: true
       scriptFile: common/runners/poetry_runner_dev.sh run rpi --dry-run -y os install
-      # scriptFile: poetry_runner.sh run rpi --verbose os install
 
     - id: os-raspbian-configure-node
       displayName: "2. Raspbian OS: Configure"
@@ -16,3 +15,10 @@ instructions:
       \t\t• System   (keyboard, hostname, timezone, locale etc...)"
       showOutput: true
       scriptFile: common/runners/poetry_runner_dev.sh run rpi os configure
+
+    - id: os-raspbian-network-setup
+      displayName: "3. Raspbian OS: Network"
+      title: "Select RPi node for setting up static IP address"
+      description: "Define a static IP address and a hostname for a specific RPi node"
+      showOutput: true
+      scriptFile: common/runners/poetry_runner_dev.sh run rpi --dry-run -y os network

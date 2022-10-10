@@ -51,7 +51,7 @@ class RPiOsConfigureTestShould(unittest.TestCase):
         )
         return config
 
-    @mock.patch("common.sd_card.remote_os_configure.RemoteMachineConfigureRunner.run")
+    @mock.patch("common.remote.rpi_os_configure.RemoteMachineOsConfigureRunner.run")
     def test_configure_os_with_custom_config_successfully(self, run_call: mock.MagicMock) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
 
@@ -83,7 +83,7 @@ class RPiOsConfigureTestShould(unittest.TestCase):
         self.assertEqual(expected_ip_discovery_range, img_burner_call_args.ip_discovery_range)
         self.assertEqual(expected_ansible_playbook_path, img_burner_call_args.ansible_playbook_file_path)
 
-    @mock.patch("common.sd_card.remote_os_configure.RemoteMachineConfigureRunner.run")
+    @mock.patch("common.remote.rpi_os_configure.RemoteMachineOsConfigureRunner.run")
     def test_configure_os_with_default_config_successfully(self, run_call: mock.MagicMock) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
 
