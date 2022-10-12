@@ -50,7 +50,8 @@ def install(
         logger.critical("Failed to configure RPi network. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:
         logger.critical("Failed to burn Raspbian OS. ex: {}, message: {}", e.__class__.__name__, str(e))
-        raise CliApplicationException(e)
+        if CliGlobalArgs.is_verbose():
+            raise CliApplicationException(e)
 
 
 @os_cli_app.command(name="configure")
@@ -86,7 +87,8 @@ def configure(
         logger.critical("Failed to configure RPi network. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:
         logger.critical("Failed to configure Raspbian OS. ex: {}, message: {}", e.__class__.__name__, str(e))
-        raise CliApplicationException(e)
+        if CliGlobalArgs.is_verbose():
+            raise CliApplicationException(e)
 
 
 @os_cli_app.command(name="network")
@@ -135,4 +137,5 @@ def configure(
         logger.critical("Failed to configure RPi network. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:
         logger.critical("Failed to configure RPi network. ex: {}, message: {}", e.__class__.__name__, str(e))
-        raise CliApplicationException(e)
+        if CliGlobalArgs.is_verbose():
+            raise CliApplicationException(e)

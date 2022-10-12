@@ -1,9 +1,9 @@
 ---
-- name: Playbook dummy
+- name: Playbook used to configure Raspbian OS on remote RPi host
   hosts: selected_hosts
   gather_facts: no
   tasks:
-    - name: dummy
+    - name: hello world
       include_tasks: ../../../external/ansible_playbooks/playbooks/hello_world.yaml
       vars:
           name: "Zachi"

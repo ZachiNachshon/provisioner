@@ -5,7 +5,7 @@ import os
 from typing import Optional
 from loguru import logger
 from rpi.os.domain.config import ProvisionerConfig
-from common.remote.rpi_os_configure import (
+from common.remote.remote_os_configure import (
     RemoteMachineOsConfigureCollaborators,
     RemoteMachineOsConfigureRunner,
     RemoteMachineOsConfigureArgs,

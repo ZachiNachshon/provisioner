@@ -8,7 +8,6 @@ from external.python_scripts_lib.python_scripts_lib.utils.checks import Checks
 from external.python_scripts_lib.python_scripts_lib.utils.printer import Printer
 from external.python_scripts_lib.python_scripts_lib.utils.network import NetworkUtil
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompter
-from external.python_scripts_lib.python_scripts_lib.colors import color
 
 
 class SSHConnectionInfo:
@@ -71,8 +70,8 @@ class RemoteMachineConnector:
         self, ctx: Context, host_ip_address: str, arg_static_ip: str, arg_gw_address: str, arg_dns_address: str
     ) -> DHCPCDConfigurationInfo:
 
-        self.printer.print_fn(
-            print_instructions_dhcpcd_config(
+        self.printer.print_with_rich_table_fn(
+            generate_instructions_dhcpcd_config(
                 ip_address=host_ip_address, default_gw_address=arg_gw_address, default_dns_address=arg_dns_address
             )
         )
@@ -130,8 +129,8 @@ class RemoteMachineConnector:
         arg_password: str,
     ) -> SSHConnectionInfo:
 
-        self.printer.print_fn(
-            print_instructions_connect_via_ssh(ip_address=host_ip_address, user=arg_username, password="REDACTED")
+        self.printer.print_with_rich_table_fn(
+            generate_instructions_connect_via_ssh(ip_address=host_ip_address, user=arg_username, password="REDACTED")
         )
 
         username = Evaluator.eval_step_failure_throws(
@@ -170,7 +169,7 @@ class RemoteMachineConnector:
             logger.warning("Missing mandatory utility. name: nmap")
             return None
 
-        self.printer.print_fn(print_instructions_network_scan())
+        self.printer.print_with_rich_table_fn(generate_instructions_network_scan())
         scan_dict = self.network_util.get_all_lan_network_devices_fn(ip_range=ip_discovery_range, show_progress=True)
         self.printer.new_line_fn()
 
@@ -185,46 +184,41 @@ class RemoteMachineConnector:
         return selected_scanned_item["ip_address"] if selected_scanned_item is not None else None
 
 
-def print_instructions_network_scan() -> str:
+def generate_instructions_network_scan() -> str:
     return f"""
-  ================================================================================================
-  Required mandatory locally installed utility: {color.YELLOW}nmap{color.NONE}.
-  {color.YELLOW}Elevated user permissions are required for this step !{color.NONE}
+  Required mandatory locally installed utility: [yellow]nmap[/yellow].
+  [yellow]Elevated user permissions are required for this step ![/yellow]
 
   This step scans all devices on the LAN network and lists the following:
 
     • IP Address
     • Device Name
-  ================================================================================================
 """
 
 
-def print_instructions_connect_via_ssh(ip_address: str, user: str, password: str):
+def generate_instructions_connect_via_ssh(ip_address: str, user: str, password: str):
     return f"""
-  ================================================================================================
-  Gathering SSH connection information for address {color.YELLOW}{ip_address}{color.NONE}.
+  Gathering SSH connection information for address [yellow]{ip_address}[/yellow].
 
   Requirements:
     • Ansible or Docker
       If Ansible is missing, a Docker image will be built and used instead.
 
-  {color.YELLOW}This step prompts for connection access information (press ENTER for defaults):
-    • Raspberry Pi node user     (default: {user})
-    • Raspberry Pi node password (default: {password}){color.NONE}
+  [yellow]This step prompts for connection access information (press ENTER for defaults):[/yellow]
+    • Raspberry Pi node user     (default: [yellow]{user}[/yellow])
+    • Raspberry Pi node password (default: [yellow]{password}[/yellow])
 
   To change the default values, please refer to the documentation.
-  ================================================================================================
 """
 
 
-def print_instructions_dhcpcd_config(ip_address: str, default_gw_address: str, default_dns_address: str):
+def generate_instructions_dhcpcd_config(ip_address: str, default_gw_address: str, default_dns_address: str):
     return f"""
-  ================================================================================================
-  About to define a static IP via SSH on address {color.YELLOW}{ip_address}{color.NONE}.
+  About to define a static IP via SSH on address [yellow]{ip_address}[/yellow].
   Subnet mask used for static IPs is xxx.xxx.xxx.xxx/24 (255.255.255.0).
 
-  {color.RED}Static IP address must be unique !
-  Make sure it is not used anywhere else within LAN network or DHCP address pool range.{color.NONE}
+  [red]Static IP address must be unique !
+  Make sure it is not used anywhere else within LAN network or DHCP address pool range.[/red]
 
   Requirements:
     • Ansible or Docker
@@ -235,5 +229,4 @@ def print_instructions_dhcpcd_config(ip_address: str, default_gw_address: str, d
     • Raspberry Pi node desired hostname
     • Internet gateway address / home router address   (default: {default_gw_address})
     • Domain name server address / home router address (default: {default_dns_address})
-  ================================================================================================
 """

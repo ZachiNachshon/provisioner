@@ -82,18 +82,20 @@ class RemoteMachineOsConfigureRunner:
                 selected_hosts=[HostIpPair(host=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address)],
             ),
             desc_run="Running Ansible playbook (Configure OS)",
-            desc_end="Ansible playbook finished.",
+            desc_end="Ansible playbook finished (Configure OS).",
         )
 
         collaborators.printer.new_line_fn()
         collaborators.printer.print_fn(output)
-        collaborators.printer.print_fn(
-            print_instructions_post_configure(hostname=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address)
+        collaborators.printer.print_with_rich_table_fn(
+            generate_instructions_post_configure(
+                hostname=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address
+            )
         )
 
     def _print_pre_run_instructions(self, printer: Printer, prompter: Prompter):
-        printer.print_fn(template_logo_configure())
-        printer.print_fn(print_instructions_pre_configure())
+        printer.print_fn(generate_logo_configure())
+        printer.print_with_rich_table_fn(generate_instructions_pre_configure())
         prompter.prompt_for_enter()
 
     def prerequisites(self, ctx: Context, checks: Checks) -> None:
@@ -109,7 +111,7 @@ class RemoteMachineOsConfigureRunner:
             raise NotImplementedError("OS is not supported")
 
 
-def template_logo_configure() -> str:
+def generate_logo_configure() -> str:
     return f"""
  ██████╗ ███████╗     ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗ ██╗   ██╗██████╗ ███████╗
 ██╔═══██╗██╔════╝    ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝ ██║   ██║██╔══██╗██╔════╝
@@ -120,9 +122,8 @@ def template_logo_configure() -> str:
 """
 
 
-def print_instructions_pre_configure() -> str:
+def generate_instructions_pre_configure() -> str:
     return f"""
-  ================================================================================================
   This script configures Raspbian OS software and hardware settings on a remote Raspberry Pi node.
   Configuration is aimed for an optimal headless Raspberry Pi used as a Kubernetes cluster node.
 
@@ -131,30 +132,13 @@ def print_instructions_pre_configure() -> str:
     2. Connect the SD-Card to a Raspberry Pi node
     3. Connect the Raspberry Pi node to a power supply
     4. Connect the Raspberry Pi node to the network
-  ================================================================================================
 """
 
 
-def print_instructions_network_scan() -> str:
+def generate_instructions_post_configure(hostname: str, ip_address: str):
     return f"""
-  ================================================================================================
-  Required mandatory locally installed utility: {color.YELLOW}nmap{color.NONE}.
-  {color.YELLOW}Elevated user permissions are required for this step !{color.NONE}
-
-  This step scans all devices on the LAN network and lists the following:
-
-    • IP Address
-    • Device Name
-  ================================================================================================
-"""
-
-
-def print_instructions_post_configure(hostname: str, ip_address: str):
-    return f"""
-  ================================================================================================
   You have successfully configured hardware and system settings for a Raspberry Pi node:
   
-    • Host Name....: {color.YELLOW}{hostname}{color.NONE}
-    • IP Address...: {color.YELLOW}{ip_address}{color.NONE}
-  ================================================================================================
+    • Host Name....: [yellow]{hostname}[/yellow]
+    • IP Address...: [yellow]{ip_address}[/yellow]
 """

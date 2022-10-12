@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-import json
 import os
 
 from typing import Optional
 from loguru import logger
 from rpi.os.domain.config import ProvisionerConfig
-from common.remote.rpi_network_configure import (
+from common.remote.remote_network_configure import (
     RemoteMachineNetworkConfigureCollaborators,
     RemoteMachineNetworkConfigureRunner,
     RemoteMachineNetworkConfigureArgs,

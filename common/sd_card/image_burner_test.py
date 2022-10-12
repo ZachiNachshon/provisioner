@@ -8,21 +8,27 @@ from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
     MissingUtilityException,
     CliApplicationException,
+    StepEvaluationFailure,
 )
 from external.python_scripts_lib.python_scripts_lib.utils.httpclient_fakes import FakeHttpClient
 from external.python_scripts_lib.python_scripts_lib.utils.os import WINDOWS, LINUX, MAC_OS, OsArch
-from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
 from external.python_scripts_lib.python_scripts_lib.utils.io_utils_fakes import FakeIOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.checks_fakes import FakeChecks
 from external.python_scripts_lib.python_scripts_lib.utils.process_fakes import FakeProcess
 from external.python_scripts_lib.python_scripts_lib.utils.prompter_fakes import FakePrompter
 from external.python_scripts_lib.python_scripts_lib.utils.printer_fakes import FakePrinter
 from external.python_scripts_lib.python_scripts_lib.utils.httpclient import HttpClient
-from external.python_scripts_lib.python_scripts_lib.utils.properties_fakes import FakeProperties
 from external.python_scripts_lib.python_scripts_lib.test_lib.assertions import Assertion
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import PromptLevel, Prompter
 
 
+#
+# To run these directly from the terminal use:
+#  poetry run rpi --dry-run --verbose --auto-prompt os install
+#
+# To run as a single test target:
+#  poetry run coverage run -m pytest common/sd_card/image_burner_test.py
+#
 class FakeCollaborators(Collaborators):
     def __init__(self, ctx: Context) -> None:
         print("Creating Fake collaborators...")
@@ -34,10 +40,6 @@ class FakeCollaborators(Collaborators):
         self.http_client = FakeHttpClient.create(ctx, self.io)
 
 
-#
-# To run these directly from the terminal use:
-#  poetry run rpi --dry-run --verbose --auto-prompt os install
-#
 class ImageBurnerTestShould(unittest.TestCase):
     def create_fake_collaborators(self, ctx: Context) -> FakeCollaborators:
         return FakeCollaborators(ctx)
@@ -301,8 +303,11 @@ class ImageBurnerTestShould(unittest.TestCase):
 
             cols = self.create_fake_collaborators(ctx)
             runner = ImageBurnerRunner()
-            runner.run(ctx=ctx, args=None, collaborators=cols)
-
+            Assertion.expect_failure(
+                self,
+                ex_type=StepEvaluationFailure,
+                methodToRun=lambda: runner.run(ctx=ctx, args=None, collaborators=cols),
+            )
             self.assertEqual(1, read_block_devices.call_count)
             read_block_devices.assert_called_once_with(ctx=ctx, process=cols.process)
 
@@ -319,8 +324,11 @@ class ImageBurnerTestShould(unittest.TestCase):
 
             cols = self.create_fake_collaborators(ctx)
             runner = ImageBurnerRunner()
-            runner.run(ctx=ctx, args=None, collaborators=cols)
-
+            Assertion.expect_failure(
+                self,
+                ex_type=StepEvaluationFailure,
+                methodToRun=lambda: runner.run(ctx=ctx, args=None, collaborators=cols),
+            )
             self.assertEqual(1, select_block_device.call_count)
             select_block_device.assert_called_once_with(prompter=cols.prompter)
 
@@ -342,8 +350,11 @@ class ImageBurnerTestShould(unittest.TestCase):
 
             cols = self.create_fake_collaborators(ctx)
             runner = ImageBurnerRunner()
-            runner.run(ctx=ctx, args=None, collaborators=cols)
-
+            Assertion.expect_failure(
+                self,
+                ex_type=StepEvaluationFailure,
+                methodToRun=lambda: runner.run(ctx=ctx, args=None, collaborators=cols),
+            )
             self.assertEqual(1, verify_block_device_name.call_count)
             verify_block_device_name.assert_called_once_with(
                 block_devices=["/dev/disk1", "/dev/disk2"], selected_block_device="/dev/disk3"
@@ -370,8 +381,11 @@ class ImageBurnerTestShould(unittest.TestCase):
 
             cols = self.create_fake_collaborators(ctx)
             runner = ImageBurnerRunner()
-            runner.run(ctx=ctx, args=None, collaborators=cols)
-
+            Assertion.expect_failure(
+                self,
+                ex_type=StepEvaluationFailure,
+                methodToRun=lambda: runner.run(ctx=ctx, args=None, collaborators=cols),
+            )
             self.assertEqual(1, ask_to_verify_block_device.call_count)
             ask_to_verify_block_device.assert_called_once_with(block_device_name="/dev/disk1", prompter=cols.prompter)
 
@@ -402,8 +416,13 @@ class ImageBurnerTestShould(unittest.TestCase):
 
             cols = self.create_fake_collaborators(ctx)
             runner = ImageBurnerRunner()
-            runner.run(ctx=ctx, args=ImageBurnerArgs(image_download_url, image_download_path), collaborators=cols)
-
+            Assertion.expect_failure(
+                self,
+                ex_type=StepEvaluationFailure,
+                methodToRun=lambda: runner.run(
+                    ctx=ctx, args=ImageBurnerArgs(image_download_url, image_download_path), collaborators=cols
+                ),
+            )
             self.assertEqual(1, download_image.call_count)
             download_image.assert_called_once_with(
                 image_download_url, image_download_path, cols.http_client, cols.printer
@@ -436,12 +455,15 @@ class ImageBurnerTestShould(unittest.TestCase):
 
             cols = self.create_fake_collaborators(ctx)
             runner = ImageBurnerRunner()
-            runner.run(
-                ctx=ctx,
-                args=ImageBurnerArgs("https://burn-image-test.download.com", "/path/to/downloaded/image"),
-                collaborators=cols,
+            Assertion.expect_failure(
+                self,
+                ex_type=StepEvaluationFailure,
+                methodToRun=lambda: runner.run(
+                    ctx=ctx,
+                    args=ImageBurnerArgs("https://burn-image-test.download.com", "/path/to/downloaded/image"),
+                    collaborators=cols,
+                ),
             )
-
             self.assertEqual(1, burn_image.call_count)
             burn_image.assert_called_once_with(
                 ctx, "/dev/disk1", "/path/to/image/file", cols.process, cols.prompter, cols.printer

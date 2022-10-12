@@ -6,7 +6,6 @@ from external.python_scripts_lib.python_scripts_lib.utils.progress_indicator imp
 from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.process import Process
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
-from external.python_scripts_lib.python_scripts_lib.infra.evaluator import Evaluator
 from external.python_scripts_lib.python_scripts_lib.utils.checks import Checks
 from external.python_scripts_lib.python_scripts_lib.utils.printer import Printer
 from external.python_scripts_lib.python_scripts_lib.utils.network import NetworkUtil
@@ -131,8 +130,8 @@ class RemoteMachineNetworkConfigureRunner:
 
         collaborators.printer.new_line_fn()
         collaborators.printer.print_fn(output)
-        collaborators.printer.print_fn(
-            print_instructions_post_network(
+        collaborators.printer.print_with_rich_table_fn(
+            generate_instructions_post_network(
                 username=ssh_conn_info.username,
                 password="REDACTED",
                 hostname=ssh_conn_info.hostname,
@@ -157,8 +156,8 @@ class RemoteMachineNetworkConfigureRunner:
             hosts_file.add_entry_fn(ip_address=static_ip, dns_names=[hostname], comment="Added by provisioner")
 
     def _print_pre_run_instructions(self, printer: Printer, prompter: Prompter):
-        printer.print_fn(template_logo_configure())
-        printer.print_fn(print_instructions_pre_network())
+        printer.print_fn(generate_logo_configure())
+        printer.print_with_rich_table_fn(generate_instructions_pre_network())
         prompter.prompt_for_enter()
 
     def prerequisites(self, ctx: Context, checks: Checks) -> None:
@@ -174,41 +173,36 @@ class RemoteMachineNetworkConfigureRunner:
             raise NotImplementedError("OS is not supported")
 
 
-def template_logo_configure() -> str:
+def generate_logo_configure() -> str:
     return f"""
  ██████╗ ███████╗    ███╗   ██╗███████╗████████╗██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗
 ██╔═══██╗██╔════╝    ████╗  ██║██╔════╝╚══██╔══╝██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝
 ██║   ██║███████╗    ██╔██╗ ██║█████╗     ██║   ██║ █╗ ██║██║   ██║██████╔╝█████╔╝
 ██║   ██║╚════██║    ██║╚██╗██║██╔══╝     ██║   ██║███╗██║██║   ██║██╔══██╗██╔═██╗
 ╚██████╔╝███████║    ██║ ╚████║███████╗   ██║   ╚███╔███╔╝╚██████╔╝██║  ██║██║  ██╗
- ╚═════╝ ╚══════╝    ╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
-"""
+ ╚═════╝ ╚══════╝    ╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝"""
 
 
-def print_instructions_pre_network() -> str:
+def generate_instructions_pre_network() -> str:
     return f"""
-  ================================================================================================
-  This script sets a static IP address on an {color.YELLOW}ethernet connected{color.NONE} remote Raspberry Pi node.
+  This script sets a static IP address on an [yellow]ethernet connected[/yellow] remote Raspberry Pi node.
   It uses DHCPCD (Dynamic Host Configuration Protocol Client Daemon a.k.a DHCP client daemon).
 
   It is vital for a RPi server to have a predictable address to interact with.
   Every time the Raspberry Pi node will connects to the network, it will use the same address.
-  ================================================================================================
 """
 
 
-def print_instructions_post_network(ip_address: str, static_ip: str, username: str, password: str, hostname: str):
-
+def generate_instructions_post_network(ip_address: str, static_ip: str, username: str, password: str, hostname: str):
     return f"""
-  ================================================================================================
-  {color.GREEN}Congratulations !{color.NONE}
+  [green]Congratulations ![/green]
 
   You have successfully set a static IP for a Raspberry Pi node:
-    • {color.YELLOW}{ip_address}{color.NONE} --> {color.YELLOW}{static_ip}{color.NONE}
+    • [yellow]{ip_address}[/yellow] --> [yellow]{static_ip}[/yellow]
 
   To update the node password:
-    • SSH into the node - {color.YELLOW}ssh {username}@{static_ip}{color.NONE} or {color.YELLOW}ssh {username}@{hostname}{color.NONE} (default pass: {password})
-    • Update password   - {color.YELLOW}sudo /usr/bin/raspi-config nonint do_change_pass{color.NONE}
+    • SSH into the node - [yellow]ssh {username}@{static_ip}[/yellow] or [yellow]ssh {username}@{hostname}[/yellow] (default pass: {password})
+    • Update password   - [yellow]sudo /usr/bin/raspi-config nonint do_change_pass[/yellow]
 
   To declare the new static node in the provisioner config, add to <ROOT>/config.properties:
 
@@ -217,5 +211,4 @@ def print_instructions_post_network(ip_address: str, static_ip: str, username: s
 
     Worker (replace X with the node number):
       • // TODO
-  ================================================================================================
 """

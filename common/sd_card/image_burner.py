@@ -302,8 +302,8 @@ def template_instructions(block_device_name: str, image_name: str) -> str:
     • Block Device...: {block_device_name}
     • Image Name.....: {image_name}
 
-  {color.YELLOW}Elevated user permissions might be required for this step !{color.NONE}
+  [yellow]Elevated user permissions might be required for this step ![/yellow]
 
-  The content of the SD-Card will be formatted, {color.RED}it is an irreversible process !{color.NONE}
+  The content of the SD-Card will be formatted, [red]it is an irreversible process ![/red]
   ================================================================================================
 """

@@ -6,7 +6,6 @@ import unittest
 from rpi.os.domain.config import ProvisionerConfig
 from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
     FailedToSerializeConfiguration,
-    NotInitialized,
 )
 from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
@@ -15,8 +14,8 @@ from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlU
 
 
 # To run as a single test target:
-# poetry run coverage run -m pytest rpi/os/domain/config_test.py
-# 
+#  poetry run coverage run -m pytest rpi/os/domain/config_test.py
+#
 class ProvisionerConfigTestShould(unittest.TestCase):
     def test_config_partial_merge_with_user_config(self):
         ctx = Context.create()

@@ -1,0 +1,9 @@
+---
+- name: Playbook used to configure remote network IP address
+  hosts: selected_hosts
+  gather_facts: no
+  tasks:
+    - name: hello world
+      include_tasks: ../../../external/ansible_playbooks/playbooks/hello_world.yaml
+      vars:
+          name: "Zachi"
