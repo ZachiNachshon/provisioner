@@ -1,29 +1,12 @@
 ---
-- name: Playbook used to configure Raspbian OS on remote RPi host
+- name: Configure Raspbian OS on remote RPi host
   hosts: selected_hosts
   gather_facts: no
+  roles:
+    - role: ../../../external/ansible_playbooks/playbooks/roles/rpi_config_node
+      tags: ['configure_remote_node']
+
   tasks:
-    - name: hello world
-      include_tasks: ../../../external/ansible_playbooks/playbooks/hello_world.yaml
-      vars:
-          name: "Zachi"
-
-  # roles:
-  #   # - role: ../../external/ansible_playbooks/playbooks/roles/path_local_bin
-  #   - role: external/ansible_playbooks/playbooks/roles/path_local_bin
-  #     tags: ['hello_world']
-
-  # roles:
-  #   - role: ../../external/ansible_playbooks/playbooks/roles/rpi_config_node
-  #     tags: ['rpi_config_node']
-
-# - name: Configure a RPi node
-#   hosts: selected_hosts
-#   gather_facts: no
-#   tasks:
-#     - name: Prepare playbook variables
-#       set_fact:
-#         host_name: "{{ host_name }}"
-#         static_ip: "{{ static_ip }}"
-#         gateway_address: "{{ gateway_address }}"
-#         dns_address: "{{ dns_address }}"
+    - name: Reboot and wait
+      include_tasks: ../../../external/ansible_playbooks/playbooks/reboot.yaml
+      tags: ['reboot'] 

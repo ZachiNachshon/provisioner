@@ -47,7 +47,7 @@ def install(
 
         RPiOsInstallRunner().run(ctx=ctx, args=args, collaborators=RPiOsInstallCollaborators(ctx))
     except StepEvaluationFailure as sef:
-        logger.critical("Failed to configure RPi network. ex: {}, message: {}", sef.__class__.__name__, str(sef))
+        logger.critical("Failed to burn Raspbian OS. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:
         logger.critical("Failed to burn Raspbian OS. ex: {}, message: {}", e.__class__.__name__, str(e))
         if CliGlobalArgs.is_verbose():
@@ -84,7 +84,7 @@ def configure(
 
         RPiOsConfigureRunner().run(ctx=ctx, args=args, collaborators=RPiOsConfigureCollaborators(ctx))
     except StepEvaluationFailure as sef:
-        logger.critical("Failed to configure RPi network. ex: {}, message: {}", sef.__class__.__name__, str(sef))
+        logger.critical("Failed to configure Raspbian OS. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:
         logger.critical("Failed to configure Raspbian OS. ex: {}, message: {}", e.__class__.__name__, str(e))
         if CliGlobalArgs.is_verbose():

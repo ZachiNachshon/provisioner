@@ -159,6 +159,8 @@ password: AUTO_PROMPT_RESPONSE \
 playbook_path: rpi/os/playbooks/configure_os.yaml \
 selected_host: AUTO_PROMPT_RESPONSE None \
 ansible_var: host_name=AUTO_PROMPT_RESPONSE \
+ansible_tag: configure_remote_node \
+ansible_tag: reboot \
 --dry-run",
             cmd_output,
         )
@@ -185,6 +187,8 @@ password: AUTO_PROMPT_RESPONSE \
 playbook_path: rpi/os/playbooks/configure_os.yaml \
 selected_host: AUTO_PROMPT_RESPONSE None \
 ansible_var: host_name=AUTO_PROMPT_RESPONSE \
+ansible_tag: configure_remote_node \
+ansible_tag: reboot \
 --dry-run",
             cmd_output,
         )
@@ -254,18 +258,9 @@ ansible_var: host_name=AUTO_PROMPT_RESPONSE \
 ansible_var: static_ip=AUTO_PROMPT_RESPONSE \
 ansible_var: gateway_address=AUTO_PROMPT_RESPONSE \
 ansible_var: dns_address=AUTO_PROMPT_RESPONSE \
---dry-run",
-            cmd_output,
-        )
-
-        self.assertIn(
-            f"bash \
-./external/shell_scripts_lib/runner/ansible/ansible.sh \
-working_dir: {working_dir} \
-username: AUTO_PROMPT_RESPONSE \
-password: AUTO_PROMPT_RESPONSE \
-playbook_path: rpi/os/playbooks/wait_for_network.yaml \
-selected_host: AUTO_PROMPT_RESPONSE None \
+ansible_tag: configure_rpi_network \
+ansible_tag: define_static_ip \
+ansible_tag: reboot \
 --dry-run",
             cmd_output,
         )
@@ -295,18 +290,9 @@ ansible_var: host_name=AUTO_PROMPT_RESPONSE \
 ansible_var: static_ip=AUTO_PROMPT_RESPONSE \
 ansible_var: gateway_address=AUTO_PROMPT_RESPONSE \
 ansible_var: dns_address=AUTO_PROMPT_RESPONSE \
---dry-run",
-            cmd_output,
-        )
-
-        self.assertIn(
-            f"bash \
-./external/shell_scripts_lib/runner/ansible/ansible.sh \
-working_dir: {working_dir} \
-username: AUTO_PROMPT_RESPONSE \
-password: AUTO_PROMPT_RESPONSE \
-playbook_path: rpi/os/playbooks/wait_for_network.yaml \
-selected_host: AUTO_PROMPT_RESPONSE None \
+ansible_tag: configure_rpi_network \
+ansible_tag: define_static_ip \
+ansible_tag: reboot \
 --dry-run",
             cmd_output,
         )

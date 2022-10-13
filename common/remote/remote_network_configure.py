@@ -106,26 +106,11 @@ class RemoteMachineNetworkConfigureRunner:
                 password=ssh_conn_info.password,
                 playbook_path=args.ansible_playbook_path_configure_network,
                 ansible_vars=ansible_vars,
+                ansible_tags=["configure_rpi_network", "define_static_ip", "reboot"],
                 selected_hosts=[HostIpPair(host=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address)],
             ),
             desc_run="Running Ansible playbook (Configure Network)",
             desc_end="Ansible playbook finished (Configure Network).",
-        )
-
-        collaborators.printer.new_line_fn()
-        collaborators.printer.print_fn(output)
-        collaborators.printer.new_line_fn()
-
-        output = collaborators.printer.progress_indicator.status.long_running_process_fn(
-            call=lambda: collaborators.ansible_runner.run_fn(
-                working_dir=collaborators.io.get_current_directory_fn(),
-                username=ssh_conn_info.username,
-                password=ssh_conn_info.password,
-                playbook_path=args.ansible_playbook_path_wait_for_network,
-                selected_hosts=[HostIpPair(host=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address)],
-            ),
-            desc_run="Running Ansible playbook (Wait for Network)",
-            desc_end="Ansible playbook finished (Wait for Network).",
         )
 
         collaborators.printer.new_line_fn()

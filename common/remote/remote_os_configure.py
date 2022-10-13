@@ -79,6 +79,7 @@ class RemoteMachineOsConfigureRunner:
                 password=ssh_conn_info.password,
                 playbook_path=args.ansible_playbook_path_configure_os,
                 ansible_vars=ansible_vars,
+                ansible_tags=["configure_remote_node", "reboot"],
                 selected_hosts=[HostIpPair(host=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address)],
             ),
             desc_run="Running Ansible playbook (Configure OS)",
