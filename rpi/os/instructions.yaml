@@ -14,7 +14,7 @@ instructions:
       \t\t• Hardware (mem-split, camera, GPU, audio etc...)\n
       \t\t• System   (keyboard, hostname, timezone, locale etc...)"
       showOutput: true
-      scriptFile: common/runners/poetry_runner_dev.sh run rpi os configure
+      scriptFile: common/runners/poetry_runner_dev.sh run rpi --dry-run -y os configure
 
     - id: os-raspbian-network-setup
       displayName: "3. Raspbian OS: Network"

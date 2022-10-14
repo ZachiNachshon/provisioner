@@ -1,0 +1,22 @@
+instructions:
+  actions:
+    - id: join-worker-on-rpi-cluster
+      displayName: "Join: Worker Node"
+      title: "Select a RPi node to join as an agent to existing K8s cluster"
+      description: "Join a k3s agent worker to a RPi cluster"
+      showOutput: true
+      scriptFile: k8s/k3s/ansible/ansible.sh --rpi-join-k3s-agent
+
+    - id: uninstall-agents-from-rpi-cluster
+      displayName: "Uninstall: Worker Node"
+      title: "Select a RPi node to remove as an agent from existing K8s cluster"
+      description: "Remove k3s agent worker from a RPi cluster"
+      showOutput: true
+      scriptFile: k8s/k3s/ansible/ansible.sh --rpi-uninstall-k3s-agent
+
+    - id: print-k8s-cluster-stats
+      displayName: "Print: Cluster Nodes Stats"
+      title: "Print K8s cluster CPU/Mem stats on all RPi nodes"
+      description: "Print K8s cluster CPU/Mem stats on all RPi nodes"
+      showOutput: true
+      scriptFile: k8s/k3s/scripts/cluster.sh --stats

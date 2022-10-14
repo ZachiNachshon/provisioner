@@ -1,6 +1,6 @@
 provisioner:
-  rpi:
-    os:
+  k3s:
+    master:
       raspbian:
         download_path: $HOME/temp/rpi_raspios_image
         active_system: 64bit
@@ -8,7 +8,7 @@ provisioner:
           64bit: https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2022-01-28/2022-01-28-raspios-bullseye-arm64-lite.zip
           32bit: https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2022-01-28/2022-01-28-raspios-bullseye-armhf-lite.zip
 
-    node:
+    agent:
       ip_discovery_range: 192.168.1.1/24
       username: pi
       password: raspberry

@@ -5,14 +5,18 @@ description = "Provision anything on any remote machine"
 authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
 exclude = ["**/*_test*", "**/*_fake*"]
 packages = [
+    { include = "dummy" },
     { include = "rpi" },
+    { include = "k3s" },
 ]
 
 [tool.poetry.scripts]
 # tools = "external.python_scripts_lib.provisioner.main:app"
 # tools = "tools.main:app"
+dummy = "dummy.main:app"
 rpi = "rpi.main:app"
-rpi_diagrams = "rpi.os.diagrams.install_diag:main"
+k3s = "k3s.main:app"
+# rpi_diagrams = "rpi.os.diagrams.install_diag:main"
 
 [tool.isort]
 profile = "black"

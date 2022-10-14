@@ -1,0 +1,4 @@
+name: k8s
+command:
+  use: k8s
+  short: "Setup Kubernetes distribution"

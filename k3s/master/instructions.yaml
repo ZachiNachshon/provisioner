@@ -1,0 +1,29 @@
+instructions:
+  actions:
+    - id: install-master-on-rpi-cluster
+      displayName: "Install: Master Node"
+      title: "Select a RPi node to install as a K8s master"
+      description: "Install k3s master on a RPi cluster"
+      showOutput: true
+      scriptFile: common/runners/poetry_runner_dev.sh run k3s master install
+
+    - id: uninstall-master-from-rpi-cluster
+      displayName: "Uninstall: Master Node"
+      title: "Select a RPi node to uninstall as a K8s master"
+      description: "Uninstall k3s master from a RPi cluster"
+      showOutput: true
+      scriptFile: common/runners/poetry_runner_dev.sh run k3s --rpi-uninstall-k3s-master
+
+    - id: print-k8s-cluster-stats
+      displayName: "Print: Cluster Nodes Stats"
+      title: "Print K8s cluster CPU/Mem stats on all RPi nodes"
+      description: "Print K8s cluster CPU/Mem stats on all RPi nodes"
+      showOutput: true
+      scriptFile: k8s/k3s/scripts/cluster.sh --stats
+
+    - id: copy-k3s-config-locally
+      displayName: "Setup: k3s kube Config"
+      title: "Copy kube config from k3s master node to local machine"
+      description: "Copy k3s kube config file locally to allow k8s cluster interaction"
+      showOutput: true
+      scriptFile: k8s/k3s/ansible/ansible.sh --copy-k3s-config-locally

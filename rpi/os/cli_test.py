@@ -159,7 +159,7 @@ password: AUTO_PROMPT_RESPONSE \
 playbook_path: rpi/os/playbooks/configure_os.yaml \
 selected_host: AUTO_PROMPT_RESPONSE None \
 ansible_var: host_name=AUTO_PROMPT_RESPONSE \
-ansible_tag: configure_remote_node \
+sdansible_tag: configure_remote_node \
 ansible_tag: reboot \
 --dry-run",
             cmd_output,

@@ -5,6 +5,7 @@
   roles:
     - role: ../../../external/ansible_playbooks/playbooks/roles/rpi_config_network
       tags: ['configure_rpi_network']
+      
     - role: ../../../external/ansible_playbooks/playbooks/roles/dhcp_static_ip
       tags: ['define_static_ip']
 
