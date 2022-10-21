@@ -18,6 +18,7 @@ from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompt
 
 from ..remote.remote_connector import SSHConnectionInfo
 
+HelloWorldAnsiblePlaybookPath = "example/dummy/playbooks/hello_world.yaml"
 
 class HelloWorldRunnerArgs:
 
@@ -25,7 +26,6 @@ class HelloWorldRunnerArgs:
     node_username: str
     node_password: str
     ip_discovery_range: str
-    ansible_playbook_path_hello_world: str
 
     def __init__(
         self,
@@ -33,14 +33,12 @@ class HelloWorldRunnerArgs:
         node_username: str,
         node_password: str,
         ip_discovery_range: str,
-        ansible_playbook_path_hello_world: str,
     ) -> None:
 
         self.username = username
         self.node_username = node_username
         self.node_password = node_password
         self.ip_discovery_range = ip_discovery_range
-        self.ansible_playbook_path_hello_world = ansible_playbook_path_hello_world
 
 
 class RunnerCollaborators:
@@ -82,7 +80,7 @@ class HelloWorldRunner:
                 working_dir=collaborators.io.get_current_directory_fn(),
                 username=ssh_conn_info.username,
                 password=ssh_conn_info.password,
-                playbook_path=args.ansible_playbook_path_hello_world,
+                playbook_path=HelloWorldAnsiblePlaybookPath,
                 ansible_vars=ansible_vars,
                 ansible_tags=["hello"],
                 selected_hosts=[HostIpPair(host=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address)],

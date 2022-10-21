@@ -12,6 +12,7 @@ from common.remote.remote_network_configure import (
 )
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 
+RemoteMachineNetworkAnsiblePlaybookPath = "rpi/os/playbooks/configure_network.yaml"
 
 class RPiNetworkConfigureArgs:
 
@@ -21,8 +22,6 @@ class RPiNetworkConfigureArgs:
     gw_ip_address: str
     dns_ip_address: str
     static_ip_address: str
-    ansible_playbook_path_configure_network: str = None
-    ansible_playbook_path_wait_for_network: str = None
 
     def __init__(
         self,
@@ -32,8 +31,6 @@ class RPiNetworkConfigureArgs:
         gw_ip_address: Optional[str] = None,
         dns_ip_address: Optional[str] = None,
         static_ip_address: Optional[str] = None,
-        ansible_playbook_path_configure_network: Optional[str] = None,
-        ansible_playbook_path_wait_for_network: Optional[str] = None,
     ) -> None:
 
         self.node_username = node_username
@@ -42,8 +39,6 @@ class RPiNetworkConfigureArgs:
         self.gw_ip_address = gw_ip_address
         self.dns_ip_address = dns_ip_address
         self.static_ip_address = static_ip_address
-        self.ansible_playbook_path_configure_network = ansible_playbook_path_configure_network
-        self.ansible_playbook_path_wait_for_network = ansible_playbook_path_wait_for_network
 
     def print(self) -> None:
         logger.debug(
@@ -54,8 +49,6 @@ class RPiNetworkConfigureArgs:
             + f"  gw_ip_address: {self.gw_ip_address}\n"
             + f"  dns_ip_address: {self.dns_ip_address}\n"
             + f"  static_ip_address: {self.static_ip_address}\n"
-            + f"  ansible_playbook_path_configure_network: {self.ansible_playbook_path_configure_network}\n"
-            + f"  ansible_playbook_path_wait_for_network: {self.ansible_playbook_path_wait_for_network}\n"
         )
 
 
@@ -72,8 +65,7 @@ class RPiNetworkConfigureRunner:
                 gw_ip_address=args.gw_ip_address,
                 dns_ip_address=args.dns_ip_address,
                 static_ip_address=args.static_ip_address,
-                ansible_playbook_path_configure_network=args.ansible_playbook_path_configure_network,
-                ansible_playbook_path_wait_for_network=args.ansible_playbook_path_wait_for_network,
+                ansible_playbook_path_configure_network=RemoteMachineNetworkAnsiblePlaybookPath,
             ),
             collaborators=RemoteMachineNetworkConfigureCollaborators(ctx),
         )

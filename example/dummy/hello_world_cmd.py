@@ -53,7 +53,6 @@ class HelloWorldCmd:
                 node_username=args.node_username,
                 node_password=args.node_password,
                 ip_discovery_range=args.ip_discovery_range,
-                ansible_playbook_path_hello_world="example/dummy/playbooks/hello_world.yaml",
             ),
             collaborators=HelloWorldRunnerCollaborators(ctx),
         )

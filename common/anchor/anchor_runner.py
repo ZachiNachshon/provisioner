@@ -23,7 +23,7 @@ from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompt
 
 from ..remote.remote_connector import RemoteMachineConnector
 
-RunEnvironment = Enum("RunEnvironmen", "Local Remote")
+RunEnvironment = Enum("RunEnvironment", "Local Remote")
 AnchorRunAnsiblePlaybookPath = "common/anchor/playbooks/anchor_run.yaml"
 
 

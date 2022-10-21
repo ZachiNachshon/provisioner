@@ -31,7 +31,6 @@ class RemoteMachineNetworkConfigureArgs:
     dns_ip_address: str
     static_ip_address: str
     ansible_playbook_path_configure_network: str
-    ansible_playbook_path_wait_for_network: str
 
     def __init__(
         self,
@@ -42,7 +41,6 @@ class RemoteMachineNetworkConfigureArgs:
         dns_ip_address: str,
         static_ip_address: str,
         ansible_playbook_path_configure_network: str,
-        ansible_playbook_path_wait_for_network: str,
     ) -> None:
 
         self.node_username = node_username
@@ -52,7 +50,6 @@ class RemoteMachineNetworkConfigureArgs:
         self.dns_ip_address = dns_ip_address
         self.static_ip_address = static_ip_address
         self.ansible_playbook_path_configure_network = ansible_playbook_path_configure_network
-        self.ansible_playbook_path_wait_for_network = ansible_playbook_path_wait_for_network
 
 
 class Collaborators:

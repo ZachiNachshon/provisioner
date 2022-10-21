@@ -20,7 +20,7 @@ from external.python_scripts_lib.python_scripts_lib.infra.context import (
 )
 
 CONFIG_USER_PATH = os.path.expanduser("~/.config/.provisioner/config.yaml")
-CONFIG_INTERNAL_PATH = "rpi/config.yaml"
+CONFIG_INTERNAL_PATH = "example/config.yaml"
 
 ConfigResolver.resolve(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH)
 TyperRemoteOpts.load(ConfigResolver.config)
@@ -50,8 +50,7 @@ def hello(
             ip_discovery_range=ip_discovery_range if ip_discovery_range else config.ip_discovery_range,
         )
         args.print()
-        ctx = CliContextManager.create()
-        HelloWorldCmd().run(ctx=ctx, args=args)
+        HelloWorldCmd().run(ctx=CliContextManager.create(), args=args)
     except StepEvaluationFailure as sef:
         logger.critical("Failed to run hello world command. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:
@@ -75,7 +74,7 @@ def anchor(
     repository_name: str = typer.Option(None, show_default=False, help="Repository name", envvar="ANCHOR_REPO_NAME"),
     branch_name: str = typer.Option("master", help="Repository branch name", envvar="ANCHOR_REPO_BRANCH_NAME"),
     git_access_token: str = typer.Option(
-        ConfigResolver.get_config().active_system,
+        ConfigResolver.get_config().git_access_token,
         help="GitHub access token (only for private repos)",
         envvar="GITHUB_ACCESS_TOKEN",
     ),
@@ -99,8 +98,7 @@ def anchor(
             ip_discovery_range=ip_discovery_range if ip_discovery_range else config.ip_discovery_range,
         )
         args.print()
-        ctx = CliContextManager.create()
-        AnchorCmd().run(ctx=ctx, args=args)
+        AnchorCmd().run(ctx=CliContextManager.create(), args=args)
     except StepEvaluationFailure as sef:
         logger.critical("Failed to run anchor command. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:

@@ -22,13 +22,12 @@ class RPiOsConfigureTestShould(unittest.TestCase):
         expected_username = "test-user"
         expected_password = "test-pass"
         expected_ip_discovery_range = "192.168.1.1/24"
-        expected_ansible_playbook_configure_os = "/test/path/to/ansible/playbook"
+        expected_ansible_playbook_configure_os = "rpi/os/playbooks/configure_os.yaml"
 
         args = RPiOsConfigureArgs(
             node_username=expected_username,
             node_password=expected_password,
             ip_discovery_range=expected_ip_discovery_range,
-            ansible_playbook_path_configure_os=expected_ansible_playbook_configure_os,
         )
 
         runner = RPiOsConfigureRunner()
@@ -36,12 +35,12 @@ class RPiOsConfigureTestShould(unittest.TestCase):
 
         run_call_kwargs = run_call.call_args.kwargs
         ctx_call_arg = run_call_kwargs["ctx"]
-        img_burner_call_args = run_call_kwargs["args"]
+        configure_os_call_args = run_call_kwargs["args"]
 
         self.assertEqual(ctx, ctx_call_arg)
-        self.assertEqual(expected_username, img_burner_call_args.node_username)
-        self.assertEqual(expected_password, img_burner_call_args.node_password)
-        self.assertEqual(expected_ip_discovery_range, img_burner_call_args.ip_discovery_range)
+        self.assertEqual(expected_username, configure_os_call_args.node_username)
+        self.assertEqual(expected_password, configure_os_call_args.node_password)
+        self.assertEqual(expected_ip_discovery_range, configure_os_call_args.ip_discovery_range)
         self.assertEqual(
-            expected_ansible_playbook_configure_os, img_burner_call_args.ansible_playbook_path_configure_os
+            expected_ansible_playbook_configure_os, configure_os_call_args.ansible_playbook_path_configure_os
         )

@@ -47,8 +47,7 @@ def install(
             image_download_url=image_download_url if image_download_url else config.image_download_url
         )
         args.print()
-        ctx = CliContextManager.create()
-        RPiOsInstallCmd().run(ctx=ctx, args=args)
+        RPiOsInstallCmd().run(ctx=CliContextManager.create(), args=args)
     except StepEvaluationFailure as sef:
         logger.critical("Failed to burn Raspbian OS. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:
@@ -74,11 +73,9 @@ def configure(
             node_username=node_username if node_username else config.node_username,
             node_password=node_password if node_username else config.node_password,
             ip_discovery_range=ip_discovery_range if ip_discovery_range else config.ip_discovery_range,
-            ansible_playbook_path_configure_os=config.ansible_playbook_path_configure_os,
         )
         args.print()
-        ctx = CliContextManager.create()
-        RPiOsConfigureRunner().run(ctx=ctx, args=args)
+        RPiOsConfigureRunner().run(ctx=CliContextManager.create(), args=args)
     except StepEvaluationFailure as sef:
         logger.critical("Failed to configure Raspbian OS. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:
@@ -93,8 +90,16 @@ def network(
     static_ip_address: Optional[str] = typer.Option(
         ..., help="Static IP address to set as the remote host IP address", envvar="RPI_STATIC_IP"
     ),
-    gw_ip_address: Optional[str] = TyperRemoteOpts.gw_ip_address(),
-    dns_ip_address: Optional[str] = TyperRemoteOpts.dns_ip_address(),
+    gw_ip_address: Optional[str] = typer.Option(
+        TyperRemoteOpts.config.rpi.network.gw_ip_address,
+        help="Internet gateway address / home router address",
+        envvar="GATEWAY_ADDRESS",
+    ),
+    dns_ip_address: Optional[str] = typer.Option(
+        TyperRemoteOpts.config.rpi.network.dns_ip_address,
+        help="Domain name server address / home router address",
+        envvar="DNS_ADDRESS",
+    ),
     node_username: Optional[str] = TyperRemoteOpts.node_username(),
     node_password: Optional[str] = TyperRemoteOpts.node_password(),
     ip_discovery_range: Optional[str] = TyperRemoteOpts.ip_discovery_range(),
@@ -111,12 +116,9 @@ def network(
             gw_ip_address=gw_ip_address if gw_ip_address else config.gw_ip_address,
             dns_ip_address=dns_ip_address if dns_ip_address else config.dns_ip_address,
             static_ip_address=static_ip_address,
-            ansible_playbook_path_configure_network=config.ansible_playbook_path_configure_network,
-            ansible_playbook_path_wait_for_network=config.ansible_playbook_path_wait_for_network,
         )
         args.print()
-        ctx = CliContextManager.create()
-        RPiNetworkConfigureRunner().run(ctx=ctx, args=args)
+        RPiNetworkConfigureRunner().run(ctx=CliContextManager.create(), args=args)
     except StepEvaluationFailure as sef:
         logger.critical("Failed to configure RPi network. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:

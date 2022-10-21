@@ -9,7 +9,7 @@ from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
-from rpi.os.domain.config import ProvisionerConfig
+from config.domain.config import ProvisionerConfig
 
 
 # To run as a single test target:
@@ -21,6 +21,14 @@ class ProvisionerConfigTestShould(unittest.TestCase):
         yaml_util = YamlUtil.create(ctx=ctx, io_utils=IOUtils.create(ctx))
         internal_yaml_str = """
 provisioner:
+  remote:
+    lan_scan:
+      ip_discovery_range: 192.168.1.1/24
+    auth:
+      username: pi
+      password: raspberry
+      ssh_private_key_file_path: /path/to/unknown
+
   rpi:
     os:
       raspbian:
@@ -33,24 +41,43 @@ provisioner:
 
         user_yaml_str = """
 provisioner:
+  remote:
+    auth:
+      username: test-user
+      ssh_private_key_file_path: /test/path
+
   rpi:
     os:
       raspbian:
         active_system: 32bit
         download_url:
-          32bit: http://download-url-32-bit-user.com
+          32bit: http://download-url-32-bit-test-path.com
 """
         user_config_obj = yaml_util.read_string_fn(yaml_str=user_yaml_str, class_name=ProvisionerConfig)
         merged_config_obj = internal_config_obj.merge(user_config_obj)
 
-        self.assertEqual(merged_config_obj.active_system, "32bit")
-        self.assertEqual(merged_config_obj.download_url_32bit, "http://download-url-32-bit-user.com")
+        self.assertEqual(merged_config_obj.remote.lan_scan.ip_discovery_range, "192.168.1.1/24")
+        self.assertEqual(merged_config_obj.remote.auth.node_username, "test-user")
+        self.assertEqual(merged_config_obj.remote.auth.node_password, "raspberry")
+        self.assertEqual(merged_config_obj.remote.auth.ssh_private_key_file_path, "/test/path")
+
+        self.assertEqual(merged_config_obj.rpi.os.active_system, "32bit")
+        self.assertEqual(merged_config_obj.rpi.os.download_url_32bit, "http://download-url-32-bit-test-path.com")
+        self.assertEqual(merged_config_obj.rpi.os.download_url_64bit, "http://download-url-64-bit.com")
 
     def test_config_full_merge_with_user_config(self):
         ctx = Context.create()
         yaml_util = YamlUtil.create(ctx=ctx, io_utils=IOUtils.create(ctx))
         internal_yaml_str = """
 provisioner:
+  remote:
+    lan_scan:
+      ip_discovery_range: 192.168.1.1/24
+    auth:
+      username: pi
+      password: raspberry
+      ssh_private_key_file_path: /path/to/unknown
+
   rpi:
     os:
       raspbian:
@@ -60,23 +87,44 @@ provisioner:
           64bit: http://download-url-64-bit.com
           32bit: http://download-url-32-bit.com
 
-    node:
-      ip_discovery_range: 192.168.1.1/24
-      username: pi
-      password: raspberry
+    network:
       gw_ip_address: 192.168.1.1
       dns_ip_address: 192.168.1.1
 
-    ansible:
-      playbooks:
-        configure_os: rpi/os/playbooks/configure_os.yaml
-        configure_network: rpi/os/playbooks/configure_network.yaml
-        wait_for_network: rpi/os/playbooks/wait_for_network.yaml
+  anchor:
+    github:
+      organization: ZachiNachshon
+      repository: provisioner
+      branch: master
+      github_access_token: SECRET
+
+  dummy:
+    hello_world:
+      username: Config User
 """
         internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, class_name=ProvisionerConfig)
 
         user_yaml_str = """
 provisioner:
+  remote:
+    lan_scan:
+      ip_discovery_range: 1.1.1.1/24
+    auth:
+      username: pi-user
+      password: raspberry-user
+      ssh_private_key_file_path: /path/to/unknown/test-user
+
+  anchor:
+    github:
+      organization: TestOrg
+      repository: test-repo
+      branch: test
+      github_access_token: TEST-SECRET
+
+  dummy:
+    hello_world:
+      username: Config Test User
+
   rpi:
     os:
       raspbian:
@@ -86,43 +134,32 @@ provisioner:
           64bit: http://download-url-64-bit-user.com
           32bit: http://download-url-32-bit-user.com
 
-    node:
-      ip_discovery_range: 1.1.1.1/24
-      username: pi-user
-      password: raspberry-user
+    network:
       gw_ip_address: 1.1.1.1
       dns_ip_address: 2.2.2.2
-
-    ansible:
-      playbooks:
-        configure_os: rpi/os/playbooks/configure_os_user.yaml
-        configure_network: rpi/os/playbooks/configure_network_user.yaml
-        wait_for_network: rpi/os/playbooks/wait_for_network_user.yaml
 """
         user_config_obj = yaml_util.read_string_fn(yaml_str=user_yaml_str, class_name=ProvisionerConfig)
         merged_config_obj = internal_config_obj.merge(user_config_obj)
 
-        self.assertEqual(merged_config_obj.active_system, "32bit")
-        self.assertEqual(merged_config_obj.download_path, os.path.expanduser("~/temp/rpi_raspios_image_user"))
-        self.assertEqual(merged_config_obj.download_url_32bit, "http://download-url-32-bit-user.com")
-        self.assertEqual(merged_config_obj.download_url_64bit, "http://download-url-64-bit-user.com")
-        self.assertEqual(merged_config_obj.ip_discovery_range, "1.1.1.1/24")
-        self.assertEqual(merged_config_obj.node_username, "pi-user")
-        self.assertEqual(merged_config_obj.node_password, "raspberry-user")
-        self.assertEqual(merged_config_obj.gw_ip_address, "1.1.1.1")
-        self.assertEqual(merged_config_obj.dns_ip_address, "2.2.2.2")
-        self.assertEqual(
-            merged_config_obj.ansible_playbook_path_configure_os,
-            "rpi/os/playbooks/configure_os_user.yaml",
-        )
-        self.assertEqual(
-            merged_config_obj.ansible_playbook_path_configure_network,
-            "rpi/os/playbooks/configure_network_user.yaml",
-        )
-        self.assertEqual(
-            merged_config_obj.ansible_playbook_path_wait_for_network,
-            "rpi/os/playbooks/wait_for_network_user.yaml",
-        )
+        self.assertEqual(merged_config_obj.remote.lan_scan.ip_discovery_range, "1.1.1.1/24")
+        self.assertEqual(merged_config_obj.remote.auth.node_username, "pi-user")
+        self.assertEqual(merged_config_obj.remote.auth.node_password, "raspberry-user")
+        self.assertEqual(merged_config_obj.remote.auth.ssh_private_key_file_path, "/path/to/unknown/test-user")
+
+        self.assertEqual(merged_config_obj.anchor.github.organization, "TestOrg")
+        self.assertEqual(merged_config_obj.anchor.github.repository, "test-repo")
+        self.assertEqual(merged_config_obj.anchor.github.branch, "test")
+        self.assertEqual(merged_config_obj.anchor.github.github_access_token, "TEST-SECRET")
+
+        self.assertEqual(merged_config_obj.dummmy.hello_world.username, "Config Test User")
+
+        self.assertEqual(merged_config_obj.rpi.os.active_system, "32bit")
+        self.assertEqual(merged_config_obj.rpi.os.download_path, os.path.expanduser("~/temp/rpi_raspios_image_user"))
+        self.assertEqual(merged_config_obj.rpi.os.download_url_32bit, "http://download-url-32-bit-user.com")
+        self.assertEqual(merged_config_obj.rpi.os.download_url_64bit, "http://download-url-64-bit-user.com")
+
+        self.assertEqual(merged_config_obj.rpi.network.gw_ip_address, "1.1.1.1")
+        self.assertEqual(merged_config_obj.rpi.network.dns_ip_address, "2.2.2.2")
 
     def test_config_fail_on_invalid_user_config(self):
         ctx = Context.create()
@@ -151,4 +188,4 @@ provisioner:
 """
         internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, class_name=ProvisionerConfig)
         internal_config_obj.get_os_raspbian_download_url()
-        self.assertEqual(internal_config_obj.download_url_32bit, "http://download-url-32-bit.com")
+        self.assertEqual(internal_config_obj.rpi.os.download_url_32bit, "http://download-url-32-bit.com")
