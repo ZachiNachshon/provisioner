@@ -1,0 +1,12 @@
+---
+- name: Anchor run command
+  hosts: selected_hosts
+  gather_facts: no
+  environment:
+    DRY_RUN: True
+    VERBOSE: True
+    # SILENT: True
+
+  roles:
+    - role: ../../../external/ansible_playbooks/playbooks/roles/anchor
+      tags: ['anchor_run']

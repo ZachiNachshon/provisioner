@@ -2,18 +2,33 @@
 
 import unittest
 from unittest import mock
-from common.remote.remote_connector import RemoteMachineConnector, SSHConnectionInfo, DHCPCDConfigurationInfo
 
-from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from common.remote.remote_connector import (
+    DHCPCDConfigurationInfo,
+    RemoteMachineConnector,
+    SSHConnectionInfo,
+)
 from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
     StepEvaluationFailure,
 )
-from external.python_scripts_lib.python_scripts_lib.utils.os import LINUX, MAC_OS, OsArch
-from external.python_scripts_lib.python_scripts_lib.utils.checks_fakes import FakeChecks
-from external.python_scripts_lib.python_scripts_lib.utils.prompter_fakes import FakePrompter
-from external.python_scripts_lib.python_scripts_lib.utils.printer_fakes import FakePrinter
+from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.test_lib.assertions import Assertion
-from external.python_scripts_lib.python_scripts_lib.utils.network_fakes import FakeNetworkUtil
+from external.python_scripts_lib.python_scripts_lib.utils.checks_fakes import FakeChecks
+from external.python_scripts_lib.python_scripts_lib.utils.network_fakes import (
+    FakeNetworkUtil,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.os import (
+    LINUX,
+    MAC_OS,
+    OsArch,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.printer_fakes import (
+    FakePrinter,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.prompter_fakes import (
+    FakePrompter,
+)
+
 
 # To run as a single test target:
 #  poetry run coverage run -m pytest common/remote/remote_connector_test.py

@@ -5,7 +5,7 @@ description = "Provision anything on any remote machine"
 authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
 exclude = ["**/*_test*", "**/*_fake*"]
 packages = [
-    { include = "dummy" },
+    { include = "example" },
     { include = "rpi" },
     { include = "k3s" },
 ]
@@ -13,7 +13,7 @@ packages = [
 [tool.poetry.scripts]
 # tools = "external.python_scripts_lib.provisioner.main:app"
 # tools = "tools.main:app"
-dummy = "dummy.main:app"
+example = "example.main:app"
 rpi = "rpi.main:app"
 k3s = "k3s.main:app"
 # rpi_diagrams = "rpi.os.diagrams.install_diag:main"
@@ -60,6 +60,7 @@ pytest = "^7.1.3"
 mypy = "^0.971"
 coverage = "^6.4.4"
 diagrams = "^0.22.0"
+isort = "^5.10.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

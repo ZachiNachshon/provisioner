@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
 
 import os
-
 from typing import Optional
+
 from loguru import logger
-from rpi.os.domain.config import ProvisionerConfig
+
 from common.remote.remote_network_configure import (
+    RemoteMachineNetworkConfigureArgs,
     RemoteMachineNetworkConfigureCollaborators,
     RemoteMachineNetworkConfigureRunner,
-    RemoteMachineNetworkConfigureArgs,
 )
-from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
-from external.python_scripts_lib.python_scripts_lib.config.config_reader import ConfigReader
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
-from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
-
-CONFIG_USER_PATH = os.path.expanduser("~/.config/.provisioner/config.yaml")
-CONFIG_INTERNAL_PATH = "rpi/config.yaml"
 
 
 class RPiNetworkConfigureArgs:
@@ -27,6 +21,8 @@ class RPiNetworkConfigureArgs:
     gw_ip_address: str
     dns_ip_address: str
     static_ip_address: str
+    ansible_playbook_path_configure_network: str = None
+    ansible_playbook_path_wait_for_network: str = None
 
     def __init__(
         self,
@@ -36,6 +32,8 @@ class RPiNetworkConfigureArgs:
         gw_ip_address: Optional[str] = None,
         dns_ip_address: Optional[str] = None,
         static_ip_address: Optional[str] = None,
+        ansible_playbook_path_configure_network: Optional[str] = None,
+        ansible_playbook_path_wait_for_network: Optional[str] = None,
     ) -> None:
 
         self.node_username = node_username
@@ -44,6 +42,8 @@ class RPiNetworkConfigureArgs:
         self.gw_ip_address = gw_ip_address
         self.dns_ip_address = dns_ip_address
         self.static_ip_address = static_ip_address
+        self.ansible_playbook_path_configure_network = ansible_playbook_path_configure_network
+        self.ansible_playbook_path_wait_for_network = ansible_playbook_path_wait_for_network
 
     def print(self) -> None:
         logger.debug(
@@ -54,45 +54,26 @@ class RPiNetworkConfigureArgs:
             + f"  gw_ip_address: {self.gw_ip_address}\n"
             + f"  dns_ip_address: {self.dns_ip_address}\n"
             + f"  static_ip_address: {self.static_ip_address}\n"
+            + f"  ansible_playbook_path_configure_network: {self.ansible_playbook_path_configure_network}\n"
+            + f"  ansible_playbook_path_wait_for_network: {self.ansible_playbook_path_wait_for_network}\n"
         )
-
-
-class Collaborators:
-    config_reader: ConfigReader
-
-
-class RPiNetworkConfigureCollaborators(Collaborators):
-    def __init__(self, ctx: Context) -> None:
-        self.io = IOUtils.create(ctx)
-        self.yaml_util = YamlUtil.create(ctx, self.io)
-        self.config_reader = ConfigReader.create(self.yaml_util)
 
 
 class RPiNetworkConfigureRunner:
-    def run(self, ctx: Context, args: RPiNetworkConfigureArgs, collaborators: Collaborators) -> None:
+    def run(self, ctx: Context, args: RPiNetworkConfigureArgs) -> None:
         logger.debug("Inside RPiNetworkConfigureRunner run()")
-
-        config: ProvisionerConfig = collaborators.config_reader.read_config_fn(
-            internal_path=CONFIG_INTERNAL_PATH, class_name=ProvisionerConfig, user_path=CONFIG_USER_PATH
-        )
-
-        node_username = config.node_username if args.node_username is None else args.node_username
-        node_password = config.node_password if args.node_password is None else args.node_password
-        ip_discovery_range = config.ip_discovery_range if args.ip_discovery_range is None else args.ip_discovery_range
-        gw_ip_address = config.gw_ip_address if args.gw_ip_address is None else args.gw_ip_address
-        dns_ip_address = config.dns_ip_address if args.dns_ip_address is None else args.dns_ip_address
 
         RemoteMachineNetworkConfigureRunner().run(
             ctx=ctx,
             args=RemoteMachineNetworkConfigureArgs(
-                node_username=node_username,
-                node_password=node_password,
-                ip_discovery_range=ip_discovery_range,
-                gw_ip_address=gw_ip_address,
-                dns_ip_address=dns_ip_address,
+                node_username=args.node_username,
+                node_password=args.node_password,
+                ip_discovery_range=args.ip_discovery_range,
+                gw_ip_address=args.gw_ip_address,
+                dns_ip_address=args.dns_ip_address,
                 static_ip_address=args.static_ip_address,
-                ansible_playbook_path_configure_network=config.ansible_playbook_path_configure_network,
-                ansible_playbook_path_wait_for_network=config.ansible_playbook_path_wait_for_network,
+                ansible_playbook_path_configure_network=args.ansible_playbook_path_configure_network,
+                ansible_playbook_path_wait_for_network=args.ansible_playbook_path_wait_for_network,
             ),
             collaborators=RemoteMachineNetworkConfigureCollaborators(ctx),
         )

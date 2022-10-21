@@ -5,6 +5,7 @@
   environment:
     DRY_RUN: True
     VERBOSE: True
+    # SILENT: True
 
   roles:
     - role: ../../../external/ansible_playbooks/playbooks/roles/hello_world

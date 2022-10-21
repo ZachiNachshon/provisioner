@@ -18,12 +18,18 @@ create-update-venv: ## Create/Update a Python virtual env
 	@${POETRY_WRAPPER_DEV} build   # Build a tarball package with local Python wheel
 
 .PHONY: fmt
-fmt: ## Format Python code using Black style (https://black.readthedocs.io)
+fmt: ## Format Python code using Black style and sort imports
+	@echo "Formatting Python code using Black style..."
 	@${POETRY_WRAPPER_DEV} run black ${PROJECT_LOCATION}
+	@echo "Sorting/cleaning import statements..."
+	@${POETRY_WRAPPER_DEV} run isort ${PROJECT_LOCATION}
 
 .PHONY: fmtcheck
-fmtcheck: ## Validate Python code format with Black style standards (https://black.readthedocs.io)
+fmtcheck: ## Validate Python code format and sort imports
+	@echo "Validate Python code formatting..."
 	@${POETRY_WRAPPER_DEV} run black ${PROJECT_LOCATION} --check
+	@echo "Checking import statements..."
+	@${POETRY_WRAPPER_DEV} run isort ${PROJECT_LOCATION} --check-only
 
 .PHONY: typecheck
 typecheck: ## Check for Python static types errors (https://mypy.readthedocs.io/en/stable/index.html)

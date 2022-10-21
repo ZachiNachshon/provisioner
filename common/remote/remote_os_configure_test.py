@@ -1,25 +1,43 @@
 #!/usr/bin/env python3
 
 import unittest
+
 from common.remote.remote_os_configure import (
+    Collaborators,
     RemoteMachineOsConfigureArgs,
     RemoteMachineOsConfigureRunner,
-    Collaborators,
 )
-
-from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
     MissingUtilityException,
 )
-from external.python_scripts_lib.python_scripts_lib.utils.httpclient_fakes import FakeHttpClient
-from external.python_scripts_lib.python_scripts_lib.utils.os import WINDOWS, LINUX, MAC_OS, OsArch
-from external.python_scripts_lib.python_scripts_lib.utils.io_utils_fakes import FakeIOUtils
-from external.python_scripts_lib.python_scripts_lib.utils.checks_fakes import FakeChecks
-from external.python_scripts_lib.python_scripts_lib.utils.process_fakes import FakeProcess
-from external.python_scripts_lib.python_scripts_lib.utils.prompter_fakes import FakePrompter
-from external.python_scripts_lib.python_scripts_lib.utils.printer_fakes import FakePrinter
+from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.test_lib.assertions import Assertion
-from external.python_scripts_lib.python_scripts_lib.utils.network_fakes import FakeNetworkUtil
+from external.python_scripts_lib.python_scripts_lib.utils.checks_fakes import FakeChecks
+from external.python_scripts_lib.python_scripts_lib.utils.httpclient_fakes import (
+    FakeHttpClient,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.io_utils_fakes import (
+    FakeIOUtils,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.network_fakes import (
+    FakeNetworkUtil,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.os import (
+    LINUX,
+    MAC_OS,
+    WINDOWS,
+    OsArch,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.printer_fakes import (
+    FakePrinter,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.process_fakes import (
+    FakeProcess,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.prompter_fakes import (
+    FakePrompter,
+)
+
 
 #
 # To run these directly from the terminal use:

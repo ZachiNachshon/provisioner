@@ -1,28 +1,42 @@
 #!/usr/bin/env python3
 
 from loguru import logger
-from ..remote.remote_connector import SSHConnectionInfo
-from external.python_scripts_lib.python_scripts_lib.utils.progress_indicator import ProgressIndicator
-from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
-from external.python_scripts_lib.python_scripts_lib.utils.process import Process
+
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from external.python_scripts_lib.python_scripts_lib.runner.ansible.ansible import (
+    AnsibleRunner,
+    HostIpPair,
+)
 from external.python_scripts_lib.python_scripts_lib.utils.checks import Checks
+from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.printer import Printer
-from external.python_scripts_lib.python_scripts_lib.utils.network import NetworkUtil
+from external.python_scripts_lib.python_scripts_lib.utils.process import Process
+from external.python_scripts_lib.python_scripts_lib.utils.progress_indicator import (
+    ProgressIndicator,
+)
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompter
-from external.python_scripts_lib.python_scripts_lib.runner.ansible.ansible import AnsibleRunner, HostIpPair
+
+from ..remote.remote_connector import SSHConnectionInfo
+
 
 class HelloWorldRunnerArgs:
 
+    username: str
     node_username: str
     node_password: str
     ip_discovery_range: str
     ansible_playbook_path_hello_world: str
 
     def __init__(
-        self, node_username: str, node_password: str, ip_discovery_range: str, ansible_playbook_path_hello_world: str
+        self,
+        username: str,
+        node_username: str,
+        node_password: str,
+        ip_discovery_range: str,
+        ansible_playbook_path_hello_world: str,
     ) -> None:
 
+        self.username = username
         self.node_username = node_username
         self.node_password = node_password
         self.ip_discovery_range = ip_discovery_range
@@ -56,12 +70,10 @@ class HelloWorldRunner:
         self._print_pre_run_instructions(collaborators.printer, collaborators.prompter)
 
         ssh_conn_info = SSHConnectionInfo(
-            username="pi", 
-            password="raspbian", 
-            host_ip_address="ansible_connection=local",
-            hostname="localhost")
+            username="pi", password="raspbian", host_ip_address="ansible_connection=local", hostname="localhost"
+        )
 
-        ansible_vars = [f"host_name={ssh_conn_info.hostname}"]
+        ansible_vars = [f"\"username='{args.username}'\""]
 
         collaborators.printer.new_line_fn()
 

@@ -3,25 +3,6 @@
 import unittest
 from unittest import mock
 
-from rpi.os.configure import RPiOsConfigureArgs, RPiOsConfigureRunner, Collaborators
-from rpi.os.domain.config import ProvisionerConfig
-from external.python_scripts_lib.python_scripts_lib.infra.context import Context
-from external.python_scripts_lib.python_scripts_lib.utils.os import MAC_OS, OsArch
-from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
-from external.python_scripts_lib.python_scripts_lib.utils.io_utils_fakes import FakeIOUtils
-from external.python_scripts_lib.python_scripts_lib.config.config_reader_fakes import FakeConfigReader
-
-CONFIG_INTERNAL_PATH = "rpi/config.yaml"
-
-
-class FakeCollaborators(Collaborators):
-    def __init__(self, ctx: Context) -> None:
-        print("Creating Fake collaborators...")
-        self.io = FakeIOUtils.create(ctx)
-        self.yaml_util = YamlUtil.create(ctx, self.io)
-        self.config_reader = FakeConfigReader.create(self.yaml_util)
-
-
 # To run these directly from the terminal use:
 #  poetry run rpi --dry-run --verbose --auto-prompt os network
 #

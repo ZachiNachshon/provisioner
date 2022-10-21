@@ -3,14 +3,13 @@
 import os
 import unittest
 
-from rpi.os.domain.config import ProvisionerConfig
 from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
     FailedToSerializeConfiguration,
 )
+from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
-from external.python_scripts_lib.python_scripts_lib.infra.context import Context
-from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
+from rpi.os.domain.config import ProvisionerConfig
 
 
 # To run as a single test target:

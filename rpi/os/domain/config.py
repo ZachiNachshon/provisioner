@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
-from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import FailedToSerializeConfiguration
-from external.python_scripts_lib.python_scripts_lib.domain.serialize import SerializationBase
+from external.python_scripts_lib.python_scripts_lib.domain.serialize import (
+    SerializationBase,
+)
+from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
+    FailedToSerializeConfiguration,
+)
 
 
 class ProvisionerConfig(SerializationBase):

@@ -1,13 +1,40 @@
 #!/usr/bin/env python3
 
 from typing import List, Optional
+
 from loguru import logger
+
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.infra.evaluator import Evaluator
 from external.python_scripts_lib.python_scripts_lib.utils.checks import Checks
-from external.python_scripts_lib.python_scripts_lib.utils.printer import Printer
 from external.python_scripts_lib.python_scripts_lib.utils.network import NetworkUtil
+from external.python_scripts_lib.python_scripts_lib.utils.printer import Printer
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompter
+
+
+class RemoteCliArgs:
+    node_username: str
+    node_password: str
+    ip_discovery_range: str
+
+    def __init__(
+        self,
+        node_username: Optional[str] = None,
+        node_password: Optional[str] = None,
+        ip_discovery_range: Optional[str] = None,
+    ) -> None:
+
+        self.node_username = node_username
+        self.node_password = node_password
+        self.ip_discovery_range = ip_discovery_range
+
+    def print(self) -> None:
+        logger.debug(
+            f"RemoteCliArgs: \n"
+            + f"  node_username: {self.node_username}\n"
+            + f"  node_password: REDACTED\n"
+            + f"  ip_discovery_range: {self.ip_discovery_range}\n"
+        )
 
 
 class SSHConnectionInfo:

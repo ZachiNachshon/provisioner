@@ -1,23 +1,30 @@
 #!/usr/bin/env python3
 
-import typer
+import os
 from typing import Optional
+
+import typer
 from loguru import logger
-from rpi.os.install import RPiOsInstallArgs, RPiOsInstallCollaborators, RPiOsInstallRunner, RPiOsInstallArgs
-from rpi.os.configure import RPiOsConfigureArgs, RPiOsConfigureCollaborators, RPiOsConfigureRunner, RPiOsConfigureArgs
-from rpi.os.network import (
-    RPiNetworkConfigureArgs,
-    RPiNetworkConfigureCollaborators,
-    RPiNetworkConfigureRunner,
-    RPiNetworkConfigureArgs,
-)
-from external.python_scripts_lib.python_scripts_lib.utils.os import OsArch
+
+from config.config_resolver import ConfigResolver
+from config.typer_remote_opts import TyperRemoteOpts
 from external.python_scripts_lib.python_scripts_lib.cli.state import CliGlobalArgs
-from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
     CliApplicationException,
     StepEvaluationFailure,
 )
+from external.python_scripts_lib.python_scripts_lib.infra.context import (
+    CliContextManager,
+)
+from rpi.os.configure import RPiOsConfigureArgs, RPiOsConfigureRunner
+from rpi.os.install import RPiOsInstallCmd, RPiOsInstallCmdArgs
+from rpi.os.network import RPiNetworkConfigureArgs, RPiNetworkConfigureRunner
+
+CONFIG_USER_PATH = os.path.expanduser("~/.config/.provisioner/config.yaml")
+CONFIG_INTERNAL_PATH = "rpi/config.yaml"
+
+ConfigResolver.resolve(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH)
+TyperRemoteOpts.load(ConfigResolver.config)
 
 os_cli_app = typer.Typer()
 
@@ -26,26 +33,22 @@ os_cli_app = typer.Typer()
 @logger.catch(reraise=True)
 def install(
     image_download_url: Optional[str] = typer.Option(
-        None, help="OS image file download URL", envvar="IMAGE_DOWNLOAD_URL"
+        ConfigResolver.get_config().get_os_raspbian_download_url(),
+        help="OS image file download URL",
+        envvar="IMAGE_DOWNLOAD_URL",
     )
 ) -> None:
     """
     Select an available SD-CARD to burn a Raspbian OS image
     """
-    args = RPiOsInstallArgs(image_download_url=image_download_url)
-    args.print()
     try:
-        os_arch_str = CliGlobalArgs.maybe_get_os_arch_flag_value()
-        os_arch = OsArch.from_string(os_arch_str) if os_arch_str else None
-
-        ctx = Context.create(
-            dry_run=CliGlobalArgs.is_dry_run(),
-            verbose=CliGlobalArgs.is_verbose(),
-            auto_prompt=CliGlobalArgs.is_auto_prompt(),
-            os_arch=os_arch,
+        config = ConfigResolver.get_config()
+        args = RPiOsInstallCmdArgs(
+            image_download_url=image_download_url if image_download_url else config.image_download_url
         )
-
-        RPiOsInstallRunner().run(ctx=ctx, args=args, collaborators=RPiOsInstallCollaborators(ctx))
+        args.print()
+        ctx = CliContextManager.create()
+        RPiOsInstallCmd().run(ctx=ctx, args=args)
     except StepEvaluationFailure as sef:
         logger.critical("Failed to burn Raspbian OS. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:
@@ -57,32 +60,25 @@ def install(
 @os_cli_app.command(name="configure")
 @logger.catch(reraise=True)
 def configure(
-    node_username: Optional[str] = typer.Option(None, help="RPi node username", envvar="NODE_USERNAME"),
-    node_password: Optional[str] = typer.Option(None, help="RPi node password", envvar="NODE_PASSWORD"),
-    ip_discovery_range: Optional[str] = typer.Option(
-        None, help="LAN network IP discovery range", envvar="IP_DISCOVERY_RANGE"
-    ),
+    node_username: Optional[str] = TyperRemoteOpts.node_username(),
+    node_password: Optional[str] = TyperRemoteOpts.node_password(),
+    ip_discovery_range: Optional[str] = TyperRemoteOpts.ip_discovery_range(),
 ) -> None:
     """
     Select a remote Raspberry Pi node to configure Raspbian OS software and hardware settings.
     Configuration is aimed for an optimal headless Raspberry Pi used as a Kubernetes cluster node.
     """
-    args = RPiOsConfigureArgs(
-        node_username=node_username, node_password=node_password, ip_discovery_range=ip_discovery_range
-    )
-    args.print()
     try:
-        os_arch_str = CliGlobalArgs.maybe_get_os_arch_flag_value()
-        os_arch = OsArch.from_string(os_arch_str) if os_arch_str else None
-
-        ctx = Context.create(
-            dry_run=CliGlobalArgs.is_dry_run(),
-            verbose=CliGlobalArgs.is_verbose(),
-            auto_prompt=CliGlobalArgs.is_auto_prompt(),
-            os_arch=os_arch,
+        config = ConfigResolver.get_config()
+        args = RPiOsConfigureArgs(
+            node_username=node_username if node_username else config.node_username,
+            node_password=node_password if node_username else config.node_password,
+            ip_discovery_range=ip_discovery_range if ip_discovery_range else config.ip_discovery_range,
+            ansible_playbook_path_configure_os=config.ansible_playbook_path_configure_os,
         )
-
-        RPiOsConfigureRunner().run(ctx=ctx, args=args, collaborators=RPiOsConfigureCollaborators(ctx))
+        args.print()
+        ctx = CliContextManager.create()
+        RPiOsConfigureRunner().run(ctx=ctx, args=args)
     except StepEvaluationFailure as sef:
         logger.critical("Failed to configure Raspbian OS. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:
@@ -93,46 +89,34 @@ def configure(
 
 @os_cli_app.command(name="network")
 @logger.catch(reraise=True)
-def configure(
-    node_username: Optional[str] = typer.Option(None, help="RPi node username", envvar="NODE_USERNAME"),
-    node_password: Optional[str] = typer.Option(None, help="RPi node password", envvar="NODE_PASSWORD"),
-    ip_discovery_range: Optional[str] = typer.Option(
-        None, help="LAN network IP discovery range", envvar="IP_DISCOVERY_RANGE"
-    ),
-    gw_ip_address: Optional[str] = typer.Option(
-        None, help="Internet gateway address / home router address", envvar="GATEWAY_ADDRESS"
-    ),
-    dns_ip_address: Optional[str] = typer.Option(
-        None, help="Domain name server address / home router address", envvar="DNS_ADDRESS"
-    ),
+def network(
     static_ip_address: Optional[str] = typer.Option(
-        None, help="Static IP address to set as the remote host IP address", envvar="RPI_STATIC_IP"
+        ..., help="Static IP address to set as the remote host IP address", envvar="RPI_STATIC_IP"
     ),
+    gw_ip_address: Optional[str] = TyperRemoteOpts.gw_ip_address(),
+    dns_ip_address: Optional[str] = TyperRemoteOpts.dns_ip_address(),
+    node_username: Optional[str] = TyperRemoteOpts.node_username(),
+    node_password: Optional[str] = TyperRemoteOpts.node_password(),
+    ip_discovery_range: Optional[str] = TyperRemoteOpts.ip_discovery_range(),
 ) -> None:
     """
     Select a remote Raspberry Pi node on the ethernet network to configure a static IP address.
     """
-    args = RPiNetworkConfigureArgs(
-        node_username=node_username,
-        node_password=node_password,
-        ip_discovery_range=ip_discovery_range,
-        gw_ip_address=gw_ip_address,
-        dns_ip_address=dns_ip_address,
-        static_ip_address=static_ip_address,
-    )
-    args.print()
     try:
-        os_arch_str = CliGlobalArgs.maybe_get_os_arch_flag_value()
-        os_arch = OsArch.from_string(os_arch_str) if os_arch_str else None
-
-        ctx = Context.create(
-            dry_run=CliGlobalArgs.is_dry_run(),
-            verbose=CliGlobalArgs.is_verbose(),
-            auto_prompt=CliGlobalArgs.is_auto_prompt(),
-            os_arch=os_arch,
+        config = ConfigResolver.get_config()
+        args = RPiNetworkConfigureArgs(
+            node_username=node_username if node_username else config.node_username,
+            node_password=node_password if node_username else config.node_password,
+            ip_discovery_range=ip_discovery_range if ip_discovery_range else config.ip_discovery_range,
+            gw_ip_address=gw_ip_address if gw_ip_address else config.gw_ip_address,
+            dns_ip_address=dns_ip_address if dns_ip_address else config.dns_ip_address,
+            static_ip_address=static_ip_address,
+            ansible_playbook_path_configure_network=config.ansible_playbook_path_configure_network,
+            ansible_playbook_path_wait_for_network=config.ansible_playbook_path_wait_for_network,
         )
-
-        RPiNetworkConfigureRunner().run(ctx=ctx, args=args, collaborators=RPiNetworkConfigureCollaborators(ctx))
+        args.print()
+        ctx = CliContextManager.create()
+        RPiNetworkConfigureRunner().run(ctx=ctx, args=args)
     except StepEvaluationFailure as sef:
         logger.critical("Failed to configure RPi network. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:

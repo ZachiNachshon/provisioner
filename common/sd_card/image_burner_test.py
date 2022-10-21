@@ -2,24 +2,46 @@
 
 import unittest
 from unittest import mock
-from common.sd_card.image_burner import ImageBurnerArgs, ImageBurnerRunner, Collaborators
 
-from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from common.sd_card.image_burner import (
+    Collaborators,
+    ImageBurnerArgs,
+    ImageBurnerCmdRunner,
+)
 from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
-    MissingUtilityException,
     CliApplicationException,
+    MissingUtilityException,
     StepEvaluationFailure,
 )
-from external.python_scripts_lib.python_scripts_lib.utils.httpclient_fakes import FakeHttpClient
-from external.python_scripts_lib.python_scripts_lib.utils.os import WINDOWS, LINUX, MAC_OS, OsArch
-from external.python_scripts_lib.python_scripts_lib.utils.io_utils_fakes import FakeIOUtils
-from external.python_scripts_lib.python_scripts_lib.utils.checks_fakes import FakeChecks
-from external.python_scripts_lib.python_scripts_lib.utils.process_fakes import FakeProcess
-from external.python_scripts_lib.python_scripts_lib.utils.prompter_fakes import FakePrompter
-from external.python_scripts_lib.python_scripts_lib.utils.printer_fakes import FakePrinter
-from external.python_scripts_lib.python_scripts_lib.utils.httpclient import HttpClient
+from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.test_lib.assertions import Assertion
-from external.python_scripts_lib.python_scripts_lib.utils.prompter import PromptLevel, Prompter
+from external.python_scripts_lib.python_scripts_lib.utils.checks_fakes import FakeChecks
+from external.python_scripts_lib.python_scripts_lib.utils.httpclient import HttpClient
+from external.python_scripts_lib.python_scripts_lib.utils.httpclient_fakes import (
+    FakeHttpClient,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.io_utils_fakes import (
+    FakeIOUtils,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.os import (
+    LINUX,
+    MAC_OS,
+    WINDOWS,
+    OsArch,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.printer_fakes import (
+    FakePrinter,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.process_fakes import (
+    FakeProcess,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.prompter import (
+    Prompter,
+    PromptLevel,
+)
+from external.python_scripts_lib.python_scripts_lib.utils.prompter_fakes import (
+    FakePrompter,
+)
 
 
 #
@@ -48,7 +70,7 @@ class ImageBurnerTestShould(unittest.TestCase):
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
 
         cols = self.create_fake_collaborators(ctx)
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         Assertion.expect_failure(
             self, ex_type=MissingUtilityException, methodToRun=lambda: runner.prerequisites(ctx, cols.checks)
         )
@@ -60,7 +82,7 @@ class ImageBurnerTestShould(unittest.TestCase):
         cols.checks.register_utility("diskutil")
         cols.checks.register_utility("unzip")
         cols.checks.register_utility("dd")
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         Assertion.expect_success(self, methodToRun=lambda: runner.prerequisites(ctx, cols.checks))
 
     def test_prerequisites_linux_success(self) -> None:
@@ -71,13 +93,13 @@ class ImageBurnerTestShould(unittest.TestCase):
         cols.checks.register_utility("unzip")
         cols.checks.register_utility("dd")
         cols.checks.register_utility("sync")
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         Assertion.expect_success(self, methodToRun=lambda: runner.prerequisites(ctx, cols.checks))
 
     def test_prerequisites_fail_on_os_not_supported(self) -> None:
         ctx = Context.create(os_arch=OsArch(os=WINDOWS, arch="test_arch", os_release="test_os_release"))
 
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         Assertion.expect_failure(self, ex_type=NotImplementedError, methodToRun=lambda: runner.prerequisites(ctx, None))
 
         ctx = Context.create(
@@ -85,7 +107,7 @@ class ImageBurnerTestShould(unittest.TestCase):
             verbose=False,
             dry_run=False,
         )
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         Assertion.expect_failure(self, ex_type=NotImplementedError, methodToRun=lambda: runner.prerequisites(ctx, None))
 
     def test_read_block_device_linux_success(self) -> None:
@@ -96,7 +118,7 @@ class ImageBurnerTestShould(unittest.TestCase):
             cmd_str="lsblk -p",
             expected_output="linux block devices",
         )
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         output = Assertion.expect_success(self, methodToRun=lambda: runner.read_block_devices(ctx, cols.process))
         self.assertEqual(output, "linux block devices")
 
@@ -108,7 +130,7 @@ class ImageBurnerTestShould(unittest.TestCase):
             cmd_str="diskutil list",
             expected_output="darwin block devices",
         )
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         output = Assertion.expect_success(self, methodToRun=lambda: runner.read_block_devices(ctx, cols.process))
         self.assertEqual(output, "darwin block devices")
 
@@ -116,7 +138,7 @@ class ImageBurnerTestShould(unittest.TestCase):
         ctx = Context.create(os_arch=OsArch(os=WINDOWS, arch="test_arch", os_release="test_os_release"))
 
         cols = self.create_fake_collaborators(ctx)
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         Assertion.expect_failure(
             self, ex_type=NotImplementedError, methodToRun=lambda: runner.read_block_devices(ctx, cols.process)
         )
@@ -128,7 +150,7 @@ class ImageBurnerTestShould(unittest.TestCase):
         )
 
         cols = self.create_fake_collaborators(ctx)
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         Assertion.expect_failure(
             self, ex_type=NotImplementedError, methodToRun=lambda: runner.read_block_devices(ctx, cols.process)
         )
@@ -142,7 +164,7 @@ class ImageBurnerTestShould(unittest.TestCase):
         cols = self.create_fake_collaborators(ctx)
         cols.prompter.register_yes_no_prompt("ARE YOU SURE YOU WANT TO FORMAT BLOCK DEVICE", False)
 
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         result = runner.burn_image_linux(
             block_device_name, os_image_file_path, cols.process, cols.prompter, cols.printer
         )
@@ -165,7 +187,7 @@ class ImageBurnerTestShould(unittest.TestCase):
             expected_output="",
         )
 
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         result = runner.burn_image_linux(
             block_device_name, os_image_file_path, cols.process, cols.prompter, cols.printer
         )
@@ -180,7 +202,7 @@ class ImageBurnerTestShould(unittest.TestCase):
         cols = self.create_fake_collaborators(ctx)
         cols.prompter.register_yes_no_prompt("ARE YOU SURE YOU WANT TO FORMAT BLOCK DEVICE", False)
 
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         result = runner.burn_image_darwin(
             block_device_name, os_image_file_path, cols.process, cols.prompter, cols.printer
         )
@@ -224,33 +246,33 @@ class ImageBurnerTestShould(unittest.TestCase):
             expected_output="",
         )
 
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         result = runner.burn_image_darwin(
             block_device_name, os_image_file_path, cols.process, cols.prompter, cols.printer
         )
         self.assertTrue(result)
 
-    @mock.patch("common.sd_card.image_burner.ImageBurnerRunner.burn_image_linux")
+    @mock.patch("common.sd_card.image_burner.ImageBurnerCmdRunner.burn_image_linux")
     def test_burn_image_identify_linux(self, run_call: mock.MagicMock) -> None:
         ctx = Context.create(os_arch=OsArch(os=LINUX, arch="test_arch", os_release="test_os_release"))
         cols = self.create_fake_collaborators(ctx)
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         runner.burn_image(ctx, None, None, None, None, cols.printer)
         self.assertEqual(1, run_call.call_count)
 
-    @mock.patch("common.sd_card.image_burner.ImageBurnerRunner.burn_image_darwin")
+    @mock.patch("common.sd_card.image_burner.ImageBurnerCmdRunner.burn_image_darwin")
     def test_burn_image_identify_darwin(self, run_call: mock.MagicMock) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
         cols = self.create_fake_collaborators(ctx)
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         runner.burn_image(ctx, None, None, None, None, cols.printer)
         self.assertEqual(1, run_call.call_count)
 
-    @mock.patch("common.sd_card.image_burner.ImageBurnerRunner.burn_image_darwin")
+    @mock.patch("common.sd_card.image_burner.ImageBurnerCmdRunner.burn_image_darwin")
     def test_burn_image_os_not_supported(self, run_call: mock.MagicMock) -> None:
         ctx = Context.create(os_arch=OsArch(os=WINDOWS, arch="test_arch", os_release="test_os_release"))
         cols = self.create_fake_collaborators(ctx)
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         Assertion.expect_failure(
             self,
             ex_type=NotImplementedError,
@@ -259,7 +281,7 @@ class ImageBurnerTestShould(unittest.TestCase):
 
         ctx = Context.create(os_arch=OsArch(os="NOT-SUPPORTED", arch="test_arch", os_release="test_os_release"))
         cols = self.create_fake_collaborators(ctx)
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         Assertion.expect_failure(
             self,
             ex_type=NotImplementedError,
@@ -268,21 +290,21 @@ class ImageBurnerTestShould(unittest.TestCase):
 
     def test_block_device_verification_fail(self) -> None:
         block_devices = ["/dev/disk1", "/dev/disk1"]
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         self.assertFalse(runner.verify_block_device_name(block_devices, "/dev/disk3"))
 
     def test_block_device_verification_success(self) -> None:
         block_devices = ["/dev/disk1", "/dev/disk1"]
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         self.assertTrue(runner.verify_block_device_name(block_devices, "/dev/disk1"))
 
     def test_burn_image_run_fail_on_prerequisites(self) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
 
-        with mock.patch.object(ImageBurnerRunner, "prerequisites") as prerequisites:
+        with mock.patch.object(ImageBurnerCmdRunner, "prerequisites") as prerequisites:
             prerequisites.side_effect = CliApplicationException("runner failure")
             cols = self.create_fake_collaborators(ctx)
-            runner = ImageBurnerRunner()
+            runner = ImageBurnerCmdRunner()
             Assertion.expect_failure(
                 self,
                 ex_type=CliApplicationException,
@@ -294,15 +316,15 @@ class ImageBurnerTestShould(unittest.TestCase):
     def test_burn_image_run_fail_to_read_block_devices(self) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
 
-        with mock.patch.object(ImageBurnerRunner, "prerequisites") as prerequisites, mock.patch.object(
-            ImageBurnerRunner, "read_block_devices"
+        with mock.patch.object(ImageBurnerCmdRunner, "prerequisites") as prerequisites, mock.patch.object(
+            ImageBurnerCmdRunner, "read_block_devices"
         ) as read_block_devices:
 
             prerequisites.return_value = True
             read_block_devices.return_value = False
 
             cols = self.create_fake_collaborators(ctx)
-            runner = ImageBurnerRunner()
+            runner = ImageBurnerCmdRunner()
             Assertion.expect_failure(
                 self,
                 ex_type=StepEvaluationFailure,
@@ -314,16 +336,16 @@ class ImageBurnerTestShould(unittest.TestCase):
     def test_burn_image_run_fail_to_select_block_devices(self) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
 
-        with mock.patch.object(ImageBurnerRunner, "prerequisites") as prerequisites, mock.patch.object(
-            ImageBurnerRunner, "read_block_devices"
-        ) as read_block_devices, mock.patch.object(ImageBurnerRunner, "select_block_device") as select_block_device:
+        with mock.patch.object(ImageBurnerCmdRunner, "prerequisites") as prerequisites, mock.patch.object(
+            ImageBurnerCmdRunner, "read_block_devices"
+        ) as read_block_devices, mock.patch.object(ImageBurnerCmdRunner, "select_block_device") as select_block_device:
 
             prerequisites.return_value = True
             read_block_devices.return_value = True
             select_block_device.return_value = False
 
             cols = self.create_fake_collaborators(ctx)
-            runner = ImageBurnerRunner()
+            runner = ImageBurnerCmdRunner()
             Assertion.expect_failure(
                 self,
                 ex_type=StepEvaluationFailure,
@@ -335,12 +357,12 @@ class ImageBurnerTestShould(unittest.TestCase):
     def test_burn_image_run_fail_to_verify_block_devices(self) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
 
-        with mock.patch.object(ImageBurnerRunner, "prerequisites") as prerequisites, mock.patch.object(
-            ImageBurnerRunner, "read_block_devices"
+        with mock.patch.object(ImageBurnerCmdRunner, "prerequisites") as prerequisites, mock.patch.object(
+            ImageBurnerCmdRunner, "read_block_devices"
         ) as read_block_devices, mock.patch.object(
-            ImageBurnerRunner, "select_block_device"
+            ImageBurnerCmdRunner, "select_block_device"
         ) as select_block_device, mock.patch.object(
-            ImageBurnerRunner, "verify_block_device_name"
+            ImageBurnerCmdRunner, "verify_block_device_name"
         ) as verify_block_device_name:
 
             prerequisites.return_value = True
@@ -349,7 +371,7 @@ class ImageBurnerTestShould(unittest.TestCase):
             verify_block_device_name.return_value = False
 
             cols = self.create_fake_collaborators(ctx)
-            runner = ImageBurnerRunner()
+            runner = ImageBurnerCmdRunner()
             Assertion.expect_failure(
                 self,
                 ex_type=StepEvaluationFailure,
@@ -363,14 +385,14 @@ class ImageBurnerTestShould(unittest.TestCase):
     def test_burn_image_run_fail_to_ask_to_verify_block_devices(self) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
 
-        with mock.patch.object(ImageBurnerRunner, "prerequisites") as prerequisites, mock.patch.object(
-            ImageBurnerRunner, "read_block_devices"
+        with mock.patch.object(ImageBurnerCmdRunner, "prerequisites") as prerequisites, mock.patch.object(
+            ImageBurnerCmdRunner, "read_block_devices"
         ) as read_block_devices, mock.patch.object(
-            ImageBurnerRunner, "select_block_device"
+            ImageBurnerCmdRunner, "select_block_device"
         ) as select_block_device, mock.patch.object(
-            ImageBurnerRunner, "verify_block_device_name"
+            ImageBurnerCmdRunner, "verify_block_device_name"
         ) as verify_block_device_name, mock.patch.object(
-            ImageBurnerRunner, "ask_to_verify_block_device"
+            ImageBurnerCmdRunner, "ask_to_verify_block_device"
         ) as ask_to_verify_block_device:
 
             prerequisites.return_value = True
@@ -380,7 +402,7 @@ class ImageBurnerTestShould(unittest.TestCase):
             ask_to_verify_block_device.return_value = False
 
             cols = self.create_fake_collaborators(ctx)
-            runner = ImageBurnerRunner()
+            runner = ImageBurnerCmdRunner()
             Assertion.expect_failure(
                 self,
                 ex_type=StepEvaluationFailure,
@@ -392,16 +414,16 @@ class ImageBurnerTestShould(unittest.TestCase):
     def test_burn_image_run_fail_to_download_image(self) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
 
-        with mock.patch.object(ImageBurnerRunner, "prerequisites") as prerequisites, mock.patch.object(
-            ImageBurnerRunner, "read_block_devices"
+        with mock.patch.object(ImageBurnerCmdRunner, "prerequisites") as prerequisites, mock.patch.object(
+            ImageBurnerCmdRunner, "read_block_devices"
         ) as read_block_devices, mock.patch.object(
-            ImageBurnerRunner, "select_block_device"
+            ImageBurnerCmdRunner, "select_block_device"
         ) as select_block_device, mock.patch.object(
-            ImageBurnerRunner, "verify_block_device_name"
+            ImageBurnerCmdRunner, "verify_block_device_name"
         ) as verify_block_device_name, mock.patch.object(
-            ImageBurnerRunner, "ask_to_verify_block_device"
+            ImageBurnerCmdRunner, "ask_to_verify_block_device"
         ) as ask_to_verify_block_device, mock.patch.object(
-            ImageBurnerRunner, "download_image"
+            ImageBurnerCmdRunner, "download_image"
         ) as download_image:
 
             prerequisites.return_value = True
@@ -415,7 +437,7 @@ class ImageBurnerTestShould(unittest.TestCase):
             image_download_path = "/path/to/downloaded/image"
 
             cols = self.create_fake_collaborators(ctx)
-            runner = ImageBurnerRunner()
+            runner = ImageBurnerCmdRunner()
             Assertion.expect_failure(
                 self,
                 ex_type=StepEvaluationFailure,
@@ -431,18 +453,18 @@ class ImageBurnerTestShould(unittest.TestCase):
     def test_burn_image_run_fail_to_burn_image(self) -> None:
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
 
-        with mock.patch.object(ImageBurnerRunner, "prerequisites") as prerequisites, mock.patch.object(
-            ImageBurnerRunner, "read_block_devices"
+        with mock.patch.object(ImageBurnerCmdRunner, "prerequisites") as prerequisites, mock.patch.object(
+            ImageBurnerCmdRunner, "read_block_devices"
         ) as read_block_devices, mock.patch.object(
-            ImageBurnerRunner, "select_block_device"
+            ImageBurnerCmdRunner, "select_block_device"
         ) as select_block_device, mock.patch.object(
-            ImageBurnerRunner, "verify_block_device_name"
+            ImageBurnerCmdRunner, "verify_block_device_name"
         ) as verify_block_device_name, mock.patch.object(
-            ImageBurnerRunner, "ask_to_verify_block_device"
+            ImageBurnerCmdRunner, "ask_to_verify_block_device"
         ) as ask_to_verify_block_device, mock.patch.object(
-            ImageBurnerRunner, "download_image"
+            ImageBurnerCmdRunner, "download_image"
         ) as download_image, mock.patch.object(
-            ImageBurnerRunner, "burn_image"
+            ImageBurnerCmdRunner, "burn_image"
         ) as burn_image:
 
             prerequisites.return_value = True
@@ -454,7 +476,7 @@ class ImageBurnerTestShould(unittest.TestCase):
             burn_image.return_value = False
 
             cols = self.create_fake_collaborators(ctx)
-            runner = ImageBurnerRunner()
+            runner = ImageBurnerCmdRunner()
             Assertion.expect_failure(
                 self,
                 ex_type=StepEvaluationFailure,
@@ -474,7 +496,7 @@ class ImageBurnerTestShould(unittest.TestCase):
         fake_prompter.prompt_yes_no_fn.return_value = True
 
         block_device_name = "/dev/disk1"
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         response = runner.ask_to_verify_block_device(block_device_name, fake_prompter)
         self.assertEqual(1, fake_prompter.prompt_yes_no_fn.call_count)
         self.assertTrue(response)
@@ -493,7 +515,7 @@ class ImageBurnerTestShould(unittest.TestCase):
 
         cols = self.create_fake_collaborators(ctx)
 
-        runner = ImageBurnerRunner()
+        runner = ImageBurnerCmdRunner()
         path = runner.download_image(download_url, download_path, fake_http_client, cols.printer)
 
         fake_http_client.download_file_fn.assert_called_once_with(
