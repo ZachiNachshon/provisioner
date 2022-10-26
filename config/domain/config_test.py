@@ -42,6 +42,9 @@ provisioner:
         user_yaml_str = """
 provisioner:
   remote:
+    hosts:
+      - name: test-node
+        address: 1.1.1.1
     auth:
       username: test-user
       ssh_private_key_file_path: /test/path
@@ -55,6 +58,10 @@ provisioner:
 """
         user_config_obj = yaml_util.read_string_fn(yaml_str=user_yaml_str, class_name=ProvisionerConfig)
         merged_config_obj = internal_config_obj.merge(user_config_obj)
+
+        self.assertEqual(len(merged_config_obj.remote.hosts), 1)
+        self.assertEqual(merged_config_obj.remote.hosts["test-node"].name, "test-node")
+        self.assertEqual(merged_config_obj.remote.hosts["test-node"].address, "1.1.1.1")
 
         self.assertEqual(merged_config_obj.remote.lan_scan.ip_discovery_range, "192.168.1.1/24")
         self.assertEqual(merged_config_obj.remote.auth.node_username, "test-user")
@@ -71,6 +78,11 @@ provisioner:
         internal_yaml_str = """
 provisioner:
   remote:
+    hosts:
+      - name: kmaster
+        address: 192.168.1.200
+      - name: knode1
+        address: 192.168.1.201
     lan_scan:
       ip_discovery_range: 192.168.1.1/24
     auth:
@@ -107,6 +119,11 @@ provisioner:
         user_yaml_str = """
 provisioner:
   remote:
+    hosts:
+      - name: kmaster-new
+        address: 192.168.1.300
+      - name: knode1-new
+        address: 192.168.1.301
     lan_scan:
       ip_discovery_range: 1.1.1.1/24
     auth:
@@ -140,6 +157,12 @@ provisioner:
 """
         user_config_obj = yaml_util.read_string_fn(yaml_str=user_yaml_str, class_name=ProvisionerConfig)
         merged_config_obj = internal_config_obj.merge(user_config_obj)
+
+        self.assertEqual(len(merged_config_obj.remote.hosts), 2)
+        self.assertEqual(merged_config_obj.remote.hosts["kmaster-new"].name, "kmaster-new")
+        self.assertEqual(merged_config_obj.remote.hosts["kmaster-new"].address, "192.168.1.300")
+        self.assertEqual(merged_config_obj.remote.hosts["knode1-new"].name, "knode1-new")
+        self.assertEqual(merged_config_obj.remote.hosts["knode1-new"].address, "192.168.1.301")
 
         self.assertEqual(merged_config_obj.remote.lan_scan.ip_discovery_range, "1.1.1.1/24")
         self.assertEqual(merged_config_obj.remote.auth.node_username, "pi-user")

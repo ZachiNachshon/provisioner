@@ -42,9 +42,8 @@ def install(
     Select an available SD-CARD to burn a Raspbian OS image
     """
     try:
-        config = ConfigResolver.get_config()
         args = RPiOsInstallCmdArgs(
-            image_download_url=image_download_url if image_download_url else config.image_download_url
+            image_download_url=image_download_url
         )
         args.print()
         RPiOsInstallCmd().run(ctx=CliContextManager.create(), args=args)
@@ -68,11 +67,10 @@ def configure(
     Configuration is aimed for an optimal headless Raspberry Pi used as a Kubernetes cluster node.
     """
     try:
-        config = ConfigResolver.get_config()
         args = RPiOsConfigureArgs(
-            node_username=node_username if node_username else config.node_username,
-            node_password=node_password if node_username else config.node_password,
-            ip_discovery_range=ip_discovery_range if ip_discovery_range else config.ip_discovery_range,
+            node_username=node_username,
+            node_password=node_password,
+            ip_discovery_range=ip_discovery_range,
         )
         args.print()
         RPiOsConfigureRunner().run(ctx=CliContextManager.create(), args=args)
@@ -108,13 +106,12 @@ def network(
     Select a remote Raspberry Pi node on the ethernet network to configure a static IP address.
     """
     try:
-        config = ConfigResolver.get_config()
         args = RPiNetworkConfigureArgs(
-            node_username=node_username if node_username else config.node_username,
-            node_password=node_password if node_username else config.node_password,
-            ip_discovery_range=ip_discovery_range if ip_discovery_range else config.ip_discovery_range,
-            gw_ip_address=gw_ip_address if gw_ip_address else config.gw_ip_address,
-            dns_ip_address=dns_ip_address if dns_ip_address else config.dns_ip_address,
+            node_username=node_username,
+            node_password=node_password,
+            ip_discovery_range=ip_discovery_range,
+            gw_ip_address=gw_ip_address,
+            dns_ip_address=dns_ip_address,
             static_ip_address=static_ip_address,
         )
         args.print()

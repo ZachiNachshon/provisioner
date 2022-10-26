@@ -6,6 +6,14 @@ from external.python_scripts_lib.python_scripts_lib.domain.serialize import (
 
 class RemoteConfig:
 
+    class Host:
+        name: str
+        address: str
+
+        def __init__(self, name: str, address: str) -> None:
+            self.name = name
+            self.address = address
+
     class LanScan:
         ip_discovery_range: str = None
 
@@ -13,9 +21,10 @@ class RemoteConfig:
         node_username: str = None
         node_password: str = None
         ssh_private_key_file_path: str = None
-
+    
     lan_scan: LanScan = LanScan()
     auth: Auth = Auth()
+    hosts: dict[str, Host] = None
     
 
 class AnchorConfig:
@@ -68,6 +77,16 @@ class ProvisionerConfig(SerializationBase):
             self.dns_ip_address = node_block["dns_ip_address"]
 
     def _parse_remote_block(self, remote_block: dict):
+        if "hosts" in remote_block:
+            hosts_block = remote_block["hosts"]
+            self.remote.hosts = {}
+            for host in hosts_block:
+                if "name" in host and "address" in host:
+                    h = RemoteConfig.Host(host["name"], host["address"])
+                    self.remote.hosts[host["name"]] = h
+                else:
+                    print("Bad hosts configuration, please check YAML file")
+
         if "lan_scan" in remote_block:
             lan_scan_block = remote_block["lan_scan"]
             if "ip_discovery_range" in lan_scan_block:
@@ -135,6 +154,9 @@ class ProvisionerConfig(SerializationBase):
             self._parse_rpi_block(provisioner_data["rpi"])
 
     def merge(self, other: "ProvisionerConfig") -> SerializationBase:
+        if other.remote.hosts:
+            self.remote.hosts = other.remote.hosts
+
         if other.remote.lan_scan.ip_discovery_range:
             self.remote.lan_scan.ip_discovery_range = other.remote.lan_scan.ip_discovery_range
 

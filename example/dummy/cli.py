@@ -42,12 +42,11 @@ def hello(
     Run a dummy hello world scenario locally or on remote machine via Ansible playbook
     """
     try:
-        config = ConfigResolver.get_config()
         args = HelloWorldCmdArgs(
             username=username,
-            node_username=node_username if node_username else config.node_username,
-            node_password=node_password if node_username else config.node_password,
-            ip_discovery_range=ip_discovery_range if ip_discovery_range else config.ip_discovery_range,
+            node_username=node_username,
+            node_password=node_password,
+            ip_discovery_range=ip_discovery_range,
         )
         args.print()
         HelloWorldCmd().run(ctx=CliContextManager.create(), args=args)
@@ -86,16 +85,15 @@ def anchor(
     Run a dummy run anchor scenario locally or on remote machine via Ansible playbook
     """
     try:
-        config = ConfigResolver.get_config()
         args = AnchorCmdArgs(
             anchor_run_command=anchor_run_command,
             github_organization=github_organization,
             repository_name=repository_name,
             branch_name=branch_name,
             git_access_token=git_access_token,
-            node_username=node_username if node_username else config.node_username,
-            node_password=node_password if node_username else config.node_password,
-            ip_discovery_range=ip_discovery_range if ip_discovery_range else config.ip_discovery_range,
+            node_username=node_username,
+            node_password=node_password,
+            ip_discovery_range=ip_discovery_range,
         )
         args.print()
         AnchorCmd().run(ctx=CliContextManager.create(), args=args)
