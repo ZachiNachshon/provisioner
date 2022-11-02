@@ -11,7 +11,7 @@ from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
 )
 from rpi.main import app
 
-TEST_CONFIG_USER_PATH = os.path.expanduser("~/.config/.provisioner/config.yaml")
+TEST_CONFIG_USER_PATH = os.path.expanduser("~/.config/provisioner/config.yaml")
 TEST_CONFIG_INTERNAL_PATH = "rpi/config.yaml"
 
 runner = CliRunner()
@@ -25,7 +25,7 @@ runner = CliRunner()
 #  poetry run coverage run -m pytest rpi/os/cli_test.py
 #
 class OsCliTestShould(unittest.TestCase):
-    @mock.patch("rpi.os.install.RPiOsInstallCmd.run")
+    @mock.patch("rpi.os.install_cmd.RPiOsInstallCmd.run")
     def test_cli_install_runner_with_cli_args_success(self, run_call: mock.MagicMock) -> None:
         expected_image_download_url = "http://test.download.com"
         result = runner.invoke(
@@ -49,7 +49,7 @@ class OsCliTestShould(unittest.TestCase):
         self.assertIsNotNone(os_install_args)
         self.assertEqual(os_install_args.image_download_url, expected_image_download_url)
 
-    @mock.patch("rpi.os.install.RPiOsInstallCmd.run")
+    @mock.patch("rpi.os.install_cmd.RPiOsInstallCmd.run")
     def test_cli_install_runner_with_config_args_success(self, run_call: mock.MagicMock) -> None:
         result = runner.invoke(
             app,
@@ -72,7 +72,7 @@ class OsCliTestShould(unittest.TestCase):
         self.assertEqual(os_install_args.image_download_url, 
         "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2022-01-28/2022-01-28-raspios-bullseye-arm64-lite.zip")
 
-    @mock.patch("rpi.os.install.RPiOsInstallCmd.run", side_effect=Exception("runner failure"))
+    @mock.patch("rpi.os.install_cmd.RPiOsInstallCmd.run", side_effect=Exception("runner failure"))
     def test_cli_os_install_runner_failure(self, run_call: mock.MagicMock) -> None:
         result = runner.invoke(
             app,
@@ -90,7 +90,7 @@ class OsCliTestShould(unittest.TestCase):
         self.assertEqual(str(result.exception), "runner failure")
 
     def test_integration_os_install_runner_darwin_cli_success(self) -> None:
-        auto_prompt = "AUTO_PROMPT_RESPONSE"
+        auto_prompt = "DRY_RUN_RESPONSE"
         result = runner.invoke(
             app,
             [
@@ -112,7 +112,7 @@ class OsCliTestShould(unittest.TestCase):
         self.assertIn(f"diskutil eject {auto_prompt}", cmd_output)
 
     def test_integration_os_install_runner_linux_cli_success(self) -> None:
-        auto_prompt = "AUTO_PROMPT_RESPONSE"
+        auto_prompt = "DRY_RUN_RESPONSE"
         result = runner.invoke(
             app,
             [
@@ -130,7 +130,7 @@ class OsCliTestShould(unittest.TestCase):
         )
         self.assertIn("sync", cmd_output)
 
-    @mock.patch("rpi.os.configure.RPiOsConfigureRunner.run")
+    @mock.patch("rpi.os.configure_cmd.RPiOsConfigureCmd.run")
     def test_cli_os_configure_runner_with_cli_args_success(self, run_call: mock.MagicMock) -> None:
         expected_node_username = "test-user"
         expected_node_password = "test-user"
@@ -159,7 +159,7 @@ class OsCliTestShould(unittest.TestCase):
         self.assertEqual(os_configure_args.node_password, expected_node_password)
         self.assertEqual(os_configure_args.ip_discovery_range, expected_ip_discovery_range)
 
-    @mock.patch("rpi.os.configure.RPiOsConfigureRunner.run")
+    @mock.patch("rpi.os.configure_cmd.RPiOsConfigureCmd.run")
     def test_cli_os_configure_runner_with_config_args_success(self, run_call: mock.MagicMock) -> None:
         result = runner.invoke(
             app,
@@ -182,7 +182,7 @@ class OsCliTestShould(unittest.TestCase):
         self.assertEqual(os_configure_args.node_password, "raspberry")
         self.assertEqual(os_configure_args.ip_discovery_range, "192.168.1.1/24")
 
-    @mock.patch("rpi.os.configure.RPiOsConfigureRunner.run", side_effect=Exception("runner failure"))
+    @mock.patch("rpi.os.configure_cmd.RPiOsConfigureCmd.run", side_effect=Exception("runner failure"))
     def test_cli_os_configure_runner_failure(self, run_call: mock.MagicMock) -> None:
         result = runner.invoke(
             app,
@@ -216,11 +216,11 @@ class OsCliTestShould(unittest.TestCase):
             f"bash \
 ./external/shell_scripts_lib/runner/ansible/ansible.sh \
 working_dir: {working_dir} \
-username: AUTO_PROMPT_RESPONSE \
-password: AUTO_PROMPT_RESPONSE \
+username: DRY_RUN_RESPONSE \
+password: DRY_RUN_RESPONSE \
 playbook_path: rpi/os/playbooks/configure_os.yaml \
-selected_host: AUTO_PROMPT_RESPONSE None \
-ansible_var: host_name=AUTO_PROMPT_RESPONSE \
+selected_host: DRY_RUN_RESPONSE None \
+ansible_var: host_name=DRY_RUN_RESPONSE \
 ansible_tag: configure_remote_node \
 ansible_tag: reboot \
 --dry-run",
@@ -244,18 +244,18 @@ ansible_tag: reboot \
             f"bash \
 ./external/shell_scripts_lib/runner/ansible/ansible.sh \
 working_dir: {working_dir} \
-username: AUTO_PROMPT_RESPONSE \
-password: AUTO_PROMPT_RESPONSE \
+username: DRY_RUN_RESPONSE \
+password: DRY_RUN_RESPONSE \
 playbook_path: rpi/os/playbooks/configure_os.yaml \
-selected_host: AUTO_PROMPT_RESPONSE None \
-ansible_var: host_name=AUTO_PROMPT_RESPONSE \
+selected_host: DRY_RUN_RESPONSE None \
+ansible_var: host_name=DRY_RUN_RESPONSE \
 ansible_tag: configure_remote_node \
 ansible_tag: reboot \
 --dry-run",
             cmd_output,
         )
 
-    @mock.patch("rpi.os.network.RPiNetworkConfigureRunner.run")
+    @mock.patch("rpi.os.network_cmd.RPiNetworkConfigureCmd.run")
     def test_cli_os_network_runner_with_cli_args_success(self, run_call: mock.MagicMock) -> None:
         expected_static_ip_address = "1.1.1.1"
         expected_gw_ip_address = "1.2.3.4"
@@ -293,7 +293,7 @@ ansible_tag: reboot \
         self.assertEqual(os_network_args.node_password, expected_node_password)
         self.assertEqual(os_network_args.ip_discovery_range, expected_ip_discovery_range)
 
-    @mock.patch("rpi.os.network.RPiNetworkConfigureRunner.run")
+    @mock.patch("rpi.os.network_cmd.RPiNetworkConfigureCmd.run")
     def test_cli_os_network_runner_with_config_args_success(self, run_call: mock.MagicMock) -> None:
         expected_static_ip_address = "1.1.1.1"
         result = runner.invoke(
@@ -321,7 +321,7 @@ ansible_tag: reboot \
         self.assertEqual(os_configure_args.node_password, "raspberry")
         self.assertEqual(os_configure_args.ip_discovery_range, "192.168.1.1/24")
 
-    @mock.patch("rpi.os.network.RPiNetworkConfigureRunner.run", side_effect=Exception("runner failure"))
+    @mock.patch("rpi.os.network_cmd.RPiNetworkConfigureCmd.run", side_effect=Exception("runner failure"))
     def test_cli_os_network_runner_failure(self, run_call: mock.MagicMock) -> None:
         result = runner.invoke(
             app,
@@ -344,14 +344,14 @@ ansible_tag: reboot \
             f"bash \
 ./external/shell_scripts_lib/runner/ansible/ansible.sh \
 working_dir: {working_dir} \
-username: AUTO_PROMPT_RESPONSE \
-password: AUTO_PROMPT_RESPONSE \
+username: DRY_RUN_RESPONSE \
+password: DRY_RUN_RESPONSE \
 playbook_path: rpi/os/playbooks/configure_network.yaml \
-selected_host: AUTO_PROMPT_RESPONSE None \
-ansible_var: host_name=AUTO_PROMPT_RESPONSE \
-ansible_var: static_ip=AUTO_PROMPT_RESPONSE \
-ansible_var: gateway_address=AUTO_PROMPT_RESPONSE \
-ansible_var: dns_address=AUTO_PROMPT_RESPONSE \
+selected_host: DRY_RUN_RESPONSE None \
+ansible_var: host_name=DRY_RUN_RESPONSE \
+ansible_var: static_ip=DRY_RUN_RESPONSE \
+ansible_var: gateway_address=DRY_RUN_RESPONSE \
+ansible_var: dns_address=DRY_RUN_RESPONSE \
 ansible_tag: configure_rpi_network \
 ansible_tag: define_static_ip \
 ansible_tag: reboot \
@@ -370,14 +370,14 @@ ansible_tag: reboot \
             f"bash \
 ./external/shell_scripts_lib/runner/ansible/ansible.sh \
 working_dir: {working_dir} \
-username: AUTO_PROMPT_RESPONSE \
-password: AUTO_PROMPT_RESPONSE \
+username: DRY_RUN_RESPONSE \
+password: DRY_RUN_RESPONSE \
 playbook_path: rpi/os/playbooks/configure_network.yaml \
-selected_host: AUTO_PROMPT_RESPONSE None \
-ansible_var: host_name=AUTO_PROMPT_RESPONSE \
-ansible_var: static_ip=AUTO_PROMPT_RESPONSE \
-ansible_var: gateway_address=AUTO_PROMPT_RESPONSE \
-ansible_var: dns_address=AUTO_PROMPT_RESPONSE \
+selected_host: DRY_RUN_RESPONSE None \
+ansible_var: host_name=DRY_RUN_RESPONSE \
+ansible_var: static_ip=DRY_RUN_RESPONSE \
+ansible_var: gateway_address=DRY_RUN_RESPONSE \
+ansible_var: dns_address=DRY_RUN_RESPONSE \
 ansible_tag: configure_rpi_network \
 ansible_tag: define_static_ip \
 ansible_tag: reboot \

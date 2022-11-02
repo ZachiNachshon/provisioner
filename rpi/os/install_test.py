@@ -5,7 +5,7 @@ from unittest import mock
 
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.utils.os import MAC_OS, OsArch
-from rpi.os.install import RPiOsInstallCmd, RPiOsInstallCmdArgs
+from rpi.os.install_cmd import RPiOsInstallCmd, RPiOsInstallCmdArgs
 
 
 #

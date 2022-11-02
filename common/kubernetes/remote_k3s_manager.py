@@ -1,18 +1,26 @@
 #!/usr/bin/env python3
 
+from typing import List
 from loguru import logger
-from .remote_connector import RemoteMachineConnector
-from external.python_scripts_lib.python_scripts_lib.utils.progress_indicator import ProgressIndicator
-from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
-from external.python_scripts_lib.python_scripts_lib.utils.process import Process
+
+from external.python_scripts_lib.python_scripts_lib.colors import color
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.infra.evaluator import Evaluator
+from external.python_scripts_lib.python_scripts_lib.runner.ansible.ansible import (
+    AnsibleRunner,
+    HostIpPair,
+)
 from external.python_scripts_lib.python_scripts_lib.utils.checks import Checks
-from external.python_scripts_lib.python_scripts_lib.utils.printer import Printer
+from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.network import NetworkUtil
+from external.python_scripts_lib.python_scripts_lib.utils.printer import Printer
+from external.python_scripts_lib.python_scripts_lib.utils.process import Process
+from external.python_scripts_lib.python_scripts_lib.utils.progress_indicator import (
+    ProgressIndicator,
+)
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompter
-from external.python_scripts_lib.python_scripts_lib.runner.ansible.ansible import AnsibleRunner, HostIpPair
-from external.python_scripts_lib.python_scripts_lib.colors import color
+
+from .remote_connector import RemoteMachineConnector
 
 
 class RemoteK3sManagerArgs:
@@ -68,7 +76,8 @@ class RemoteK3sManagerRunner:
             ctx, args.ip_discovery_range, args.node_username, args.node_password
         )
 
-        ansible_vars = [f"host_name={ssh_conn_info.hostname}"]
+        # TODO: need adjustments
+        ansible_vars = [f"host_name={pair.host}" for pair in ssh_conn_info.host_ip_pairs]
 
         collaborators.printer.new_line_fn()
 
@@ -80,7 +89,7 @@ class RemoteK3sManagerRunner:
                 playbook_path=args.ansible_playbook_path_configure_os,
                 ansible_vars=ansible_vars,
                 ansible_tags=["configure_remote_node", "reboot"],
-                selected_hosts=[HostIpPair(host=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address)],
+                selected_hosts=ssh_conn_info.host_ip_pairs,
             ),
             desc_run="Running Ansible playbook (Configure OS)",
             desc_end="Ansible playbook finished (Configure OS).",
@@ -90,14 +99,14 @@ class RemoteK3sManagerRunner:
         collaborators.printer.print_fn(output)
         collaborators.printer.print_with_rich_table_fn(
             generate_instructions_post_configure(
-                hostname=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address
+                host_ip_pairs=ssh_conn_info.host_ip_address
             )
         )
 
     def _print_pre_run_instructions(self, printer: Printer, prompter: Prompter):
         printer.print_fn(generate_logo_configure())
         printer.print_with_rich_table_fn(generate_instructions_pre_configure())
-        prompter.prompt_for_enter()
+        prompter.prompt_for_enter_fn()
 
     def prerequisites(self, ctx: Context, checks: Checks) -> None:
         if ctx.os_arch.is_linux():
@@ -136,10 +145,10 @@ def generate_instructions_pre_configure() -> str:
 """
 
 
-def generate_instructions_post_configure(hostname: str, ip_address: str):
+def generate_instructions_post_configure(host_ip_pairs: List[HostIpPair]):
     return f"""
   You have successfully configured hardware and system settings for a Raspberry Pi node:
   
-    • Host Name....: [yellow]{hostname}[/yellow]
-    • IP Address...: [yellow]{ip_address}[/yellow]
+    • Host Name....: [yellow]{[pair.host for pair in host_ip_pairs]}[/yellow]
+    • IP Address...: [yellow]{[pair.ip_address for pair in host_ip_pairs]}[/yellow]
 """

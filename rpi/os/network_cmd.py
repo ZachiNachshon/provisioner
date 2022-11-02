@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import os
-from typing import Optional
+from typing import List, Optional
 
 from loguru import logger
+from common.remote.remote_connector import RemoteCliArgs
 
 from common.remote.remote_network_configure import (
     RemoteMachineNetworkConfigureArgs,
@@ -11,57 +11,52 @@ from common.remote.remote_network_configure import (
     RemoteMachineNetworkConfigureRunner,
 )
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from external.python_scripts_lib.python_scripts_lib.runner.ansible.ansible import HostIpPair
 
 RemoteMachineNetworkAnsiblePlaybookPath = "rpi/os/playbooks/configure_network.yaml"
 
-class RPiNetworkConfigureArgs:
+class RPiNetworkConfigureCmdArgs:
 
-    node_username: str
-    node_password: str
-    ip_discovery_range: str
     gw_ip_address: str
     dns_ip_address: str
     static_ip_address: str
+    remote_args: RemoteCliArgs
 
     def __init__(
         self,
-        node_username: Optional[str] = None,
-        node_password: Optional[str] = None,
-        ip_discovery_range: Optional[str] = None,
         gw_ip_address: Optional[str] = None,
         dns_ip_address: Optional[str] = None,
         static_ip_address: Optional[str] = None,
+        node_username: Optional[str] = None,
+        node_password: Optional[str] = None,
+        ssh_private_key_file_path: Optional[str] = None,
+        ip_discovery_range: Optional[str] = None,
+        host_ip_pairs: List[HostIpPair] = None,
     ) -> None:
-
-        self.node_username = node_username
-        self.node_password = node_password
-        self.ip_discovery_range = ip_discovery_range
+        self.remote_args = RemoteCliArgs(node_username, node_password, ip_discovery_range, host_ip_pairs, ssh_private_key_file_path)
         self.gw_ip_address = gw_ip_address
         self.dns_ip_address = dns_ip_address
         self.static_ip_address = static_ip_address
 
     def print(self) -> None:
+        if self.remote_args: 
+            self.remote_args.print()
         logger.debug(
-            f"RPiOsConfigureArgs: \n"
-            + f"  node_username: {self.node_username}\n"
-            + f"  node_password: REDACTED\n"
-            + f"  ip_discovery_range: {self.ip_discovery_range}\n"
+            f"RPiNetworkConfigureCmdArgs: \n"
             + f"  gw_ip_address: {self.gw_ip_address}\n"
             + f"  dns_ip_address: {self.dns_ip_address}\n"
             + f"  static_ip_address: {self.static_ip_address}\n"
         )
 
 
-class RPiNetworkConfigureRunner:
-    def run(self, ctx: Context, args: RPiNetworkConfigureArgs) -> None:
-        logger.debug("Inside RPiNetworkConfigureRunner run()")
+class RPiNetworkConfigureCmd:
+    def run(self, ctx: Context, args: RPiNetworkConfigureCmdArgs) -> None:
+        logger.debug("Inside RPiNetworkConfigureCmd run()")
 
         RemoteMachineNetworkConfigureRunner().run(
             ctx=ctx,
             args=RemoteMachineNetworkConfigureArgs(
-                node_username=args.node_username,
-                node_password=args.node_password,
-                ip_discovery_range=args.ip_discovery_range,
+                remote_args=args.remote_args,
                 gw_ip_address=args.gw_ip_address,
                 dns_ip_address=args.dns_ip_address,
                 static_ip_address=args.static_ip_address,

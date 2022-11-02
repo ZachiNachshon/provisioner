@@ -70,7 +70,6 @@ class ProvisionerConfig(SerializationBase):
         super().__init__(dict_obj)
 
     def _parse_node_block(self, node_block: dict):
-
         if "gw_ip_address" in node_block:
             self.gw_ip_address = node_block["gw_ip_address"]
         if "dns_ip_address" in node_block:

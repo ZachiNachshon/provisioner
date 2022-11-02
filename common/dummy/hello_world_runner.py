@@ -16,29 +16,23 @@ from external.python_scripts_lib.python_scripts_lib.utils.progress_indicator imp
 )
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompter
 
-from ..remote.remote_connector import SSHConnectionInfo
+from ..remote.remote_connector import RemoteCliArgs, SSHConnectionInfo
 
 HelloWorldAnsiblePlaybookPath = "example/dummy/playbooks/hello_world.yaml"
 
 class HelloWorldRunnerArgs:
 
     username: str
-    node_username: str
-    node_password: str
-    ip_discovery_range: str
+    remote_args: RemoteCliArgs
 
     def __init__(
         self,
         username: str,
-        node_username: str,
-        node_password: str,
-        ip_discovery_range: str,
+        remote_args: RemoteCliArgs
     ) -> None:
 
         self.username = username
-        self.node_username = node_username
-        self.node_password = node_password
-        self.ip_discovery_range = ip_discovery_range
+        self.remote_args = remote_args
 
 
 class RunnerCollaborators:
@@ -68,7 +62,7 @@ class HelloWorldRunner:
         self._print_pre_run_instructions(collaborators.printer, collaborators.prompter)
 
         ssh_conn_info = SSHConnectionInfo(
-            username="pi", password="raspbian", host_ip_address="ansible_connection=local", hostname="localhost"
+            username="pi", password="raspbian", host_ip_pairs=[HostIpPair(host="localhost", ip_address="ansible_connection=local")]
         )
 
         ansible_vars = [f"\"username='{args.username}'\""]
@@ -80,10 +74,11 @@ class HelloWorldRunner:
                 working_dir=collaborators.io.get_current_directory_fn(),
                 username=ssh_conn_info.username,
                 password=ssh_conn_info.password,
+                ssh_private_key_file_path=ssh_conn_info.ssh_private_key_file_path,
                 playbook_path=HelloWorldAnsiblePlaybookPath,
                 ansible_vars=ansible_vars,
                 ansible_tags=["hello"],
-                selected_hosts=[HostIpPair(host=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address)],
+                selected_hosts=ssh_conn_info.host_ip_pairs,
             ),
             desc_run="Running Ansible playbook (Hello World)",
             desc_end="Ansible playbook finished (Hello World).",
@@ -93,7 +88,7 @@ class HelloWorldRunner:
         collaborators.printer.print_fn(output)
 
     def _print_pre_run_instructions(self, printer: Printer, prompter: Prompter):
-        prompter.prompt_for_enter()
+        prompter.prompt_for_enter_fn()
 
     def prerequisites(self, ctx: Context, checks: Checks) -> None:
         if ctx.os_arch.is_linux():

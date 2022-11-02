@@ -2,12 +2,9 @@
 
 from loguru import logger
 
-from external.python_scripts_lib.python_scripts_lib.colors import color
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
-from external.python_scripts_lib.python_scripts_lib.infra.evaluator import Evaluator
 from external.python_scripts_lib.python_scripts_lib.runner.ansible.ansible import (
-    AnsibleRunner,
-    HostIpPair,
+    AnsibleRunner
 )
 from external.python_scripts_lib.python_scripts_lib.utils.checks import Checks
 from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
@@ -19,23 +16,18 @@ from external.python_scripts_lib.python_scripts_lib.utils.progress_indicator imp
 )
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompter
 
-from .remote_connector import RemoteMachineConnector
+from .remote_connector import RemoteCliArgs, RemoteMachineConnector, SSHConnectionInfo
 
 
 class RemoteMachineOsConfigureArgs:
 
-    node_username: str
-    node_password: str
-    ip_discovery_range: str
     ansible_playbook_path_configure_os: str
+    remote_args: RemoteCliArgs
 
     def __init__(
-        self, node_username: str, node_password: str, ip_discovery_range: str, ansible_playbook_path_configure_os: str
+        self, remote_args: RemoteCliArgs, ansible_playbook_path_configure_os: str
     ) -> None:
-
-        self.node_username = node_username
-        self.node_password = node_password
-        self.ip_discovery_range = ip_discovery_range
+        self.remote_args = remote_args
         self.ansible_playbook_path_configure_os = ansible_playbook_path_configure_os
 
 
@@ -72,10 +64,15 @@ class RemoteMachineOsConfigureRunner:
         )
 
         ssh_conn_info = remote_connector.collect_ssh_connection_info(
-            ctx, args.ip_discovery_range, args.node_username, args.node_password
+            ctx=ctx, 
+            remote_args=args.remote_args, 
+            force_single_conn_info=True
         )
 
-        ansible_vars = [f"host_name={ssh_conn_info.hostname}"]
+        hostname_ip_tuple = self._extract_host_ip_tuple(ctx, ssh_conn_info)
+        ssh_hostname = hostname_ip_tuple[0]
+        ssh_ip_address = hostname_ip_tuple[1]
+        ansible_vars = [f"host_name={ssh_hostname}"]
 
         collaborators.printer.new_line_fn()
 
@@ -84,10 +81,11 @@ class RemoteMachineOsConfigureRunner:
                 working_dir=collaborators.io.get_current_directory_fn(),
                 username=ssh_conn_info.username,
                 password=ssh_conn_info.password,
+                ssh_private_key_file_path=ssh_conn_info.ssh_private_key_file_path,
                 playbook_path=args.ansible_playbook_path_configure_os,
                 ansible_vars=ansible_vars,
                 ansible_tags=["configure_remote_node", "reboot"],
-                selected_hosts=[HostIpPair(host=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address)],
+                selected_hosts=ssh_conn_info.host_ip_pairs,
             ),
             desc_run="Running Ansible playbook (Configure OS)",
             desc_end="Ansible playbook finished (Configure OS).",
@@ -97,14 +95,22 @@ class RemoteMachineOsConfigureRunner:
         collaborators.printer.print_fn(output)
         collaborators.printer.print_with_rich_table_fn(
             generate_instructions_post_configure(
-                hostname=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address
+                hostname=ssh_hostname, ip_address=ssh_ip_address
             )
         )
 
+    def _extract_host_ip_tuple(self, ctx: Context, ssh_conn_info: SSHConnectionInfo) -> tuple[str, str]:
+        if ctx.is_dry_run():
+            return ("DRY_RUN_RESPONSE", "DRY_RUN_RESPONSE")
+        else:
+            # Promised to have only single item
+            single_pair_item = ssh_conn_info.host_ip_pairs[0]
+            return (single_pair_item.host, single_pair_item.ip_address)
+            
     def _print_pre_run_instructions(self, printer: Printer, prompter: Prompter):
         printer.print_fn(generate_logo_configure())
         printer.print_with_rich_table_fn(generate_instructions_pre_configure())
-        prompter.prompt_for_enter()
+        prompter.prompt_for_enter_fn()
 
     def prerequisites(self, ctx: Context, checks: Checks) -> None:
         if ctx.os_arch.is_linux():

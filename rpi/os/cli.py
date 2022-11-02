@@ -5,6 +5,7 @@ from typing import Optional
 
 import typer
 from loguru import logger
+from common.remote.remote_connector import RemoteCliArgs
 
 from config.config_resolver import ConfigResolver
 from config.typer_remote_opts import TyperRemoteOpts
@@ -16,11 +17,11 @@ from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
 from external.python_scripts_lib.python_scripts_lib.infra.context import (
     CliContextManager,
 )
-from rpi.os.configure import RPiOsConfigureArgs, RPiOsConfigureRunner
-from rpi.os.install import RPiOsInstallCmd, RPiOsInstallCmdArgs
-from rpi.os.network import RPiNetworkConfigureArgs, RPiNetworkConfigureRunner
+from rpi.os.configure_cmd import RPiOsConfigureCmdArgs, RPiOsConfigureCmd
+from rpi.os.install_cmd import RPiOsInstallCmd, RPiOsInstallCmdArgs
+from rpi.os.network_cmd import RPiNetworkConfigureCmdArgs, RPiNetworkConfigureCmd
 
-CONFIG_USER_PATH = os.path.expanduser("~/.config/.provisioner/config.yaml")
+CONFIG_USER_PATH = os.path.expanduser("~/.config/provisioner/config.yaml")
 CONFIG_INTERNAL_PATH = "rpi/config.yaml"
 
 ConfigResolver.resolve(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH)
@@ -60,6 +61,7 @@ def install(
 def configure(
     node_username: Optional[str] = TyperRemoteOpts.node_username(),
     node_password: Optional[str] = TyperRemoteOpts.node_password(),
+    ssh_private_key_file_path: Optional[str] = TyperRemoteOpts.ssh_private_key_file_path(),
     ip_discovery_range: Optional[str] = TyperRemoteOpts.ip_discovery_range(),
 ) -> None:
     """
@@ -67,13 +69,15 @@ def configure(
     Configuration is aimed for an optimal headless Raspberry Pi used as a Kubernetes cluster node.
     """
     try:
-        args = RPiOsConfigureArgs(
+        args = RPiOsConfigureCmdArgs(
             node_username=node_username,
             node_password=node_password,
+            ssh_private_key_file_path=ssh_private_key_file_path,
             ip_discovery_range=ip_discovery_range,
+            host_ip_pairs=RemoteCliArgs.to_host_ip_pairs(ConfigResolver.config.remote.hosts)
         )
         args.print()
-        RPiOsConfigureRunner().run(ctx=CliContextManager.create(), args=args)
+        RPiOsConfigureCmd().run(ctx=CliContextManager.create(), args=args)
     except StepEvaluationFailure as sef:
         logger.critical("Failed to configure Raspbian OS. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:
@@ -100,22 +104,25 @@ def network(
     ),
     node_username: Optional[str] = TyperRemoteOpts.node_username(),
     node_password: Optional[str] = TyperRemoteOpts.node_password(),
+    ssh_private_key_file_path: Optional[str] = TyperRemoteOpts.ssh_private_key_file_path(),
     ip_discovery_range: Optional[str] = TyperRemoteOpts.ip_discovery_range(),
 ) -> None:
     """
     Select a remote Raspberry Pi node on the ethernet network to configure a static IP address.
     """
     try:
-        args = RPiNetworkConfigureArgs(
-            node_username=node_username,
-            node_password=node_password,
-            ip_discovery_range=ip_discovery_range,
+        args = RPiNetworkConfigureCmdArgs(
             gw_ip_address=gw_ip_address,
             dns_ip_address=dns_ip_address,
             static_ip_address=static_ip_address,
+            node_username=node_username,
+            node_password=node_password,
+            ssh_private_key_file_path=ssh_private_key_file_path,
+            ip_discovery_range=ip_discovery_range,
+            host_ip_pairs=RemoteCliArgs.to_host_ip_pairs(ConfigResolver.config.remote.hosts)
         )
         args.print()
-        RPiNetworkConfigureRunner().run(ctx=CliContextManager.create(), args=args)
+        RPiNetworkConfigureCmd().run(ctx=CliContextManager.create(), args=args)
     except StepEvaluationFailure as sef:
         logger.critical("Failed to configure RPi network. ex: {}, message: {}", sef.__class__.__name__, str(sef))
     except Exception as e:

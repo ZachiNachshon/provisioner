@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 
-import typer
 from typing import Optional
-from loguru import logger
+
+import typer
 from dummy.hello_world.hello_world_cmd import HelloWorldCmd, HelloWorldCmdArgs
-from external.python_scripts_lib.python_scripts_lib.utils.os import OsArch
+from loguru import logger
+
 from external.python_scripts_lib.python_scripts_lib.cli.state import CliGlobalArgs
-from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.errors.cli_errors import (
     CliApplicationException,
     StepEvaluationFailure,
 )
+from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from external.python_scripts_lib.python_scripts_lib.utils.os import OsArch
 
 master_cli_app = typer.Typer()
+
 
 @master_cli_app.command(name="install")
 @logger.catch(reraise=True)
@@ -48,4 +51,3 @@ def install(
         logger.critical("Failed to configure Raspbian OS. ex: {}, message: {}", e.__class__.__name__, str(e))
         if CliGlobalArgs.is_verbose():
             raise CliApplicationException(e)
-

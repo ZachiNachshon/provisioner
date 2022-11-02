@@ -19,13 +19,16 @@ from external.python_scripts_lib.python_scripts_lib.utils.process import Process
 from external.python_scripts_lib.python_scripts_lib.utils.progress_indicator import (
     ProgressIndicator,
 )
+from common.remote.remote_connector import RemoteCliArgs
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompter
 
 from ..remote.remote_connector import RemoteMachineConnector
 
-RunEnvironment = Enum("RunEnvironment", "Local Remote")
 AnchorRunAnsiblePlaybookPath = "common/anchor/playbooks/anchor_run.yaml"
 
+class RunEnvironment(str, Enum):
+    Local = "Local"
+    Remote = "Remote"
 
 class AnchorRunnerCmdArgs:
 
@@ -33,12 +36,8 @@ class AnchorRunnerCmdArgs:
     github_organization: str
     repository_name: str
     branch_name: str
-    git_access_token: str
-
-    # Optional arguments only for remote anchor run
-    node_username: str
-    node_password: str
-    ip_discovery_range: str
+    github_access_token: str
+    remote_args: RemoteCliArgs
 
     def __init__(
         self,
@@ -46,20 +45,15 @@ class AnchorRunnerCmdArgs:
         github_organization: str,
         repository_name: str,
         branch_name: str,
-        git_access_token: str,
-        node_username: Optional[str] = None,
-        node_password: Optional[str] = None,
-        ip_discovery_range: Optional[str] = None,
+        github_access_token: str,
+        remote_args: Optional[RemoteCliArgs] = None
     ) -> None:
-
         self.anchor_run_command = anchor_run_command
         self.github_organization = github_organization
         self.repository_name = repository_name
         self.branch_name = branch_name
-        self.git_access_token = git_access_token
-        self.node_username = node_username
-        self.node_password = node_password
-        self.ip_discovery_range = ip_discovery_range
+        self.github_access_token = github_access_token
+        self.remote_args = remote_args
 
 
 class Collaborators:
@@ -84,14 +78,17 @@ class AnchorCmdRunnerCollaborators(Collaborators):
 
 
 class AnchorCmdRunner:
-    def run(self, ctx: Context, args: AnchorRunnerCmdArgs, collaborators: Collaborators) -> None:
-        logger.debug("Inside AnchorRunner run()")
+    def run(
+        self, 
+        ctx: Context, 
+        args: AnchorRunnerCmdArgs, 
+        collaborators: Collaborators, 
+        run_env: RunEnvironment) -> None:
+
+        logger.debug("Inside AnchorCmdRunner run()")
 
         self.prerequisites(ctx=ctx, checks=collaborators.checks)
 
-        # TODO: print a list of available installers
-
-        run_env = self._ask_for_run_environment(collaborators.prompter)
         if run_env == RunEnvironment.Local:
             self._start_local_run_command_flow(ctx, args, collaborators)
         elif run_env == RunEnvironment.Remote:
@@ -99,28 +96,17 @@ class AnchorCmdRunner:
         else:
             return
 
-    def _ask_for_run_environment(self, prompter: Prompter) -> RunEnvironment:
-        options_dict: List[dict] = ["Local", "Remote"]
-        selected_scanned_item: dict = prompter.prompt_user_selection_fn(
-            message="Please choose an environment to run anchor command on", options=options_dict
-        )
-        if selected_scanned_item == "Local":
-            return RunEnvironment.Local
-        elif selected_scanned_item == "Remote":
-            return RunEnvironment.Remote
-        return None
-
-    def _start_remote_run_command_flow(self, ctx: Context, args: AnchorRunnerCmdArgs, collaborators: Collaborators):
-        collaborators.printer.print_with_rich_table_fn(notify_before_remote_execution())
-        collaborators.prompter.prompt_for_enter()
+    def _start_remote_run_command_flow(
+        self, 
+        ctx: Context, 
+        args: AnchorRunnerCmdArgs, 
+        collaborators: Collaborators):
 
         remote_connector = RemoteMachineConnector(
             collaborators.checks, collaborators.printer, collaborators.prompter, collaborators.network_util
         )
 
-        ssh_conn_info = remote_connector.collect_ssh_connection_info(
-            ctx, args.ip_discovery_range, args.node_username, args.node_password
-        )
+        ssh_conn_info = remote_connector.collect_ssh_connection_info(ctx, args.remote_args)
 
         ansible_vars = [
             "anchor_command=Run",
@@ -128,7 +114,7 @@ class AnchorCmdRunner:
             f"anchor_github_organization={args.github_organization}",
             f"anchor_github_repository={args.repository_name}",
             f"anchor_github_repo_branch={args.branch_name}",
-            f"git_access_token={args.git_access_token}",
+            f"github_access_token={args.github_access_token}",
         ]
 
         collaborators.printer.new_line_fn()
@@ -138,10 +124,11 @@ class AnchorCmdRunner:
                 working_dir=collaborators.io.get_current_directory_fn(),
                 username=ssh_conn_info.username,
                 password=ssh_conn_info.password,
+                ssh_private_key_file_path=ssh_conn_info.ssh_private_key_file_path,
                 playbook_path=AnchorRunAnsiblePlaybookPath,
                 ansible_vars=ansible_vars,
                 ansible_tags=["ansible_run"],
-                selected_hosts=[HostIpPair(host=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address)],
+                selected_hosts=ssh_conn_info.host_ip_pairs,
             ),
             desc_run="Running Ansible playbook (Anchor Run)",
             desc_end="Ansible playbook finished (Anchor Run).",
@@ -151,15 +138,18 @@ class AnchorCmdRunner:
         collaborators.printer.print_fn(output)
         collaborators.printer.print_with_rich_table_fn(
             generate_summary(
-                hostname=ssh_conn_info.hostname,
-                ip_address=ssh_conn_info.host_ip_address,
+                host_ip_pairs=ssh_conn_info.host_ip_pairs,
                 anchor_cmd={args.anchor_run_command},
             )
         )
 
-    def _start_local_run_command_flow(self, ctx: Context, args: AnchorRunnerCmdArgs, collaborators: Collaborators):
-        collaborators.printer.print_with_rich_table_fn(notify_before_local_execution())
-        collaborators.prompter.prompt_for_enter()
+    def _start_local_run_command_flow(
+        self, 
+        ctx: Context, 
+        args: AnchorRunnerCmdArgs, 
+        collaborators: Collaborators):
+
+        collaborators.process.run_fn(f"anchor {args.anchor_run_command}", allow_single_shell_command_str=True)
 
     def prerequisites(self, ctx: Context, checks: Checks) -> None:
         if ctx.os_arch.is_linux():
@@ -174,23 +164,11 @@ class AnchorCmdRunner:
             raise NotImplementedError("OS is not supported")
 
 
-def notify_before_remote_execution() -> str:
+def generate_summary(host_ip_pairs: List[HostIpPair], anchor_cmd: str):
     return f"""
-  About to run an anchor command on remote machine.
-"""
-
-
-def notify_before_local_execution() -> str:
-    return f"""
-  About to run an anchor command locally.
-"""
-
-
-def generate_summary(hostname: str, ip_address: str, anchor_cmd: str):
-    return f"""
-  You have successfully ran an Anchor command on the remote machine:
+  You have successfully ran an Anchor command on the following remote machines:
   
-    • Host Name....: [yellow]{hostname}[/yellow]
-    • IP Address...: [yellow]{ip_address}[/yellow]
-    • Command......: [yellow]anchor {anchor_cmd}[/yellow]
+    • Host Names.....: [yellow]{[pair.host for pair in host_ip_pairs]}[/yellow]
+    • IP Addresses...: [yellow]{[pair.ip_address for pair in host_ip_pairs]}[/yellow]
+    • Command........: [yellow]anchor {anchor_cmd}[/yellow]
 """

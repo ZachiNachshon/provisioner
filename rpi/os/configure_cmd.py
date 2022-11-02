@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-from typing import Optional
+from typing import List, Optional
 
 from loguru import logger
+from common.remote.remote_connector import RemoteCliArgs
 
 from common.remote.remote_os_configure import (
     RemoteMachineOsConfigureArgs,
@@ -10,45 +11,41 @@ from common.remote.remote_os_configure import (
     RemoteMachineOsConfigureRunner,
 )
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from external.python_scripts_lib.python_scripts_lib.runner.ansible.ansible import HostIpPair
 
 RemoteMachineOsConfigureAnsiblePlaybookPath = "rpi/os/playbooks/configure_os.yaml"
 
-class RPiOsConfigureArgs:
+class RPiOsConfigureCmdArgs:
 
-    node_username: str
-    node_password: str
-    ip_discovery_range: str
+    remote_args: RemoteCliArgs
 
     def __init__(
         self,
         node_username: Optional[str] = None,
         node_password: Optional[str] = None,
+        ssh_private_key_file_path: Optional[str] = None,
         ip_discovery_range: Optional[str] = None,
+        host_ip_pairs: List[HostIpPair] = None,
     ) -> None:
 
-        self.node_username = node_username
-        self.node_password = node_password
-        self.ip_discovery_range = ip_discovery_range
+        self.remote_args = RemoteCliArgs(node_username, node_password, ip_discovery_range, host_ip_pairs, ssh_private_key_file_path)
 
     def print(self) -> None:
+        if self.remote_args: 
+            self.remote_args.print()
         logger.debug(
-            f"RPiOsConfigureArgs: \n"
-            + f"  node_username: {self.node_username}\n"
-            + f"  node_password: REDACTED\n"
-            + f"  ip_discovery_range: {self.ip_discovery_range}\n"
+            "RPiOsConfigureCmdArgs: \n"
         )
 
 
-class RPiOsConfigureRunner:
-    def run(self, ctx: Context, args: RPiOsConfigureArgs) -> None:
-        logger.debug("Inside RpiOsConfigureRunner run()")
+class RPiOsConfigureCmd:
+    def run(self, ctx: Context, args: RPiOsConfigureCmdArgs) -> None:
+        logger.debug("Inside RPiOsConfigureCmd run()")
 
         RemoteMachineOsConfigureRunner().run(
             ctx=ctx,
             args=RemoteMachineOsConfigureArgs(
-                node_username=args.node_username,
-                node_password=args.node_password,
-                ip_discovery_range=args.ip_discovery_range,
+                remote_args=args.remote_args,
                 ansible_playbook_path_configure_os=RemoteMachineOsConfigureAnsiblePlaybookPath,
             ),
             collaborators=RemoteMachineOsConfigureCollaborators(ctx),

@@ -6,7 +6,6 @@ from external.python_scripts_lib.python_scripts_lib.colors import color
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.runner.ansible.ansible import (
     AnsibleRunner,
-    HostIpPair,
 )
 from external.python_scripts_lib.python_scripts_lib.utils.checks import Checks
 from external.python_scripts_lib.python_scripts_lib.utils.hosts_file import HostsFile
@@ -19,33 +18,26 @@ from external.python_scripts_lib.python_scripts_lib.utils.progress_indicator imp
 )
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompter
 
-from .remote_connector import RemoteMachineConnector
+from .remote_connector import RemoteCliArgs, RemoteMachineConnector, SSHConnectionInfo
 
 
 class RemoteMachineNetworkConfigureArgs:
 
-    node_username: str
-    node_password: str
-    ip_discovery_range: str
     gw_ip_address: str
     dns_ip_address: str
     static_ip_address: str
     ansible_playbook_path_configure_network: str
+    remote_args: RemoteCliArgs
 
     def __init__(
         self,
-        node_username: str,
-        node_password: str,
-        ip_discovery_range: str,
+        remote_args: RemoteCliArgs,
         gw_ip_address: str,
         dns_ip_address: str,
         static_ip_address: str,
         ansible_playbook_path_configure_network: str,
     ) -> None:
-
-        self.node_username = node_username
-        self.node_password = node_password
-        self.ip_discovery_range = ip_discovery_range
+        self.remote_args = remote_args
         self.gw_ip_address = gw_ip_address
         self.dns_ip_address = dns_ip_address
         self.static_ip_address = static_ip_address
@@ -87,15 +79,21 @@ class RemoteMachineNetworkConfigureRunner:
         )
 
         ssh_conn_info = remote_connector.collect_ssh_connection_info(
-            ctx, args.ip_discovery_range, args.node_username, args.node_password
+            ctx=ctx, 
+            remote_args=args.remote_args, 
+            force_single_conn_info=True
         )
 
         dhcpcd_configure_info = remote_connector.collect_dhcpcd_configuration_info(
-            ctx, ssh_conn_info.host_ip_address, args.static_ip_address, args.gw_ip_address, args.dns_ip_address
+            ctx, ssh_conn_info.host_ip_pairs, args.static_ip_address, args.gw_ip_address, args.dns_ip_address
         )
 
+        hostname_ip_tuple = self._extract_host_ip_tuple(ctx, ssh_conn_info)
+        ssh_hostname = hostname_ip_tuple[0]
+        ssh_ip_address = hostname_ip_tuple[1]
+        
         ansible_vars = [
-            f"host_name={ssh_conn_info.hostname}",
+            f"host_name={ssh_hostname}",
             f"static_ip={dhcpcd_configure_info.static_ip_address}",
             f"gateway_address={dhcpcd_configure_info.gw_ip_address}",
             f"dns_address={dhcpcd_configure_info.dns_ip_address}",
@@ -108,10 +106,11 @@ class RemoteMachineNetworkConfigureRunner:
                 working_dir=collaborators.io.get_current_directory_fn(),
                 username=ssh_conn_info.username,
                 password=ssh_conn_info.password,
+                ssh_private_key_file_path=ssh_conn_info.ssh_private_key_file_path,
                 playbook_path=args.ansible_playbook_path_configure_network,
                 ansible_vars=ansible_vars,
                 ansible_tags=["configure_rpi_network", "define_static_ip", "reboot"],
-                selected_hosts=[HostIpPair(host=ssh_conn_info.hostname, ip_address=ssh_conn_info.host_ip_address)],
+                selected_hosts=ssh_conn_info.host_ip_pairs,
             ),
             desc_run="Running Ansible playbook (Configure Network)",
             desc_end="Ansible playbook finished (Configure Network).",
@@ -123,8 +122,8 @@ class RemoteMachineNetworkConfigureRunner:
             generate_instructions_post_network(
                 username=ssh_conn_info.username,
                 password="REDACTED",
-                hostname=ssh_conn_info.hostname,
-                ip_address=ssh_conn_info.host_ip_address,
+                hostname=ssh_hostname,
+                ip_address=ssh_ip_address,
                 static_ip=dhcpcd_configure_info.static_ip_address,
             )
         )
@@ -132,9 +131,17 @@ class RemoteMachineNetworkConfigureRunner:
         self._maybe_add_hosts_file_entry(
             collaborators.prompter,
             collaborators.hosts_file,
-            ssh_conn_info.hostname,
+            ssh_hostname,
             dhcpcd_configure_info.static_ip_address,
         )
+
+    def _extract_host_ip_tuple(self, ctx: Context, ssh_conn_info: SSHConnectionInfo) -> tuple[str, str]:
+        if ctx.is_dry_run():
+            return ("DRY_RUN_RESPONSE", "DRY_RUN_RESPONSE")
+        else:
+            # Promised to have only single item
+            single_pair_item = ssh_conn_info.host_ip_pairs[0]
+            return (single_pair_item.host, single_pair_item.ip_address)
 
     def _maybe_add_hosts_file_entry(self, prompter: Prompter, hosts_file: HostsFile, hostname: str, static_ip: str):
         if prompter.prompt_yes_no_fn(
@@ -147,7 +154,7 @@ class RemoteMachineNetworkConfigureRunner:
     def _print_pre_run_instructions(self, printer: Printer, prompter: Prompter):
         printer.print_fn(generate_logo_configure())
         printer.print_with_rich_table_fn(generate_instructions_pre_network())
-        prompter.prompt_for_enter()
+        prompter.prompt_for_enter_fn()
 
     def prerequisites(self, ctx: Context, checks: Checks) -> None:
         if ctx.os_arch.is_linux():

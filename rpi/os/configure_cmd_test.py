@@ -5,7 +5,7 @@ from unittest import mock
 
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.utils.os import MAC_OS, OsArch
-from rpi.os.configure import RPiOsConfigureArgs, RPiOsConfigureRunner
+from rpi.os.configure_cmd import RPiOsConfigureCmdArgs, RPiOsConfigureCmd
 
 
 # To run these directly from the terminal use:
@@ -24,13 +24,13 @@ class RPiOsConfigureTestShould(unittest.TestCase):
         expected_ip_discovery_range = "192.168.1.1/24"
         expected_ansible_playbook_configure_os = "rpi/os/playbooks/configure_os.yaml"
 
-        args = RPiOsConfigureArgs(
+        args = RPiOsConfigureCmdArgs(
             node_username=expected_username,
             node_password=expected_password,
             ip_discovery_range=expected_ip_discovery_range,
         )
 
-        runner = RPiOsConfigureRunner()
+        runner = RPiOsConfigureCmd()
         runner.run(ctx=ctx, args=args)
 
         run_call_kwargs = run_call.call_args.kwargs

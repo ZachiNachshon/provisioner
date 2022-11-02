@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 from loguru import logger
 
 from external.python_scripts_lib.python_scripts_lib.config.config_reader import (
@@ -12,6 +13,8 @@ from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
 from config.domain.config import ProvisionerConfig
+
+ENV_VAR_ENABLE_CONFIG_DEBUG="PROVISIONER_PRE_RUN_DEBUG"
 
 
 class ConfigResolver:
@@ -38,6 +41,15 @@ class ConfigResolver:
 
     @staticmethod
     def resolve(internal_path: str, user_path: str) -> None:
+        """
+        Logger is being set-up after Typer is initialized and we have the --dry-run, --verbose
+        flags are avaialble.
+        I've added pre Typer run env var to contorl if configuraiton load debug logs 
+        should be visible.
+        """
+        debug_config = os.getenv(key=ENV_VAR_ENABLE_CONFIG_DEBUG, default=False)
+        if debug_config != "True":
+            logger.remove()
         logger.debug("Loading configuration...")
         empty_ctx = Context.create()
         resolver = ConfigResolver._create(empty_ctx, internal_path, user_path)

@@ -300,8 +300,7 @@ def template_logo_install() -> str:
 
 def template_instructions(block_device_name: str, image_name: str) -> str:
     return f"""
-  ================================================================================================
-  This script burns an image on an SD-Card. The card can be used as a block device.
+This script burns an image on an SD-Card. The card can be used as a block device.
 
     • Block Device...: {block_device_name}
     • Image Name.....: {image_name}
@@ -309,5 +308,4 @@ def template_instructions(block_device_name: str, image_name: str) -> str:
   [yellow]Elevated user permissions might be required for this step ![/yellow]
 
   The content of the SD-Card will be formatted, [red]it is an irreversible process ![/red]
-  ================================================================================================
 """

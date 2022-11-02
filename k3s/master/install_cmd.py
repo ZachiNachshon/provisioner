@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
 
 import os
-
 from typing import Optional
+
 from loguru import logger
-from rpi.os.domain.config import ProvisionerConfig
+
 from common.remote.remote_os_configure import (
+    RemoteMachineOsConfigureArgs,
     RemoteMachineOsConfigureCollaborators,
     RemoteMachineOsConfigureRunner,
-    RemoteMachineOsConfigureArgs,
 )
-from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
-from external.python_scripts_lib.python_scripts_lib.config.config_reader import ConfigReader
+from external.python_scripts_lib.python_scripts_lib.config.config_reader import (
+    ConfigReader,
+)
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
 from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
+from config.domain.config import ProvisionerConfig
 
-CONFIG_USER_PATH = os.path.expanduser("~/.config/.provisioner/config.yaml")
+CONFIG_USER_PATH = os.path.expanduser("~/.config/provisioner/config.yaml")
 CONFIG_INTERNAL_PATH = "k3s/config.yaml"
 
 

@@ -19,7 +19,7 @@ class AnchorCmdArgs(RemoteCliArgs):
     github_organization: str
     repository_name: str
     branch_name: str
-    git_access_token: str
+    github_access_token: str
 
     def __init__(
         self,
@@ -27,7 +27,7 @@ class AnchorCmdArgs(RemoteCliArgs):
         github_organization: str,
         repository_name: str,
         branch_name: str,
-        git_access_token: str,
+        github_access_token: str,
         node_username: Optional[str] = None,
         node_password: Optional[str] = None,
         ip_discovery_range: Optional[str] = None,
@@ -38,7 +38,7 @@ class AnchorCmdArgs(RemoteCliArgs):
         self.github_organization = github_organization
         self.repository_name = repository_name
         self.branch_name = branch_name
-        self.git_access_token = git_access_token
+        self.github_access_token = github_access_token
 
     def print(self) -> None:
         super().print()
@@ -48,7 +48,7 @@ class AnchorCmdArgs(RemoteCliArgs):
             + f"  github_organization: {self.github_organization}\n"
             + f"  repository_name: {self.repository_name}\n"
             + f"  branch_name: {self.branch_name}\n"
-            + f"  git_access_token: REDACTED\n"
+            + f"  github_access_token: REDACTED\n"
         )
 
 
@@ -66,7 +66,7 @@ class AnchorCmd:
                 github_organization=args.github_organization,
                 repository_name=args.repository_name,
                 branch_name=args.branch_name,
-                git_access_token=args.git_access_token,
+                github_access_token=args.github_access_token,
             ),
             collaborators=AnchorCmdRunnerCollaborators(ctx),
         )

@@ -50,7 +50,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         connector.prompter.register_yes_no_prompt("Scan LAN network for IP addresses at range", False)
         connector.prompter.register_user_input_prompt("Enter remote node IP address", expected_ip_address)
 
-        output = connector._get_host_ip_address(ip_discovery_range=None)
+        output = connector._select_host_ip_pairs(ip_discovery_range=None)
 
         self.assertEqual(expected_ip_address, output)
 
@@ -66,7 +66,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         ) as run_ip_address_selection_flow:
 
             run_ip_address_selection_flow.return_value = expected_ip_address
-            output = connector._get_host_ip_address(ip_discovery_range=None)
+            output = connector._select_host_ip_pairs(ip_discovery_range=None)
 
             self.assertEqual(1, run_ip_address_selection_flow.call_count)
             self.assertEqual(expected_ip_address, output)
@@ -179,7 +179,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         ctx = Context.create(os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release"))
         connector = self.create_fake_remote_machine_connector(ctx)
         connector.checks.register_utility("nmap", exist=False)
-        ip_address = connector._run_ip_address_selection_flow(ip_discovery_range=None)
+        ip_address = connector._run_lan_scan_selection_flow(ip_discovery_range=None)
         self.assertIsNone(ip_address)
 
     def test_get_ip_from_selection_flow(self) -> None:
@@ -198,7 +198,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         connector.network_util.register_scan_result(expected_ip_discovery_range, expected_scanned_result)
         connector.prompter.register_user_selection_prompt("Please choose a network device", expected_scanned_result)
 
-        ip_address = connector._run_ip_address_selection_flow(ip_discovery_range=expected_ip_discovery_range)
+        ip_address = connector._run_lan_scan_selection_flow(ip_discovery_range=expected_ip_discovery_range)
 
         self.assertIsNotNone(ip_address)
         self.assertEqual(ip_address, expected_ip_address)

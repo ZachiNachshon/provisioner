@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Optional
+from typing import List, Optional
 
 from loguru import logger
 
@@ -9,36 +9,35 @@ from common.dummy.hello_world_runner import (
     HelloWorldRunnerArgs,
     HelloWorldRunnerCollaborators,
 )
+from common.remote.remote_connector import RemoteCliArgs
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
+from external.python_scripts_lib.python_scripts_lib.runner.ansible.ansible import HostIpPair
 
 
 class HelloWorldCmdArgs:
 
     username: str
-    node_username: str
-    node_password: str
-    ip_discovery_range: str
+    remote_args: RemoteCliArgs
 
     def __init__(
         self,
         username: str = None,
         node_username: Optional[str] = None,
         node_password: Optional[str] = None,
+        ssh_private_key_file_path: Optional[str] = None,
         ip_discovery_range: Optional[str] = None,
+        host_ip_pairs: List[HostIpPair] = None,
     ) -> None:
 
+        self.remote_args = RemoteCliArgs(node_username, node_password, ip_discovery_range, host_ip_pairs, ssh_private_key_file_path)
         self.username = username
-        self.node_username = node_username
-        self.node_password = node_password
-        self.ip_discovery_range = ip_discovery_range
 
     def print(self) -> None:
+        if self.remote_args: 
+            self.remote_args.print()
         logger.debug(
             f"HelloWorldCmdArgs: \n"
             + f"  username: {self.username}\n"
-            + f"  node-username: {self.node_username}\n"
-            + f"  node-password: REDACTED\n"
-            + f"  ip-discovery-range: {self.ip_discovery_range}\n"
         )
 
 
@@ -50,9 +49,7 @@ class HelloWorldCmd:
             ctx=ctx,
             args=HelloWorldRunnerArgs(
                 username=args.username,
-                node_username=args.node_username,
-                node_password=args.node_password,
-                ip_discovery_range=args.ip_discovery_range,
+                remote_args=args.remote_args,
             ),
             collaborators=HelloWorldRunnerCollaborators(ctx),
         )

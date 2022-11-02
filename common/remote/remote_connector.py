@@ -1,32 +1,55 @@
 #!/usr/bin/env python3
 
+from enum import Enum
 from typing import List, Optional
 
 from loguru import logger
+from config.domain.config import RemoteConfig
 
 from external.python_scripts_lib.python_scripts_lib.infra.context import Context
 from external.python_scripts_lib.python_scripts_lib.infra.evaluator import Evaluator
+from external.python_scripts_lib.python_scripts_lib.runner.ansible.ansible import HostIpPair
 from external.python_scripts_lib.python_scripts_lib.utils.checks import Checks
 from external.python_scripts_lib.python_scripts_lib.utils.network import NetworkUtil
 from external.python_scripts_lib.python_scripts_lib.utils.printer import Printer
 from external.python_scripts_lib.python_scripts_lib.utils.prompter import Prompter
 
+class NetworkDeviceSelectionMethod(str, Enum):
+    ScanLAN = "Scan LAN"
+    UserConfig = "User Config"
+    UserPrompt = "User Prompt"
 
 class RemoteCliArgs:
     node_username: str
     node_password: str
     ip_discovery_range: str
+    host_ip_pairs: List[HostIpPair]
+    ssh_private_key_file_path: str
 
     def __init__(
         self,
         node_username: Optional[str] = None,
         node_password: Optional[str] = None,
         ip_discovery_range: Optional[str] = None,
+        host_ip_pairs: Optional[List[HostIpPair]] = None,
+        ssh_private_key_file_path: Optional[str] = None,
     ) -> None:
 
         self.node_username = node_username
         self.node_password = node_password
         self.ip_discovery_range = ip_discovery_range
+        self.host_ip_pairs = host_ip_pairs
+        self.ssh_private_key_file_path = ssh_private_key_file_path
+
+    @staticmethod
+    def to_host_ip_pairs(hosts: dict[str, RemoteConfig.Host]) -> List[HostIpPair]:
+        if not hosts:
+            return None
+        result: List[HostIpPair] = []
+        for key, value in hosts.items():
+            result.append(HostIpPair(value.name, value.address))
+        return result
+
 
     def print(self) -> None:
         logger.debug(
@@ -34,20 +57,28 @@ class RemoteCliArgs:
             + f"  node_username: {self.node_username}\n"
             + f"  node_password: REDACTED\n"
             + f"  ip_discovery_range: {self.ip_discovery_range}\n"
+            + f"  host_ip_pairs: {'supplied via CLI arguments or user config' if self.host_ip_pairs is not None else None}\n"
+            + f"  ssh_private_key_file_path: {self.ssh_private_key_file_path}\n"
         )
 
 
 class SSHConnectionInfo:
     username: str
     password: str
-    hostname: str
-    host_ip_address: str
+    ssh_private_key_file_path: str
+    host_ip_pairs: List[HostIpPair]
 
-    def __init__(self, username: str, password: str, hostname: str, host_ip_address: str) -> None:
+    def __init__(
+        self, 
+        username: str, 
+        host_ip_pairs: List[HostIpPair],
+        password: Optional[str] = None, 
+        ssh_private_key_file_path: Optional[str] = None) -> None:
+
         self.username = username
         self.password = password
-        self.hostname = hostname
-        self.host_ip_address = host_ip_address
+        self.ssh_private_key_file_path = ssh_private_key_file_path
+        self.host_ip_pairs = host_ip_pairs
 
 
 class DHCPCDConfigurationInfo:
@@ -77,21 +108,44 @@ class RemoteMachineConnector:
     def collect_ssh_connection_info(
         self,
         ctx: Context,
-        ip_discovery_range: str,
-        node_username: Optional[str] = None,
-        node_password: Optional[str] = None,
+        remote_args: Optional[RemoteCliArgs] = None,
+        force_single_conn_info: Optional[bool] = False,
     ) -> SSHConnectionInfo:
 
         """
         Prompt the user for required remote SSH connection parameters
+        Possible sources for host/IP pairs:
+          - Scan local LAN network for available IP addresses
+          - Use the hosts attribute from user configuration
+          - Ask user for node host and IP address
         """
-        host_ip_address = Evaluator.eval_step_failure_throws(
-            call=lambda: self._get_host_ip_address(ip_discovery_range),
-            ctx=ctx,
-            err_msg="Failed to read host IP address",
-        )
+        selected_host_ip_pairs: List[HostIpPair] = None
 
-        return self._get_ssh_connection_info(ctx, host_ip_address, node_username, node_password)
+        self.printer.new_line_fn()
+        network_device_selection_method = self._ask_for_network_device_selection_method()
+
+        if network_device_selection_method == NetworkDeviceSelectionMethod.UserConfig:
+            selected_host_ip_pairs = Evaluator.eval_step_failure_throws(
+                call=lambda: remote_args and self._select_from_existing_host_ip_pairs(remote_args.host_ip_pairs, force_single_conn_info),
+                ctx=ctx,
+                err_msg="Failed to read host IP address from user configuration",
+            )
+
+        elif network_device_selection_method == NetworkDeviceSelectionMethod.ScanLAN:
+            selected_host_ip_pairs = Evaluator.eval_step_failure_throws(
+                call=lambda: remote_args and self._run_host_ip_address_scan(remote_args.ip_discovery_range, force_single_conn_info),
+                ctx=ctx,
+                err_msg="Failed to read host IP address from LAN scan",
+            )
+
+        elif network_device_selection_method == NetworkDeviceSelectionMethod.UserPrompt:
+            selected_host_ip_pairs = Evaluator.eval_step_failure_throws(
+                call=lambda: self._run_single_host_ip_selection_flow(),
+                ctx=ctx,
+                err_msg="Failed to read a host IP address from user prompt",
+            )
+
+        return self._get_ssh_connection_info(ctx, remote_args, selected_host_ip_pairs)
 
     def collect_dhcpcd_configuration_info(
         self, ctx: Context, host_ip_address: str, arg_static_ip: str, arg_gw_address: str, arg_dns_address: str
@@ -135,63 +189,118 @@ class RemoteMachineConnector:
 
         return DHCPCDConfigurationInfo(selected_gw_address, selected_dns_resolver_address, selected_static_ip)
 
-    def _get_host_ip_address(self, ip_discovery_range: str) -> str:
-        if self.prompter.prompt_yes_no_fn(
-            message=f"Scan LAN network for IP addresses at range {ip_discovery_range}",
-            post_no_message="Skipped LAN network scan",
-            post_yes_message=f"Selected to scan LAN at range {ip_discovery_range}",
-        ):
-            return self._run_ip_address_selection_flow(ip_discovery_range)
-        else:
-            self.printer.new_line_fn()
-            return self.prompter.prompt_user_input_fn(
-                message="Enter remote node IP address", post_user_input_message="Selected IP address :: "
-            )
+    def _ask_for_network_device_selection_method(self) -> NetworkDeviceSelectionMethod:
+        options_list: List[dict] = []
+        for sel_method in NetworkDeviceSelectionMethod:
+            options_list.append(sel_method.value)
+
+        network_device_select_method: str = self.prompter.prompt_user_selection_fn(
+            message="Please choose network device selection method", options=options_list
+        )
+        return NetworkDeviceSelectionMethod(network_device_select_method) if network_device_select_method else None
+
+    def _run_host_ip_address_scan(self, ip_discovery_range: str, force_single_conn_info: bool) -> List[HostIpPair]:
+        if ip_discovery_range and len(ip_discovery_range) > 0:
+            if self.prompter.prompt_yes_no_fn(
+                message=f"Scan LAN network for IP addresses at range {ip_discovery_range}",
+                post_no_message="Skipped LAN network scan",
+                post_yes_message=f"Selected to scan LAN at range {ip_discovery_range}",
+            ):
+                return self._run_lan_scan_selection_flow(ip_discovery_range, force_single_conn_info)
+        return None
+
+    def _run_single_host_ip_selection_flow(self)  -> List[HostIpPair]:
+        single_ip_address = self.prompter.prompt_user_input_fn(
+            message="Enter remote node IP address", post_user_input_message="Selected IP address :: "
+        )
+        single_hostname = self.prompter.prompt_user_input_fn(
+            message="Enter remote node host name", post_user_input_message="Selected remote hostname :: "
+        )
+        return [HostIpPair(host=single_hostname, ip_address=single_ip_address)] if len(single_hostname) > 0 and len(single_hostname) > 0 else None
 
     def _get_ssh_connection_info(
         self,
         ctx: Context,
-        host_ip_address: str,
-        arg_username: str,
-        arg_password: str,
+        remote_args: RemoteCliArgs,
+        selected_host_ip_pairs: List[HostIpPair],
     ) -> SSHConnectionInfo:
 
         self.printer.print_with_rich_table_fn(
-            generate_instructions_connect_via_ssh(ip_address=host_ip_address, user=arg_username, password="REDACTED")
+            generate_instructions_connect_via_ssh(
+                host_ip_pairs=selected_host_ip_pairs, 
+                user=remote_args.node_username, 
+                password="REDACTED")
         )
 
         username = Evaluator.eval_step_failure_throws(
             call=lambda: self.prompter.prompt_user_input_fn(
                 message="Enter remote node user",
-                default=arg_username,
-                post_user_input_message="Selected remote user     :: ",
+                default=remote_args.node_username,
+                post_user_input_message="Selected remote user :: ",
             ),
             ctx=ctx,
             err_msg="Failed to read username",
         )
 
-        password = Evaluator.eval_step_failure_throws(
-            call=lambda: self.prompter.prompt_user_input_fn(
-                message="Enter remote node password",
-                default=arg_password,
-                post_user_input_message="Selected remote password :: ",
-                redact_default=True,
-            ),
-            ctx=ctx,
-            err_msg="Failed to read password",
-        )
+        if remote_args.ssh_private_key_file_path and len(remote_args.ssh_private_key_file_path) > 0:
+            self.printer.new_line_fn()
+            self.printer.print_fn("Identified SSH private key path in user remote configuration, skipping password prompt.")
+            return SSHConnectionInfo(
+                username=username, 
+                ssh_private_key_file_path=remote_args.ssh_private_key_file_path,
+                host_ip_pairs=selected_host_ip_pairs)
 
-        hostname = Evaluator.eval_step_failure_throws(
-            call=lambda: self.prompter.prompt_user_input_fn(
-                message="Enter remote node host name", post_user_input_message="Selected remote hostname :: "
-            ),
-            ctx=ctx,
-            err_msg="Failed to read hostname",
-        )
+            # TODO: might want to avoid from prompting for auth method since SSH key in keychain is used by default
+        else:
+            password = Evaluator.eval_step_failure_throws(
+                call=lambda: self.prompter.prompt_user_input_fn(
+                    message="Enter remote node password",
+                    default=remote_args.node_password,
+                    post_user_input_message="Selected remote password :: ",
+                    redact_default=True,
+                ),
+                ctx=ctx,
+                err_msg="Failed to read password",
+            )
+            return SSHConnectionInfo(
+                username=username, 
+                password=password,
+                host_ip_pairs=selected_host_ip_pairs)
 
-        return SSHConnectionInfo(username, password, hostname, host_ip_address)
+    def _select_from_existing_host_ip_pairs(
+        self, 
+        host_ip_pairs: List[HostIpPair],
+        force_single_conn_info: bool) -> List[HostIpPair]:
 
-    def _run_ip_address_selection_flow(self, ip_discovery_range: str) -> str:
+        if not host_ip_pairs or len(host_ip_pairs) == 0:
+            return None
+
+        options_list: List[str] = []
+        option_to_value_map: dict[str, dict] = {}
+        for pair in host_ip_pairs:
+            identifier = f"{pair.host}, {pair.ip_address}"
+            options_list.append(identifier)
+            option_to_value_map[identifier] = {"hostname": pair.host, "ip_address": pair.ip_address}
+
+        result: List[HostIpPair] = []
+        if force_single_conn_info:
+            selected_scanned_items: dict = self.prompter.prompt_user_selection_fn(
+                message="Please choose a network device", options=options_list
+            )
+            selected_item_dict = option_to_value_map[selected_scanned_items]
+            result.append(HostIpPair(host=selected_item_dict["hostname"], ip_address=selected_item_dict["ip_address"]))
+        else:
+            selected_scanned_items: dict = self.prompter.prompt_user_multi_selection_fn(
+                message="Please choose a network device", options=options_list
+            )
+            if selected_scanned_items and len(selected_scanned_items) > 0:
+                for item in selected_scanned_items:
+                    selected_item_dict = option_to_value_map[item]
+                    result.append(HostIpPair(host=selected_item_dict["hostname"], ip_address=selected_item_dict["ip_address"]))
+
+        return result
+
+    def _run_lan_scan_selection_flow(self, ip_discovery_range: str, force_single_conn_info: bool) -> List[HostIpPair]:
         if not self.checks.is_tool_exist_fn("nmap"):
             logger.warning("Missing mandatory utility. name: nmap")
             return None
@@ -200,15 +309,30 @@ class RemoteMachineConnector:
         scan_dict = self.network_util.get_all_lan_network_devices_fn(ip_range=ip_discovery_range, show_progress=True)
         self.printer.new_line_fn()
 
-        options_dict: List[dict] = []
-        for scan_item in scan_dict:
-            options_dict.append(scan_dict[scan_item])
+        options_list: List[str] = []
+        option_to_value_map: dict[str, dict] = {}
+        for scan_item in scan_dict.values():
+            identifier = f"{scan_item['hostname']}, {scan_item['ip_address']}"
+            options_list.append(identifier)
+            option_to_value_map[identifier] = scan_item
 
-        selected_scanned_item: dict = self.prompter.prompt_user_selection_fn(
-            message="Please choose a network device", options=options_dict
-        )
+        result: List[HostIpPair] = []
+        if force_single_conn_info:
+            selected_scanned_items: dict = self.prompter.prompt_user_selection_fn(
+                message="Please choose a network device", options=options_list
+            )
+            selected_item_dict = option_to_value_map[selected_scanned_items]
+            result.append(HostIpPair(host=selected_item_dict["hostname"], ip_address=selected_item_dict["ip_address"]))
+        else:
+            selected_scanned_items: dict = self.prompter.prompt_user_multi_selection_fn(
+                message="Please choose a network device", options=options_list
+            )
+            if selected_scanned_items and len(selected_scanned_items) > 0:
+                for item in selected_scanned_items:
+                    selected_item_dict = option_to_value_map[item]
+                    result.append(HostIpPair(host=selected_item_dict["hostname"], ip_address=selected_item_dict["ip_address"]))
 
-        return selected_scanned_item["ip_address"] if selected_scanned_item is not None else None
+        return result
 
 
 def generate_instructions_network_scan() -> str:
@@ -223,10 +347,15 @@ def generate_instructions_network_scan() -> str:
 """
 
 
-def generate_instructions_connect_via_ssh(ip_address: str, user: str, password: str):
-    return f"""
-  Gathering SSH connection information for address [yellow]{ip_address}[/yellow].
+def generate_instructions_connect_via_ssh(host_ip_pairs: List[HostIpPair], user: str, password: str):
+    ip_addresses = ""
+    if host_ip_pairs:
+        for pair in host_ip_pairs:
+            ip_addresses += f"    - [yellow]{pair.host}, {pair.ip_address}[/yellow]\n"
 
+    return f"""
+  Gathering SSH connection information for IP addresses:
+{ip_addresses}
   Requirements:
     • Ansible or Docker
       If Ansible is missing, a Docker image will be built and used instead.

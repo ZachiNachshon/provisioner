@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
 
 import typer
-from loguru import logger
 
-from external.python_scripts_lib.python_scripts_lib.config.config_reader import (
-    ConfigReader,
-)
-from external.python_scripts_lib.python_scripts_lib.infra.context import Context
-from external.python_scripts_lib.python_scripts_lib.utils.io_utils import IOUtils
-from external.python_scripts_lib.python_scripts_lib.utils.yaml_util import YamlUtil
 from config.domain.config import ProvisionerConfig
 
 
@@ -29,6 +22,11 @@ class TyperRemoteOpts:
     def node_password():
         return typer.Option(
             TyperRemoteOpts.config.remote.auth.node_password, help="(Remote only) Remote node password", envvar="NODE_PASSWORD"
+        )
+
+    def ssh_private_key_file_path():
+        return typer.Option(
+            TyperRemoteOpts.config.remote.auth.ssh_private_key_file_path, show_default=False, help="(Remote only) Remote SSH private key file path", envvar="SSH_PRIVATE_KEY_FILE_PATH"
         )
 
     def ip_discovery_range():
