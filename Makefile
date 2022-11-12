@@ -1,7 +1,7 @@
 default: help
 
-POETRY_WRAPPER=./common/runners/poetry_runner.sh
-POETRY_WRAPPER_DEV=./common/runners/poetry_runner_dev.sh
+POETRY_WRAPPER=./runners/poetry_runner.sh
+POETRY_WRAPPER_DEV=./runners/poetry_runner_dev.sh
 PROJECT_LOCATION=.
 
 # @rm -rf ${HOME}/Library/Caches/pypoetry
@@ -16,6 +16,10 @@ create-update-venv: ## Create/Update a Python virtual env
 	@${POETRY_WRAPPER_DEV} update  # Update latest changes in pyproject.toml lock file
 	@${POETRY_WRAPPER_DEV} install # Download and install dependencies
 	@${POETRY_WRAPPER_DEV} build   # Build a tarball package with local Python wheel
+
+.PHONY: install-sdist
+install-sdist: ## Install a source distribution locally
+	@./runners/install_sdist.sh
 
 .PHONY: fmt
 fmt: ## Format Python code using Black style and sort imports

@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+
+def launch():
+    # this is where we add the custom installation directory to PYTHONPATH so our modules are found.
+    try:
+        import provisioner
+        from provisioner.rpi.main import main
+        main()
+    except ModuleNotFoundError:
+        print("The 'provisioner' package could not be found. "
+              "Please refer to the docs for installation instructions and troubleshooting")
+        print("https://github.com/<org>/<repo>/docs-site/provisioner")
+
+        exit(2)
+
+
+if __name__ == '__main__':
+    launch()

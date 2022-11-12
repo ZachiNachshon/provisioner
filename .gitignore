@@ -23,10 +23,6 @@ logs/
 .*.sw[a-z]
 *.un~
 
-.secrets
-hosts
-utils/ansible/hosts
-
 # Python
 *__pycache__*
 .coverage
@@ -43,4 +39,7 @@ dist/
 htmlcov/
 
 # Ansible
-ansible/
+.secrets
+hosts
+utils/ansible/hosts
+ansible_hosts

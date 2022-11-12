@@ -4,18 +4,36 @@ version = "0.1.0"
 description = "Provision anything on any remote machine"
 authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
 exclude = ["**/*_test*", "**/*_fake*"]
+
 packages = [
-    { include = "example" },
-    { include = "rpi" },
-    { include = "k3s" },
+    # { include = ".git-deps" },
+    # { include = "provisioner" },
+    # { include = "external" },
+    { include = "provisioner/common" },
+    { include = "provisioner/config" },
+    { include = "provisioner/example" },
+    { include = "provisioner/rpi" },
+]
+
+# A list of patterns that will be included in the final package.
+# If no format is specified, it will default to include both sdist and wheel
+# i.e. { path = "tests", format = ["sdist", "wheel"] }
+include = [
+    # { path = ".git-deps/*" },
+    # { path = "provisioner/external/*" },
+    # { path = "provisioner/common/*" },
+    # { path = "provisioner/config/*" },
+    { path = "provisioner/external/*" },
+    { path = "provisioner/rpi/config.yaml" },
+    { path = "provisioner/example/config.yaml" }
 ]
 
 [tool.poetry.scripts]
 # tools = "external.python_scripts_lib.provisioner.main:app"
 # tools = "tools.main:app"
-example = "example.main:app"
-rpi = "rpi.main:app"
-k3s = "k3s.main:app"
+example = "provisioner.example.main:app"
+rpi = "provisioner.rpi.main:app"
+k3s = "provisioner.k3s.main:app"
 # rpi_diagrams = "rpi.os.diagrams.install_diag:main"
 
 [tool.isort]

@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+"""
+This file is used as a command launcher for provisioner private installations.
+"""
+def get_pkg_target_path():
+    """
+    Content of .pip-pkg folder is the extraction of pip wheel/sdist:
+    .
+    ├── provisioner
+    │   ├── LICENSE
+    │   ├── PKG-INFO
+    │   ├── dev.py
+    │   ├── provisioner
+    │   │   ├── ...
+    │   │   └── <poetry-included-files-and-folders>
+    │   └── setup.py
+    └── provisioner-<VERSION>.tar.gz
+    """
+    return os.environ.get(
+        "PROVISIONER_PKG_PATH",  # used only for testing - DO NOT OVERRIDE
+        os.path.expanduser(os.path.join("~", ".config", "provisioner", ".pip-pkg", "provisioner"))
+    )
+
+
+def launch(pkg_path: str):
+    # This is where we add the custom installation directory to PYTHONPATH so our modules are found.
+    sys.path = [pkg_path] + sys.path
+
+    try:
+        from provisioner.rpi.main import main
+        main()
+    except ModuleNotFoundError:
+        print("The 'provisioner' package could not be found. "
+              "Please refer to the docs for installation instructions and troubleshooting")
+        print("https://github.com/<org>/<repo>/docs-site/provisioner")
+
+        exit(2)
+
+
+if __name__ == '__main__':
+    launch(pkg_path=get_pkg_target_path())
