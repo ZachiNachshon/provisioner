@@ -1,0 +1,13 @@
+---
+- name: Creates directory
+  file:
+    path: $HOME/.ansible/tmp/external/shell_scripts_lib
+    state: directory
+    recurse: yes
+
+- name: Copy shell_scripts_lib selected files
+  copy:
+    src: "../../../../external/shell_scripts_lib/{{ item }}"
+    dest: "$HOME/.ansible/tmp/external/shell_scripts_lib/{{ item }}"
+  loop: "{{ lib_files }}"
+  become: true

@@ -1,0 +1,15 @@
+---
+- name: Prepare playbook variables
+  tags: ['k3s_master_copy_kube_config']
+  set_fact:
+    remote_kube_config_path: "{{ remote_kube_config_path | mandatory }}"
+    local_kube_config_path: "{{ local_kube_config_path | mandatory }}"
+
+- name: "Copy kube config file from remote (dest: {{ local_kube_config_path }})"
+  tags: ['k3s_master_copy_kube_config']
+  changed_when: False # nothing really gets changed
+  become: true
+  fetch:
+    src: "{{ remote_kube_config_path }}"
+    dest: "{{ local_kube_config_path }}/"
+    flat: yes

@@ -1,0 +1,20 @@
+---
+- name: "Runing anchor (version: {{ anchor_version }})"
+  tags: ['anchor_run']
+  script: "anchor_run.sh"
+  register: scriptOut
+  become: no
+  changed_when: False # nothing really gets changed
+  environment:
+    ENV_LOCAL_BIN_FOLDER_PATH: "{{ local_bin_folder_path | mandatory }}"
+    ENV_ANCHOR_ANSIBLE_COMMAND: "{{ anchor_ansible_command | mandatory }}"
+    ENV_ANCHOR_VERSION: "{{ anchor_version | mandatory }}"
+    ENV_ANCHOR_RUN_ARGS: "{{ anchor_run_args | mandatory }}"
+    ENV_ANCHOR_GITHUB_ORGANIZATION: "{{ anchor_github_organization | mandatory }}"
+    ENV_ANCHOR_GITHUB_REPOSITORY: "{{ anchor_github_repository | mandatory }}"
+    ENV_ANCHOR_GITHUB_REPO_BRANCH: "{{ anchor_github_repo_branch | mandatory }}"
+    ENV_ANCHOR_CONFIG_AUTO_UPDATE: "{{ anchor_config_auto_update }}"
+    ENV_GIT_ACCESS_TOKEN: "{{ git_access_token | mandatory }}"
+
+- debug: msg={{ scriptOut.stdout }}
+  tags: ['anchor_run']

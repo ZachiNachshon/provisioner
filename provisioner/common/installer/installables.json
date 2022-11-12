@@ -1,0 +1,10 @@
+{
+    "utilities": [
+        {
+            "name": "k3s"
+        },
+        {
+            "name": "docker"
+        }
+    ]
+}

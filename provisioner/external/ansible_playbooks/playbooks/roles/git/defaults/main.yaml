@@ -1,0 +1,3 @@
+---
+task_action: install # Options: install/uninstall
+git_version: "git version 2.35.1"

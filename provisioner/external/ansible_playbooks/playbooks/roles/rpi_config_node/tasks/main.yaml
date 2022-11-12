@@ -1,0 +1,44 @@
+---
+- name: Define shell_scripts_lib files
+  tags: ['configure_remote_node']
+  set_fact: 
+    lib_files: ['logger.sh', 'cmd.sh']
+
+- name: Copy shell_scripts_lib files
+  tags: ['configure_remote_node']
+  include_role:
+    # TODO: This is a relative path of the playbook directory, not optimal, should be handled ASAP
+    name: ../../../external/ansible_playbooks/playbooks/roles/shell_scripts_lib
+
+- name: 'Configure RPi node hardware and system'
+  tags: ['configure_remote_node']
+  script: configure_node.sh
+  register: scriptOut
+  async: 0
+  poll: 0
+  ignore_errors: false
+  become: true
+  environment:
+    HOST_NAME: "{{ host_name | mandatory }}"
+    BOOT_WAIT: "{{ boot_wait | default('') }}"
+    BOOT_SPLASH: "{{ boot_splash | default('') }}"
+    OVERSCAN: "{{ overscan | default('') }}"
+    CAMERA: "{{ camera | default('') }}"
+    SSH: "{{ ssh | default('') }}"
+    SPI: "{{ spi | default('') }}"
+    MEMORY_SPLIT: "{{ memory_split | default('') }}"
+    I2C: "{{ i2c | default('') }}"
+    SERIAL: "{{ serial | default('') }}"
+    BOOT_BEHAVIOUR: "{{ boot_behaviour | default('') }}"
+    ONEWIRE: "{{ onewire | default('') }}"
+    AUDIO: "{{ audio | default('') }}"
+    GLDRIVER: "{{ gldriver | default('') }}"
+    RGPIO: "{{ rgpio | default('') }}"
+    CONFIGURE_KEYBOARD: "{{ configure_keyboard | default('') }}"
+    CHANGE_TIMEZONE: "{{ change_timezone | default('') }}"
+    CHANGE_LOCALE: "{{ change_locale | default('') }}"
+    WIFI_COUNTRY: "{{ wifi_country | default('') }}"
+    WIFI_SSID_PASSPHRASE: "{{ wifi_ssid_passphrase | default('') }}"
+
+- debug: msg={{ scriptOut.stdout }}
+  tags: ['configure_remote_node']

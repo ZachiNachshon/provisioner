@@ -1,0 +1,15 @@
+---
+- include_tasks: k3s_master_install.yaml
+  tags: ['k3s_master_install']
+
+- include_tasks: k3s_master_uninstall.yaml
+  tags: ['k3s_master_uninstall']
+
+- include_tasks: k3s_agent_join.yaml
+  tags: ['k3s_agent_join']
+
+- include_tasks: k3s_agent_uninstall.yaml
+  tags: ['k3s_agent_uninstall']
+
+- include_tasks: k3s_master_copy_kube_cfg.yaml
+  tags: ['k3s_master_copy_kube_cfg']

@@ -1,0 +1,26 @@
+provisioner:
+  remote:
+    # hosts:
+    #   - name: kmaster
+    #     address: 192.168.1.200
+    #   - name: knode1
+    #     address: 192.168.1.201
+    lan_scan:
+      ip_discovery_range: 192.168.1.1/24
+    auth:
+      username: pi
+      password: raspberry
+      ssh_private_key_file_path: /path/to/unknown
+
+  rpi:
+    os:
+      raspbian:
+        download_path: $HOME/temp/rpi_raspios_image
+        active_system: 64bit
+        download_url:
+          64bit: https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2022-01-28/2022-01-28-raspios-bullseye-arm64-lite.zip
+          32bit: https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2022-01-28/2022-01-28-raspios-bullseye-armhf-lite.zip
+
+    network:
+      gw_ip_address: 192.168.1.1
+      dns_ip_address: 192.168.1.1

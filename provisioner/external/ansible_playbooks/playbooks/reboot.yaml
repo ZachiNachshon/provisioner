@@ -1,0 +1,25 @@
+---
+- name: Reboot a remote node
+  tags: ['reboot']
+  shell: 'sleep 2 && shutdown -r now "Ansible reboot triggered"'
+  async: 1
+  poll: 0
+  become: true
+  become_method: sudo
+  ignore_errors: true
+
+- name: Wait for the reboot to complete
+  tags: ['reboot']
+  wait_for_connection:
+    connect_timeout: 10
+    sleep: 5
+    delay: 5
+    timeout: 300
+
+- name: Check the Uptime of the servers
+  tags: ['reboot']
+  shell: "uptime"
+  register: Uptime
+
+- debug: var=Uptime
+  tags: ['reboot']

@@ -1,0 +1,16 @@
+---
+- name: Configure RPi network settings
+  tags: ['configure_rpi_network']
+  script: raspi_config_network.sh
+  register: scriptOut
+  async: 0
+  poll: 0
+  ignore_errors: false
+  become: true
+  environment:
+    HOST_NAME: "{{ host_name | mandatory }}"
+    WIFI_COUNTRY: "{{ wifi_country | default('') }}"
+    WIFI_SSID_PASSPHRASE: "{{ wifi_ssid_passphrase | default('') }}"
+
+- debug: msg={{ scriptOut.stdout }}
+  tags: ['configure_rpi_network']

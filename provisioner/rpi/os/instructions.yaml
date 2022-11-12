@@ -1,0 +1,24 @@
+instructions:
+  actions:
+    - id: os-raspbian-install
+      displayName: "1. Raspbian OS: Install"
+      title: "Select SD-Card to install Raspbian OS"
+      description: "Format an SD-Card and install Raspbian OS on it"
+      showOutput: true
+      scriptFile: common/runners/poetry_runner_dev.sh run rpi --dry-run -y os install
+
+    - id: os-raspbian-configure-node
+      displayName: "2. Raspbian OS: Configure"
+      title: "Select RPi node for initial OS Raspbian setup"
+      description: "Configuring OS Raspbian hardware and system settings for an optimal Kubernetes cluster node:\n
+      \t\t• Hardware (mem-split, camera, GPU, audio etc...)\n
+      \t\t• System   (keyboard, hostname, timezone, locale etc...)"
+      showOutput: true
+      scriptFile: common/runners/poetry_runner_dev.sh run rpi --dry-run -y os configure
+
+    - id: os-raspbian-network-setup
+      displayName: "3. Raspbian OS: Network"
+      title: "Select RPi node for setting up static IP address"
+      description: "Define a static IP address and a hostname for a specific RPi node"
+      showOutput: true
+      scriptFile: common/runners/poetry_runner_dev.sh run rpi --dry-run -y os network

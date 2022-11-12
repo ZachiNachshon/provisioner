@@ -1,0 +1,53 @@
+---
+- name: Extract node token from k3s master
+  tags: ['k3s_agent_join']
+  become: true
+  changed_when: False # nothing really gets changed
+  shell: cat /var/lib/rancher/k3s/server/node-token
+  register: joinTokenOut
+
+- name: Read IP address from k3s master
+  tags: ['k3s_agent_join']
+  become: true
+  no_log: true
+  changed_when: False
+  register: ipAddressOut
+  debug:
+    msg: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+
+- name: Add k3s join token to dummy host
+  tags: ['k3s_agent_join']
+  changed_when: False
+  no_log: true
+  add_host:
+    name: "K3S_MASTER_INFO"
+    token: "{{ joinTokenOut.stdout }}"
+    master_ip_address: "{{ ipAddressOut.msg }}"
+#        master_ip_address: "{{ ansible_ssh_host }}" # relevant only when using hosts with direct ip address
+
+- name: Register k3s agent worker to cluster
+  tags: ['k3s_agent_join']
+  script: agent_join.sh  
+  register: scriptOut
+  environment:
+    MASTER_JOIN_TOKEN: "{{ hostvars['K3S_MASTER_INFO']['token'] }}"
+    MASTER_IP_ADDRESS: "{{ hostvars['K3S_MASTER_INFO']['master_ip_address'] }}"
+
+- name: Validating k3s-agent worker status - active (running)
+  tags: ['k3s_agent_join']
+  changed_when: False # nothing really gets changed
+  no_log: True
+  command: systemctl status k3s-agent
+  ignore_errors: true
+  register: svcOut
+  until: '"active (running)" in svcOut.stdout'
+  retries: 5
+  delay: 10
+
+- debug: msg={{ scriptOut.stdout }}
+  tags: ['k3s_agent_join']
+
+- name: Fail the play if the previous command did not succeed
+  tags: ['k3s_agent_join']
+  fail: msg="Failed to validate k3s agent is running successfully"
+  when: '"active (running)" not in svcOut.stdout'

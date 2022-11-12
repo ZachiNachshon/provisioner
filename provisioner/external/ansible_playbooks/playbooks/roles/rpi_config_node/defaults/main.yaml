@@ -1,0 +1,36 @@
+---
+#  - 0 is in general success / yes / selected
+#  - 1 is failed / no / not selected
+
+#
+# Hardware Configuration
+#
+boot_wait: "do_boot_wait 1"                # Do not wait for network before booting
+boot_splash: "do_boot_splash 1"            # Disable the splash screen
+overscan: "do_overscan 1"                  # Disable overscan
+camera: "do_camera 1"                      # Disable the camera
+ssh: "do_ssh 0"                            # Enable remote ssh login
+spi: "do_spi 1"                            # Disable spi bus
+memory_split: "do_memory_split 16"         # Set the GPU memory limit to minimum (16MB)
+i2c: "do_i2c 1"                            # Disable the i2c bus
+serial: "do_serial 1"                      # Disable the RS232 serial bus
+boot_behaviour: "do_boot_behaviour B1"     # Boot to CLI & require login
+#                                  B2      # Boot to CLI & auto login as pi user
+#                                  B3      # Boot to Graphical & require login
+#                                  B4      # Boot to Graphical & auto login as pi user
+onewire: "do_onewire 1"                    # Disable onewire on GPIO4
+audio: "do_audio 0"                        # Auto select audio output device
+#                1                         # Force audio output through 3.5mm analogue jack
+#                2                         # Force audio output through HDMI digital interface
+# gldriver: "do_gldriver G3"               # Disable opengl driver (default)
+#                        G2                # Enable Fake KMS Opengl Driver - must install deb package first
+#                        G1                # Enable Full KMS Opengl Driver - must install deb package first
+# rgpio: "do_rgpio 1"                      # Disable gpio server - must install deb package first
+
+#
+# System Configuration
+#
+configure_keyboard: "do_configure_keyboard us"         # Specify US Keyboard
+change_timezone: "do_change_timezone Asia/Jerusalem"   # Change timezone to Asia Jerusalem
+change_locale: "do_change_locale LANG=en_US.UTF-8"     # Set language to en_US English
+

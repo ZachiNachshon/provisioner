@@ -1,0 +1,25 @@
+---
+- name: Run k3s master uninstall command
+  tags: ['k3s_master_uninstall']
+  script: master_uninstall.sh
+  register: scriptOut
+
+- debug: msg={{ scriptOut.stdout }}
+  tags: ['k3s_master_uninstall']
+
+- name: Validating k3s was removed as a systemd service
+  tags: ['k3s_master_uninstall']
+  changed_when: False # nothing really gets changed
+  no_log: True # avoid verbose logs from systemd
+  command: systemctl status k3s
+  ignore_errors: true
+  register: svcErr
+  until: '"Unit k3s.service could not be found" in svcErr.stderr'
+  retries: 5
+  delay: 10
+#    - debug: msg={{ svcOut }}
+
+- name: Fail the play if the previous command did not succeed
+  tags: ['k3s_master_uninstall']
+  fail: msg="Failed to validate k3s master removed successfully"
+  when: '"Unit k3s.service could not be found" not in svcErr.stderr'
