@@ -1,0 +1,22 @@
+---
+- name: Copy shell scripts library to remote host
+  copy:
+    src: "{{ role_path }}/files/shell_lib.sh"
+    dest: "$HOME/.ansible/tmp/shell_lib.sh"
+  tags: ['define_static_ip']
+
+- name: Configure RPi node network (static IP and hostname)
+  tags: ['define_static_ip']
+  script: add_dhcp_entry.sh
+  register: scriptOut
+  async: 0
+  poll: 0
+  ignore_errors: false
+  become: true
+  environment:
+    STATIC_IP: "{{ static_ip | mandatory }}"
+    GATEWAY_ADDRESS: "{{ gateway_address | mandatory }}"
+    DNS_ADDRESS: "{{ dns_address | mandatory }}"
+
+- debug: msg={{ scriptOut.stdout }}
+  tags: ['define_static_ip']

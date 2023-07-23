@@ -1,0 +1,18 @@
+---
+- name: Updating Advanced Package Tool (apt) cache
+  become: true
+  register: scriptOut
+  apt:
+    update_cache: yes
+
+- debug: msg={{ scriptOut.stdout }}
+      
+- name: Upgrading Advanced Package Tool (apt) packages
+  become: true
+  register: scriptOut
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400
+
+- debug: msg={{ scriptOut.stdout }}

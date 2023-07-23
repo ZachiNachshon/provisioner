@@ -1,0 +1,12 @@
+---
+# K3s
+k3s_binary_name: k3s          # Mandatory
+k3s_token: null               # Mandatory
+k3s_os: null                  # Mandatory
+k3s_url: null                 # Mandatory agent-only
+k3s_install_as_binary: False
+k3s_additional_cli_args: null
+# Paths
+local_bin_folder: "~/.local/bin"
+remote_kube_config_path: /etc/rancher/k3s/k3s.yaml
+local_kube_config_path: ~/.kube/k3s/config

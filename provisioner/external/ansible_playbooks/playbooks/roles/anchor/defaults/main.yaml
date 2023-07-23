@@ -1,0 +1,11 @@
+---
+local_bin_folder_path: "$HOME/.local/bin"
+anchor_ansible_command: Run # Mandatory. Options: Run/Uninstall
+anchor_version: "0.10.0"
+anchor_github_repo_branch: "master"
+anchor_config_auto_update: true
+# anchor_github_organization: null
+# anchor_github_repository: null
+# anchor_github_repo_branch: null
+# anchor_run_args: null
+# git_access_token: null

@@ -1,0 +1,34 @@
+---
+- name: Install k3s master server (darwin)
+  script: server_install.sh
+  register: scriptOut
+  environment:
+    ENV_K3S_OS: "darwin"
+    ENV_K3S_TOKEN: "{{ k3s_token | mandatory }}"
+    ENV_K3S_VERSION: "{{ k3s_version | mandatory }}"
+    ENV_K3S_BINARY_NAME: "{{ k3s_binary_name | mandatory }}"
+    ENV_K3S_ADDITIONAL_CLI_ARGS: "{{ k3s_additional_cli_args }}"
+    ENV_K3S_INSTALL_AS_BINARY: "{{ k3s_install_as_binary }}"
+    ENV_LOCAL_BIN_FOLDER: "{{ local_bin_folder | mandatory }}"
+  when: server_install
+  tags: ['darwin']
+
+- debug: msg={{ scriptOut.stdout }}
+  when: server_install
+  tags: ['darwin']
+
+- name: Check if K3s server installed as binary
+  stat:
+    path: "{{ local_bin_folder }}/{{ k3s_binary_name }}"
+  register: k3s_server_binary_file
+  when: 
+    - not dry_run
+  tags: ['darwin']
+
+- name: Fail the play if binary cannot be found
+  fail: msg="Failed to find k3s server binary"
+  when: 
+    - server_install
+    - not dry_run
+    - not k3s_server_binary_file.stat.exists
+  tags: ['darwin']

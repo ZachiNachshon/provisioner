@@ -1,0 +1,16 @@
+---
+# --- PATHS ---
+local_bin_folder_path: "$HOME/.local/bin"
+local_pip_pkg_folder_path: "$HOME/.config/provisioner/.pip-pkg"
+# --- PROVISIONER ---
+provisioner_binary: provisioner
+provisioner_command: null         # Mandatory
+provisioner_version: "0.1.0"      # Relevant for install methods: pip/github-release
+# Array of tuple items i.e. ['provisioner_examples_plugin:0.1.0', 'provisioner_installers_plugin:0.2.0']
+required_plugins: null            # Plugins that are required for running the provisioner command
+install_method: "github-release"  # pip/github-release/local-dev
+# --- GITHUB ---
+github_owner: "ZachiNachshon"
+github_repository: "provisioner-oss"
+github_repo_branch: "master"
+git_access_token: null            # Mandatory

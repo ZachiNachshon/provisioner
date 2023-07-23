@@ -1,0 +1,31 @@
+---
+- name: Copy shell scripts library to remote host
+  copy:
+    src: "{{ role_path }}/files/shell_lib.sh"
+    dest: "$HOME/.ansible/tmp/shell_lib.sh"
+  tags: ['provisioner_wrapper']
+
+- name: "Runing provisioner (version: {{ provisioner_version }})"
+  tags: ['provisioner_wrapper']
+  script: "provisioner_wrapper.sh"
+  register: scriptOut
+  become: no
+  changed_when: False # nothing really gets changed
+  environment:
+    # --- PATHS ---
+    ENV_LOCAL_BIN_FOLDER_PATH: "{{ local_bin_folder_path | mandatory }}"
+    ENV_LOCAL_PIP_PKG_FOLDER_PATH: "{{ local_pip_pkg_folder_path | mandatory }}"
+    # --- PROVISIONER ---
+    ENV_PROVISIONER_BINARY: "{{ provisioner_binary | mandatory }}"
+    ENV_PROVISIONER_COMMAND: "{{ provisioner_command | mandatory }}"
+    ENV_PROVISIONER_VERSION: "{{ provisioner_version | mandatory }}"
+    # Array of tuple items i.e. ['provisioner_examples_plugin:0.1.0', 'provisioner_installers_plugin:0.2.0']
+    ENV_REQUIRED_PLUGINS: "{{ required_plugins | mandatory }}"
+    ENV_INSTALL_METHOD: "{{ install_method | mandatory }}"
+    # --- GITHUB ---
+    ENV_GITHUB_OWNER: "{{ github_owner }}"
+    ENV_GITHUB_REPOSITORY: "{{ github_repository }}"
+    ENV_GITHUB_TOKEN: "{{ git_access_token }}"
+
+- debug: msg={{ scriptOut.stdout }}
+  tags: ['provisioner_wrapper']

@@ -1,0 +1,143 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+    branches:
+      - master
+
+env:
+  # Semantic version range syntax (3.x) or exact version of a Python version
+  PYTHON_VERSION: "3.10"
+  POETRY_VERSION: "1.4.1"
+
+jobs:
+  build:
+    name: Tests Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo code
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        id: setup-python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Try Load Cached Poetry Installation
+        id: cached-poetry
+        uses: actions/cache@v3
+        with:
+          path: ~/.local                         # Path depends on the OS
+          key: poetry-${{ env.POETRY_VERSION }}  # Change to reset cache
+
+      - name: Maybe Install Poetry
+        if: steps.cached-poetry.outputs.cache-hit != 'true'
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Try Load Cache venv - provisioner
+        id: cached-venv-provisioner
+        uses: actions/cache@v3
+        with:
+          path: ./provisioner/.venv
+          key: provisioner-venv-${{ runner.os }}-${{ hashFiles('./provisioner/poetry.lock') }}      
+
+      - name: Maybe Install venv - provisioner
+        if: steps.cached-venv-provisioner.outputs.cache-hit != 'true'
+        run: |
+          cd provisioner
+          poetry install --all-extras
+          cd ..
+
+      - name: Try Load Cache venv - python_core_lib
+        id: cached-venv-python-core-lib
+        uses: actions/cache@v3
+        with:
+          path: ./python_core_lib/.venv
+          key: python_core_lib-venv-${{ runner.os }}-${{ hashFiles('./python_core_lib/poetry.lock') }}      
+
+      - name: Maybe Install venv - python_core_lib
+        if: steps.cached-venv-python-core-lib.outputs.cache-hit != 'true'
+        run: |
+          cd python_core_lib
+          poetry install
+          cd ..
+
+      - name: Try Load Cache venv - provisioner_features_lib
+        id: cached-venv-provisioner-features-lib
+        uses: actions/cache@v3
+        with:
+          path: ./provisioner_features_lib/.venv
+          key: provisioner_features_lib-venv-${{ runner.os }}-${{ hashFiles('./provisioner_features_lib/poetry.lock') }}      
+
+      - name: Maybe Install venv - provisioner_features_lib
+        if: steps.cached-venv-provisioner-features-lib.outputs.cache-hit != 'true'
+        run: |
+          cd provisioner_features_lib
+          poetry install
+          cd ..
+
+      - name: Try Load Cache venv - provisioner_examples_plugin
+        id: cached-venv-provisioner-examples-plugin
+        uses: actions/cache@v3
+        with:
+          path: ./provisioner_examples_plugin/.venv
+          key: provisioner_examples_plugin-venv-${{ runner.os }}-${{ hashFiles('./provisioner_examples_plugin/poetry.lock') }}      
+
+      - name: Maybe Install venv - provisioner_examples_plugin
+        if: steps.cached-venv-provisioner-examples-plugin.outputs.cache-hit != 'true'
+        run: |
+          cd provisioner_examples_plugin
+          poetry install
+          cd ..
+
+      - name: Try Load Cache venv - provisioner_installers_plugin
+        id: cached-venv-provisioner-installers-plugin
+        uses: actions/cache@v3
+        with:
+          path: ./provisioner_installers_plugin/.venv
+          key: provisioner_installers_plugin-venv-${{ runner.os }}-${{ hashFiles('./provisioner_installers_plugin/poetry.lock') }}      
+
+      - name: Maybe Install venv - provisioner_installers_plugin
+        if: steps.cached-venv-provisioner-installers-plugin.outputs.cache-hit != 'true'
+        run: |
+          cd provisioner_installers_plugin
+          poetry install
+          cd ..
+      
+      - name: Try Load Cache venv - provisioner_single_board_plugin
+        id: cached-venv-provisioner-single-board-plugin
+        uses: actions/cache@v3
+        with:
+          path: ./provisioner_single_board_plugin/.venv
+          key: provisioner_single_board_plugin-venv-${{ runner.os }}-${{ hashFiles('./provisioner_single_board_plugin/poetry.lock') }}      
+
+      - name: Maybe Install venv - provisioner_single_board_plugin
+        if: steps.cached-venv-provisioner-single-board-plugin.outputs.cache-hit != 'true'
+        run: |
+          cd provisioner_single_board_plugin
+          poetry install
+          cd ..
+
+      - name: Install Required pip packages
+        run: |
+          pip install coverage
+
+      - name: Run tests
+        run: make test-coverage-xml-all
+      
+      # Requires CODECOV_TOKEN in GitHub repository secrets
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}  # Only required for private repositories
+          # file: ./coverage-combined.xml
+          file: ./provisioner/coverage.xml,./python_core_lib/coverage.xml,./provisioner_features_lib/coverage.xml,./provisioner_examples_plugin/coverage.xml,./provisioner_installers_plugin/coverage.xml,./provisioner_single_board_plugin/coverage.xml
+          fail_ci_if_error: true

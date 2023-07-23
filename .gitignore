@@ -1,0 +1,32 @@
+# Please see https://github.com/github/gitignore for some nice presets
+
+# Output directories
+build/
+out/
+
+# Mac OS X files
+.DS_Store
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VSCode
+.vscode
+
+# Log directory
+logs/
+
+# vim files
+.*.sw[a-z]
+*.un~
+
+# Tests
+htmlcov/
+
+# Python
+*__pycache__*
+.coverage
+coverage-combined.xml

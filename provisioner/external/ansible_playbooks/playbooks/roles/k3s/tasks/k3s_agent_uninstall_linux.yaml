@@ -1,0 +1,25 @@
+---
+- name: Run k3s agent uninstall command
+  tags: ['k3s_agent_uninstall']
+  script: agent_uninstall.sh
+  register: scriptOut
+
+- debug: msg={{ scriptOut.stdout }}
+  tags: ['k3s_agent_uninstall']
+
+- name: Validating k3s agent was removed as a systemd service
+  tags: ['k3s_agent_uninstall']
+  changed_when: False # nothing really gets changed
+  no_log: True # avoid verbose logs from systemd
+  command: systemctl status k3s-agent
+  ignore_errors: true
+  register: svcErr
+  until: '"Unit k3s-agent.service could not be found" in svcErr.stderr'
+  retries: 5
+  delay: 10
+#    - debug: msg={{ svcOut }}
+
+- name: Fail the play if the previous command did not succeed
+  tags: ['k3s_agent_uninstall']
+  fail: msg="Failed to validate k3s agent removed successfully"
+  when: '"Unit k3s-agent.service could not be found" not in svcErr.stderr'

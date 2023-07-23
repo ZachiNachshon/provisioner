@@ -1,0 +1,46 @@
+[run]
+# Measure only the code specified on the source folder (prevent deep scan into poetry bundled files)
+# source = 
+#     tools
+#     rpi
+        
+# Restrict the scope of investigation during code coverage calculation time
+# include = utils/*.py
+# exclude = external
+
+source = 
+    provisioner
+
+omit = 
+    */site-packages/*
+    *external/*
+    */loguru/*
+    *_fakes.py
+    *_fake.py
+    *__init__.py
+    *__main__.py
+    */templates/*
+    *_test.py
+    *python_core_lib*
+    *provisioner_examples_plugin*
+    *provisioner_features_lib*
+    *provisioner_installers_plugin*
+    *provisioner_single_board_plugin*
+    *python_test_lib*
+    
+
+[report]
+omit = 
+    */site-packages/*
+    *external/*
+    */loguru/*
+    *__init__.py
+    *__main__.py
+    */templates/*
+    *_test.py
+    *python_core_lib*
+    *provisioner_examples_plugin*
+    *provisioner_features_lib*
+    *provisioner_installers_plugin*
+    *provisioner_single_board_plugin*
+    *python_test_lib*

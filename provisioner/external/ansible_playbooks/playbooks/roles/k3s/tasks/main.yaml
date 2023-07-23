@@ -1,0 +1,54 @@
+---
+- name: Set default facts
+  set_fact:
+    server_install: False
+    master_uninstall: False
+    agent_install: False
+    agent_uninstall: False
+    dry_run: False
+  tags: ['linux', 'darwin']
+
+- name: Display facts values
+  debug:
+    msg: |
+      server_install: {{ server_install }}
+      master_uninstall: {{ master_uninstall }}
+      agent_install: {{ agent_install }}
+      agent_uninstall: {{ agent_uninstall }}
+      dry_run: {{ dry_run }}
+  # tags: ['linux', 'darwin']
+
+- name: Copy shell scripts library to remote host
+  copy:
+    src: "{{ role_path }}/files/shell_lib.sh"
+    dest: "$HOME/.ansible/tmp/shell_lib.sh"
+  tags: ['linux', 'darwin']
+
+- include_tasks: k3s_server_install_linux.yaml
+  when: server_install
+  tags: ['linux']
+
+- include_tasks: k3s_server_install_darwin.yaml
+  when: server_install
+  tags: ['darwin']
+
+- include_tasks: k3s_agent_install_linux.yaml
+  when: agent_install
+  tags: ['linux']
+
+- include_tasks: k3s_agent_install_darwin.yaml
+  when: agent_install
+  tags: ['darwin']
+
+- include_tasks: k3s_agent_uninstall_linux.yaml
+  when: agent_uninstall
+  tags: ['linux']
+
+- include_tasks: k3s_server_uninstall_linux.yaml
+  when: server_uninstall
+  tags: ['linux']
+
+# - include_tasks: k3s_copy_kube_cfg.yaml
+#   tags: ['k3s_master_copy_kube_cfg']
+
+

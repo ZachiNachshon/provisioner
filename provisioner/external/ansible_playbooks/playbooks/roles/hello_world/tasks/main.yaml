@@ -1,0 +1,17 @@
+---
+- name: Copy shell scripts library to remote host
+  copy:
+    src: "{{ role_path }}/files/shell_lib.sh"
+    dest: "$HOME/.ansible/tmp/shell_lib.sh"
+  tags: ['hello']
+
+- name: Print a greeting to stdout
+  tags: ['hello']
+  script: hello_world.sh
+  register: scriptOut
+  changed_when: False # nothing really gets changed
+  environment:
+    ENV_USERNAME: "{{ username | mandatory }}"
+
+- debug: msg={{ scriptOut.stdout }}
+  tags: ['hello']

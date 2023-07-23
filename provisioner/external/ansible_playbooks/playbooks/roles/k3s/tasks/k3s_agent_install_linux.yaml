@@ -1,0 +1,52 @@
+---
+- name: Install K3s agent and connect to master server (linux)
+  script: agent_install.sh
+  register: scriptOut
+  environment:
+    ENV_K3S_OS: "linux"
+    ENV_K3S_TOKEN: "{{ k3s_token | mandatory }}"
+    ENV_K3S_URL: "{{ k3s_url | mandatory }}"
+    ENV_K3S_VERSION: "{{ k3s_version | mandatory }}"
+    ENV_K3S_BINARY_NAME: "{{ k3s_binary_name | mandatory }}"
+    ENV_K3S_ADDITIONAL_CLI_ARGS: "{{ k3s_additional_cli_args }}"
+    ENV_K3S_INSTALL_AS_BINARY: "{{ k3s_install_as_binary }}"
+    ENV_LOCAL_BIN_FOLDER: "{{ local_bin_folder | mandatory }}"
+  when: agent_install
+  tags: ['linux']
+
+- debug: msg={{ scriptOut.stdout }}
+  when: agent_install
+  tags: ['linux']
+
+- name: Check if K3s agent installed as binary
+  stat:
+    path: "{{ local_bin_folder }}/{{ k3s_binary_name }}"
+  register: k3s_agent_binary_file
+  when:
+    - not dry_run
+  tags: ['linux']
+  
+# Skip these steps if K3s agent was installed as a binary file
+- name: Validating k3s-agent worker status - active (running)
+  changed_when: False # nothing really gets changed
+  no_log: True
+  command: systemctl status k3s-agent
+  ignore_errors: true
+  register: svcOut
+  until: '"active (running)" in svcOut.stdout'
+  retries: 5
+  delay: 10
+  when: 
+    - agent_install
+    - not dry_run
+    - not k3s_agent_binary_file.stat.exists
+  tags: ['linux']
+
+- name: Fail the play if the previous command did not succeed
+  fail: msg="Failed to validate k3s agent is running"
+  when: 
+    - agent_install
+    - not dry_run
+    - not k3s_agent_binary_file.stat.exists
+    - '"active (running)" not in svcOut.stdout'
+  tags: ['linux']

@@ -1,0 +1,7 @@
+---
+- name: "Run git role (version: {{ git_version }})"
+  script: git_role.sh {{ task_action }} {{ git_version }}
+  register: scriptOut
+  changed_when: False # nothing really gets changed
+
+- debug: msg={{ scriptOut.stdout }}
