@@ -1,4 +1,0 @@
----
-# static_ip: null        # Static IP that should be assigned to the remote node (example: 192.168.1.200)
-# gateway_address: null  # Usually the router Default Gateway IP address
-# dns_address: null      # Usually the router Primary DNS IP address

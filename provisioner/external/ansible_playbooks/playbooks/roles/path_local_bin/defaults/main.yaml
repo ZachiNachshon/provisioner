@@ -1,4 +1,0 @@
----
-task_action: install # Options: install/uninstall
-local_bin_folder: "/path/to/.local/bin"
-rc_file_path: "/path/to/rc/file/.bashrc"

@@ -1,4 +1,0 @@
----
-host_name: "k8s-node1"
-wifi_country: "do_wifi_country IL"                                     # Set wifi country as Israel
-# wifi_ssid_passphrase: "do_wifi_ssid_passphrase wifi_name password"   # Set wlan0 network to join 'wifi_name' network using 'password'

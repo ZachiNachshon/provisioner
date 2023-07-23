@@ -1,9 +1,0 @@
-test_data:
-  repo_url: https://github.com/user-org/user-repo.git
-  branch_revs:
-    master: abcd123
-  utilities:
-    - anchor
-  supported_os_arch:
-    - linux:
-        amd64: false

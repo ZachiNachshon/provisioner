@@ -1,4 +1,0 @@
----
-task_action: install # Options: install/uninstall
-docker_version: "20.10.12"
-docker_user: pi

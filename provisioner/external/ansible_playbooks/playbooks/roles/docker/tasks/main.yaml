@@ -1,8 +1,0 @@
----
-- name: "Run a Docker engine role (action: {{ task_action }}, version: {{ docker_version }})"
-  become: true
-  script: docker_role.sh {{ task_action }} {{ docker_version }} {{ docker_user }}
-  register: scriptOut
-  changed_when: False # nothing really gets changed
-
-- debug: msg={{ scriptOut.stdout }}
