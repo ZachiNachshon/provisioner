@@ -111,9 +111,9 @@ ruff = "^0.0.265"
 poetry-multiproject-plugin = "^1.1.4"
 python_core_lib = { path = "../python_core_lib", develop = true }
 provisioner_features_lib = { path = "../provisioner_features_lib", develop = true }
-provisioner_examples_plugin = { path = "../provisioner_examples_plugin", develop = true }
-provisioner_single_board_plugin = { path = "../provisioner_single_board_plugin", develop = true }
-provisioner_installers_plugin = { path = "../provisioner_installers_plugin", develop = true }
+provisioner_examples_plugin = { path = "../../provisioner-plugins/provisioner_examples_plugin", develop = true }
+provisioner_single_board_plugin = { path = "../../provisioner-plugins/provisioner_single_board_plugin", develop = true }
+provisioner_installers_plugin = { path = "../../provisioner-plugins/provisioner_installers_plugin", develop = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
