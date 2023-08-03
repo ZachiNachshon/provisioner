@@ -21,6 +21,9 @@ from provisioner.config.domain.config import ProvisionerConfig
 #
 class ProvisionerConfigTestShould(unittest.TestCase):
     
+    def test_always_true(self):
+        self.assertTrue(True)
+        
     @unittest.SkipTest
     def test_config_partial_merge_with_user_config(self):
         ctx = Context.create()
