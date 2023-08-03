@@ -1,63 +1,52 @@
 default: help
+PROJECTS=provisioner python_core_lib provisioner_features_lib
 
 .PHONY: update-externals-all
 update-externals-all: ## Update external source dependents
-	@echo "\n\n========= PROVISIONER ===============================\n\n"
+	@echo "\n========= ROOT FOLDER ==============\n"
+	@git-deps-syncer sync shell_scripts_lib -y
+	@echo "\n========= PROJECT: provisioner ==============\n"
 	@cd provisioner; make update-externals; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: CORE ==================\n\n"
-	@cd python_core_lib; make update-externals; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: FEATURES =============\n\n"
-	@cd provisioner_features_lib; make update-externals; cd ..
 
 .PHONY: deps-all
 deps-all: ## Update and install pyproject.toml dependencies on all virtual environments
-	@echo "\n\n========= PROVISIONER ===============================\n\n"
-	@cd provisioner; make deps; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: CORE ==================\n\n"
-	@cd python_core_lib; make deps; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: FEATURES =============\n\n"
-	@cd provisioner_features_lib; make deps; cd ..
+	@for project in $(PROJECTS); do \
+		echo "\n========= PROJECT: $$project ==============\n"; \
+		cd $${project}; make deps; cd ..; \
+	done
 
 .PHONY: typecheck-all
 typecheck-all: ## Check for Python static type errors
-	@echo "\n\n========= PROVISIONER ===============================\n\n"
-	@cd provisioner; make typecheck; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: CORE ==================\n\n"
-	@cd python_core_lib; make typecheck; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: FEATURES =============\n\n"
-	@cd provisioner_features_lib; make typecheck; cd ..
+	@for project in $(PROJECTS); do \
+		echo "\n========= PROJECT: $$project ==============\n"; \
+		cd $${project}; make typecheck; cd ..; \
+	done
 
 .PHONY: fmtcheck-all
 fmtcheck-all: ## Validate Python code format and sort imports
-	@echo "\n\n========= PROVISIONER ===============================\n\n"
-	@cd provisioner; make fmtcheck; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: CORE ==================\n\n"
-	@cd python_core_lib; make fmtcheck; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: FEATURES =============\n\n"
-	@cd provisioner_features_lib; make fmtcheck; cd ..
+	@for project in $(PROJECTS); do \
+		echo "\n========= PROJECT: $$project ==============\n"; \
+		cd $${project}; make fmtcheck; cd ..; \
+	done
 
 .PHONY: fmt-all
 fmt-all: ## Format Python code using Black style and sort imports
-	@echo "\n\n========= PROVISIONER ===============================\n\n"
-	@cd provisioner; make fmt; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: CORE ==================\n\n"
-	@cd python_core_lib; make fmt; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: FEATURES =============\n\n"
-	@cd provisioner_features_lib; make fmt; cd ..
+	@for project in $(PROJECTS); do \
+		echo "\n========= PROJECT: $$project ==============\n"; \
+		cd $${project}; make fmt; cd ..; \
+	done
 
 .PHONY: test-all
 test-all: ## Run tests suite
-	@echo "\n\n========= PROVISIONER ===============================\n\n"
-	@cd provisioner; make test; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: CORE ==================\n\n"
-	@cd python_core_lib; make test; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: FEATURES =============\n\n"
-	@cd provisioner_features_lib; make test; cd ..
+	@for project in $(PROJECTS); do \
+		echo "\n========= PROJECT: $$project ==============\n"; \
+		cd $${project}; make test; cd ..; \
+	done
 	@echo "\n\n========= COMBINING COVERAGE DATABASES ==============\n\n"
 	@coverage combine \
 		provisioner/.coverage \
 		python_core_lib/.coverage \
-		provisioner_features_lib/.coverage \
+		provisioner_features_lib/.coverage
 	@echo "\n\n========= COVERAGE FULL REPORT ======================\n\n"		
 	@coverage report
 	@coverage html
@@ -65,37 +54,32 @@ test-all: ## Run tests suite
 
 .PHONY: test-coverage-xml-all
 test-coverage-xml-all: ## Run Unit/E2E/IT tests
-	@echo "\n\n========= PROVISIONER ===============================\n\n"
-	@cd provisioner; make test-coverage-xml; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: CORE ==================\n\n"
-	@cd python_core_lib; make test-coverage-xml; cd ..
-	@echo "\n\n========= PROVISIONER LIBRARY: FEATURES =============\n\n"
-	@cd provisioner_features_lib; make test-coverage-xml; cd ..
+	@for project in $(PROJECTS); do \
+		echo "\n========= PROJECT: $$project ==============\n"; \
+		cd $${project}; make test-coverage-xml; cd ..; \
+	done
 
 .PHONY: pip-install-all
-pip-install-all: ## Install all source distributions to local pip
-	@echo "\n\n========= PROVISIONER ===============================\n\n"
+pip-install-all: ## Install provisioner sdist to local pip
+	@echo "\n========= PROJECT: provisioner ==============\n"
 	@cd provisioner; make pip-install; cd ..
 
 .PHONY: pip-uninstall-all
-pip-uninstall-all: ## Uninstall all source distributions from local pip
-	@echo "\n\n========= PROVISIONER ===============================\n\n"
+pip-uninstall-all: ## Uninstall provisioner from local pip
+	@echo "\n========= PROJECT: provisioner ==============\n"
 	@cd provisioner; make pip-uninstall; cd ..
 
 .PHONY: pip-publish-github
 pip-publish-github: ## Publish all pip packages tarballs as GitHub releases
-	@echo "\n\n========= PROVISIONER ===============================\n\n"
+	@echo "\n========= PROJECT: provisioner ==============\n"
 	@cd provisioner; make pip-publish-github; cd ..
 
 .PHONY: clear-virtual-env-all
 clear-virtual-env-all: ## Clear all Poetry virtual environments
-	@echo "\n========= PROVISIONER ===============================\n"
-	@cd provisioner; make clear-virtual-env; cd ..
-	@echo "\n========= PROVISIONER LIBRARY: CORE ==================\n"
-	@cd python_core_lib; make clear-virtual-env; cd ..
-	@echo "\n========= PROVISIONER LIBRARY: FEATURES =============\n"
-	@cd provisioner_features_lib; make clear-virtual-env; cd ..
-
+	@for project in $(PROJECTS); do \
+		echo "\n========= PROJECT: $$project ==============\n"; \
+		cd $${project}; make clear-virtual-env; cd ..; \
+	done
 
 # .PHONY: diagrams
 # diagrams: ## Format Python code using Black style (https://black.readthedocs.io)

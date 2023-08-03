@@ -41,7 +41,7 @@ is_dry_run() {
 
 evaluate_dry_run_mode() {
   if is_dry_run; then
-    echo -e "${COLOR_YELLOW}Running in DRY RUN mode${COLOR_NONE}" >&0
+    echo -e "${COLOR_YELLOW}Running in DRY RUN mode${COLOR_NONE}" >&1
     new_line
   fi
 }
@@ -49,7 +49,7 @@ evaluate_dry_run_mode() {
 _log_base() {
   prefix=$1
   shift
-  echo -e "${prefix}$*" >&0
+  echo -e "${prefix}$*" >&1
 }
 
 log_debug() {

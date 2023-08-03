@@ -1,18 +1,12 @@
 default: help
 
-POETRY_DEV=./external/shell_scripts_lib/python/poetry_dev.sh
-POETRY_PIP_RELEASER=./external/shell_scripts_lib/python/poetry_pip_releaser.sh
+POETRY_DEV=../external/shell_scripts_lib/python/poetry_dev.sh
+POETRY_PIP_RELEASER=../external/shell_scripts_lib/python/poetry_pip_releaser.sh
 
 .PHONY: update-externals
 update-externals: ## Update external source dependents
-	@git-deps-syncer sync shell_scripts_lib -y
 	@git-deps-syncer sync ansible_playbooks --skip-symlinks -y
 	@touch external/ansible_playbooks/__init__.py
-
-.PHONY: clear-virtual-env
-clear-virtual-env: ## Clear Poetry virtual environments
-	@rm -rf .venv
-	@echo Cleared.
 
 # Make sure to install the Poetry multi project plugin to support 'build-project' (Add -vv for debug logs):
 #   poetry self add poetry-multiproject-plugin
@@ -74,6 +68,11 @@ pip-github-delete-tag: ## Publish a pip package tarball as a GitHub release
 	@${POETRY_PIP_RELEASER} delete \
 		--origin github \
 		--delete-tag $(shell cat ./resources/version.txt)
+
+.PHONY: clear-virtual-env
+clear-virtual-env: ## Clear Poetry virtual environments
+	@rm -rf .venv
+	@echo Cleared.
 
 # .PHONY: diagrams
 # diagrams: ## Format Python code using Black style (https://black.readthedocs.io)

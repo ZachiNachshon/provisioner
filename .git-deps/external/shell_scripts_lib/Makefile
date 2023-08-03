@@ -13,12 +13,12 @@ fmt: ## Format shell scripts using shfmt bash style (https://github.com/mvdan/sh
   		"debug"
 
 .PHONY: ansible
-ansible: ## Format shell scripts using shfmt bash style (https://github.com/mvdan/sh)
-	@${ANSIBLE_RUNNER} "verbose" $(PWD) "--help"
+ansible: ## Run Ansible runner main CLI menu
+	@${ANSIBLE_RUNNER} "working_dir:$(PWD)" "verbose" $(PWD) "--help"
 
 .PHONY: poetry
-poetry: ## Format shell scripts using shfmt bash style (https://github.com/mvdan/sh)
-	@${POETRY_RUNNER} "verbose" "prod" $(PWD) "--help"
+poetry: ## Run Poetry runner main CLI menu
+	@${POETRY_RUNNER} "working_dir:$(PWD)" "verbose" "prod" $(PWD) "--help"
 
 .PHONY: help
 help:

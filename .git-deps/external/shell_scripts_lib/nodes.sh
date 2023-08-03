@@ -74,7 +74,7 @@ select_node() {
   fi
 
   if [[ -z "${prompt_master}" && -z "${prompt_nodes}" ]]; then
-    echo -e "\n    Nothing to select." >&0
+    echo -e "\n    Nothing to select." >&1
     exit 0
   fi
 
@@ -86,12 +86,12 @@ select_node() {
   fi
 
   # Use printf to enforce new lines
-  printf "${menu_str}\nPlease choose a node (enter to skip): " >&0
+  printf "${menu_str}\nPlease choose a node (enter to skip): " >&1
   read input
   if [[ -n "${input}" ]]; then
     selected_value="${selection_array[input - 1]}" >>/dev/null
     if [[ -z "${selected_value}" ]]; then
-      echo -e "\n    Invalid selection." >&0
+      echo -e "\n    Invalid selection." >&1
       exit 1
     else
       if [[ "${selected_value}" == "${all_nodes_option}" ]]; then
@@ -109,7 +109,7 @@ select_node() {
       fi
     fi
   else
-    echo -e "\n    Nothing has changed." >&0
+    echo -e "\n    Nothing has changed." >&1
     exit 0
   fi
 

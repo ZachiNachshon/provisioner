@@ -92,7 +92,7 @@ select_network_LAN_device() {
 
   local selection=$(prompt_selection_allow_text "Select a RPi address ('r' to reload)" "${devices_str}" '$')
   if [[ -z "${selection}" ]]; then
-    echo -e "\n    Invalid selection." >&0
+    echo -e "\n    Invalid selection." >&1
     exit 1
   elif [[ "${selection}" == "r" ]]; then
     new_line
