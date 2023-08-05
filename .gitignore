@@ -30,4 +30,3 @@ htmlcov/
 *__pycache__*
 .coverage
 coverage-combined.xml
-
