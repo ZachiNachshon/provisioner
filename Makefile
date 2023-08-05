@@ -59,13 +59,13 @@ test-coverage-xml-all: ## Run Unit/E2E/IT tests
 		cd $${project}; make test-coverage-xml; cd ..; \
 	done
 
-.PHONY: pip-install-all
-pip-install-all: ## Install provisioner sdist to local pip
+.PHONY: pip-install
+pip-install: ## Install provisioner sdist to local pip
 	@echo "\n========= PROJECT: provisioner ==============\n"
 	@cd provisioner; make pip-install; cd ..
 
-.PHONY: pip-uninstall-all
-pip-uninstall-all: ## Uninstall provisioner from local pip
+.PHONY: pip-uninstall
+pip-uninstall: ## Uninstall provisioner from local pip
 	@echo "\n========= PROJECT: provisioner ==============\n"
 	@cd provisioner; make pip-uninstall; cd ..
 

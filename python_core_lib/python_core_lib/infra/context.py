@@ -51,7 +51,6 @@ class Context:
             raise NotInitialized("context mandatory variable is not initialized. name: auto_prompt")
         return self._auto_prompt
 
-
 class CliContextManager:
     @staticmethod
     def create():

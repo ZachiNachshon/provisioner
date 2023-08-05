@@ -12,7 +12,6 @@ from python_core_lib.errors.cli_errors import (
 )
 from python_core_lib.infra.context import Context
 
-
 class Evaluator:
     @staticmethod
     def eval_step_no_return_throw_on_failure(ctx: Context, err_msg: str, call: Callable) -> None:

@@ -98,11 +98,10 @@ class NetworkUtil:
 
         port_scan_result_dict = None
         if show_progress:
-            port_scan_result_dict = self._printer.progress_indicator.progress_bar.long_running_process_fn(
+            port_scan_result_dict = self._printer.progress_indicator.status.long_running_process_fn(
                 call=lambda: self._host_discovery.nmap_no_portscan(target=ip_range),
-                desc="Port Scanning",
-                expected_time=301,
-                increments=300,
+                desc_run="Running LAN port scanning",
+                desc_end="LAN port scanning finished"
             )
         else:
             self._printer.print_fn("Port Scanning...")
@@ -112,11 +111,10 @@ class NetworkUtil:
 
         list_scan_result_dict = None
         if show_progress:
-            list_scan_result_dict = self._printer.progress_indicator.progress_bar.long_running_process_fn(
+            list_scan_result_dict = self._printer.progress_indicator.status.long_running_process_fn(
                 call=lambda: self._nmap.nmap_list_scan(target=ip_range),
-                desc="List Scanning",
-                expected_time=51,
-                increments=50,
+                desc_run="Running LAN list scanning",
+                desc_end="LAN list scanning finished"
             )
         else:
             self._printer.print_fn("List Scanning...")
