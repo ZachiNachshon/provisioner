@@ -1,4 +1,15 @@
 ---
+- name: Set default facts
+  set_fact:
+    dry_run: False
+  tags: ['configure_remote_node']
+
+- name: Display facts values
+  debug:
+    msg: |
+      dry_run: {{ dry_run }}
+  tags: ['configure_remote_node']
+
 - name: Copy shell scripts library to remote host
   copy:
     src: "{{ role_path }}/files/shell_lib.sh"
@@ -12,7 +23,7 @@
   async: 0
   poll: 0
   ignore_errors: false
-  # become: true
+  become: "{{ not dry_run }}"
   environment:
     HOST_NAME: "{{ host_name | mandatory }}"
     BOOT_WAIT: "{{ boot_wait | default('') }}"

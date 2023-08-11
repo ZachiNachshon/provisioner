@@ -1,18 +1,19 @@
 ---
-- name: Playbook for shutting down a remote machine
-  hosts: selected_hosts
-  gather_facts: no
-  tasks:
-    - name: Shutdown a remote node
-      become: true
-      shell: shutdown -h now
-      async: 0
-      poll: 0
-      ignore_errors: true
+- name: Display facts values
+  debug:
+    msg: |
+      dry_run: {{ dry_run }}
+  tags: ['shutdown']
 
-    - name: "Wait for shutdown to complete"
-      local_action: wait_for host={{ ansible_ssh_host }} port=22 state=stopped
+- name: Shutdown a remote node
+  tags: ['shutdown']
+  become: "{{ not dry_run }}"
+  shell: shutdown -h now
+  async: 0
+  poll: 0
+  ignore_errors: true
 
-#    - name: "Wait for shutdown to complete"
-#      local_action: wait_for host={{ ansible_host }} port=22 state=stopped
-#      become: false
+- name: Wait for shutdown to complete
+  tags: ['shutdown']
+  become: "{{ not dry_run }}"
+  local_action: wait_for host={{ ansible_ssh_host }} port=22 state=stopped

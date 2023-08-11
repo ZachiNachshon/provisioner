@@ -11,19 +11,18 @@ from python_core_lib.utils.yaml_util import YamlUtil
 from provisioner.config.domain.config import ProvisionerConfig
 
 # TODO (Zachi):
-# RE-ENABLE THOSE TESTS AFTER CREATING A PLUGIN MANGER AND EACH PLUGIN MANAGE ITS OWN 
-# CONFIGURATIONS 
-# 
+# RE-ENABLE THOSE TESTS AFTER CREATING A PLUGIN MANGER AND EACH PLUGIN MANAGE ITS OWN
+# CONFIGURATIONS
+#
 
 
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner/config/domain/config_test.py
 #
 class ProvisionerConfigTestShould(unittest.TestCase):
-    
     def test_always_true(self):
         self.assertTrue(True)
-        
+
     @unittest.SkipTest
     def test_config_partial_merge_with_user_config(self):
         ctx = Context.create()

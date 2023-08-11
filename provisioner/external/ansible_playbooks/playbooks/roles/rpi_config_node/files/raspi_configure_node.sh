@@ -230,11 +230,11 @@ verify_supported_os() {
 # Need to update cgroups on RPI (https://docs.k3s.io/advanced#raspberry-pi)
 maybe_update_cgroups() {
   log_info "Updating cgroup module in iptables"
-  if ! is_file_contain "${RASPI_BOOT_CMDLINE}" "${CGROUP_MEMORY}"; then
+  if ! is_dry_run && ! is_file_contain "${RASPI_BOOT_CMDLINE}" "${CGROUP_MEMORY}"; then
     cmd_run "echo ${CGROUP_MEMORY} >> ${RASPI_BOOT_CMDLINE}"
     log_indicator_good "Added ${CGROUP_MEMORY} to ${RASPI_BOOT_CMDLINE}"
   fi
-  if ! is_file_contain "${RASPI_BOOT_CMDLINE}" "${CGROUP_ENABLE}"; then
+  if ! is_dry_run && ! is_file_contain "${RASPI_BOOT_CMDLINE}" "${CGROUP_ENABLE}"; then
     cmd_run "echo ${CGROUP_ENABLE} >> ${RASPI_BOOT_CMDLINE}"
     log_indicator_good "Added ${CGROUP_ENABLE} to ${RASPI_BOOT_CMDLINE}"
   fi

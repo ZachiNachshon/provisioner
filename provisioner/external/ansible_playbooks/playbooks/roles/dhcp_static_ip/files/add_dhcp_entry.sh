@@ -30,7 +30,7 @@ is_dns_address() {
 
 maybe_start_dhcpcd_service() {
   local status=$(cmd_run "systemctl show -p SubState ${DHCPCD_NAME}")
-  if [[ "${status}" != *"running"* ]]; then
+  if ! is_dry_run && [[ "${status}" != *"running"* ]]; then
     log_warning "DHCP client daemon is not running, starting service..."
     cmd_run "systemctl start ${DHCPCD_NAME}"
   else
@@ -38,7 +38,7 @@ maybe_start_dhcpcd_service() {
   fi
 
   local active_state=$(cmd_run "systemctl show -p ActiveState ${DHCPCD_NAME}")
-  if [[ "${active_state}" != *"active"* ]]; then
+  if ! is_dry_run && [[ "${active_state}" != *"active"* ]]; then
     log_warning "DHCP client daemon is not set as active, activating service..."
     cmd_run "systemctl enable ${DHCPCD_NAME}"
   else
@@ -54,7 +54,7 @@ static routers=${ENV_GATEWAY_ADDRESS}
 static domain_name_servers=${ENV_DNS_ADDRESS}
 "
 
-  if grep -q -w "ip_address=${ENV_STATIC_IP}" "${DHCPCD_CONFIG_FILEPATH}"; then
+  if ! is_dry_run && grep -q -w "ip_address=${ENV_STATIC_IP}" "${DHCPCD_CONFIG_FILEPATH}"; then
     log_info "Entry '${ENV_STATIC_IP}' already exists in ${DHCPCD_CONFIG_FILEPATH}"
   else
     cmd_run "printf '${eth0_static_ip_section}' >> ${DHCPCD_CONFIG_FILEPATH}"
@@ -66,7 +66,7 @@ static domain_name_servers=${ENV_DNS_ADDRESS}
 
 verify_dhcpcd_system_service() {
   local dhcpcd_exists=$(cmd_run "systemctl list-units --full -all | grep -i '${DHCPCD_SERVICE_NAME}'")
-  if [[ -z "${dhcpcd_exists}" ]]; then
+  if ! is_dry_run && [[ -z "${dhcpcd_exists}" ]]; then
     log_fatal "Cannot find mandatory DHCP client daemon service. name: ${DHCPCD_SERVICE_NAME}"
   else
     log_info "Found DHCP client daemon service. name: ${DHCPCD_SERVICE_NAME}"
@@ -75,13 +75,13 @@ verify_dhcpcd_system_service() {
 
 verify_supported_os() {
   local os_type=$(read_os_type)
-  if [[ "${os_type}" != "linux" ]]; then
+  if ! is_dry_run && [[ "${os_type}" != "linux" ]]; then
     log_fatal "OS is not supported. type: ${os_type}"
   fi
 }
 
 verify_mandatory_variables() {
-  if ! is_file_exist "${RASPI_CONFIG_BINARY}"; then
+  if ! is_dry_run && ! is_file_exist "${RASPI_CONFIG_BINARY}"; then
     log_fatal "Missing mandatory RPi utility. path: ${RASPI_CONFIG_BINARY}"
   fi
 

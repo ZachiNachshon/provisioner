@@ -8,6 +8,11 @@ update-externals: ## Update external source dependents
 	@git-deps-syncer sync ansible_playbooks --skip-symlinks -y
 	@touch external/ansible_playbooks/__init__.py
 
+.PHONY: update-externals-local
+update-externals-local: ## Update external dev source dependents with local paths
+	@git-deps-syncer sync ansible_playbooks --save-dev -y
+	@touch external/ansible_playbooks/__init__.py
+
 # Make sure to install the Poetry multi project plugin to support 'build-project' (Add -vv for debug logs):
 #   poetry self add poetry-multiproject-plugin
 .PHONY: deps
