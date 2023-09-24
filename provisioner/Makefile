@@ -79,6 +79,14 @@ clear-virtual-env: ## Clear Poetry virtual environments
 	@rm -rf .venv
 	@echo Cleared.
 
+.PHONY: pDev
+pDev: ## Interact with ../external/.../poetry_dev.sh            (Usage: make pDev 'fmt --check-only')
+	@${POETRY_DEV} $(filter-out $@,$(MAKECMDGOALS))
+
+.PHONY: pReleaser
+pReleaser: ## Interact with ../external/.../poetry_pip_releaser.sh   (Usage: make pReleaser 'install --build-type sdist --multi-project')
+	@${POETRY_PIP_RELEASER} $(filter-out $@,$(MAKECMDGOALS))
+
 # .PHONY: diagrams
 # diagrams: ## Format Python code using Black style (https://black.readthedocs.io)
 # 	@${POETRY_WRAPPER_DEV} run diagrams ${PROJECT_LOCATION}/rpi/os/diagrams/install_diag.py

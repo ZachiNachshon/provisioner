@@ -36,6 +36,14 @@ clear-virtual-env: ## Clear Poetry virtual environments
 	@rm -rf .venv
 	@echo Cleared.
 
+.PHONY: pDev
+pDev: ## Interact with ../external/.../poetry_dev.sh            (Usage: make pDev 'fmt --check-only')
+	@${POETRY_DEV} $(filter-out $@,$(MAKECMDGOALS))
+
+.PHONY: pReleaser
+pReleaser: ## Interact with ../external/.../poetry_pip_releaser.sh   (Usage: make pReleaser 'install --build-type sdist')
+	@${POETRY_PIP_RELEASER} $(filter-out $@,$(MAKECMDGOALS))
+
 .PHONY: help
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

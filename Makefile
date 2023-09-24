@@ -1,4 +1,6 @@
 default: help
+POETRY_DEV=external/shell_scripts_lib/python/poetry_dev.sh
+POETRY_PIP_RELEASER=external/shell_scripts_lib/python/poetry_pip_releaser.sh
 PROJECTS=provisioner python_core_lib provisioner_features_lib
 
 .PHONY: update-externals-all
@@ -80,6 +82,14 @@ clear-virtual-env-all: ## Clear all Poetry virtual environments
 		echo "\n========= PROJECT: $$project ==============\n"; \
 		cd $${project}; make clear-virtual-env; cd ..; \
 	done
+
+.PHONY: pDev
+pDev: ## Interact with ./external/.../poetry_dev.sh            (Usage: make pDev 'fmt --check-only')
+	@${POETRY_DEV} $(filter-out $@,$(MAKECMDGOALS))
+
+.PHONY: pReleaser
+pReleaser: ## Interact with ./external/.../poetry_pip_releaser.sh   (Usage: make pReleaser 'install --build-type sdist --multi-project')
+	@${POETRY_PIP_RELEASER} $(filter-out $@,$(MAKECMDGOALS))
 
 # .PHONY: diagrams
 # diagrams: ## Format Python code using Black style (https://black.readthedocs.io)
