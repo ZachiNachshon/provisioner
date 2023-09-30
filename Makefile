@@ -1,6 +1,7 @@
 default: help
 POETRY_DEV=external/shell_scripts_lib/python/poetry_dev.sh
 POETRY_PIP_RELEASER=external/shell_scripts_lib/python/poetry_pip_releaser.sh
+
 PROJECTS=provisioner python_core_lib provisioner_features_lib
 
 .PHONY: update-externals-all
@@ -82,6 +83,16 @@ clear-virtual-env-all: ## Clear all Poetry virtual environments
 		echo "\n========= PROJECT: $$project ==============\n"; \
 		cd $${project}; make clear-virtual-env; cd ..; \
 	done
+
+# http://localhost:9001/provisioner/
+.PHONY: docs-site
+docs-site: ## Run a local documentation site
+	@${POETRY_DEV} docs
+
+# http://192.168.x.xx:9001/
+.PHONY: docs-site-lan
+docs-site-lan: ## Run a local documentation site (LAN available)
+	@${POETRY_DEV} docs --lan
 
 .PHONY: pDev
 pDev: ## Interact with ./external/.../poetry_dev.sh            (Usage: make pDev 'fmt --check-only')
