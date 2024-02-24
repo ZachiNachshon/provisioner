@@ -43,7 +43,7 @@ class FakeBasicConfigObj(SerializationBase):
 class ConfigResolverTestShould(unittest.TestCase):
 
     def setUp(self) -> None:
-        print("Setting up...")
+        ConfigManager.instance()._user_config_raw_dict = None
         ConfigManager.instance().config = None
 
     @staticmethod
@@ -71,21 +71,21 @@ class ConfigResolverTestShould(unittest.TestCase):
         Assertion.expect_equal_objects(self, resolved_config.string_value, "fake_string")
         Assertion.expect_equal_objects(self, resolved_config.int_value, 123)
 
-    # @mock.patch("provisioner.config.reader.config_reader.ConfigReader.read_config_as_json_dict_fn", side_effect=[create_fake_config_dict()])
-    # @mock.patch("provisioner.config.reader.config_reader.ConfigReader.read_config_safe_fn", side_effect=[create_fake_config_obj()])
-    # def test_load_provisioner_config_from_internal_and_user(
-    #     self, 
-    #     read_cfg_call: mock.MagicMock, 
-    #     read_dict_call: mock.MagicMock) -> None:
+    @mock.patch("provisioner.config.reader.config_reader.ConfigReader.read_config_as_json_dict_fn", side_effect=[create_fake_config_dict()])
+    @mock.patch("provisioner.config.reader.config_reader.ConfigReader.read_config_safe_fn", side_effect=[create_fake_config_obj()])
+    def test_load_provisioner_config_from_internal_and_user(
+        self, 
+        read_cfg_call: mock.MagicMock, 
+        read_dict_call: mock.MagicMock) -> None:
 
-    #     ConfigManager.instance().load(
-    #         internal_path=ARG_CONFIG_INTERNAL_PATH, 
-    #         user_path=ARG_CONFIG_USER_PATH, 
-    #         cls=FakeBasicConfigObj
-    #     )
-    #     resolved_config = ConfigManager.instance().get_config()
-    #     Assertion.expect_equal_objects(self, resolved_config.string_value, "user_string")
-    #     Assertion.expect_equal_objects(self, resolved_config.int_value, 123)
+        ConfigManager.instance().load(
+            internal_path=ARG_CONFIG_INTERNAL_PATH, 
+            user_path=ARG_CONFIG_USER_PATH, 
+            cls=FakeBasicConfigObj
+        )
+        resolved_config = ConfigManager.instance().get_config()
+        Assertion.expect_equal_objects(self, resolved_config.string_value, "user_string")
+        Assertion.expect_equal_objects(self, resolved_config.int_value, 123)
 
     def test_load_provisioner_config_and_merge_with_user_config(self):
         ConfigManager.instance().load(
@@ -102,11 +102,6 @@ class ConfigResolverTestShould(unittest.TestCase):
         self.assertNotIn("git-deps-syncer", output.utilities)
         self.assertEqual(output.supported_os_arch.linux["amd64"], False)
         self.assertEqual(output.supported_os_arch.darwin["arm"], False)
-        
-    #     @mock.patch(
-    #     "provisioner.config.reader.config_reader_test.FakeDomainObj.merge",
-    #     side_effect=Exception("test merge exception"),
-    # )
         
     @mock.patch("provisioner.config.manager.config_manager.ConfigManager._merge_user_config_with_internal", return_value=None)
     @mock.patch("provisioner.config.reader.config_reader.ConfigReader.read_config_as_json_dict_fn", side_effect=[create_fake_config_dict()])
