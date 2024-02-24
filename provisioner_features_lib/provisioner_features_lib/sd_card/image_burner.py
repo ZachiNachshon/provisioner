@@ -2,11 +2,11 @@
 
 
 from loguru import logger
-from python_core_lib.infra.context import Context
-from python_core_lib.infra.evaluator import Evaluator
-from python_core_lib.shared.collaborators import CoreCollaborators
-from python_core_lib.utils.checks import Checks
-from python_core_lib.utils.prompter import PromptLevel
+from provisioner.infra.context import Context
+from provisioner.infra.evaluator import Evaluator
+from provisioner.shared.collaborators import CoreCollaborators
+from provisioner.utils.checks import Checks
+from provisioner.utils.prompter import PromptLevel
 
 
 class ImageBurnerArgs:

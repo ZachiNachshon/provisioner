@@ -3,10 +3,10 @@
 import os
 import unittest
 
-from python_core_lib.errors.cli_errors import FailedToSerializeConfiguration
-from python_core_lib.infra.context import Context
-from python_core_lib.utils.io_utils import IOUtils
-from python_core_lib.utils.yaml_util import YamlUtil
+from provisioner.errors.cli_errors import FailedToSerializeConfiguration
+from provisioner.infra.context import Context
+from provisioner.utils.io_utils import IOUtils
+from provisioner.utils.yaml_util import YamlUtil
 
 from provisioner.config.domain.config import ProvisionerConfig
 
@@ -49,7 +49,7 @@ provisioner:
           64bit: http://download-url-64-bit.com
           32bit: http://download-url-32-bit.com
 """
-        internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, class_name=ProvisionerConfig)
+        internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, cls=ProvisionerConfig)
 
         user_yaml_str = """
 provisioner:
@@ -68,7 +68,7 @@ provisioner:
         download_url:
           32bit: http://download-url-32-bit-test-path.com
 """
-        user_config_obj = yaml_util.read_string_fn(yaml_str=user_yaml_str, class_name=ProvisionerConfig)
+        user_config_obj = yaml_util.read_string_fn(yaml_str=user_yaml_str, cls=ProvisionerConfig)
         merged_config_obj = internal_config_obj.merge(user_config_obj)
 
         self.assertEqual(len(merged_config_obj.remote.hosts), 1)
@@ -135,7 +135,7 @@ provisioner:
     hello_world:
       username: Config User
 """
-        internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, class_name=ProvisionerConfig)
+        internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, cls=ProvisionerConfig)
 
         user_yaml_str = """
 provisioner:
@@ -182,7 +182,7 @@ provisioner:
       gw_ip_address: 1.1.1.1
       dns_ip_address: 2.2.2.2
 """
-        user_config_obj = yaml_util.read_string_fn(yaml_str=user_yaml_str, class_name=ProvisionerConfig)
+        user_config_obj = yaml_util.read_string_fn(yaml_str=user_yaml_str, cls=ProvisionerConfig)
         merged_config_obj = internal_config_obj.merge(user_config_obj)
 
         self.assertEqual(len(merged_config_obj.remote.hosts), 2)
@@ -232,7 +232,7 @@ provisioner:
     active_system: 32bit
 """
         with self.assertRaises(FailedToSerializeConfiguration):
-            yaml_util.read_string_fn(yaml_str=user_yaml_str, class_name=ProvisionerConfig)
+            yaml_util.read_string_fn(yaml_str=user_yaml_str, cls=ProvisionerConfig)
 
     @unittest.SkipTest
     def test_read_os_raspi_download_url(self):
@@ -248,6 +248,6 @@ provisioner:
           64bit: http://download-url-64-bit.com
           32bit: http://download-url-32-bit.com
 """
-        internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, class_name=ProvisionerConfig)
+        internal_config_obj = yaml_util.read_string_fn(yaml_str=internal_yaml_str, cls=ProvisionerConfig)
         internal_config_obj.single_board.get_os_raspbian_download_url()
         self.assertEqual(internal_config_obj.single_board.os.download_url_32bit, "http://download-url-32-bit.com")

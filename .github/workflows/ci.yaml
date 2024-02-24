@@ -56,20 +56,6 @@ jobs:
           poetry install --all-extras
           cd ..
 
-      - name: Try Load Cache venv - python_core_lib
-        id: cached-venv-python-core-lib
-        uses: actions/cache@v3
-        with:
-          path: ./python_core_lib/.venv
-          key: python_core_lib-venv-${{ runner.os }}-${{ hashFiles('./python_core_lib/poetry.lock') }}      
-
-      - name: Maybe Install venv - python_core_lib
-        if: steps.cached-venv-python-core-lib.outputs.cache-hit != 'true'
-        run: |
-          cd python_core_lib
-          poetry install
-          cd ..
-
       - name: Try Load Cache venv - provisioner_features_lib
         id: cached-venv-provisioner-features-lib
         uses: actions/cache@v3
@@ -97,5 +83,5 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}  # Only required for private repositories
           # file: ./coverage-combined.xml
-          file: ./provisioner/coverage.xml,./python_core_lib/coverage.xml,./provisioner_features_lib/coverage.xml
+          file: ./provisioner/coverage.xml,./provisioner_features_lib/coverage.xml
           fail_ci_if_error: true

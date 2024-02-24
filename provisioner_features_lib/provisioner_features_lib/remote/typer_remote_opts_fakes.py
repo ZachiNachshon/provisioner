@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from python_core_lib.infra.remote_context import RemoteContext
+from provisioner.infra.remote_context import RemoteContext
 
 from provisioner_features_lib.remote.domain.config import RemoteConfig, RunEnvironment
 from provisioner_features_lib.remote.typer_remote_opts import (

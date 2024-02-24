@@ -2,9 +2,9 @@
 
 import unittest
 
-from python_core_lib.domain.serialize import SerializationBase
-from python_core_lib.runner.ansible.ansible_runner import AnsibleHost
-from python_core_lib.test_lib.assertions import Assertion
+from provisioner.domain.serialize import SerializationBase
+from provisioner.runner.ansible.ansible_runner import AnsibleHost
+from provisioner.test_lib.assertions import Assertion
 
 from provisioner_features_lib.config.config_resolver import ConfigResolver
 from provisioner_features_lib.remote.domain.config import RemoteConfig

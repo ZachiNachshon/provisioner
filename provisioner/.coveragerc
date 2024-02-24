@@ -21,7 +21,6 @@ omit =
     *__main__.py
     */templates/*
     *_test.py
-    *python_core_lib*
     *provisioner_examples_plugin*
     *provisioner_features_lib*
     *provisioner_installers_plugin*
@@ -38,7 +37,6 @@ omit =
     *__main__.py
     */templates/*
     *_test.py
-    *python_core_lib*
     *provisioner_examples_plugin*
     *provisioner_features_lib*
     *provisioner_installers_plugin*
