@@ -3,7 +3,7 @@
 
 # from typing import Any
 
-# from python_core_lib.domain.serialize import SerializationBase
+# from provisioner.domain.serialize import SerializationBase
 
 # from provisioner_features_lib.anchor.typer_anchor_opts import TyperAnchorOpts
 # from provisioner_features_lib.config.config_resolver import ConfigResolver

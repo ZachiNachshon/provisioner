@@ -3,11 +3,11 @@
 import unittest
 from unittest import mock
 
-from python_core_lib.infra.context import Context
-from python_core_lib.test_lib.assertions import Assertion
-from python_core_lib.test_lib.test_env import TestEnv
-from python_core_lib.utils.checks_fakes import FakeChecks
-from python_core_lib.utils.os import LINUX, MAC_OS, WINDOWS, OsArch
+from provisioner.infra.context import Context
+from provisioner.test_lib.assertions import Assertion
+from provisioner.test_lib.test_env import TestEnv
+from provisioner.utils.checks_fakes import FakeChecks
+from provisioner.utils.os import LINUX, MAC_OS, WINDOWS, OsArch
 
 from provisioner_features_lib.sd_card.image_burner import (
     ImageBurnerArgs,

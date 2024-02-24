@@ -2,7 +2,7 @@
 
 import unittest
 
-from python_core_lib.domain.serialize import SerializationBase
+from provisioner.domain.serialize import SerializationBase
 
 from provisioner_features_lib.anchor.typer_anchor_opts import (
     CliAnchorOpts,

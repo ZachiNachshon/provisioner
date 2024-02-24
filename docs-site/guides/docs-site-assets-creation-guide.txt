@@ -1,0 +1,93 @@
+Assets preferences:
+
+Bootstrap Icons:
+----------------
+Get the SVG HTML from - https://icons.getbootstrap.com/icons/controller/
+Add to - docs-site/site/layouts/partials/icons.html
+
+Code/Terminal Snippets (https://carbon.now.sh/)
+-----------------------------------------------
+Theme: material
+Font: Plain Text / bold
+Highlight color: #3B7ADB
+
+Colors:
+Provisioner theme - #3B7ADB
+Command name - #8FC747
+Title active - #8FC747
+Title inactive - #81878A
+Selection - #2CD2FC
+Information attributes - #81878A
+Provisioner binary - #8FC747
+Provisioner run cmd - #F8EB5E
+Provisioner sub-command - #AC69A4
+Provisioner sub-cmd action/workflow - #2CD2FC
+
+
+Favicon (https://favicon.io/)
+-----------------------------
+Background: Rounded
+Font Family: Aladin
+Font Variant: Regular 400 Normal
+Font Size: 110
+
+Provisioner:
+Font Color - #FFFFFF
+Background Color - #A26CEB
+
+
+Logo (https://maketext.io/)
+---------------------------
+Font: Pacifico
+Font Size: 200
+Background: rgba(0%,0%,0%,0)
+
+White (provisioner):
+Fill - #ffffff
+Extrusion - #A26CEB
+Shadow - #A26CEB
+Offset - 4
+locations:
+  - name: <project>-white.svg
+  - location: site/static/docs/latest/assets/brand
+
+  - name: <project>-white-footer.svg
+  - location: site/layouts/partials/icons/
+
+  - name: <project>-white-nav.svg
+  - location: site/layouts/partials/icons/
+
+Themed (provisioner):
+Fill - #A26CEB
+Extrusion - #ffffff
+Shadow - #A26CEB
+Offset - 4
+locations:
+  - name: <project>.svg
+  - location: site/static/docs/latest/assets/brand
+
+If in need to merge multiple SVG files:
+  - https://products.aspose.app/svg/merger/svg-to-svg
+
+Social Image:
+-------------
+Take a screenshot from the main docs page (masthead)
+Refine edges using
+ - https://onlinepngtools.com/refine-png-edges
+Export as PNG and save as xxx-social.png
+
+
+Social Logo (https://maketext.io/):
+-----------------------------------
+Font: Aladin
+Font Size: 200
+Background: rgba(0%,0%,0%,0)
+
+Colors: Themed colors
+Font: Aladin
+
+Type the initial letter of the product i.e "A" for provisioner
+Export as PNG and save as xxx-social-logo.png
+locations:
+  - name: <project>-social-logo.png
+  - location: site/static/docs/latest/assets/brand

@@ -3,8 +3,8 @@
 import unittest
 from unittest import mock
 
-from python_core_lib.domain.serialize import SerializationBase
-from python_core_lib.test_lib.assertions import Assertion
+from provisioner.domain.serialize import SerializationBase
+from provisioner.test_lib.assertions import Assertion
 
 from provisioner_features_lib.anchor.domain.config import AnchorConfig
 from provisioner_features_lib.anchor.typer_anchor_opts import TyperAnchorOpts
@@ -47,10 +47,10 @@ class ConfigResolverTestShould(unittest.TestCase):
             anchor_config=TestDataAnchorOpts.create_fake_anchor_opts().anchor_config,
         )
 
-    @mock.patch("python_core_lib.config.config_reader.ConfigReader.read_config_fn", side_effect=[create_fake_config()])
+    @mock.patch("provisioner.config.reader.config_reader.ConfigReader.read_config_fn", side_effect=[create_fake_config()])
     def test_set_typer_anchor_opts_from_config_values(self, run_call: mock.MagicMock) -> None:
         ConfigResolver.load(
-            internal_path=ARG_CONFIG_INTERNAL_PATH, user_path=ARG_CONFIG_USER_PATH, class_name=FakeTestConfig
+            internal_path=ARG_CONFIG_INTERNAL_PATH, user_path=ARG_CONFIG_USER_PATH, cls=FakeTestConfig
         )
         resolved_config = ConfigResolver.get_config()
         Assertion.expect_equal_objects(self, resolved_config.anchor, TyperAnchorOpts.anchor_config)

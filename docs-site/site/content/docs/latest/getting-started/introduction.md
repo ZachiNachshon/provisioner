@@ -1,0 +1,23 @@
+---
+layout: docs
+title: Get started with <code>provisioner</code>
+description: Connect to any git repository with a simple opinionated structure and expose executable commands as dynamic command-line-interface utility.
+toc: true
+aliases:
+- "/docs/latest/getting-started/"
+- "/docs/getting-started/"
+- "/getting-started/"
+---
+
+## Requirements
+
+- A Unix-like operating system: macOS, Linux
+- `git` (recommended v2.30.0 or higher)
+
+## QuickStart
+
+The fastest way (for `macOS` and `Linux`) to install `provisioner` is using [Homebrew](https://brew.sh/):
+
+```bash
+brew install ZachiNachshon/tap/provisioner
+```

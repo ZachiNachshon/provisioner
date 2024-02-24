@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from typing import Optional
+from provisioner.config.manager.config_manager import ConfigManager
 
-from provisioner_features_lib.config.config_resolver import ConfigResolver
 from provisioner_features_lib.remote.domain.config import RunEnvironment
 from provisioner_features_lib.remote.typer_remote_opts import (
     TyperRemoteOpts,
@@ -27,7 +27,7 @@ def remote_args_callback(
         node_password,
         ssh_private_key_file_path,
         ip_discovery_range,
-        ConfigResolver.config.remote.hosts,
+        ConfigManager.config.remote.hosts,
         dry_run,
         verbose,
         silent,

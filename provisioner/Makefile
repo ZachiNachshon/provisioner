@@ -43,16 +43,6 @@ test-coverage-html: ## Run tests suite with HTML coverage report
 test-coverage-xml: ## Run tests suite with XML coverage report (for app.codecov.io)
 	@${POETRY_DEV} test --coverage-type xml
 
-# http://localhost:9001/anchor/
-.PHONY: docs-site
-docs-site: ## Run a local documentation site
-	@${POETRY_DEV} docs
-
-# http://192.168.x.xx:9001/
-.PHONY: docs-site-lan
-docs-site-lan: ## Run a local documentation site (LAN available)
-	@${POETRY_DEV} docs --lan
-
 .PHONY: pip-install
 pip-install: ## Install a source distribution to local pip
 	@${POETRY_PIP_RELEASER} install --build-type sdist --multi-project
@@ -90,6 +80,10 @@ pReleaser: ## Interact with ../external/.../poetry_pip_releaser.sh   (Usage: mak
 # .PHONY: diagrams
 # diagrams: ## Format Python code using Black style (https://black.readthedocs.io)
 # 	@${POETRY_WRAPPER_DEV} run diagrams ${PROJECT_LOCATION}/rpi/os/diagrams/install_diag.py
+
+.PHONY: run
+run: ## Compile and run Provisioner CLI                                  (Usage: make run '<command> <sub-command>')
+	@poetry run provisioner $(filter-out $@,$(MAKECMDGOALS))
 
 .PHONY: help
 help:
