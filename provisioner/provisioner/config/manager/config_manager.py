@@ -62,23 +62,31 @@ class ConfigManager:
         # Read plugin internal configuration
         internal_plgn_cfg_obj = self._config_reader.read_config_safe_fn(path=internal_path, cls=cls)
 
+        # Config object was initialized by the load defintion
+        if self.config.dict_obj.get("plugins") == None:
+            # plugins attribute is a dict of type: dict[str, SerializationBase]
+            self.config.dict_obj["plugins"] = {}
+
+        # If there isn't any user configuration, return internal configuration
         if self._user_config_raw_dict is None:
             logger.debug("No user configuration could be found for provisioner")
-            self.config["plugins"][plugin_name] = internal_plgn_cfg_obj
+            self.config.dict_obj["plugins"][plugin_name] = internal_plgn_cfg_obj
             return
         
         maybe_plugin_cfg_dict = self._user_config_raw_dict.get("plugins", {}).get(plugin_name)
+        # If plugin user configuration is found, but is empty, return internal configuration
         if maybe_plugin_cfg_dict is None:
             logger.debug(f"No user configuration could be found for plugin. name: {plugin_name}")
-            self.config["plugins"][plugin_name] = internal_plgn_cfg_obj
+            self.config.dict_obj["plugins"][plugin_name] = internal_plgn_cfg_obj
             return 
         else:
+            # If plugin user configuration is found, non emtpy, merge it with internal configuration
             logger.debug(f"Merging user and internal plugin configuration. name: {plugin_name}")
             merged_plgn_cfg_obj = self._merge_user_config_with_internal(
                 internal_config=internal_plgn_cfg_obj, 
                 user_config=cls(maybe_plugin_cfg_dict)
             )
-            self.config["plugins"][plugin_name] = merged_plgn_cfg_obj
+            self.config.dict_obj["plugins"][plugin_name] = merged_plgn_cfg_obj
         
     def _merge_user_config_with_internal(
         self, internal_config: SerializationBase, user_config: SerializationBase
@@ -92,3 +100,6 @@ class ConfigManager:
     
     def get_config(self) -> Any:
         return self.config
+
+    def get_plugin_config(self, name: str) -> Any:
+        return self.config.dict_obj["plugins"].get(name)

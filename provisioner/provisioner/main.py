@@ -32,7 +32,7 @@ PackageLoader.create().load_modules_fn(
     filter_keyword="provisioner",
     import_path="main",
     exclusions=["provisioner", "provisioner-features-lib"],
-    callback=lambda module: module.append_to_cli(app, CONFIG_USER_PATH),
+    callback=lambda module: module.append_to_cli(app),
     debug=debug_pre_init,
 )
 
