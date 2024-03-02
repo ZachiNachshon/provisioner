@@ -47,7 +47,8 @@ class ConfigManager:
         # Cache user configuration as json string to prevent redundant file reads
         if self._user_config_raw_dict is None:
             logger.debug("Reading user provisioner configuration")
-            self._user_config_raw_dict = self._config_reader.read_config_as_json_dict_fn(path=user_path)
+            # User might not have a configuration file, so the _user_config_raw_dict will be None
+            self._user_config_raw_dict = self._config_reader.read_config_as_json_dict_safe_fn(path=user_path)
         
         logger.debug("Merging user and internal provisioner configuration")
         self.config = self._merge_user_config_with_internal(

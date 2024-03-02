@@ -22,6 +22,13 @@ class ConfigReader:
     def _read_config_as_json_dict(self, path: str) -> dict:
         return self.yaml_util.read_file_as_json_dict_fn(file_path=path)
 
+    def _read_config_as_json_dict_safe(self, path: str) -> dict:
+        try:
+            return self.yaml_util.read_file_as_json_dict_fn(file_path=path)
+        except Exception:
+            logger.debug(f"Config file does not exists for safe read. path {path}")
+        return None
+        
     def _read_config(self, internal_path: str, cls: SerializationBase) -> SerializationBase:
         return self.yaml_util.read_file_fn(file_path=internal_path, cls=cls)
 
@@ -34,5 +41,6 @@ class ConfigReader:
         return None
 
     read_config_as_json_dict_fn = _read_config_as_json_dict
+    read_config_as_json_dict_safe_fn = _read_config_as_json_dict_safe
     read_config_fn = _read_config
     read_config_safe_fn = _read_config_safe
