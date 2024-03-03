@@ -10,7 +10,7 @@ from provisioner.utils.package_loader import PackageLoader
 from provisioner.config.domain.config import ProvisionerConfig
 
 CONFIG_USER_PATH = os.path.expanduser("~/.config/provisioner/config.yaml")
-CONFIG_INTERNAL_PATH = f"{pathlib.Path(__file__).parent}/config/config.yaml"
+CONFIG_INTERNAL_PATH = f"{pathlib.Path(__file__).parent}/resources/config.yaml"
 
 """
 The --dry-run and --verbose flags aren't available on the pre-init phase

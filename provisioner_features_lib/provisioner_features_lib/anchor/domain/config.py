@@ -24,14 +24,14 @@ class AnchorConfig(SerializationBase):
             self._parse_anchor_block(dict_obj["anchor"])
     
     def merge(self, other: "AnchorConfig") -> SerializationBase:
-        if other.anchor.github.organization:
-            self.anchor.github.organization = other.anchor.github.organization
-        if other.anchor.github.repository:
-            self.anchor.github.repository = other.anchor.github.repository
-        if other.anchor.github.branch:
-            self.anchor.github.branch = other.anchor.github.branch
-        if other.anchor.github.git_access_token:
-            self.anchor.github.git_access_token = other.anchor.github.git_access_token
+        if other.github.organization:
+            self.github.organization = other.github.organization
+        if other.github.repository:
+            self.github.repository = other.github.repository
+        if other.github.branch:
+            self.github.branch = other.github.branch
+        if other.github.git_access_token:
+            self.github.git_access_token = other.github.git_access_token
 
         return self
 
@@ -39,12 +39,12 @@ class AnchorConfig(SerializationBase):
         if "github" in anchor_block:
             github_block = anchor_block["github"]
             if "organization" in github_block:
-                self.anchor.github.organization = github_block["organization"]
+                self.github.organization = github_block["organization"]
             if "repository" in github_block:
-                self.anchor.github.repository = github_block["repository"]
+                self.github.repository = github_block["repository"]
             if "branch" in github_block:
-                self.anchor.github.branch = github_block["branch"]
+                self.github.branch = github_block["branch"]
             if "git_access_token" in github_block:
-                self.anchor.github.git_access_token = github_block["git_access_token"]
+                self.github.git_access_token = github_block["git_access_token"]
 
     github: GitHubConfig = None

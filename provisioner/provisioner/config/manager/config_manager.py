@@ -35,9 +35,11 @@ class ConfigManager:
         if not debug:
             logger.remove()
 
-        logger.debug("Loading internal provisioner configuration...")
+        logger.debug(f"Loading internal provisioner configuration. path: {internal_path}")
         # Read provisioner internal configuration
         internal_cfg_obj = self._config_reader.read_config_safe_fn(path=internal_path, cls=cls)
+        if internal_cfg_obj == None:
+            raise FailedToReadConfigurationFile("Failed to read internal provisioner configuration")
 
         # When no user configuration is found, return internal configuration.
         if user_path is None:
@@ -62,6 +64,8 @@ class ConfigManager:
         logger.debug(f"Loading internal plugin configuration. name: {plugin_name}")
         # Read plugin internal configuration
         internal_plgn_cfg_obj = self._config_reader.read_config_safe_fn(path=internal_path, cls=cls)
+        if internal_plgn_cfg_obj == None:
+            raise FailedToReadConfigurationFile(f"Failed to read internal plugin configuration. name: {plugin_name}")
 
         # Config object was initialized by the load defintion
         if self.config.dict_obj.get("plugins") == None:

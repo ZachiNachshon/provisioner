@@ -16,7 +16,7 @@ class SerializationBase:
         try:
             self._try_parse_config(dict_obj)
         except Exception as ex:
-            raise FailedToSerializeConfiguration(f"Falied to serialize configuration. ex: {ex}")
+            raise FailedToSerializeConfiguration(f"Failed to serialize configuration. ex: {ex}")
 
     @abstractmethod
     def _try_parse_config(self, dict_obj: dict):

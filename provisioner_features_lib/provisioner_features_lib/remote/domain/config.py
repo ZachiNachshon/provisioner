@@ -54,11 +54,11 @@ class RemoteConfig(SerializationBase):
             self._parse_remote_block(dict_obj["remote"])
     
     def merge(self, other: "RemoteConfig") -> SerializationBase:
-        if other.remote.hosts:
-            self.remote.hosts = other.remote.hosts
+        if other.hosts:
+            self.hosts = other.hosts
 
-        if other.remote.lan_scan.ip_discovery_range:
-            self.remote.lan_scan.ip_discovery_range = other.remote.lan_scan.ip_discovery_range
+        if other.lan_scan.ip_discovery_range:
+            self.lan_scan.ip_discovery_range = other.lan_scan.ip_discovery_range
 
         return self
     
@@ -71,19 +71,20 @@ class RemoteConfig(SerializationBase):
     def _parse_remote_block(self, remote_block: dict):
         if "hosts" in remote_block:
             hosts_block = remote_block["hosts"]
-            self.remote.hosts = {}
+            self.hosts = {}
             for host in hosts_block:
                 if "name" in host and "address" in host:
                     auth_block = self._parse_host_auth_block(host)
                     h = RemoteConfig.Host(host["name"], host["address"], auth_block)
-                    self.remote.hosts[host["name"]] = h
+                    self.hosts[host["name"]] = h
                 else:
                     print("Bad hosts configuration, please check YAML file")
 
         if "lan_scan" in remote_block:
+            self.lan_scan = RemoteConfig.LanScan()
             lan_scan_block = remote_block["lan_scan"]
             if "ip_discovery_range" in lan_scan_block:
-                self.remote.lan_scan.ip_discovery_range = lan_scan_block["ip_discovery_range"]
+                self.lan_scan.ip_discovery_range = lan_scan_block["ip_discovery_range"]
 
     def _parse_host_auth_block(self, host_block: dict) -> "RemoteConfig.Host.Auth":
         auth_obj = RemoteConfig.Host.Auth()

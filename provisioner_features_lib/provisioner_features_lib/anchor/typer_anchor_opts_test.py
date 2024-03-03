@@ -10,7 +10,7 @@ from provisioner_features_lib.anchor.typer_anchor_opts import (
     TyperResolvedAnchorOpts,
 )
 from provisioner_features_lib.anchor.typer_anchor_opts_fakes import TestDataAnchorOpts
-from provisioner_features_lib.config.config_resolver import ConfigResolver
+from provisioner.config.manager.config_manager import ConfigManager
 from provisioner_features_lib.remote.domain.config import RemoteConfig
 
 ARG_CLI_OVERRIDE_GITHUB_ACCESS_TOKEN = "test-override-git-access-token"

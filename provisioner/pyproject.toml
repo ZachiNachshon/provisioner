@@ -38,8 +38,7 @@ packages = [
 include = [
     { path = "provisioner/__init__.py" },
     { path = "provisioner/main.py" },
-    { path = "resources/version.txt" },
-    { path = "provisioner/config/config.yaml" },
+    { path = "resources" },
     # Must be boundled for referencing Ansible playbooks
     { path = "external/ansible_playbooks" },
     { path = "provisioner/runner/ansible/resources/ansible.cfg" },
