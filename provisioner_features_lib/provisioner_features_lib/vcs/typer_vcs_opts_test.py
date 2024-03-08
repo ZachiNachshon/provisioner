@@ -5,8 +5,8 @@ import unittest
 from provisioner.domain.serialize import SerializationBase
 
 from provisioner_features_lib.anchor.typer_anchor_opts import (
-    CliAnchorOpts,
-    TyperAnchorOpts,
+    CliVersionControlOpts,
+    TyperVersionControlOpts,
     TyperResolvedAnchorOpts,
 )
 from provisioner_features_lib.anchor.typer_anchor_opts_fakes import TestDataAnchorOpts
@@ -38,8 +38,8 @@ class FakeTestConfig(SerializationBase):
 
 class TyperAnchorOptsTestShould(unittest.TestCase):
     def load_fake_anchor_config(self):
-        fake_anchor_config = TestDataAnchorOpts.create_fake_anchor_opts().anchor_config
-        TyperAnchorOpts.load(fake_anchor_config)
+        fake_anchor_config = TestDataAnchorOpts.create_fake_anchor_opts()._vcs_config
+        TyperVersionControlOpts.load(fake_anchor_config)
         ConfigResolver.config = FakeTestConfig(remote=fake_anchor_config)
 
     def test_set_typer_anchor_opts_from_config_values(self) -> None:
@@ -59,7 +59,7 @@ class TyperAnchorOptsTestShould(unittest.TestCase):
         )
 
         # Assert CliAnchorOpts
-        cli_anchor_opts = CliAnchorOpts.maybe_get()
+        cli_anchor_opts = CliVersionControlOpts.maybe_get()
         self.assertIsNotNone(cli_anchor_opts)
         self.assertEqual(cli_anchor_opts.git_access_token, TestDataAnchorOpts.TEST_DATA_ANCHOR_GITHUB_ACCESS_TOKEN)
 
@@ -77,7 +77,7 @@ class TyperAnchorOptsTestShould(unittest.TestCase):
         self.assertEqual(GLOBAL_TYPER_CLI_ANCHOR_OPTS._github_access_token, ARG_CLI_OVERRIDE_GITHUB_ACCESS_TOKEN)
 
         # Assert CliAnchorOpts
-        cli_anchor_opts = CliAnchorOpts.maybe_get()
+        cli_anchor_opts = CliVersionControlOpts.maybe_get()
         self.assertIsNotNone(cli_anchor_opts)
         self.assertEqual(cli_anchor_opts.git_access_token, ARG_CLI_OVERRIDE_GITHUB_ACCESS_TOKEN)
 

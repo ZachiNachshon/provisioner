@@ -13,6 +13,7 @@ from provisioner.utils.checks import Checks
 from provisioner_features_lib.remote.domain.config import RunEnvironment
 from provisioner_features_lib.remote.remote_connector import RemoteMachineConnector
 from provisioner_features_lib.remote.typer_remote_opts import CliRemoteOpts
+from provisioner_features_lib.vcs.typer_vcs_opts import CliVersionControlOpts
 
 ANSIBLE_PLAYBOOK_ANCHOR_RUN = """
 ---
@@ -30,26 +31,17 @@ ANSIBLE_PLAYBOOK_ANCHOR_RUN = """
 class AnchorRunnerCmdArgs:
 
     anchor_run_command: str
-    github_organization: str
-    repository_name: str
-    branch_name: str
-    git_access_token: str
+    vcs_opts = CliVersionControlOpts
     remote_opts: CliRemoteOpts
 
     def __init__(
         self,
         anchor_run_command: str,
-        github_organization: str,
-        repository_name: str,
-        branch_name: str,
-        git_access_token: str,
+        vcs_opts: Optional[CliVersionControlOpts] = None,
         remote_opts: Optional[CliRemoteOpts] = None,
     ) -> None:
         self.anchor_run_command = anchor_run_command
-        self.github_organization = github_organization
-        self.repository_name = repository_name
-        self.branch_name = branch_name
-        self.git_access_token = git_access_token
+        self.vcs_opts = vcs_opts
         self.remote_opts = remote_opts
 
 
@@ -93,10 +85,10 @@ class AnchorCmdRunner:
                 ansible_vars=[
                     "anchor_command=Run",
                     f"\"anchor_args='{args.anchor_run_command}'\"",
-                    f"anchor_github_organization={args.github_organization}",
-                    f"anchor_github_repository={args.repository_name}",
-                    f"anchor_github_repo_branch={args.branch_name}",
-                    f"git_access_token={args.git_access_token}",
+                    f"anchor_github_organization={args.vcs_opts.github_organization}",
+                    f"anchor_github_repository={args.vcs_opts.repository_name}",
+                    f"anchor_github_repo_branch={args.vcs_opts.branch_name}",
+                    f"git_access_token={args.vcs_opts.git_access_token}",
                 ],
                 ansible_tags=["anchor_run"],
             ),

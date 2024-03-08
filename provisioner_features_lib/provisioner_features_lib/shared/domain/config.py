@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-class GitHubConfig:
+class VersionControlConfig:
 
     organization: str = None
     repository: str = None

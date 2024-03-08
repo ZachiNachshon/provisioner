@@ -61,12 +61,6 @@ class RemoteConfig(SerializationBase):
             self.lan_scan.ip_discovery_range = other.lan_scan.ip_discovery_range
 
         return self
-    
-    def _parse_node_block(self, node_block: dict):
-        if "gw_ip_address" in node_block:
-            self.gw_ip_address = node_block["gw_ip_address"]
-        if "dns_ip_address" in node_block:
-            self.dns_ip_address = node_block["dns_ip_address"]
 
     def _parse_remote_block(self, remote_block: dict):
         if "hosts" in remote_block:

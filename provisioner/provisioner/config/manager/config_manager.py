@@ -85,7 +85,7 @@ class ConfigManager:
             self.config.dict_obj["plugins"][plugin_name] = internal_plgn_cfg_obj
             return 
         else:
-            # If plugin user configuration is found, non emtpy, merge it with internal configuration
+            # If plugin user configuration is found, non empty, merge it with internal configuration
             logger.debug(f"Merging user and internal plugin configuration. name: {plugin_name}")
             merged_plgn_cfg_obj = self._merge_user_config_with_internal(
                 internal_config=internal_plgn_cfg_obj, 

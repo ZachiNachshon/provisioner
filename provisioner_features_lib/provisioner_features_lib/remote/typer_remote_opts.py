@@ -14,32 +14,22 @@ REMOTE_ONLY_HELP_TITLE = "Remote Only"
 
 
 class TyperRemoteOpts:
-    """
-    Load method MUST be called to populate the config object after values were
-    read from local configuration file
-    """
 
-    # Static variable
-    remote_config: RemoteConfig = None
+    _remote_config: RemoteConfig = None
+    _cli_remote_opts: "CliRemoteOpts" = None
 
     def __init__(self, remote_config: RemoteConfig = None) -> None:
-        self.remote_config = remote_config
+        self._remote_config = remote_config
 
-    @staticmethod
-    def load(remote_config: RemoteConfig) -> None:
-        TyperRemoteOpts.remote_config = remote_config
-
-    @staticmethod
-    def environment():
+    def environment(self):
         return typer.Option(
             None,
             show_default=False,
             help="Specify an environment or select from a list if none supplied",
             envvar="RUN_ENVIRONMENT",
         )
-
-    @staticmethod
-    def node_username():
+        
+    def node_username(self):
         return typer.Option(
             None,
             show_default=False,
@@ -48,8 +38,7 @@ class TyperRemoteOpts:
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
 
-    @staticmethod
-    def node_password():
+    def node_password(self):
         return typer.Option(
             None,
             show_default=False,
@@ -59,8 +48,7 @@ class TyperRemoteOpts:
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
 
-    @staticmethod
-    def ssh_private_key_file_path():
+    def ssh_private_key_file_path(self):
         return typer.Option(
             None,
             show_default=False,
@@ -70,17 +58,15 @@ class TyperRemoteOpts:
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
 
-    @staticmethod
-    def ip_discovery_range():
+    def ip_discovery_range(self, from_config: str = None):
         return typer.Option(
-            TyperRemoteOpts.remote_config.lan_scan.ip_discovery_range,
+            default=from_config,
             help="LAN network IP discovery range",
             envvar="IP_DISCOVERY_RANGE",
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
 
-    @staticmethod
-    def dry_run():
+    def dry_run(self):
         return typer.Option(
             False,
             "--dry-run",
@@ -92,8 +78,7 @@ class TyperRemoteOpts:
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
 
-    @staticmethod
-    def verbose():
+    def verbose(self):
         return typer.Option(
             False,
             "--verbose",
@@ -105,8 +90,7 @@ class TyperRemoteOpts:
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
 
-    @staticmethod
-    def silent():
+    def silent(self):
         return typer.Option(
             False,
             "--silent",
@@ -118,71 +102,35 @@ class TyperRemoteOpts:
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
 
+    def as_typer_callback(self):
+        def typer_callback(
+            environment: RunEnvironment = self.environment(),
+            node_username: Optional[str] = self.node_username(),
+            node_password: Optional[str] = self.node_password(),
+            ssh_private_key_file_path: Optional[str] = self.ssh_private_key_file_path(),
+            ip_discovery_range: Optional[str] = self.ip_discovery_range(self._remote_config.lan_scan.ip_discovery_range),
+            dry_run: Optional[bool] = self.dry_run(),
+            verbose: Optional[bool] = self.verbose(),
+            silent: Optional[bool] = self.silent()):
 
-class TyperResolvedRemoteOpts:
-
-    _environment: Optional[RunEnvironment] = None
-    _node_username: Optional[str] = None
-    _node_password: Optional[str] = None
-    _ssh_private_key_file_path: Optional[str] = None
-    _ip_discovery_range: Optional[str] = None
-    _remote_hosts: Optional[dict[str, RemoteConfig.Host]] = None
-    _dry_run: Optional[bool] = None
-    _verbose: Optional[bool] = None
-    _silent: Optional[bool] = None
-
-    def __init__(
-        self,
-        environment: RunEnvironment,
-        node_username: Optional[str],
-        node_password: Optional[str],
-        ssh_private_key_file_path: Optional[str],
-        ip_discovery_range: Optional[str],
-        remote_hosts: dict[str, RemoteConfig.Host] = None,
-        dry_run: bool = None,
-        verbose: bool = None,
-        silent: bool = None,
-    ) -> None:
-
-        self._environment = environment
-        self._node_username = node_username
-        self._node_password = node_password
-        self._ssh_private_key_file_path = ssh_private_key_file_path
-        self._ip_discovery_range = ip_discovery_range
-        self._remote_hosts = remote_hosts
-        self._dry_run = dry_run
-        self._verbose = verbose
-        self._silent = silent
-
-    @staticmethod
-    def create(
-        environment: Optional[RunEnvironment] = None,
-        node_username: Optional[str] = None,
-        node_password: Optional[str] = None,
-        ssh_private_key_file_path: Optional[str] = None,
-        ip_discovery_range: Optional[str] = None,
-        remote_hosts: dict[str, RemoteConfig.Host] = None,
-        dry_run: bool = None,
-        verbose: bool = None,
-        silent: bool = None,
-    ) -> None:
-
-        global GLOBAL_TYPER_RESOLVED_REMOTE_OPTS
-        GLOBAL_TYPER_RESOLVED_REMOTE_OPTS = TyperResolvedRemoteOpts(
-            environment=environment,
-            node_username=node_username,
-            node_password=node_password,
-            ssh_private_key_file_path=ssh_private_key_file_path,
-            ip_discovery_range=ip_discovery_range,
-            remote_hosts=remote_hosts,
-            dry_run=dry_run,
-            verbose=verbose,
-            silent=silent,
-        )
-
-
-GLOBAL_TYPER_RESOLVED_REMOTE_OPTS: TyperResolvedRemoteOpts = None
-
+            remote_context = RemoteContext.create(
+                dry_run=dry_run,
+                verbose=verbose,
+                silent=silent,
+            )
+            self._cli_remote_opts = CliRemoteOpts(
+                environment=environment,
+                node_username=node_username,
+                node_password=node_password,
+                ssh_private_key_file_path=ssh_private_key_file_path,
+                ip_discovery_range=ip_discovery_range,
+                remote_hosts=self._remote_config.hosts,
+                remote_context=remote_context,
+            )
+        return typer_callback
+    
+    def to_cli_opts(self) -> "CliRemoteOpts":
+        return self._cli_remote_opts
 
 class CliRemoteOpts:
 
@@ -216,32 +164,6 @@ class CliRemoteOpts:
         self.ip_discovery_range = ip_discovery_range
         self.ansible_hosts = self._to_ansible_hosts(remote_hosts)
         self.remote_context = remote_context
-
-    @staticmethod
-    def maybe_get() -> "CliRemoteOpts":
-        if GLOBAL_TYPER_RESOLVED_REMOTE_OPTS:
-            remote_context: RemoteContext = RemoteContext.no_op()
-            if (
-                GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._dry_run
-                or GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._verbose
-                or GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._silent
-            ):
-                remote_context = RemoteContext.create(
-                    dry_run=GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._dry_run,
-                    verbose=GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._verbose,
-                    silent=GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._silent,
-                )
-
-            return CliRemoteOpts(
-                environment=GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._environment,
-                node_username=GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._node_username,
-                node_password=GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._node_password,
-                ssh_private_key_file_path=GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._ssh_private_key_file_path,
-                ip_discovery_range=GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._ip_discovery_range,
-                remote_hosts=GLOBAL_TYPER_RESOLVED_REMOTE_OPTS._remote_hosts,
-                remote_context=remote_context,
-            )
-        return None
 
     def get_remote_context(self) -> RemoteContext:
         return self.remote_context

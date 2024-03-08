@@ -44,7 +44,7 @@ class FakeTestConfig(SerializationBase):
 
 class TyperRemoteOptsTestShould(unittest.TestCase):
     def load_fake_remote_config(self):
-        fake_remote_config = TestDataRemoteOpts.create_fake_remote_opts().remote_config
+        fake_remote_config = TestDataRemoteOpts.create_fake_remote_opts()._remote_config
         TyperRemoteOpts.load(fake_remote_config)
         ConfigResolver.config = FakeTestConfig(remote=fake_remote_config)
 
