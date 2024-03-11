@@ -52,7 +52,7 @@ class RemoteConfig(SerializationBase):
     def _try_parse_config(self, dict_obj: dict):
         if "remote" in dict_obj:
             self._parse_remote_block(dict_obj["remote"])
-    
+
     def merge(self, other: "RemoteConfig") -> SerializationBase:
         if other.hosts:
             self.hosts = other.hosts
@@ -63,6 +63,9 @@ class RemoteConfig(SerializationBase):
         return self
 
     def _parse_remote_block(self, remote_block: dict):
+        print("======================")
+        print(remote_block)
+        print("======================")
         if "hosts" in remote_block:
             hosts_block = remote_block["hosts"]
             self.hosts = {}
@@ -92,7 +95,7 @@ class RemoteConfig(SerializationBase):
                 auth_obj.ssh_private_key_file_path = auth_block["ssh_private_key_file_path"]
 
         return auth_obj
-    
+
     class Host:
         class Auth:
             username: str

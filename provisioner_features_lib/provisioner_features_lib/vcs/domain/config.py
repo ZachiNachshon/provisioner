@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from provisioner.domain.serialize import SerializationBase
-from provisioner_features_lib.shared.domain.config import VersionControlConfig
 
 
 class VersionControlConfig(SerializationBase):
@@ -22,7 +21,7 @@ class VersionControlConfig(SerializationBase):
     def _try_parse_config(self, dict_obj: dict):
         if "vcs" in dict_obj:
             self._parse_github_block(dict_obj["vcs"])
-    
+
     def merge(self, other: "VersionControlConfig") -> SerializationBase:
         if other.github:
             self.github = other.github
@@ -48,7 +47,9 @@ class VersionControlConfig(SerializationBase):
         branch: str = None
         git_access_token: str = None
 
-        def __init__(self, organization: str = None, repository: str = None, branch: str = None, git_access_token: str = None) -> None:
+        def __init__(
+            self, organization: str = None, repository: str = None, branch: str = None, git_access_token: str = None
+        ) -> None:
             self.organization = organization
             self.repository = repository
             self.branch = branch

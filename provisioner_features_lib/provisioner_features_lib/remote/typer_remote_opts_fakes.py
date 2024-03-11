@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import yaml
 from provisioner.infra.remote_context import RemoteContext
 
 from provisioner_features_lib.remote.domain.config import RemoteConfig, RunEnvironment
@@ -27,8 +28,8 @@ TEST_REMOTE_HOSTS_DICT = {
         address=TEST_DATA_SSH_IP_ADDRESS_1,
         auth=RemoteConfig.Host.Auth(
             username=TEST_DATA_REMOTE_NODE_USERNAME_1,
-            password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
             # Mutually exclusive with ssh_private_key_file_path
+            password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
         ),
     ),
     TEST_DATA_SSH_HOSTNAME_2: RemoteConfig.Host(
@@ -42,16 +43,36 @@ TEST_REMOTE_HOSTS_DICT = {
     ),
 }
 
+TEST_REMOTE_CFG_YAML_TEXT = f"""
+remote:
+  hosts:
+    - name: {TEST_DATA_SSH_HOSTNAME_1}
+      address: {TEST_DATA_SSH_IP_ADDRESS_1}
+      auth:
+        username: {TEST_DATA_REMOTE_NODE_USERNAME_1}
+        password: {TEST_DATA_REMOTE_NODE_PASSWORD_1}
+
+    - name: {TEST_DATA_SSH_HOSTNAME_2}
+      address: {TEST_DATA_SSH_IP_ADDRESS_2}
+      auth:
+        username: {TEST_DATA_REMOTE_NODE_USERNAME_2}
+        ssh_private_key_file_path: {TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_2}
+
+  lan_scan:
+    ip_discovery_range: {TEST_DATA_REMOTE_IP_DISCOVERY_RANGE}
+"""
+
 
 class TestDataRemoteOpts:
     @staticmethod
+    def create_fake_remote_cfg() -> RemoteConfig:
+        cfg_dict = yaml.safe_load(TEST_REMOTE_CFG_YAML_TEXT)
+        return RemoteConfig(cfg_dict)
+
+    @staticmethod
     def create_fake_remote_opts() -> TyperRemoteOpts:
-        return TyperRemoteOpts(
-            remote_config=RemoteConfig(
-                lan_scan=RemoteConfig.LanScan(TEST_DATA_REMOTE_IP_DISCOVERY_RANGE),
-                hosts=TEST_REMOTE_HOSTS_DICT,
-            )
-        )
+        cfg_dict = yaml.safe_load(TEST_REMOTE_CFG_YAML_TEXT)
+        return TyperRemoteOpts(RemoteConfig(cfg_dict))
 
     @staticmethod
     def create_fake_cli_remote_opts(

@@ -47,11 +47,11 @@ class ConfigResolverTestShould(unittest.TestCase):
             anchor_config=TestDataAnchorOpts.create_fake_anchor_opts()._vcs_config,
         )
 
-    @mock.patch("provisioner.config.reader.config_reader.ConfigReader.read_config_fn", side_effect=[create_fake_config()])
+    @mock.patch(
+        "provisioner.config.reader.config_reader.ConfigReader.read_config_fn", side_effect=[create_fake_config()]
+    )
     def test_set_typer_anchor_opts_from_config_values(self, run_call: mock.MagicMock) -> None:
-        ConfigResolver.load(
-            internal_path=ARG_CONFIG_INTERNAL_PATH, user_path=ARG_CONFIG_USER_PATH, cls=FakeTestConfig
-        )
+        ConfigResolver.load(internal_path=ARG_CONFIG_INTERNAL_PATH, user_path=ARG_CONFIG_USER_PATH, cls=FakeTestConfig)
         resolved_config = ConfigResolver.get_config()
         Assertion.expect_equal_objects(self, resolved_config.anchor, TyperVersionControlOpts._vcs_config)
         Assertion.expect_equal_objects(self, resolved_config.remote, TyperRemoteOpts._remote_config)

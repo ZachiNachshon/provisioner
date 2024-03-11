@@ -28,11 +28,15 @@ app = EntryPoint.create_typer(
     ),
 )
 
+def load_plugin(plugin_module):
+    plugin_module.load_config()
+    plugin_module.append_to_cli(app)
+
 PackageLoader.create().load_modules_fn(
     filter_keyword="provisioner",
     import_path="main",
     exclusions=["provisioner", "provisioner-features-lib"],
-    callback=lambda module: module.append_to_cli(app),
+    callback=lambda module: load_plugin(plugin_module=module),
     debug=debug_pre_init,
 )
 

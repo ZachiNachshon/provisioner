@@ -13,7 +13,9 @@ class SerializationBase:
     @abstractmethod
     def __init__(self, dict_obj: dict) -> None:
         self.dict_obj = dict_obj
+        # print the actual class name
         try:
+            print(f"Creating {self.__class__.__name__} with dict_obj: {dict_obj}")
             self._try_parse_config(dict_obj)
         except Exception as ex:
             raise FailedToSerializeConfiguration(f"Failed to serialize configuration. ex: {ex}")

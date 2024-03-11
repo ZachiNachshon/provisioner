@@ -28,7 +28,7 @@ class TyperRemoteOpts:
             help="Specify an environment or select from a list if none supplied",
             envvar="RUN_ENVIRONMENT",
         )
-        
+
     def node_username(self):
         return typer.Option(
             None,
@@ -103,15 +103,26 @@ class TyperRemoteOpts:
         )
 
     def as_typer_callback(self):
+        print("=============================")
+        print("=============================")
+        print(self._remote_config)
+        print("=============================")
+        print("=============================")
+
+        from_cfg_ip_discovery_range = None
+        if self._remote_config is not None and self._remote_config.lan_scan is not None:
+            from_cfg_ip_discovery_range = self._remote_config.lan_scan.ip_discovery_range
+
         def typer_callback(
             environment: RunEnvironment = self.environment(),
             node_username: Optional[str] = self.node_username(),
             node_password: Optional[str] = self.node_password(),
             ssh_private_key_file_path: Optional[str] = self.ssh_private_key_file_path(),
-            ip_discovery_range: Optional[str] = self.ip_discovery_range(self._remote_config.lan_scan.ip_discovery_range),
+            ip_discovery_range: Optional[str] = self.ip_discovery_range(from_cfg_ip_discovery_range),
             dry_run: Optional[bool] = self.dry_run(),
             verbose: Optional[bool] = self.verbose(),
-            silent: Optional[bool] = self.silent()):
+            silent: Optional[bool] = self.silent(),
+        ):
 
             remote_context = RemoteContext.create(
                 dry_run=dry_run,
@@ -127,10 +138,12 @@ class TyperRemoteOpts:
                 remote_hosts=self._remote_config.hosts,
                 remote_context=remote_context,
             )
+
         return typer_callback
-    
+
     def to_cli_opts(self) -> "CliRemoteOpts":
         return self._cli_remote_opts
+
 
 class CliRemoteOpts:
 
