@@ -3,7 +3,7 @@
 import yaml
 
 from provisioner_features_lib.vcs.domain.config import VersionControlConfig
-from provisioner_features_lib.vcs.typer_vcs_opts import CliVersionControlOpts, TyperVersionControlOpts
+from provisioner_features_lib.vcs.typer_vcs_opts import CliVersionControlOpts, TyperVersionControl
 
 TEST_DATA_GITHUB_ORGANIZATION = "test-organization"
 TEST_DATA_GITHUB_REPOSITORY = "test-repository"
@@ -27,15 +27,9 @@ class TestDataVersionControlOpts:
         return VersionControlConfig(cfg_dict)
 
     @staticmethod
-    def create_fake_vcs_opts() -> TyperVersionControlOpts:
-        vcs_config = VersionControlConfig({})
-        vcs_config.github = VersionControlConfig.GitHub(
-            organization=TEST_DATA_GITHUB_ORGANIZATION,
-            repository=TEST_DATA_GITHUB_REPOSITORY,
-            branch=TEST_DATA_GITHUB_BRANCH,
-            git_access_token=TEST_DATA_GITHUB_ACCESS_TOKEN,
-        )
-        return TyperVersionControlOpts(vcs_config)
+    def create_fake_typer_vcs() -> TyperVersionControl:
+        return TyperVersionControl(
+            TestDataVersionControlOpts.create_fake_vcs_cfg())
 
     @staticmethod
     def create_fake_cli_vcs_opts() -> CliVersionControlOpts:

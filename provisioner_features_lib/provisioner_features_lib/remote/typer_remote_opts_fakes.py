@@ -71,8 +71,7 @@ class TestDataRemoteOpts:
 
     @staticmethod
     def create_fake_remote_opts() -> TyperRemoteOpts:
-        cfg_dict = yaml.safe_load(TEST_REMOTE_CFG_YAML_TEXT)
-        return TyperRemoteOpts(RemoteConfig(cfg_dict))
+        return TyperRemoteOpts(TestDataRemoteOpts.create_fake_remote_cfg())
 
     @staticmethod
     def create_fake_cli_remote_opts(

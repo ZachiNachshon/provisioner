@@ -25,6 +25,12 @@ class ConfigManager:
         self._config_reader = ConfigReader.create(yaml_util)
 
     @staticmethod
+    def nullify() -> None:
+        if ConfigManager._instance is not None:
+            ConfigManager.instance()._user_config_raw_dict = None
+            ConfigManager.instance().config = None
+
+    @staticmethod
     def instance() -> "ConfigManager":
         if ConfigManager._instance is None:
             logger.debug("Creating ConfigManager...")

@@ -74,8 +74,7 @@ class FakeBasicPluginConfigObj(SerializationBase):
 class ConfigResolverTestShould(unittest.TestCase):
 
     def setUp(self) -> None:
-        ConfigManager.instance()._user_config_raw_dict = None
-        ConfigManager.instance().config = None
+        ConfigManager.instance().nullify()
 
     @staticmethod
     def create_fake_config_obj():

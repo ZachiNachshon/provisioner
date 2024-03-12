@@ -103,12 +103,6 @@ class TyperRemoteOpts:
         )
 
     def as_typer_callback(self):
-        print("=============================")
-        print("=============================")
-        print(self._remote_config)
-        print("=============================")
-        print("=============================")
-
         from_cfg_ip_discovery_range = None
         if self._remote_config is not None and self._remote_config.lan_scan is not None:
             from_cfg_ip_discovery_range = self._remote_config.lan_scan.ip_discovery_range
@@ -124,6 +118,8 @@ class TyperRemoteOpts:
             silent: Optional[bool] = self.silent(),
         ):
 
+            print("+++++++++++++++++++++++++++++++++===")
+            print("+++++++++++++++++++++++++++++++++===")
             remote_context = RemoteContext.create(
                 dry_run=dry_run,
                 verbose=verbose,
@@ -135,6 +131,7 @@ class TyperRemoteOpts:
                 node_password=node_password,
                 ssh_private_key_file_path=ssh_private_key_file_path,
                 ip_discovery_range=ip_discovery_range,
+                # Hosts are not supplied via CLI arguments, only via user config
                 remote_hosts=self._remote_config.hosts,
                 remote_context=remote_context,
             )

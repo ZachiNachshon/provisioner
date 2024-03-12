@@ -63,9 +63,6 @@ class RemoteConfig(SerializationBase):
         return self
 
     def _parse_remote_block(self, remote_block: dict):
-        print("======================")
-        print(remote_block)
-        print("======================")
         if "hosts" in remote_block:
             hosts_block = remote_block["hosts"]
             self.hosts = {}

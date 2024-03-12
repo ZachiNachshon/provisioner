@@ -10,7 +10,7 @@ from provisioner_features_lib.vcs.domain.config import VersionControlConfig
 VERSION_CONTROL_HELP_TITLE = "Version Control"
 
 
-class TyperVersionControlOpts:
+class TyperVersionControl:
 
     _vcs_config: VersionControlConfig = None
     _cli_vcs_opts: "CliVersionControlOpts" = None
@@ -57,19 +57,20 @@ class TyperVersionControlOpts:
         from_cfg_git_access_token = None
         if self._vcs_config is not None and self._vcs_config.github is not None:
             from_cfg_git_access_token = self._vcs_config.github.git_access_token
+            print(f"setting {from_cfg_git_access_token}")
 
         def typer_callback(
             org: str = self.github_org(),
             repo: str = self.github_repo_name(),
             branch: str = self.github_branch_name(),
-            git_access_token: Optional[str] = self.git_access_token(from_cfg_git_access_token),
+            git_access_token: str = self.git_access_token(from_cfg_git_access_token),
         ):
 
             self._cli_vcs_opts = CliVersionControlOpts(
                 org,
                 repo,
                 branch,
-                git_access_token=git_access_token,
+                git_access_token,
             )
 
         return typer_callback
