@@ -199,13 +199,19 @@ class ProgressIndicator:
         long_running_process_fn = _long_running_process
         download_file_fn = _download_file
 
-    status: Status = None
-    progress_bar: ProgressBar = None
+    _status: Status = None
+    _progress_bar: ProgressBar = None
 
     def __init__(self, status: Status, progress_bar: ProgressBar) -> None:
-        self.status = status
-        self.progress_bar = progress_bar
+        self._status = status
+        self._progress_bar = progress_bar
 
+    def get_status(self) -> Status: 
+        return self._status
+
+    def get_progress_bar(self) -> ProgressBar:    
+        return self._progress_bar
+    
     @staticmethod
     def create(
         ctx: Context, io_utils: IOUtils, status: Optional[Status] = None, progress_bar: Optional[ProgressBar] = None

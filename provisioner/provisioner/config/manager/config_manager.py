@@ -109,8 +109,8 @@ class ConfigManager:
             logger.error(f"Failed to merge user and internal configurations. cls: {type(internal_config).__name__}, ex: {ex}")
         return None
     
-    def get_config(self) -> Any:
+    def get_config(self) -> SerializationBase:
         return self.config
 
-    def get_plugin_config(self, name: str) -> Any:
+    def get_plugin_config(self, name: str) -> SerializationBase:
         return self.config.dict_obj["plugins"].get(name)

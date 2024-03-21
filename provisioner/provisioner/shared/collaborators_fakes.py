@@ -26,6 +26,7 @@ from provisioner.utils.printer_fakes import FakePrinter
 from provisioner.utils.process import Process
 from provisioner.utils.process_fakes import FakeProcess
 from provisioner.utils.progress_indicator import ProgressIndicator
+from provisioner.utils.progress_indicator_fakes import FakeProgressIndicator
 from provisioner.utils.prompter import Prompter
 from provisioner.utils.prompter_fakes import FakePrompter
 from provisioner.utils.summary import Summary
@@ -43,6 +44,7 @@ class FakeCoreCollaborators(CoreCollaborators):
         self.__summary: Summary = None
         self.__prompter: Prompter = None
         self.__printer: Printer = None
+        self.__progress_indicator: ProgressIndicator = None
         self.__process: Process = None
         self.__ansible_runner: AnsibleRunnerLocal = None
         self.__network_util: NetworkUtil = None
@@ -114,13 +116,21 @@ class FakeCoreCollaborators(CoreCollaborators):
     def printer(self) -> FakePrinter:
         def create_printer():
             if not self.__printer:
-                self.__printer = FakePrinter.create(self.__ctx, ProgressIndicator.create(self.__ctx, self.io_utils()))
+                self.__printer = FakePrinter.create(self.__ctx)
             return self.__printer
 
         return self._lock_and_get(callback=create_printer)
 
-    def override_printer(self, printer: FakePrinter) -> None:
-        self.__printer = printer
+    def progress_indicator(self) -> FakeProgressIndicator:
+        def create_progress_indicator():
+            if not self.__progress_indicator:
+                self.__progress_indicator = FakeProgressIndicator.create(self.__ctx)
+            return self.__progress_indicator
+
+        return self._lock_and_get(callback=create_progress_indicator)
+
+    # def override_printer(self, printer: FakePrinter) -> None:
+    #     self.__printer = printer
 
     def prompter(self) -> FakePrompter:
         def create_prompter():

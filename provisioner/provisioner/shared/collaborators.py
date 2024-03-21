@@ -31,6 +31,7 @@ class CoreCollaborators:
         self.__summary: Summary = None
         self.__prompter: Prompter = None
         self.__printer: Printer = None
+        self.__progress_indicator: ProgressIndicator = None
         self.__process: Process = None
         self.__ansible_runner: AnsibleRunnerLocal = None
         self.__network_util: NetworkUtil = None
@@ -92,7 +93,7 @@ class CoreCollaborators:
     def printer(self) -> Printer:
         def create_printer():
             if not self.__printer:
-                self.__printer = Printer.create(self.__ctx, ProgressIndicator.create(self.__ctx, self.io_utils()))
+                self.__printer = Printer.create(self.__ctx)
             return self.__printer
 
         return self._lock_and_get(callback=create_printer)
@@ -105,6 +106,14 @@ class CoreCollaborators:
 
         return self._lock_and_get(callback=create_prompter)
 
+    def progress_indicator(self) -> ProgressIndicator:
+        def create_progress_indicator():
+            if not self.__progress_indicator:
+                self.__progress_indicator = ProgressIndicator.create(self.__ctx, self.io_utils())
+            return self.__progress_indicator
+
+        return self._lock_and_get(callback=create_progress_indicator)
+    
     def ansible_runner(self) -> AnsibleRunnerLocal:
         def create_ansible_runner():
             if not self.__ansible_runner:

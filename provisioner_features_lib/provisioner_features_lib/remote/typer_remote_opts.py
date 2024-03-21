@@ -118,8 +118,6 @@ class TyperRemoteOpts:
             silent: Optional[bool] = self.silent(),
         ):
 
-            print("+++++++++++++++++++++++++++++++++===")
-            print("+++++++++++++++++++++++++++++++++===")
             remote_context = RemoteContext.create(
                 dry_run=dry_run,
                 verbose=verbose,

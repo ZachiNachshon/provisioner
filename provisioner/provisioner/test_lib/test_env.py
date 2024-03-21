@@ -41,6 +41,7 @@ class TestEnv:
             dry_run=dry_run, os_arch=OsArch(os=MAC_OS, arch="test_arch", os_release="test_os_release")
         )
 
+    @staticmethod
     def create(
         ctx: Context = create_test_default_context(),
         enable_test_env_paths=True,

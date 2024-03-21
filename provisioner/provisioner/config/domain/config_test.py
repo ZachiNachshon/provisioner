@@ -10,12 +10,6 @@ from provisioner.utils.yaml_util import YamlUtil
 
 from provisioner.config.domain.config import ProvisionerConfig
 
-# TODO (Zachi):
-# RE-ENABLE THOSE TESTS AFTER CREATING A PLUGIN MANGER AND EACH PLUGIN MANAGE ITS OWN
-# CONFIGURATIONS
-#
-
-
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner/config/domain/config_test.py
 #

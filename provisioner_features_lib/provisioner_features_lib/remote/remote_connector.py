@@ -377,7 +377,7 @@ def generate_instructions_connect_via_ssh(ansible_hosts: List[AnsibleHost]):
     • Raspberry Pi private SSH key path (Recommended)
 
   To change the default values, please refer to the documentation.
-  [yellow]It is recommended to use a SSH key instead of password for accessing remote machine.[/yellow]
+  [yellow]It is recommended to use a SSH key instead of password for accessing a remote machine.[/yellow]
 """
 
 

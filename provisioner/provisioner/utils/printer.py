@@ -9,7 +9,6 @@ from rich.table import Table
 from provisioner.colors import color
 from provisioner.colors.color import *
 from provisioner.infra.context import Context
-from provisioner.utils.progress_indicator import ProgressIndicator
 
 FIXED_CONSOLE_WIDTH = 100
 
@@ -18,21 +17,19 @@ class Printer:
 
     _dry_run: bool = None
     _verbose: bool = None
-    progress_indicator = None
     console = None
 
-    def __init__(self, progress_indicator: ProgressIndicator, dry_run: bool, verbose: bool) -> None:
-        self.progress_indicator = progress_indicator
+    def __init__(self, dry_run: bool, verbose: bool) -> None:
         self._dry_run = dry_run
         self._verbose = verbose
         self.console = Console(width=FIXED_CONSOLE_WIDTH)
 
     @staticmethod
-    def create(ctx: Context, progress_indicator: ProgressIndicator) -> "Printer":
+    def create(ctx: Context) -> "Printer":
         dry_run = ctx.is_dry_run()
         verbose = ctx.is_verbose()
         logger.debug(f"Creating output printer (dry_run: {dry_run}, verbose: {verbose})...")
-        return Printer(progress_indicator, dry_run, verbose)
+        return Printer(dry_run, verbose)
 
     def _print(self, message: str) -> "Printer":
         if self._dry_run and message:

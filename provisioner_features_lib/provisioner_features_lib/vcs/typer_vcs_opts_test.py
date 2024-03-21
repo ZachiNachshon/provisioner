@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
-import inspect
 import unittest
 
 import typer
 from typer.testing import CliRunner
-from provisioner.domain.serialize import SerializationBase
-from provisioner_features_lib.remote.domain.config import RemoteConfig
 from provisioner_features_lib.vcs.typer_vcs_opts import TyperVersionControl
 from provisioner_features_lib.vcs.typer_vcs_opts_fakes import TestDataVersionControlOpts
 
