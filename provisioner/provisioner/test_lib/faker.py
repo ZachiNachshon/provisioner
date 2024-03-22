@@ -1,18 +1,32 @@
 #!/usr/bin/env python3
 
-from typing import Any
+from collections import deque
+from typing import Any, Callable, List
+import typing
 from unittest.mock import MagicMock
+
+from loguru import logger
 
 class Anything():
     pass
 
+class RegisteredMock():
+    func_name: str
+    args_hash: str
+    mock: MagicMock
+
+    def __init__(self, func_name: str, args_hash: str, mock: MagicMock):
+        self.func_name = func_name
+        self.args_hash = args_hash
+        self.mock = mock
+
+
 class TestFakes:
 
-    __funcs_dict = dict[str, dict[str, MagicMock]]
+    __registered_mocks = List[RegisteredMock]
 
     def __init__(self):
-        self.__funcs_dict = {}
-
+        self.__registered_mocks: List[RegisteredMock] = []
 
     def try_extract_magic_mock_value(self, magic_mock: MagicMock):
         if magic_mock.side_effect is not None:
@@ -26,105 +40,103 @@ class TestFakes:
             exit(1)
 
     # args are the actual values passed by the calling function
-    def trigger_side_effect(self, func_name: str, *args)-> None:
+    def trigger_side_effect(self, func_name: str, *args)-> Any:
+        fn_register_log_msg=f"Called: {self.__class__.__name__}.{func_name}("
         args_as_str = ""
         ordered_args = []
         for arg in args:
             if isinstance(arg, MagicMock):
-                # ret_val = self.try_extract_magic_mock_value(arg)
-                # print(f"arg ret val: {ret_val}")
-                print("Appending faker.Anything()")
-                # ordered_args.append(ret_val)
+                # Mocked object (potentialy from mock.patch)
                 ordered_args.append(Anything())
+                args_as_str += Anything.__name__
+                fn_register_log_msg += f"{Anything.__name__}, "
+            elif callable(arg) or hasattr(arg, '__call__'):
+                # callable or function
+                ordered_args.append(arg)
+                args_as_str += Callable.__name__
+                fn_register_log_msg += f"{Callable.__name__}, "
             else:
-                print("arg is not a MagicMock")
-                print(type(arg).__name__)
                 ordered_args.append(arg)
                 args_as_str += type(arg).__name__
+                fn_register_log_msg += f"{type(arg).__name__}, "
 
         # Create a hash of the string
         args_hash = hash(args_as_str)
 
         # print("==========================")
-        # print(args_hash)
-        # print(self.__funcs_dict)
+        # print(f"hash: {args_hash}, args_str: {args_as_str}")
         # print("==========================")
 
+        fn_register_log_msg = fn_register_log_msg.removesuffix(", ")
+        logger.debug(fn_register_log_msg + ")")
+
         result = None
-        # Get the function input dictionary
-        if self.__funcs_dict.get(func_name):
-            func_hash_dict = self.__funcs_dict[func_name]
-            if func_hash_dict.get(args_hash):
-                result = func_hash_dict.pop(args_hash, None)
-                if result:
-                    print("FINAL ARGS:")
-                    print(*ordered_args)
-                    result(*ordered_args)
-                    # result("asdf", "asdfsdf")
-                else:
-                    print(f"Definition was defined but mock is empty, cannot proceed. name: {func_name}")
-                    exit(1)
-            else:
-                print(f"Definition was defined but mock is empty, check that mocked method types is correct, cannot proceed. name: {func_name}")
-                exit(1)
-        else:
-            print(f"Definition is not mocked, cannot proceed. name: {func_name}")
+        idx = 0
+        for registered_mock in self.__registered_mocks:
+            if registered_mock.func_name == func_name and registered_mock.args_hash == args_hash:
+                result = registered_mock.mock
+                break
+            idx += 1
+            
+        if not result:
+            print(f"Definition is not mocked or mock was empty, cannot proceed. name: {func_name}")
             exit(1)
+        else:
+            # Remove the mock call from the list, do not do that from the loop
+            self.__registered_mocks.pop(idx)
+            # Trigger the mock call
+            return result(*ordered_args)
 
     def on(self, func_name: str, *args) -> MagicMock:
-        if not self.__is_dict_initialized_and_nonempty(self.__funcs_dict):
-            print("TestFakes.__funcs_dict is None, forgot to call TestFakes.__init__(self) from the fake test class? Exiting...")
+        if not self.__is_dict_initialized_and_nonempty(self.__registered_mocks):
+            print("TestFakes.__registered_mocks is None, forgot to call TestFakes.__init__(self) from the fake test class? Exiting...")
             exit(1)
 
+        fn_register_log_msg=f"Registered: {self.__class__.__name__}.{func_name}("
         args_as_str = ""
         # Loop through the types passed in *args
         for arg in args:
-            if isinstance(arg, type):
-                if arg is not Anything:
-                    print(arg.__name__)
-                    # Check if the argument is a type
-                    if isinstance(arg, type):
-                        args_as_str += arg.__name__
-                else:
-                    print("Skipping Anything type...")
-            
-            
             #  TODO: Check if callable and allow it !!
-                    
-                    
+            if isinstance(arg, type) :
+                if arg is Anything:
+                    args_as_str += Anything.__name__
+                    fn_register_log_msg += "Anything, "
+                else:
+                    # Check if the argument is a type
+                    args_as_str += arg.__name__
+                    fn_register_log_msg += f"{arg.__name__}, "
+            # Check if the argument is a List, Dict, Tuple etc..
+            elif arg is typing.List:
+                args_as_str += list.__name__
+                fn_register_log_msg += f"{list.__name__}, "
+            elif arg is typing.Dict:
+                args_as_str += dict.__name__
+                fn_register_log_msg += f"{dict.__name__}, "
+            elif arg is typing.Tuple:
+                args_as_str += tuple.__name__
+                fn_register_log_msg += f"{tuple.__name__}, "
+            elif arg is Callable or callable(arg):
+                print(type(arg).__name__)
+                print(arg.__name__)
+                args_as_str += Callable.__name__
+                fn_register_log_msg += "Callable, "
             else:
                 print(f"Invalid mocked argument, should be typed. name: {func_name}, mocked args: {args}")
                 exit(1)
             
 
-        # Create a hash of the string
-        args_hash = hash(args_as_str)
+        mock_obj = MagicMock()
+        reg_mock = RegisteredMock(func_name, hash(args_as_str), mock_obj)
+        self.__registered_mocks.append(reg_mock)
 
-        # Create a mock mapping for the input
-        args_mock = MagicMock()    
-        args_hash_to_mock_dict_new = {args_hash: args_mock}
-
-        maybe_func: dict[Any, MagicMock] = self.__funcs_dict.get(func_name)
-        if maybe_func:
-            args_hash_to_mock_dict = maybe_func.get(args_hash)
-            if args_hash_to_mock_dict:
-                # If the input is already registered, we append to the list of side effects
-                args_hash_to_mock_dict[args_hash] = args_mock
-            else:
-                # For cases of functions without an input
-                # If the input is not registered, we create a new input dict
-                maybe_func[func_name] = args_hash_to_mock_dict_new
-        else:
-            # If the function is not registered, we create a new function dict
-            self.__funcs_dict[func_name] = args_hash_to_mock_dict_new
-
+        fn_register_log_msg = fn_register_log_msg.removesuffix(", ")
+        logger.debug(fn_register_log_msg + ")")
 
         # print("==========================")
-        # print(args_hash)
-        # print(self.__funcs_dict)
+        # print(f"hash: {hash(args_as_str)}, args_str: {args_as_str}")
         # print("==========================")
-        return args_mock
+        return mock_obj
 
     def __is_dict_initialized_and_nonempty(self, d) -> bool:
-        return d is not None and isinstance(d, dict)
+        return d is not None and isinstance(d, List)
     

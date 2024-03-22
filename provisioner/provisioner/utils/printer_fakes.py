@@ -24,7 +24,7 @@ class FakePrinter(TestFakes, Printer):
         return fake
 
     def print_fn(self, message: str) -> "Printer":
-        return self.trigger_side_effect("print", message)
+        return self.trigger_side_effect("print_fn", message)
     
     def print_with_rich_table_fn(self, message: str, border_color: Optional[str] = "green") -> "Printer":
         return self.trigger_side_effect("print_with_rich_table_fn", message, border_color)
