@@ -42,6 +42,8 @@ class Either(Generic[VAL, ERR], metaclass=ABCMeta):
     def match(
         self, call_left: "Callable[[Left[ERR]], CALL_ERR]", call_right: "Callable[[Right[VAL]], CALL_VAL]"
     ) -> Union[CALL_ERR, CALL_VAL]:
+        # self can be thought as "the previous" item in the call chain, if it is valid, 
+        # we'll call the next item, otherwise, return the error
         match self:
             case Left():
                 return call_left(self)

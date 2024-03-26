@@ -3,12 +3,12 @@
 import os
 import unittest
 
+from provisioner.config.domain.config import ProvisionerConfig
 from provisioner.errors.cli_errors import FailedToSerializeConfiguration
 from provisioner.infra.context import Context
 from provisioner.utils.io_utils import IOUtils
 from provisioner.utils.yaml_util import YamlUtil
 
-from provisioner.config.domain.config import ProvisionerConfig
 
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner/config/domain/config_test.py

@@ -32,6 +32,8 @@ class NotInitialized(Exception):
 class FailedToReadConfigurationFile(Exception):
     pass
 
+class FailedToMergeConfiguration(Exception):
+    pass
 
 class FailedToSerializeConfiguration(Exception):
     pass

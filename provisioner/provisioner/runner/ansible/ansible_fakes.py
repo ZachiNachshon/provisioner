@@ -14,7 +14,6 @@ from provisioner.test_lib.faker import TestFakes
 
 
 class FakeAnsibleRunnerLocal(TestFakes, AnsibleRunnerLocal):
-
     def __init__(self, ctx: Context) -> None:
         TestFakes.__init__(self)
         AnsibleRunnerLocal.__init__(self, io_utils=None, paths=None, ctx=ctx)
@@ -24,7 +23,7 @@ class FakeAnsibleRunnerLocal(TestFakes, AnsibleRunnerLocal):
         fake = FakeAnsibleRunnerLocal(ctx=ctx)
         fake.run_fn = MagicMock(side_effect=fake.run_fn)
         return fake
-    
+
     def run_fn(
         self,
         selected_hosts: List[AnsibleHost],
@@ -33,4 +32,6 @@ class FakeAnsibleRunnerLocal(TestFakes, AnsibleRunnerLocal):
         ansible_tags: Optional[List[str]] = None,
         ansible_playbook_package: Optional[str] = ANSIBLE_PLAYBOOKS_PYTHON_PACKAGE,
     ) -> str:
-        return self.trigger_side_effect("run_fn", selected_hosts, playbook, ansible_vars, ansible_tags, ansible_playbook_package)
+        return self.trigger_side_effect(
+            "run_fn", selected_hosts, playbook, ansible_vars, ansible_tags, ansible_playbook_package
+        )

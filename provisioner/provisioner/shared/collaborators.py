@@ -113,7 +113,7 @@ class CoreCollaborators:
             return self.__progress_indicator
 
         return self._lock_and_get(callback=create_progress_indicator)
-    
+
     def ansible_runner(self) -> AnsibleRunnerLocal:
         def create_ansible_runner():
             if not self.__ansible_runner:
@@ -125,7 +125,7 @@ class CoreCollaborators:
     def network_util(self) -> NetworkUtil:
         def create_network_util():
             if not self.__network_util:
-                self.__network_util = NetworkUtil.create(self.__ctx, self.printer())
+                self.__network_util = NetworkUtil.create(self.__ctx, self.printer(), self.progress_indicator())
             return self.__network_util
 
         return self._lock_and_get(callback=create_network_util)

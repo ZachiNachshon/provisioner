@@ -28,8 +28,7 @@ class TestDataVersionControlOpts:
 
     @staticmethod
     def create_fake_typer_vcs() -> TyperVersionControl:
-        return TyperVersionControl(
-            TestDataVersionControlOpts.create_fake_vcs_cfg())
+        return TyperVersionControl(TestDataVersionControlOpts.create_fake_vcs_cfg())
 
     @staticmethod
     def create_fake_cli_vcs_opts() -> CliVersionControlOpts:

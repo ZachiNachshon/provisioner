@@ -52,7 +52,7 @@ ANSIBLE_DUMMY_PLAYBOOK = AnsiblePlaybook(name=ANSIBLE_DUMMY_PLAYBOOK_NAME, conte
 ANSIBLE_DUMMY_PLAYBOOK_WITH_REMOTE_CTX = AnsiblePlaybook(
     name=ANSIBLE_DUMMY_PLAYBOOK_NAME,
     content=ANSIBLE_DUMMY_PLAYBOOK_CONTENT_WITH_REMOTE_CTX,
-    remote_context=RemoteContext.create(dry_run=True, verbose=True, silent=True),
+    remote_context=RemoteContext.create(dry_run=True, verbose=True, silent=True, non_interactive=True),
 )
 
 ANSIBLE_HOSTS = [

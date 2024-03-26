@@ -16,12 +16,14 @@ class Context:
     _verbose: bool = None
     _dry_run: bool = None
     _auto_prompt: bool = None
+    _non_interactive: bool = None
 
     @staticmethod
     def create(
         dry_run: Optional[bool] = False,
         verbose: Optional[bool] = False,
         auto_prompt: Optional[bool] = False,
+        non_interactive: Optional[bool] = False,
         os_arch: Optional[OsArch] = None,
     ) -> "Context":
 
@@ -31,6 +33,7 @@ class Context:
             ctx._dry_run = dry_run
             ctx._verbose = verbose
             ctx._auto_prompt = auto_prompt
+            ctx._non_interactive = non_interactive
             return ctx
         except Exception as e:
             e_name = e.__class__.__name__
@@ -51,6 +54,10 @@ class Context:
             raise NotInitialized("context mandatory variable is not initialized. name: auto_prompt")
         return self._auto_prompt
 
+    def is_non_interactive(self) -> bool:
+        if self._non_interactive is None:
+            raise NotInitialized("context mandatory variable is not initialized. name: non_interactive")
+        return self._non_interactive
 
 class CliContextManager:
     @staticmethod
@@ -62,5 +69,6 @@ class CliContextManager:
             dry_run=CliGlobalArgs.is_dry_run(),
             verbose=CliGlobalArgs.is_verbose(),
             auto_prompt=CliGlobalArgs.is_auto_prompt(),
+            non_interactive=CliGlobalArgs.is_non_interactive(),
             os_arch=os_arch,
         )

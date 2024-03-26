@@ -9,7 +9,6 @@ from provisioner.utils.prompter import Prompter, PromptLevel
 
 
 class FakePrompter(TestFakes, Prompter):
-
     def __init__(self, auto_prompt: bool, dry_run: bool):
         TestFakes.__init__(self)
         Prompter.__init__(self, auto_prompt=auto_prompt, dry_run=dry_run)
@@ -26,7 +25,7 @@ class FakePrompter(TestFakes, Prompter):
 
     def prompt_user_multi_selection_fn(self, message: str, options: List[Any]) -> Any:
         return self.trigger_side_effect("prompt_user_multi_selection_fn", message, options)
-    
+
     def prompt_user_single_selection_fn(self, message: str, options: List[Any]) -> Any:
         return self.trigger_side_effect("prompt_user_single_selection_fn", message, options)
 
@@ -38,7 +37,9 @@ class FakePrompter(TestFakes, Prompter):
         level: Optional[PromptLevel] = PromptLevel.HIGHLIGHT,
         post_user_input_message: Optional[str] = None,
     ) -> str:
-        return self.trigger_side_effect("prompt_user_input_fn", message, default, redact_value, level, post_user_input_message)
+        return self.trigger_side_effect(
+            "prompt_user_input_fn", message, default, redact_value, level, post_user_input_message
+        )
 
     def prompt_yes_no_fn(
         self,
@@ -51,4 +52,3 @@ class FakePrompter(TestFakes, Prompter):
 
     def prompt_for_enter_fn(self, level: Optional[PromptLevel] = PromptLevel.INFO) -> bool:
         return self.trigger_side_effect("prompt_for_enter_fn", level)
-    

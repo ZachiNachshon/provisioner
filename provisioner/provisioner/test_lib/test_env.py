@@ -47,9 +47,11 @@ class TestEnv:
         enable_test_env_paths=True,
         dry_run: bool = False,
         verbose: bool = False,
+        non_interactive: bool = False,
     ) -> "TestEnv":
         ctx._dry_run = dry_run
         ctx._verbose = verbose
+        ctx._non_interactive = non_interactive
         return TestEnv._create_env(ctx, enable_test_env_paths)
 
     def get_test_env_root_path(self) -> str:

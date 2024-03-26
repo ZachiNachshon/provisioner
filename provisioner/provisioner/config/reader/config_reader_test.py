@@ -8,10 +8,10 @@ from provisioner.test_data.domain import INTERNAL_CONFIG_TEST_DATA_FILE_PATH, Fa
 from provisioner.utils.io_utils import IOUtils
 from provisioner.utils.yaml_util import YamlUtil
 
-
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner/config/reader/config_reader_test.py
 #
+
 
 class ConfigReaderTestShould(unittest.TestCase):
     def test_read_only_internal_config(self):
@@ -20,7 +20,7 @@ class ConfigReaderTestShould(unittest.TestCase):
         config_reader = ConfigReader.create(yaml_util)
 
         output: FakeConfigObj = config_reader.read_config_fn(
-            internal_path=INTERNAL_CONFIG_TEST_DATA_FILE_PATH, 
+            internal_path=INTERNAL_CONFIG_TEST_DATA_FILE_PATH,
             cls=FakeConfigObj,
         )
 
@@ -40,7 +40,7 @@ class ConfigReaderTestShould(unittest.TestCase):
 
         with self.assertRaises(FileNotFoundError):
             config_reader.read_config_fn(
-                internal_path="/path/to/unknown", 
+                internal_path="/path/to/unknown",
                 cls=FakeConfigObj,
             )
 

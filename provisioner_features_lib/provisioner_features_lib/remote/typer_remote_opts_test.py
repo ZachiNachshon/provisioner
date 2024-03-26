@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import unittest
-import typer
 
-from typer.testing import CliRunner
+import typer
 from provisioner.runner.ansible.ansible_runner import AnsibleHost
 from provisioner.test_lib.assertions import Assertion
+from typer.testing import CliRunner
 
 from provisioner_features_lib.remote.typer_remote_opts import (
     TyperRemoteOpts,
@@ -25,8 +25,8 @@ CONFIG_CLI_OVERRIDE_IP_DISCOVERY_RANGE = "config-test-ip-discovery-range"
 #  poetry run coverage run -m pytest provisioner_features_lib/remote/typer_remote_opts_test.py
 #
 
-class TyperRemoteOptsTestShould(unittest.TestCase):
 
+class TyperRemoteOptsTestShould(unittest.TestCase):
     def test_set_typer_remote_opts_from_config_values(self) -> None:
         remote_cfg = TestDataRemoteOpts.create_fake_remote_cfg()
         remote_cfg.lan_scan.ip_discovery_range = CONFIG_CLI_OVERRIDE_IP_DISCOVERY_RANGE
@@ -39,7 +39,7 @@ class TyperRemoteOptsTestShould(unittest.TestCase):
         runner = CliRunner()
         runner.invoke(app)
         cli_opts = typer_remote.to_cli_opts()
-        
+
         self.assertIsNotNone(cli_opts)
         self.assertEqual(cli_opts.ip_discovery_range, CONFIG_CLI_OVERRIDE_IP_DISCOVERY_RANGE)
 

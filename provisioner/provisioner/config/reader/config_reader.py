@@ -28,7 +28,7 @@ class ConfigReader:
         except Exception as ex:
             logger.debug(f"Failed reading config file as JSON. path {path}, ex: {ex}")
         return None
-        
+
     def _read_config(self, internal_path: str, cls: SerializationBase) -> SerializationBase:
         return self.yaml_util.read_file_fn(file_path=internal_path, cls=cls)
 

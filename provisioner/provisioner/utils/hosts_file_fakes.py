@@ -9,7 +9,6 @@ from provisioner.utils.hosts_file import HostsFile
 
 
 class FakeHostsFile(TestFakes, HostsFile):
-
     def __init__(self, dry_run: bool, verbose: bool):
         TestFakes.__init__(self)
         HostsFile.__init__(self, process=None, dry_run=dry_run, verbose=verbose)
@@ -20,5 +19,7 @@ class FakeHostsFile(TestFakes, HostsFile):
         fake.add_entry_fn = MagicMock(side_effect=fake.add_entry_fn)
         return fake
 
-    def add_entry_fn(self, ip_address: str, dns_names: List[str], comment: Optional[str] = None, entry_type: Optional[str] = "ipv4") -> None:
+    def add_entry_fn(
+        self, ip_address: str, dns_names: List[str], comment: Optional[str] = None, entry_type: Optional[str] = "ipv4"
+    ) -> None:
         return self.trigger_side_effect("add_entry_fn", ip_address, dns_names, comment, entry_type)

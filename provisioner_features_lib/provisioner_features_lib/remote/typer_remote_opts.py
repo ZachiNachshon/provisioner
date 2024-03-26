@@ -102,6 +102,18 @@ class TyperRemoteOpts:
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
 
+    def non_interactive(self):
+        return typer.Option(
+            False,
+            "--non-interactive",
+            "-n",
+            is_flag=True,
+            show_default=True,
+            help="[Remote Machine] Turn off interactive prompts and outputs",
+            envvar="REMOTE_NON_INTERACTIVE",
+            rich_help_panel=REMOTE_ONLY_HELP_TITLE,
+        )
+    
     def as_typer_callback(self):
         from_cfg_ip_discovery_range = None
         if self._remote_config is not None and self._remote_config.lan_scan is not None:
@@ -116,12 +128,14 @@ class TyperRemoteOpts:
             dry_run: Optional[bool] = self.dry_run(),
             verbose: Optional[bool] = self.verbose(),
             silent: Optional[bool] = self.silent(),
+            non_interactive: Optional[bool] = self.non_interactive(),
         ):
 
             remote_context = RemoteContext.create(
                 dry_run=dry_run,
                 verbose=verbose,
                 silent=silent,
+                non_interactive=non_interactive,
             )
             self._cli_remote_opts = CliRemoteOpts(
                 environment=environment,

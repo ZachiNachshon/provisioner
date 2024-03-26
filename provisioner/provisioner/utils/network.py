@@ -8,6 +8,7 @@ from nmap3 import NmapHostDiscovery
 
 from provisioner.infra.context import Context
 from provisioner.utils.printer import Printer
+from provisioner.utils.progress_indicator import ProgressIndicator
 
 
 class NetworkUtil:
@@ -17,21 +18,22 @@ class NetworkUtil:
 
     _nmap = None
     _host_discovery = None
-    _printer = None
+    _progress_indicator = None
 
-    def __init__(self, printer: Printer, dry_run: bool, verbose: bool):
+    def __init__(self, printer: Printer, progress_indicator: ProgressIndicator, dry_run: bool, verbose: bool):
         self._dry_run = dry_run
         self._verbose = verbose
         self._printer = printer
+        self._progress_indicator = progress_indicator
         self._nmap = nmap3.Nmap()
         self._host_discovery = NmapHostDiscovery()
 
     @staticmethod
-    def create(ctx: Context, printer: Printer) -> "NetworkUtil":
+    def create(ctx: Context, printer: Printer, progress_indicator: ProgressIndicator) -> "NetworkUtil":
         dry_run = ctx.is_dry_run()
         verbose = ctx.is_verbose()
         logger.debug(f"Creating network util (dry_run: {dry_run}, verbose: {verbose})...")
-        return NetworkUtil(printer, dry_run, verbose)
+        return NetworkUtil(printer, progress_indicator, dry_run, verbose)
 
     def _is_host_state_up(self, ip_scan_result: dict) -> bool:
         if "state" in ip_scan_result and ip_scan_result["state"]["state"]:
@@ -62,9 +64,7 @@ class NetworkUtil:
                     response[ip_addr] = self._generate_scanned_item_desc(ip_addr, hostname, status)
         return response
 
-    def _get_all_lan_network_devices(
-        self, ip_range: str, filter_str: Optional[str] = None, show_progress: Optional[bool] = False
-    ) -> dict[str, dict]:
+    def _get_all_lan_network_devices(self, ip_range: str, filter_str: Optional[str] = None) -> dict[str, dict]:
         """
         Every nmap response dict structure is as follows:
         {
@@ -97,28 +97,20 @@ class NetworkUtil:
             return result_dict
 
         port_scan_result_dict = None
-        if show_progress:
-            port_scan_result_dict = self._printer.progress_indicator.status.long_running_process_fn(
-                call=lambda: self._host_discovery.nmap_no_portscan(target=ip_range),
-                desc_run="Running LAN port scanning",
-                desc_end="LAN port scanning finished",
-            )
-        else:
-            self._printer.print_fn("Port Scanning...")
-            port_scan_result_dict = self._host_discovery.nmap_no_portscan(target=ip_range)
+        port_scan_result_dict = self._progress_indicator.get_status().long_running_process_fn(
+            call=lambda: self._host_discovery.nmap_no_portscan(target=ip_range),
+            desc_run="Running LAN port scanning",
+            desc_end="LAN port scanning finished",
+        )
 
         result_dict.update(self._extract_valid_scanned_items(port_scan_result_dict))
 
         list_scan_result_dict = None
-        if show_progress:
-            list_scan_result_dict = self._printer.progress_indicator.status.long_running_process_fn(
-                call=lambda: self._nmap.nmap_list_scan(target=ip_range),
-                desc_run="Running LAN list scanning",
-                desc_end="LAN list scanning finished",
-            )
-        else:
-            self._printer.print_fn("List Scanning...")
-            list_scan_result_dict = self._nmap.nmap_list_scan(target=ip_range)
+        list_scan_result_dict = self._progress_indicator.get_status().long_running_process_fn(
+            call=lambda: self._nmap.nmap_list_scan(target=ip_range),
+            desc_run="Running LAN list scanning",
+            desc_end="LAN list scanning finished",
+        )
 
         result_dict.update(self._extract_valid_scanned_items(list_scan_result_dict))
 

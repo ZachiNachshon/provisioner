@@ -42,10 +42,10 @@ class SerializationBase:
         :return: The value if it exists, None otherwise.
         """
         temp_dict = self.dict_obj
-        dict_path = dict_path.split('.')
+        dict_path = dict_path.split(".")
         for key in dict_path:
             if isinstance(temp_dict, dict) and key in temp_dict:
                 temp_dict = temp_dict[key]
-            else:
-                return None
-        return temp_dict    
+            elif temp_dict is not None:
+                return temp_dict
+        return None

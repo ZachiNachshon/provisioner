@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import List, Optional
+from typing import Optional
 from unittest.mock import MagicMock
 
 from provisioner.infra.context import Context
@@ -9,7 +9,6 @@ from provisioner.utils.printer import Printer
 
 
 class FakePrinter(TestFakes, Printer):
-
     def __init__(self, dry_run: bool, verbose: bool):
         TestFakes.__init__(self)
         Printer.__init__(self, dry_run=dry_run, verbose=verbose)
@@ -25,7 +24,7 @@ class FakePrinter(TestFakes, Printer):
 
     def print_fn(self, message: str) -> "Printer":
         return self.trigger_side_effect("print_fn", message)
-    
+
     def print_with_rich_table_fn(self, message: str, border_color: Optional[str] = "green") -> "Printer":
         return self.trigger_side_effect("print_with_rich_table_fn", message, border_color)
 

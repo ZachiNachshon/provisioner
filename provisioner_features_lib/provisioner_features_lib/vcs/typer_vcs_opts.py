@@ -57,7 +57,6 @@ class TyperVersionControl:
         from_cfg_git_access_token = None
         if self._vcs_config is not None and self._vcs_config.github is not None:
             from_cfg_git_access_token = self._vcs_config.github.git_access_token
-            print(f"setting {from_cfg_git_access_token}")
 
         def typer_callback(
             org: str = self.github_org(),

@@ -3,14 +3,13 @@
 import os
 import pathlib
 
-from provisioner.config.manager.config_manager import ConfigManager
 from provisioner.cli.entrypoint import EntryPoint
+from provisioner.config.domain.config import ProvisionerConfig
+from provisioner.config.manager.config_manager import ConfigManager
 from provisioner.utils.package_loader import PackageLoader
 
-from provisioner.config.domain.config import ProvisionerConfig
-
 CONFIG_USER_PATH = os.path.expanduser("~/.config/provisioner/config.yaml")
-CONFIG_INTERNAL_PATH = f"{pathlib.Path(__file__).parent}/resources/config.yaml"
+CONFIG_INTERNAL_PATH = f"{pathlib.Path(__file__).parent.parent}/resources/config.yaml"
 
 """
 The --dry-run and --verbose flags aren't available on the pre-init phase
@@ -28,9 +27,11 @@ app = EntryPoint.create_typer(
     ),
 )
 
+
 def load_plugin(plugin_module):
     plugin_module.load_config()
     plugin_module.append_to_cli(app)
+
 
 PackageLoader.create().load_modules_fn(
     filter_keyword="provisioner",

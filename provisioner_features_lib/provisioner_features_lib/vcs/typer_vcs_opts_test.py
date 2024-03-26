@@ -4,6 +4,7 @@ import unittest
 
 import typer
 from typer.testing import CliRunner
+
 from provisioner_features_lib.vcs.typer_vcs_opts import TyperVersionControl
 from provisioner_features_lib.vcs.typer_vcs_opts_fakes import TestDataVersionControlOpts
 
@@ -15,8 +16,8 @@ ARG_CLI_OVERRIDE_GITHUB_ACCESS_TOKEN = "arg-test-override-git-access-token"
 #  poetry run coverage run -m pytest provisioner_features_lib/vcs/typer_vcs_opts_test.py
 #
 
-class TyperVersionControlOptsTestShould(unittest.TestCase):
 
+class TyperVersionControlOptsTestShould(unittest.TestCase):
     def test_set_typer_vcs_opts_from_config_values(self) -> None:
         vcs_cfg = TestDataVersionControlOpts.create_fake_vcs_cfg()
         vcs_cfg.github.git_access_token = CONFIG_CLI_OVERRIDE_GITHUB_ACCESS_TOKEN

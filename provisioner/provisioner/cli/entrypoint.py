@@ -39,6 +39,14 @@ def main_runner(
         is_flag=True,
         rich_help_panel=MODIFIERS_FLAGS_HELP_TITLE,
     ),
+    non_interactive: Optional[bool] = typer.Option(
+        False,
+        "--non-interactive",
+        "-n",
+        help="Turn off interactive prompts and outputs, basic output only",
+        is_flag=True,
+        rich_help_panel=MODIFIERS_FLAGS_HELP_TITLE,
+    ),
     os_arch: Optional[str] = typer.Option(
         None,
         "--os-arch",
@@ -64,11 +72,14 @@ def main_runner(
     if auto_prompt:
         typer.echo("Auto prompt: enabled")
 
+    if non_interactive:
+        typer.echo("Non interactive: enabled")
+
     if os_arch:
         typer.echo(f"OS_Arch supplied manually: {os_arch}")
 
     # if not state_was_initialized():
-    CliGlobalArgs.create(verbose, dry_run, auto_prompt, os_arch)
+    CliGlobalArgs.create(verbose, dry_run, auto_prompt, non_interactive, os_arch)
     logger_mgr = LoggerManager()
     logger_mgr.initialize(verbose, dry_run)
 

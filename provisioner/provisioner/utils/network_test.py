@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
+from typing import Callable
 import unittest
 from unittest import mock
 
+from provisioner.infra.context import Context
 from provisioner.test_lib.assertions import Assertion
 from provisioner.test_lib.test_env import TestEnv
 from provisioner.utils.network import NetworkUtil
+from provisioner.utils.printer_fakes import FakePrinter
+from provisioner.utils.progress_indicator_fakes import FakeProgressIndicator
 
 #
 # To run these directly from the terminal use:
@@ -50,14 +54,30 @@ EXPECTED_IP_RANGE = "192.168.1.1"
 
 
 class NetworkTestShould(unittest.TestCase):
-    def _run_get_all_lan_network_devices(
-        self, nmap_list_scan_call: mock.MagicMock, nmap_no_portscan_call: mock.MagicMock, show_progress: bool
+    
+    @mock.patch("nmap3.NmapHostDiscovery.nmap_no_portscan", side_effect=[LAN_NOPORT_SCAN_TEST_RESULT])
+    @mock.patch("nmap3.Nmap.nmap_list_scan", side_effect=[LAN_LIST_SCAN_TEST_RESULT])
+    def test_run_get_and_parse_all_lan_network_devices(
+        self, nmap_list_scan_call: mock.MagicMock, nmap_no_portscan_call: mock.MagicMock,
     ):
-        env = TestEnv.create()
-        network_util = NetworkUtil.create(env.get_context(), env.get_collaborators().printer())
-        devices_result_dict = network_util.get_all_lan_network_devices_fn(
-            ip_range=EXPECTED_IP_RANGE, show_progress=show_progress
-        )
+        env = TestEnv.create(ctx=Context.create(non_interactive=True))
+        fake_printer = FakePrinter.create(env.get_context())
+        fake_p_indicator = FakeProgressIndicator.create(env.get_context())
+
+        def long_running_process_fn_call_1(call, desc_run, desc_end):
+            self.assertEqual(desc_run, "Running LAN port scanning")
+            self.assertEqual(desc_end, "LAN port scanning finished")
+            return call()
+        fake_p_indicator.get_status().on("long_running_process_fn", Callable, str, str).side_effect = long_running_process_fn_call_1
+
+        def long_running_process_fn_call_2(call, desc_run, desc_end):
+            self.assertEqual(desc_run, "Running LAN list scanning")
+            self.assertEqual(desc_end, "LAN list scanning finished")
+            return call()
+        fake_p_indicator.get_status().on("long_running_process_fn", Callable, str, str).side_effect = long_running_process_fn_call_2
+
+        network_util: NetworkUtil = NetworkUtil.create(env.get_context(), fake_printer, fake_p_indicator)
+        devices_result_dict = network_util.get_all_lan_network_devices_fn(EXPECTED_IP_RANGE)
         Assertion.expect_call_argument(self, nmap_list_scan_call, arg_name="target", expected_value=EXPECTED_IP_RANGE)
         Assertion.expect_call_argument(self, nmap_no_portscan_call, arg_name="target", expected_value=EXPECTED_IP_RANGE)
 
@@ -70,17 +90,3 @@ class NetworkTestShould(unittest.TestCase):
             "192.168.1.3": {"ip_address": "192.168.1.3", "hostname": "No-Status-Scan-Item-01", "status": "Unknown"},
         }
         self.assertEqual(noport_scan_result_dict | list_scan_result_dict, devices_result_dict)
-
-    @mock.patch("nmap3.NmapHostDiscovery.nmap_no_portscan", side_effect=[LAN_NOPORT_SCAN_TEST_RESULT])
-    @mock.patch("nmap3.Nmap.nmap_list_scan", side_effect=[LAN_LIST_SCAN_TEST_RESULT])
-    def test_get_all_lan_network_devices(
-        self, nmap_list_scan_call: mock.MagicMock, nmap_no_portscan_call: mock.MagicMock
-    ):
-        self._run_get_all_lan_network_devices(nmap_list_scan_call, nmap_no_portscan_call, show_progress=False)
-
-    @mock.patch("nmap3.NmapHostDiscovery.nmap_no_portscan", side_effect=[LAN_NOPORT_SCAN_TEST_RESULT])
-    @mock.patch("nmap3.Nmap.nmap_list_scan", side_effect=[LAN_LIST_SCAN_TEST_RESULT])
-    def test_get_all_lan_network_devices_with_progress(
-        self, nmap_list_scan_call: mock.MagicMock, nmap_no_portscan_call: mock.MagicMock
-    ):
-        self._run_get_all_lan_network_devices(nmap_list_scan_call, nmap_no_portscan_call, show_progress=True)

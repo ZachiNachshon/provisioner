@@ -31,10 +31,12 @@ class ProgressIndicator:
 
         _dry_run: bool = None
         _verbose: bool = None
+        _non_interactive: bool = None
 
-        def __init__(self, dry_run: bool, verbose: bool) -> None:
+        def __init__(self, dry_run: bool, verbose: bool, non_interactive: bool) -> None:
             self._dry_run = dry_run
             self._verbose = verbose
+            self._non_interactive = non_interactive
 
         def _get_rich_status_indicator(self) -> Console:
             return Console(log_path=False)
@@ -66,6 +68,10 @@ class ProgressIndicator:
                 logger.debug("Skipping status indicator on dry-run mode.")
                 return call()
 
+            if self._non_interactive:
+                logger.debug("Running progress indicator status in non-interactive mode.")
+                return call()
+
             rich_console = self._get_rich_status_indicator()
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 future = executor.submit(call)
@@ -77,11 +83,13 @@ class ProgressIndicator:
 
         _dry_run: bool = None
         _verbose: bool = None
+        _non_interactive: bool = None
         _io_utils: IOUtils = None
 
-        def __init__(self, io_utils: IOUtils, dry_run: bool, verbose: bool) -> None:
+        def __init__(self, io_utils: IOUtils, dry_run: bool, verbose: bool, non_interactive: bool) -> None:
             self._dry_run = dry_run
             self._verbose = verbose
+            self._non_interactive = non_interactive
             self._io_utils = io_utils
 
         def _get_rich_progress_bar(self) -> Progress:
@@ -140,22 +148,6 @@ class ProgressIndicator:
                     pbar.update(task, description=f"[red]{desc}")
                     raise ex
 
-        def _long_running_process(
-            self,
-            call: Callable,
-            expected_time: Optional[int] = 21,
-            increments: Optional[int] = 20,
-            desc: Optional[str] = None,
-        ) -> Any:
-
-            if self._dry_run:
-                logger.debug("Skipping progress bar on dry-run mode.")
-                return call()
-
-            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(call)
-                return self._inc_based_progress_bar(future, expected_time, increments, desc)
-
         def _inc_based_download_file_progress_bar(self, response: Response, download_folder: str) -> Any:
             def _read_base_url_if_redirect(resp: Response) -> str:
                 if resp.history:
@@ -191,12 +183,18 @@ class ProgressIndicator:
             if self._dry_run:
                 logger.debug("Skipping progress bar on dry-run mode.")
                 return ""
+            
+            # 
+            # TODO: Implement non-interactive mode
+            # 
+            # if self._non_interactive:
+            #     logger.debug("Running progress bar in non-interactive mode.")
+            #     return ""
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 future = executor.submit(self._inc_based_download_file_progress_bar, response, download_folder)
                 return future.result()
 
-        long_running_process_fn = _long_running_process
         download_file_fn = _download_file
 
     _status: Status = None
@@ -206,12 +204,12 @@ class ProgressIndicator:
         self._status = status
         self._progress_bar = progress_bar
 
-    def get_status(self) -> Status: 
+    def get_status(self) -> Status:
         return self._status
 
-    def get_progress_bar(self) -> ProgressBar:    
+    def get_progress_bar(self) -> ProgressBar:
         return self._progress_bar
-    
+
     @staticmethod
     def create(
         ctx: Context, io_utils: IOUtils, status: Optional[Status] = None, progress_bar: Optional[ProgressBar] = None
@@ -219,8 +217,9 @@ class ProgressIndicator:
 
         dry_run = ctx.is_dry_run()
         verbose = ctx.is_verbose()
+        non_interactive = ctx.is_non_interactive()
         logger.debug(f"Creating progress bar (dry_run: {dry_run}, verbose: {verbose})...")
         return ProgressIndicator(
-            status if status else ProgressIndicator.Status(dry_run, verbose),
-            progress_bar if progress_bar else ProgressIndicator.ProgressBar(io_utils, dry_run, verbose),
+            status if status else ProgressIndicator.Status(dry_run, verbose, non_interactive),
+            progress_bar if progress_bar else ProgressIndicator.ProgressBar(io_utils, dry_run, verbose, non_interactive)
         )

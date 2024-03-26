@@ -62,7 +62,7 @@ class YamlUtil:
             json_data_expanded = expandvars(json_data_str)
             json_dict_expanded = json.loads(json_data_expanded)
             return json_dict_expanded
-        
+
     def _read_file(self, file_path: str, cls: SerializationBase) -> SerializationBase:
         json_data_str = self._read_file_as_json_dict(file_path=file_path)
         return cls(json_data_str)

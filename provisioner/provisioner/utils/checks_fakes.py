@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 from unittest.mock import MagicMock
+
 from provisioner.infra.context import Context
 from provisioner.test_lib.faker import TestFakes
 from provisioner.utils.checks import Checks
 
 
 class FakeChecks(TestFakes, Checks):
-
     def __init__(self, dry_run: bool, verbose: bool):
         TestFakes.__init__(self)
         Checks.__init__(self, dry_run=dry_run, verbose=verbose)
