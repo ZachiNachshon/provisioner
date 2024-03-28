@@ -47,7 +47,9 @@ class ConfigManager:
         # Read provisioner internal configuration
         internal_cfg_obj = self._config_reader.read_config_safe_fn(path=internal_path, cls=cls)
         if internal_cfg_obj is None:
-            raise FailedToReadConfigurationFile(f"Failed to read internal provisioner configuration. path: {internal_path}")
+            raise FailedToReadConfigurationFile(
+                f"Failed to read internal provisioner configuration. path: {internal_path}"
+            )
 
         # When no user configuration is found, return internal configuration.
         if user_path is None:

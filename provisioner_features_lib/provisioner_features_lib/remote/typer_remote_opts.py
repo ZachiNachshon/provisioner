@@ -113,7 +113,7 @@ class TyperRemoteOpts:
             envvar="REMOTE_NON_INTERACTIVE",
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
-    
+
     def as_typer_callback(self):
         from_cfg_ip_discovery_range = None
         if self._remote_config is not None and self._remote_config.lan_scan is not None:

@@ -183,10 +183,10 @@ class ProgressIndicator:
             if self._dry_run:
                 logger.debug("Skipping progress bar on dry-run mode.")
                 return ""
-            
-            # 
+
+            #
             # TODO: Implement non-interactive mode
-            # 
+            #
             # if self._non_interactive:
             #     logger.debug("Running progress bar in non-interactive mode.")
             #     return ""
@@ -221,5 +221,7 @@ class ProgressIndicator:
         logger.debug(f"Creating progress bar (dry_run: {dry_run}, verbose: {verbose})...")
         return ProgressIndicator(
             status if status else ProgressIndicator.Status(dry_run, verbose, non_interactive),
-            progress_bar if progress_bar else ProgressIndicator.ProgressBar(io_utils, dry_run, verbose, non_interactive)
+            progress_bar
+            if progress_bar
+            else ProgressIndicator.ProgressBar(io_utils, dry_run, verbose, non_interactive),
         )

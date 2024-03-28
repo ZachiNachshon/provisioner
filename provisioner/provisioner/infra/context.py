@@ -59,6 +59,7 @@ class Context:
             raise NotInitialized("context mandatory variable is not initialized. name: non_interactive")
         return self._non_interactive
 
+
 class CliContextManager:
     @staticmethod
     def create():

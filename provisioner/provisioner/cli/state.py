@@ -61,7 +61,7 @@ class CliGlobalArgs:
         if not cli_global_args:
             raise CliGlobalArgsNotInitialized("Global args state was not set (entrypoint.py)")
         return cli_global_args.non_interactive
-    
+
     @staticmethod
     def maybe_get_os_arch_flag_value() -> str:
         if not cli_global_args:

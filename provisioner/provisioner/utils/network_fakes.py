@@ -9,7 +9,6 @@ from provisioner.utils.network import NetworkUtil
 
 
 class FakeNetworkUtil(TestFakes, NetworkUtil):
-
     def __init__(self, dry_run: bool, verbose: bool):
         TestFakes.__init__(self)
         NetworkUtil.__init__(self, None, None, dry_run=dry_run, verbose=verbose)
@@ -21,10 +20,7 @@ class FakeNetworkUtil(TestFakes, NetworkUtil):
         return fake
 
     def get_all_lan_network_devices_fn(
-            self, 
-            ip_range: str, 
-            filter_str: Optional[str] = None, 
-            show_progress: Optional[bool] = False) -> bool:
-        
-        return self.trigger_side_effect("get_all_lan_network_devices_fn", ip_range, filter_str, show_progress)
+        self, ip_range: str, filter_str: Optional[str] = None, show_progress: Optional[bool] = False
+    ) -> bool:
 
+        return self.trigger_side_effect("get_all_lan_network_devices_fn", ip_range, filter_str, show_progress)

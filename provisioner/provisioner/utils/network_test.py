@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from typing import Callable
 import unittest
+from typing import Callable
 from unittest import mock
 
 from provisioner.infra.context import Context
@@ -54,11 +54,12 @@ EXPECTED_IP_RANGE = "192.168.1.1"
 
 
 class NetworkTestShould(unittest.TestCase):
-    
     @mock.patch("nmap3.NmapHostDiscovery.nmap_no_portscan", side_effect=[LAN_NOPORT_SCAN_TEST_RESULT])
     @mock.patch("nmap3.Nmap.nmap_list_scan", side_effect=[LAN_LIST_SCAN_TEST_RESULT])
     def test_run_get_and_parse_all_lan_network_devices(
-        self, nmap_list_scan_call: mock.MagicMock, nmap_no_portscan_call: mock.MagicMock,
+        self,
+        nmap_list_scan_call: mock.MagicMock,
+        nmap_no_portscan_call: mock.MagicMock,
     ):
         env = TestEnv.create(ctx=Context.create(non_interactive=True))
         fake_printer = FakePrinter.create(env.get_context())
@@ -68,13 +69,19 @@ class NetworkTestShould(unittest.TestCase):
             self.assertEqual(desc_run, "Running LAN port scanning")
             self.assertEqual(desc_end, "LAN port scanning finished")
             return call()
-        fake_p_indicator.get_status().on("long_running_process_fn", Callable, str, str).side_effect = long_running_process_fn_call_1
+
+        fake_p_indicator.get_status().on(
+            "long_running_process_fn", Callable, str, str
+        ).side_effect = long_running_process_fn_call_1
 
         def long_running_process_fn_call_2(call, desc_run, desc_end):
             self.assertEqual(desc_run, "Running LAN list scanning")
             self.assertEqual(desc_end, "LAN list scanning finished")
             return call()
-        fake_p_indicator.get_status().on("long_running_process_fn", Callable, str, str).side_effect = long_running_process_fn_call_2
+
+        fake_p_indicator.get_status().on(
+            "long_running_process_fn", Callable, str, str
+        ).side_effect = long_running_process_fn_call_2
 
         network_util: NetworkUtil = NetworkUtil.create(env.get_context(), fake_printer, fake_p_indicator)
         devices_result_dict = network_util.get_all_lan_network_devices_fn(EXPECTED_IP_RANGE)

@@ -3,11 +3,11 @@
 from typing import Any, Callable, Optional
 from unittest.mock import MagicMock
 
+from requests import Response
+
 from provisioner.infra.context import Context
 from provisioner.test_lib.faker import TestFakes
-from provisioner.utils.io_utils import IOUtils
 from provisioner.utils.progress_indicator import ProgressIndicator
-from requests import Response
 
 
 class FakeProgressIndicator(ProgressIndicator):
@@ -18,7 +18,9 @@ class FakeProgressIndicator(ProgressIndicator):
 
         @staticmethod
         def create(ctx: Context) -> "FakeProgressIndicator.FakeStatus":
-            fake = FakeProgressIndicator.FakeStatus(dry_run=ctx.is_dry_run(), verbose=ctx.is_verbose(), non_interactive=ctx.is_non_interactive())
+            fake = FakeProgressIndicator.FakeStatus(
+                dry_run=ctx.is_dry_run(), verbose=ctx.is_verbose(), non_interactive=ctx.is_non_interactive()
+            )
             fake.long_running_process_fn = MagicMock(side_effect=fake.long_running_process_fn)
             return fake
 
@@ -28,17 +30,20 @@ class FakeProgressIndicator(ProgressIndicator):
             return self.trigger_side_effect("long_running_process_fn", call, desc_run, desc_end)
 
     class FakeProgressBar(TestFakes, ProgressIndicator.ProgressBar):
-
         def __init__(self, dry_run: bool, verbose: bool, non_interactive: bool) -> None:
             TestFakes.__init__(self)
-            ProgressIndicator.ProgressBar.__init__(self, io_utils=None, dry_run=dry_run, verbose=verbose, non_interactive=non_interactive)
+            ProgressIndicator.ProgressBar.__init__(
+                self, io_utils=None, dry_run=dry_run, verbose=verbose, non_interactive=non_interactive
+            )
 
         @staticmethod
         def create(ctx: Context) -> "FakeProgressIndicator.FakeStatus":
-            fake = FakeProgressIndicator.FakeProgressBar(dry_run=ctx.is_dry_run(), verbose=ctx.is_verbose(), non_interactive=ctx.is_non_interactive())
+            fake = FakeProgressIndicator.FakeProgressBar(
+                dry_run=ctx.is_dry_run(), verbose=ctx.is_verbose(), non_interactive=ctx.is_non_interactive()
+            )
             fake.download_file_fn = MagicMock(side_effect=fake.download_file_fn)
             return fake
-        
+
         def download_file_fn(self, response: Response, download_folder: str) -> Any:
             return self.trigger_side_effect("download_file_fn", response, download_folder)
 

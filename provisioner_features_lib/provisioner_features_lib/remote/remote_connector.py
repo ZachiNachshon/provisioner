@@ -307,9 +307,7 @@ class RemoteMachineConnector:
             return None
 
         self.collaborators.printer().print_with_rich_table_fn(generate_instructions_network_scan())
-        scan_dict = self.collaborators.network_util().get_all_lan_network_devices_fn(
-            ip_range=ip_discovery_range
-        )
+        scan_dict = self.collaborators.network_util().get_all_lan_network_devices_fn(ip_range=ip_discovery_range)
         self.collaborators.printer().new_line_fn()
 
         options_list: List[str] = []
