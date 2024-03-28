@@ -19,8 +19,5 @@ class FakeNetworkUtil(TestFakes, NetworkUtil):
         fake.get_all_lan_network_devices_fn = MagicMock(side_effect=fake.get_all_lan_network_devices_fn)
         return fake
 
-    def get_all_lan_network_devices_fn(
-        self, ip_range: str, filter_str: Optional[str] = None, show_progress: Optional[bool] = False
-    ) -> bool:
-
-        return self.trigger_side_effect("get_all_lan_network_devices_fn", ip_range, filter_str, show_progress)
+    def get_all_lan_network_devices_fn(self, ip_range: str, filter_str: Optional[str] = None) -> bool:
+        return self.trigger_side_effect("get_all_lan_network_devices_fn", ip_range, filter_str)

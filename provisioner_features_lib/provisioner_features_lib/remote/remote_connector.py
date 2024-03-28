@@ -247,13 +247,11 @@ class RemoteMachineConnector:
         password = None
         if remote_opts.node_password and len(remote_opts.node_password) > 0:
             password = remote_opts.node_password
-            self.collaborators.printer().new_line_fn()
-            self.collaborators.printer().print_fn("Identified SSH password from CLI argument.")
+            self.collaborators.printer().new_line_fn().print_fn("Identified SSH password from CLI argument.")
         else:
             password = Evaluator.eval_step_return_value_throw_on_failure(
                 call=lambda: self.collaborators.prompter().prompt_user_input_fn(
                     message="Enter remote node password",
-                    default=remote_opts.node_password,
                     post_user_input_message="Set remote password :: ",
                     redact_value=True,
                 ),
@@ -266,8 +264,7 @@ class RemoteMachineConnector:
         ssh_private_key_path = None
         if remote_opts.ssh_private_key_file_path and len(remote_opts.ssh_private_key_file_path) > 0:
             ssh_private_key_path = remote_opts.ssh_private_key_file_path
-            self.collaborators.printer().new_line_fn()
-            self.collaborators.printer().print_fn("Identified SSH private key path from CLI argument.")
+            self.collaborators.printer().new_line_fn().print_fn("Identified SSH private key path from CLI argument.")
         else:
             ssh_private_key_path = Evaluator.eval_step_return_value_throw_on_failure(
                 call=lambda: self.collaborators.prompter().prompt_user_input_fn(

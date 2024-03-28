@@ -57,9 +57,14 @@ class TestFakes:
                 args_as_str += Callable.__name__
                 fn_register_log_msg += f"{Callable.__name__}, "
             else:
-                ordered_args.append(arg)
-                args_as_str += type(arg).__name__
-                fn_register_log_msg += f"{type(arg).__name__}, "
+                if arg is None:
+                    ordered_args.append(arg)
+                    args_as_str += Anything.__name__
+                    fn_register_log_msg += "Anything, "
+                else:
+                    ordered_args.append(arg)
+                    args_as_str += type(arg).__name__
+                    fn_register_log_msg += f"{type(arg).__name__}, "
 
         # Create a hash of the string
         args_hash = hash(args_as_str)
