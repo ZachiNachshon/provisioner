@@ -3,6 +3,7 @@
 import os
 import pathlib
 
+from loguru import logger
 from provisioner.cli.entrypoint import EntryPoint
 from provisioner.config.domain.config import ProvisionerConfig
 from provisioner.config.manager.config_manager import ConfigManager
@@ -20,10 +21,13 @@ such as config-loader, package-loader etc..
 ENV_VAR_ENABLE_PRE_INIT_DEBUG = "PROVISIONER_PRE_INIT_DEBUG"
 debug_pre_init = os.getenv(key=ENV_VAR_ENABLE_PRE_INIT_DEBUG, default=False)
 
+if not debug_pre_init:
+    logger.remove()
+
 app = EntryPoint.create_typer(
     title="Provision Everything Anywhere (install plugins from https://zachinachshon.com/provisioner)",
     config_resolver_fn=lambda: ConfigManager.instance().load(
-        CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig, debug=debug_pre_init
+        CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig
     ),
 )
 

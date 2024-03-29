@@ -39,10 +39,7 @@ class ConfigManager:
             ConfigManager._instance = ConfigManager(ctx=Context.create())
         return ConfigManager._instance
 
-    def load(self, internal_path: str, user_path: str, cls: SerializationBase, debug: Optional[bool] = False) -> None:
-        if not debug:
-            logger.remove()
-
+    def load(self, internal_path: str, user_path: str, cls: SerializationBase) -> None:
         logger.debug(f"Loading internal provisioner configuration. path: {internal_path}")
         # Read provisioner internal configuration
         internal_cfg_obj = self._config_reader.read_config_safe_fn(path=internal_path, cls=cls)
