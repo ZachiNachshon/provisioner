@@ -9,7 +9,6 @@ from provisioner.utils.httpclient import HttpClient
 
 
 class FakeHttpClient(TestFakes, HttpClient):
-
     def __init__(self, dry_run: bool, verbose: bool):
         TestFakes.__init__(self)
         HttpClient.__init__(self, io_utils=None, printer=None, dry_run=dry_run, verbose=verbose)
@@ -25,18 +24,20 @@ class FakeHttpClient(TestFakes, HttpClient):
 
     def get_fn(self, url: str, timeout: int = 30, headers: Optional[dict[str, str]] = None) -> bool:
         return self.trigger_side_effect("get_fn", url, timeout, headers)
-    
+
     def head_fn(self, url: str, timeout: int = 30, headers: Optional[dict[str, str]] = None) -> bool:
         return self.trigger_side_effect("head_fn", url, timeout, headers)
-    
+
     def post_fn(self, url: str, body: str, timeout: int = 30, headers: Optional[dict[str, str]] = None) -> bool:
         return self.trigger_side_effect("post_fn", url, body, timeout, headers)
-    
+
     def download_file_fn(
-            self,
-            url: str,
-            download_folder: Optional[str] = None,
-            verify_already_downloaded: Optional[bool] = False,
-            progress_bar: Optional[bool] = False) -> bool:
-        return self.trigger_side_effect("download_file_fn", url, download_folder, verify_already_downloaded, progress_bar)
-    
+        self,
+        url: str,
+        download_folder: Optional[str] = None,
+        verify_already_downloaded: Optional[bool] = False,
+        progress_bar: Optional[bool] = False,
+    ) -> bool:
+        return self.trigger_side_effect(
+            "download_file_fn", url, download_folder, verify_already_downloaded, progress_bar
+        )

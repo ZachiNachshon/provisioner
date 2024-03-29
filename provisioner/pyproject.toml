@@ -26,7 +26,6 @@ exclude = [
 
 packages = [
     { include = "provisioner" },
-    { include = "resources" },
     { include = "external/ansible_playbooks" },
     # { include = "src/runner/ansible/resources" },
     # { include = "src/runner/ansible/resources/callback_plugins" }
@@ -36,9 +35,6 @@ packages = [
 # If no format is specified, it will default to include both sdist and wheel
 # i.e. { path = "tests", format = ["sdist", "wheel"] }
 include = [
-    { path = "provisioner/__init__.py" },
-    { path = "provisioner/main.py" },
-    { path = "resources" },
     # Must be boundled for referencing Ansible playbooks
     { path = "external/ansible_playbooks" },
     { path = "provisioner/runner/ansible/resources/ansible.cfg" },

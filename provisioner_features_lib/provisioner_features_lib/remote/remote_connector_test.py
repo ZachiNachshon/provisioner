@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import copy
-from typing import List
 import unittest
+from typing import List
 from unittest import mock
 
 from provisioner.runner.ansible.ansible_runner import AnsibleHost
@@ -146,23 +146,38 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         env = TestEnv.create()
         env.get_collaborators().printer().on("print_with_rich_table_fn", str, str).side_effect = None
 
-        def static_ip_assertion_callback(message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str):
+        def static_ip_assertion_callback(
+            message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str
+        ):
             self.assertEqual(message, "Enter a desired remote static IP address (example: 192.168.1.2XX)")
             self.assertEqual(post_user_input_message, "Selected remote static IP address       :: ")
             return TestDataRemoteConnector.TEST_DATA_DHCP_STATIC_IP_ADDRESS
-        env.get_collaborators().prompter().on("prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str).side_effect = static_ip_assertion_callback
 
-        def gw_ip_assertion_callback(message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str):
+        env.get_collaborators().prompter().on(
+            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+        ).side_effect = static_ip_assertion_callback
+
+        def gw_ip_assertion_callback(
+            message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str
+        ):
             self.assertEqual(message, "Enter the gateway address")
             self.assertEqual(post_user_input_message, "Selected gateway address                :: ")
             return TestDataRemoteConnector.TEST_DATA_DHCP_GW_IP_ADDRESS
-        env.get_collaborators().prompter().on("prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str).side_effect = gw_ip_assertion_callback
 
-        def dns_assertion_callback(message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str):
+        env.get_collaborators().prompter().on(
+            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+        ).side_effect = gw_ip_assertion_callback
+
+        def dns_assertion_callback(
+            message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str
+        ):
             self.assertEqual(message, "Enter the DNS resolver address")
             self.assertEqual(post_user_input_message, "Selected remote DNS resolver IP address :: ")
             return TestDataRemoteConnector.TEST_DATA_DHCP_DNS_IP_ADDRESS
-        env.get_collaborators().prompter().on("prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str).side_effect = dns_assertion_callback
+
+        env.get_collaborators().prompter().on(
+            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+        ).side_effect = dns_assertion_callback
 
         response = RemoteMachineConnector(env.get_collaborators()).collect_dhcpcd_configuration_info(
             env.get_context(), TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS
@@ -190,12 +205,19 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         env = TestEnv.create()
         env.get_collaborators().printer().on("print_with_rich_table_fn", str, str).side_effect = None
 
-        def ansible_host_username_assertion_callback(message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str):
+        def ansible_host_username_assertion_callback(
+            message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str
+        ):
             self.assertEqual(message, "Enter remote node user name")
             self.assertEqual(post_user_input_message, "Selected remote user :: ")
             return COLLECT_AUTH_CUSTOM_USERNAME
-        env.get_collaborators().prompter().on("prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str).side_effect = ansible_host_username_assertion_callback
-        env.get_collaborators().prompter().on("prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str).side_effect = ansible_host_username_assertion_callback
+
+        env.get_collaborators().prompter().on(
+            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+        ).side_effect = ansible_host_username_assertion_callback
+        env.get_collaborators().prompter().on(
+            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+        ).side_effect = ansible_host_username_assertion_callback
 
         # Ansible hosts are being changed within the test method, we deep copy to avoid from interfering with other tests
         ansible_hosts_deep_copy = copy.deepcopy(TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS)
@@ -224,12 +246,19 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         env = TestEnv.create()
         env.get_collaborators().printer().on("print_with_rich_table_fn", str, str).side_effect = None
 
-        def ansible_host_username_assertion_callback(message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str):
+        def ansible_host_username_assertion_callback(
+            message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str
+        ):
             self.assertEqual(message, "Enter remote node user name")
             self.assertEqual(post_user_input_message, "Selected remote user :: ")
             return COLLECT_AUTH_CUSTOM_USERNAME
-        env.get_collaborators().prompter().on("prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str).side_effect = ansible_host_username_assertion_callback
-        env.get_collaborators().prompter().on("prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str).side_effect = ansible_host_username_assertion_callback
+
+        env.get_collaborators().prompter().on(
+            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+        ).side_effect = ansible_host_username_assertion_callback
+        env.get_collaborators().prompter().on(
+            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+        ).side_effect = ansible_host_username_assertion_callback
 
         # Ansible hosts are being changed within the test method, we deep copy to avoid from interfering with other tests
         ansible_hosts_deep_copy = copy.deepcopy(TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS)
@@ -255,25 +284,31 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
 
     def test_ask_for_network_device_selection_method(self) -> None:
         env = TestEnv.create()
+
         def assertion_callback(message: str, options: List[str]):
             for auth_method in NetworkDeviceSelectionMethod:
                 self.assertIn(auth_method.value, options)
             self.assertEqual(message, "Please choose network device selection method")
             return NetworkDeviceSelectionMethod.ScanLAN
-        
-        env.get_collaborators().prompter().on("prompt_user_single_selection_fn", str, List).side_effect = assertion_callback
+
+        env.get_collaborators().prompter().on(
+            "prompt_user_single_selection_fn", str, List
+        ).side_effect = assertion_callback
         response = RemoteMachineConnector(env.get_collaborators())._ask_for_network_device_selection_method()
         self.assertEqual(response, NetworkDeviceSelectionMethod.ScanLAN)
 
     def test_ask_for_network_device_authentication_method(self) -> None:
         env = TestEnv.create()
+
         def assertion_callback(message: str, options: List[str]):
             for auth_method in NetworkDeviceAuthenticationMethod:
                 self.assertIn(auth_method.value, options)
             self.assertEqual(message, "Please choose network device authentication method")
             return NetworkDeviceAuthenticationMethod.SSHPrivateKeyPath
 
-        env.get_collaborators().prompter().on("prompt_user_single_selection_fn", str, List).side_effect = assertion_callback
+        env.get_collaborators().prompter().on(
+            "prompt_user_single_selection_fn", str, List
+        ).side_effect = assertion_callback
         response = RemoteMachineConnector(env.get_collaborators())._ask_for_network_device_authentication_method()
         self.assertEqual(response, NetworkDeviceAuthenticationMethod.SSHPrivateKeyPath)
 
@@ -283,11 +318,13 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
     )
     def test_run_host_ip_address_scan(self, run_call: mock.MagicMock) -> None:
         env = TestEnv.create()
+
         def assertion_callback(message: str, level: PromptLevel, post_yes_message: str, post_no_message: str):
             self.assertIn("Scan LAN network for IP addresses at range", message)
             self.assertEqual("Skipped LAN network scan", post_no_message)
             self.assertIn("Selected to scan LAN at range", post_yes_message)
             return True
+
         env.get_collaborators().prompter().on(
             "prompt_yes_no_fn", str, PromptLevel, str, str
         ).side_effect = assertion_callback
@@ -306,17 +343,27 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
     def test_run_manual_host_selection_success(self, run_call: mock.MagicMock) -> None:
         env = TestEnv.create()
 
-        def ip_addr_assertion_callback(message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str):
+        def ip_addr_assertion_callback(
+            message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str
+        ):
             self.assertEqual(message, "Enter remote node IP address")
             self.assertEqual(post_user_input_message, "Selected IP address :: ")
             return TestDataRemoteConnector.TEST_DATA_SSH_IP_ADDRESS_1
-        env.get_collaborators().prompter().on("prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str).side_effect = ip_addr_assertion_callback
 
-        def hostname_assertion_callback(message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str):
+        env.get_collaborators().prompter().on(
+            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+        ).side_effect = ip_addr_assertion_callback
+
+        def hostname_assertion_callback(
+            message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str
+        ):
             self.assertEqual(message, "Enter remote node host name")
             self.assertEqual(post_user_input_message, "Selected remote hostname :: ")
             return TestDataRemoteConnector.TEST_DATA_SSH_HOSTNAME_1
-        env.get_collaborators().prompter().on("prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str).side_effect = hostname_assertion_callback
+
+        env.get_collaborators().prompter().on(
+            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+        ).side_effect = hostname_assertion_callback
 
         response = RemoteMachineConnector(env.get_collaborators())._run_manual_host_selection(env.get_context())
         Assertion.expect_equal_objects(
@@ -333,8 +380,9 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
     def test_collect_auth_password_from_cli_args(self) -> None:
         env = TestEnv.create()
         env.get_collaborators().printer().on("new_line_fn", int).side_effect = None
-        env.get_collaborators().printer().on("print_fn", str).side_effect = lambda message: \
-            self.assertEqual(message, "Identified SSH password from CLI argument.")
+        env.get_collaborators().printer().on("print_fn", str).side_effect = lambda message: self.assertEqual(
+            message, "Identified SSH password from CLI argument."
+        )
         response = RemoteMachineConnector(env.get_collaborators())._collect_auth_password(
             env.get_context(), TestDataRemoteOpts.create_fake_cli_remote_opts()
         )
@@ -342,11 +390,17 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
 
     def test_collect_auth_password_from_user_prompt(self) -> None:
         env = TestEnv.create()
-        def assertion_callback(message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str):
+
+        def assertion_callback(
+            message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str
+        ):
             self.assertEqual(message, "Enter remote node password")
             self.assertEqual(post_user_input_message, "Set remote password :: ")
             return TestDataRemoteConnector.TEST_DATA_SSH_PASSWORD_1
-        env.get_collaborators().prompter().on("prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str).side_effect = assertion_callback
+
+        env.get_collaborators().prompter().on(
+            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+        ).side_effect = assertion_callback
         response = RemoteMachineConnector(env.get_collaborators())._collect_auth_password(
             env.get_context(), CliRemoteOpts()
         )
@@ -355,8 +409,9 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
     def test_collect_auth_ssh_private_key_path_from_cli_args(self) -> None:
         env = TestEnv.create()
         env.get_collaborators().printer().on("new_line_fn", int).side_effect = None
-        env.get_collaborators().printer().on("print_fn", str).side_effect = lambda message: \
-            self.assertEqual(message, "Identified SSH private key path from CLI argument.")
+        env.get_collaborators().printer().on("print_fn", str).side_effect = lambda message: self.assertEqual(
+            message, "Identified SSH private key path from CLI argument."
+        )
         response = RemoteMachineConnector(env.get_collaborators())._collect_auth_ssh_private_key_path(
             env.get_context(), TestDataRemoteOpts.create_fake_cli_remote_opts()
         )
@@ -364,11 +419,17 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
 
     def test_collect_auth_ssh_private_key_path_from_user_prompt(self) -> None:
         env = TestEnv.create()
-        def assertion_callback(message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str):
+
+        def assertion_callback(
+            message: str, default: str, redact_value: bool, level: PromptLevel, post_user_input_message: str
+        ):
             self.assertEqual(message, "Enter SSH private key path")
             self.assertEqual(post_user_input_message, "Set private key path :: ")
             return TestDataRemoteConnector.TEST_DATA_SSH_PRIVATE_KEY_FILE_PATH_1
-        env.get_collaborators().prompter().on("prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str).side_effect = assertion_callback
+
+        env.get_collaborators().prompter().on(
+            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+        ).side_effect = assertion_callback
         response = RemoteMachineConnector(env.get_collaborators())._collect_auth_ssh_private_key_path(
             env.get_context(), CliRemoteOpts()
         )
@@ -395,10 +456,14 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
 
         env.get_collaborators().checks().on("is_tool_exist_fn", str).return_value = True
         env.get_collaborators().printer().on("print_with_rich_table_fn", str, str).side_effect = None
+
         def get_all_lan_assertion_callback(ip_range: str, filter_str: str):
             self.assertEqual(ip_range, ARG_IP_DISCOVERY_RANGE)
             return HOST_SELECTION_OPTIONS_DICT
-        env.get_collaborators().network_util().on("get_all_lan_network_devices_fn", str, faker.Anything).side_effect = get_all_lan_assertion_callback
+
+        env.get_collaborators().network_util().on(
+            "get_all_lan_network_devices_fn", str, faker.Anything
+        ).side_effect = get_all_lan_assertion_callback
         env.get_collaborators().printer().on("new_line_fn", int).side_effect = None
 
         def assertion_callback(args):
@@ -422,8 +487,9 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
 
     def test_convert_prompted_single_host_selection_to_ansible_hosts(self) -> None:
         env = TestEnv.create()
-        env.get_collaborators().prompter().on("prompt_user_single_selection_fn", str, List).side_effect = \
-            lambda message, options: HOST_SELECTION_HOST_ID_1
+        env.get_collaborators().prompter().on(
+            "prompt_user_single_selection_fn", str, List
+        ).side_effect = lambda message, options: HOST_SELECTION_HOST_ID_1
 
         response = RemoteMachineConnector(env.get_collaborators())._convert_prompted_host_selection_to_ansible_hosts(
             options_list=HOST_SELECTION_OPTIONS_LIST,
@@ -436,8 +502,9 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
 
     def test_convert_prompted_multiple_host_selection_to_ansible_hosts(self) -> None:
         env = TestEnv.create()
-        env.get_collaborators().prompter().on("prompt_user_multi_selection_fn", str, List).side_effect = \
-            lambda message, options: HOST_SELECTION_OPTIONS_LIST
+        env.get_collaborators().prompter().on(
+            "prompt_user_multi_selection_fn", str, List
+        ).side_effect = lambda message, options: HOST_SELECTION_OPTIONS_LIST
 
         response = RemoteMachineConnector(env.get_collaborators())._convert_prompted_host_selection_to_ansible_hosts(
             options_list=HOST_SELECTION_OPTIONS_LIST,
