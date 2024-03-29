@@ -202,7 +202,7 @@ class FakeCoreCollaborators(CoreCollaborators):
     def http_client(self) -> FakeHttpClient:
         def create_http_client():
             if not self.__http_client:
-                self.__http_client = FakeHttpClient.create(self.__ctx, io_utils=self.io_utils(), printer=self.printer())
+                self.__http_client = FakeHttpClient.create(self.__ctx)
             return self.__http_client
 
         return self._lock_and_get(callback=create_http_client)

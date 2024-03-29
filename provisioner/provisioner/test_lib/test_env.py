@@ -24,11 +24,9 @@ class TestEnv:
     def _override_test_env_paths(self) -> None:
         test_env_root_path = self.get_test_env_root_path()
         fake_paths = FakePaths.create(self.get_context())
-        fake_paths.register_custom_paths(
-            path_abs_module_root=test_env_root_path,
-            path_exec_module_root=test_env_root_path,
-            path_relative_module_root=test_env_root_path,
-        ),
+        fake_paths.on("get_path_abs_to_module_root_fn", str, str).return_value = test_env_root_path
+        fake_paths.on("get_path_from_exec_module_root_fn", str).return_value = test_env_root_path
+        fake_paths.on("get_path_relative_from_module_root_fn", str, str).return_value = test_env_root_path
         self.__collaborators.override_paths(fake_paths)
 
     @staticmethod
