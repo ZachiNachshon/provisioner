@@ -25,12 +25,12 @@ test: ## Run tests suite
 
 .PHONY: test-coverage-html
 test-coverage-html: ## Run tests suite with HTML coverage report
-	@sed -i '' '/# provisioner = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml
+	sed -i '' '/# provisioner = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml
 	@${POETRY_DEV} test --coverage-type html
 
 .PHONY: test-coverage-xml
 test-coverage-xml: ## Run tests suite with XML coverage report (for app.codecov.io)
-	@sed -i '' '/# provisioner = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml
+	sed -i '' '/# provisioner = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml
 	@${POETRY_DEV} test --coverage-type xml
 
 .PHONY: clear-virtual-env
