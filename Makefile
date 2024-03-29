@@ -106,6 +106,19 @@ test-coverage-xml-all: ## Run Unit/E2E/IT tests
 		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make test-coverage-xml; cd ../..; \
 	done
 
+.PHONY: enable-provisioner-dependency
+enable-provisioner-dependency: ## Enable provisioner as a direct dependency to all Python modules
+	@for project in $(PROJECTS); do \
+		if [ "$$project" != "provisioner" ]; then \
+			echo "\n========= PROJECT: $$project ==============\n"; \
+			cd $${project}; sed -i '/# provisioner = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml; cd ..; \
+		fi \
+	done
+	@for plugin in $(PLUGINS); do \
+		echo "\n========= PLUGIN: $$plugin ==============\n"; \
+		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; sed -i '/# provisioner = { path = "..\/..\/provisioner", develop = true }/s/^# //' pyproject.toml; cd ../..; \
+	done
+
 .PHONY: pip-install
 pip-install: ## Install provisioner sdist to local pip
 	@echo "\n========= PROJECT: provisioner ==============\n"
