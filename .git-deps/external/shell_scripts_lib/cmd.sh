@@ -23,5 +23,9 @@ cmd_run() {
   fi
   if ! is_dry_run; then
     eval "${cmd_string}"
+    # Exit if the command fails
+    if [ $? -ne 0 ]; then
+      exit $?
+    fi
   fi
 }
