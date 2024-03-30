@@ -26,7 +26,6 @@ cmd_run() {
     # Exit if the command fails
     local exit_status=$?
     if [ $exit_status -ne 0 ]; then
-      # echo $exit_status
       exit $exit_status
     fi
   fi
