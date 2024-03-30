@@ -1,20 +1,20 @@
-name: CI
+name: Update Plugins SHA
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - '**' # Triggers the workflow on any pull request and on any branch
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Commit SHA of repository Provisioner-Plugins'
+        required: true
+        default: 'a1b2c3d4...'
 
 env:
-  # Semantic version range syntax (3.x) or exact version of a Python version
-  POETRY_VERSION: "1.4.1"
-
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA: ${{ github.event.inputs.commit_sha }}
+  
 jobs:
-  build:
-    name: Tests Suite
+  deploy:
+    name: Deployment
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -45,6 +45,19 @@ jobs:
         uses: snok/install-poetry@v1
         with:
           version: ${{ env.POETRY_VERSION }}
+
+      - name: (Cache) Try Load - gh
+        id: cache-gh
+        uses: actions/cache@v2
+        with:
+          path: /home/runner/go/bin/gh
+          key: provisioner-venv-${{ runner.os }}
+
+      - name: (Install) gh
+        if: steps.cache-gh.outputs.cache-hit != 'true'
+        run: |
+          curl -sSL https://github.com/cli/cli/releases/download/v2.41.0/gh_2.41.0_linux_amd64.tar.gz | tar xz
+          mv gh_*_linux_amd64/bin/gh /home/runner/go/bin/gh
 
       - name: Enable provisioner as a direct dependency in all modules (for testing)
         run: make enable-provisioner-dependency
@@ -123,15 +136,24 @@ jobs:
         run: |
           pip install coverage
           
+      - name: Update Provisioner Plugins SHA
+        run: |
+          cd plugins
+          git fetch
+          git checkout ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}
+          cd ..
+
       - name: Run tests suite
         run: |
           make test-coverage-xml-all
-      
-      # Requires CODECOV_TOKEN in GitHub repository secrets
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}  # Only required for private repositories
-          # file: ./coverage-combined.xml
-          file: ./provisioner/coverage.xml,./plugins/provisioner_features_lib/coverage.xml,./plugins/provisioner_examples_plugin/coverage.xml,./provisioner_installers_plugin/coverage.xml,./plugins/provisioner_single_board_plugin/coverage.xml
-          fail_ci_if_error: true
+
+      # After we made sure that Provisioner-Plugins commit hash does not break Provisioner repository, we can create the PR
+      - name: Commit Taps Plugins SHA
+        run: |
+          git config --global user.email "zachi.nachshon@gmail.com"
+          git config --global user.name "ZachiNachshon"
+          git checkout -b update-plugins-${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}
+          git add plugins
+          git commit -m "Update Tapas Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}"
+          git push --set-upstream origin update-plugins-${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}
+          gh pr create --title "Update Tapas Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}" --body "Update Provisioner Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}" --base master --head update-plugins-${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}
