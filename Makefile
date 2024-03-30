@@ -6,21 +6,17 @@ PROJECTS=provisioner provisioner_features_lib
 PLUGINS=examples installers single_board
 PLUGINS_ROOT_FOLDER=plugins
 
-# Generate SSH key for GitHub action:
-#  1. On local machine: ssh-keygen -t ed25519 -C "GitHub Actions"
-#  2. Add the public key as a deploy key to the repository you want to access:
-#     - Go to the repository’s settings page on GitHub.
-#     - Click on “Deploy keys” in the left sidebar.
-#     - Click on “Add deploy key”.
-#     - Enter a title for the key and paste the contents of the public key file into the “Key” field.
-#     - Click on “Add key”.
+# Generate SSH key for GitHub action of a repository with required access to another repository:
+#  1. Go to user 'Settings' -> 'Developer Settings' -> 'Personal Access Token':
+#     - Select Token (Classic)
+#     - Generate new token on the classic mode with full 'repo' scope
+#     - Copy the GitHub PAT secret
 #  3. Add the private key as a secret in the repository running the workflow:
 #     - Go to the repository’s settings page on GitHub.
 #     - Click on “Secrets” in the left sidebar and then "Actions".
 #     - Click on “New repository secret”.
-#     - Enter a name for the secret, such as SSH_PRIVATE_KEY, and paste the contents of the private key file into the “Value” field.
+#     - Enter a name for the secret, such as MY_REPO_ACCESS_TOKEN, and paste the contents of the private key file into the “Value” field.
 #     - Click on “Add secret”.
-#  4. Copy the code snippet from .github/workflows/ci.yaml SSH loading step
 
 .PHONY: update-externals-all
 update-externals-all: ## Update external source dependents
@@ -111,12 +107,12 @@ enable-provisioner-dependency: ## Enable provisioner as a direct dependency to a
 	@for project in $(PROJECTS); do \
 		if [ "$$project" != "provisioner" ]; then \
 			echo "\n========= PROJECT: $$project ==============\n"; \
-			cd $${project}; sed -i '/# provisioner = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml; cd ..; \
+			cd $${project}; sed -i '/# provisioner = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml; poetry lock; cd ..; \
 		fi \
 	done
 	@for plugin in $(PLUGINS); do \
 		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; sed -i '/# provisioner = { path = "..\/..\/provisioner", develop = true }/s/^# //' pyproject.toml; cd ../..; \
+		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; sed -i '/# provisioner = { path = "..\/..\/provisioner", develop = true }/s/^# //' pyproject.toml; poetry lock; cd ../..; \
 	done
 
 .PHONY: pip-install
