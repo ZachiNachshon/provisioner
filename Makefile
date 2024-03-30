@@ -95,11 +95,20 @@ test-all: ## Run tests suite
 test-coverage-xml-all: ## Run Unit/E2E/IT tests
 	@for project in $(PROJECTS); do \
 		echo "\n========= PROJECT: $$project ==============\n"; \
-		cd $${project}; make test-coverage-xml; cd ..; \
+		cd $${project}; make test-coverage-xml; \
+		if [ $$? -ne 0 ]; then \
+			exit 1; \
+		fi; \
+		cd ..; \
 	done
 	@for plugin in $(PLUGINS); do \
 		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make test-coverage-xml; cd ../..; \
+		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; \
+		make test-coverage-xml; \
+		if [ $$? -ne 0 ]; then \
+			exit 1; \
+		fi; \
+		cd ../..; \
 	done
 
 .PHONY: enable-provisioner-dependency
