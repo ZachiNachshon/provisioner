@@ -24,8 +24,10 @@ cmd_run() {
   if ! is_dry_run; then
     eval "${cmd_string}"
     # Exit if the command fails
-    if [ $? -ne 0 ]; then
-      exit $?
+    local exit_status=$?
+    if [ $exit_status -ne 0 ]; then
+      # echo $exit_status
+      exit $exit_status
     fi
   fi
 }
