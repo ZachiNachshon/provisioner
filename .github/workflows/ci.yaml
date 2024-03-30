@@ -76,7 +76,6 @@ jobs:
 
       - name: Run tests
         run: |
-          set -o pipefail
           make test-coverage-xml-all
       
       # Requires CODECOV_TOKEN in GitHub repository secrets

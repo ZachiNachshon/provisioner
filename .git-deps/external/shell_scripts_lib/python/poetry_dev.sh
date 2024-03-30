@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 CURRENT_FOLDER_ABS_PATH=$(dirname "${BASH_SOURCE[0]}")
 ROOT_FOLDER_ABS_PATH=$(dirname "${CURRENT_FOLDER_ABS_PATH}")
 
