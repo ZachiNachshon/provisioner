@@ -4,30 +4,34 @@ on:
   push:
     branches:
       - master
-
   pull_request:
     branches:
-      - master
+      - '**' # Triggers the workflow on any pull request and on any branch
 
 env:
   # Semantic version range syntax (3.x) or exact version of a Python version
-  PYTHON_VERSION: "3.10"
   POETRY_VERSION: "1.4.1"
 
 jobs:
   build:
     name: Tests Suite
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: [ '3.10' ]
 
     steps:
-      - name: Checkout repo code
+      - name: Checkout repository code (with submodules)
         uses: actions/checkout@v3
+        with:
+          submodules: true  # Fetch Git submodules
+          token: ${{ secrets.PROVISIONER_PLUGINS_REPO_ACCESS_TOKEN }}
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         id: setup-python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: ${{ matrix.python }}
 
       - name: Try Load Cached Poetry Installation
         id: cached-poetry
@@ -42,12 +46,15 @@ jobs:
         with:
           version: ${{ env.POETRY_VERSION }}
 
+      - name: Enable provisioner as a direct dependency in all modules (for testing)
+        run: make enable-provisioner-dependency
+
       - name: Try Load Cache venv - provisioner
         id: cached-venv-provisioner
         uses: actions/cache@v3
         with:
           path: ./provisioner/.venv
-          key: provisioner-venv-${{ runner.os }}-${{ hashFiles('./provisioner/poetry.lock') }}      
+          key: provisioner-venv-${{ runner.os }}-${{ hashFiles('./provisioner/poetry.lock') }}-${{ hashFiles('./provisioner/pyproject.toml') }}
 
       - name: Maybe Install venv - provisioner
         if: steps.cached-venv-provisioner.outputs.cache-hit != 'true'
@@ -55,13 +62,13 @@ jobs:
           cd provisioner
           poetry install --all-extras
           cd ..
-
+      
       - name: Try Load Cache venv - provisioner_features_lib
         id: cached-venv-provisioner-features-lib
         uses: actions/cache@v3
         with:
           path: ./provisioner_features_lib/.venv
-          key: provisioner_features_lib-venv-${{ runner.os }}-${{ hashFiles('./provisioner_features_lib/poetry.lock') }}      
+          key: provisioner_features_lib-venv-${{ runner.os }}-${{ hashFiles('./provisioner_features_lib/poetry.lock') }}-${{ hashFiles('./provisioner_features_lib/pyproject.toml') }}
 
       - name: Maybe Install venv - provisioner_features_lib
         if: steps.cached-venv-provisioner-features-lib.outputs.cache-hit != 'true'
@@ -70,10 +77,52 @@ jobs:
           poetry install
           cd ..
 
+      - name: Try Load Cache venv - provisioner_examples_plugin
+        id: cached-venv-provisioner-examples-plugin
+        uses: actions/cache@v3
+        with:
+          path: ./plugins/provisioner_examples_plugin/.venv
+          key: provisioner_examples_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_examples_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_examples_plugin/pyproject.toml') }}
+
+      - name: Maybe Install venv - provisioner_examples_plugin
+        if: steps.cached-venv-provisioner-examples-plugin.outputs.cache-hit != 'true'
+        run: |
+          cd plugins/provisioner_examples_plugin
+          poetry install
+          cd ..
+
+      - name: Try Load Cache venv - provisioner_installers_plugin
+        id: cached-venv-provisioner-installers-plugin
+        uses: actions/cache@v3
+        with:
+          path: ./plugins/provisioner_installers_plugin/.venv
+          key: provisioner_installers_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_installers_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_installers_plugin/pyproject.toml') }}
+
+      - name: Maybe Install venv - provisioner_installers_plugin
+        if: steps.cached-venv-provisioner-installers-plugin.outputs.cache-hit != 'true'
+        run: |
+          cd plugins/provisioner_installers_plugin
+          poetry install
+          cd ..
+      
+      - name: Try Load Cache venv - provisioner_single_board_plugin
+        id: cached-venv-provisioner-single-board-plugin
+        uses: actions/cache@v3
+        with:
+          path: ./plugins/provisioner_single_board_plugin/.venv
+          key: provisioner_single_board_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_single_board_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_single_board_plugin/pyproject.toml') }}
+
+      - name: Maybe Install venv - provisioner_single_board_plugin
+        if: steps.cached-venv-provisioner-single-board-plugin.outputs.cache-hit != 'true'
+        run: |
+          cd plugins/provisioner_single_board_plugin
+          poetry install
+          cd ..
+
       - name: Install Required pip packages
         run: |
           pip install coverage
-
+          
       - name: Run tests
         run: |
           make test-coverage-xml-all
@@ -84,5 +133,5 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}  # Only required for private repositories
           # file: ./coverage-combined.xml
-          file: ./provisioner/coverage.xml,./provisioner_features_lib/coverage.xml
+          file: ./provisioner/coverage.xml,./plugins/provisioner_features_lib/coverage.xml,./plugins/provisioner_examples_plugin/coverage.xml,./provisioner_installers_plugin/coverage.xml,./plugins/provisioner_single_board_plugin/coverage.xml
           fail_ci_if_error: true

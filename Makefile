@@ -13,7 +13,7 @@ PLUGINS_ROOT_FOLDER=plugins
 #     - Copy the GitHub PAT secret
 #  3. Add the private key as a secret in the repository running the workflow:
 #     - Go to the repository’s settings page on GitHub.
-#     - Click on “Secrets” in the left sidebar and then "Actions".
+#     - Click on “Secrets and variables” in the left sidebar and then "Actions".
 #     - Click on “New repository secret”.
 #     - Enter a name for the secret, such as MY_REPO_ACCESS_TOKEN, and paste the contents of the private key file into the “Value” field.
 #     - Click on “Add secret”.
@@ -91,6 +91,11 @@ test-all: ## Run tests suite
 	@coverage html
 	-@echo "\n====\n\nFull coverage report available on the following link:\n\n  • $(PWD)/htmlcov/index.html\n"
 
+
+# This is the command used by GitHub Actions to run the tests
+# It must fail the GitHub action step if any of the tests fail
+# This is the reason we're performing an exist code check since it
+# is a makefile that runs other makefiles within a for loop
 .PHONY: test-coverage-xml-all
 test-coverage-xml-all: ## Run Unit/E2E/IT tests
 	@for project in $(PROJECTS); do \
