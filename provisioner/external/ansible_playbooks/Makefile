@@ -2,26 +2,26 @@ default: help
 
 ROOT_RELATIVE_PATH=../../../..
 
-.PHONY: link-shell-script-lib
-link-shell-script-lib: ## Set symlinks to the shared-scripts-lib across all playbook roles
+.PHONY: copy-shell-script-lib
+copy-shell-script-lib: ## Copy the common/shell_lib.sh to all playbooks roles
 	@echo "\n========= PLAYBOOK: ANCHOR ===============================\n"
-	@cd playbooks/roles/anchor/files; ln -sfnv ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
+	@cd playbooks/roles/anchor/files; cp ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
 	@echo "\n========= PLAYBOOK: DHCP STATIC IP =======================\n"
-	@cd playbooks/roles/dhcp_static_ip/files; ln -sfnv ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
+	@cd playbooks/roles/dhcp_static_ip/files; cp ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
 	@echo "\n========= PLAYBOOK: DOCKER ===============================\n"
-	@cd playbooks/roles/docker/files; ln -sfnv ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
+	@cd playbooks/roles/docker/files; cp ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
 	@echo "\n========= PLAYBOOK: GIT ==================================\n"
-	@cd playbooks/roles/git/files; ln -sfnv ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
+	@cd playbooks/roles/git/files; cp ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
 	@echo "\n========= PLAYBOOK: HELLO WORLD ==========================\n"
-	@cd playbooks/roles/hello_world/files; ln -sfnv ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
+	@cd playbooks/roles/hello_world/files; cp ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
 	@echo "\n========= PLAYBOOK: K3S ==================================\n"
-	@cd playbooks/roles/k3s/files; ln -sfnv ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
+	@cd playbooks/roles/k3s/files; cp ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
 	@echo "\n========= PLAYBOOK: PROVISIONER ==========================\n"
-	@cd playbooks/roles/provisioner/files; ln -sfnv ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
+	@cd playbooks/roles/provisioner/files; cp ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
 	@echo "\n========= PLAYBOOK: RPI_CONFIG_NETWORK ===================\n"
-	@cd playbooks/roles/rpi_config_network/files; ln -sfnv ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
+	@cd playbooks/roles/rpi_config_network/files; cp ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
 	@echo "\n========= PLAYBOOK: RPI_CONFIG_NODE ======================\n"
-	@cd playbooks/roles/rpi_config_node/files; ln -sfnv ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
+	@cd playbooks/roles/rpi_config_node/files; cp ../../../common/shell_lib.sh shell_lib.sh; cd ${ROOT_RELATIVE_PATH}
 
 .PHONY: help
 help:

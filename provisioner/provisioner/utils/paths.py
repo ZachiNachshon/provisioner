@@ -6,6 +6,7 @@ import sys
 from importlib import resources
 from pathlib import Path
 from typing import Optional
+from importlib.resources import files
 
 from loguru import logger
 
@@ -103,8 +104,13 @@ class Paths:
     def _get_file_path_from_python_package(self, package: str, filename: str) -> str:
         if self._dry_run:
             return "DRY_RUN_RESPONSE"
-        ctxMgrPath = resources.path(package=package, resource=filename)
-        return str(os.fspath(ctxMgrPath))
+        # Get the context manager for the resource path
+        with files(package).joinpath(filename) as ctxMgrPath:
+            # Convert the context manager to a string
+            return str(os.fspath(ctxMgrPath))
+
+        # ctxMgrPath = resources.path(package=package, resource=filename)
+        # return str(os.fspath(ctxMgrPath))
 
     def _get_dir_path_from_python_package(self, package: str, dirname: str) -> str:
         if self._dry_run:

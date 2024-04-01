@@ -70,7 +70,7 @@ jobs:
           gh --version
 
       - name: Enable provisioner as a direct dependency in all modules (for testing)
-        run: make enable-provisioner-dependency
+        run: make enable-provisioner-dependency-linux
 
       - name: (Cache) Try Load - provisioner
         id: cached-venv-provisioner

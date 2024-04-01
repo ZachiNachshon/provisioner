@@ -56,13 +56,19 @@ pip-publish-github: ## Publish a pip package tarball as a GitHub release
 	@${POETRY_PIP_RELEASER} publish \
 		--build-type sdist \
 		--release-type github \
-		--release-tag $(shell cat ./resources/version.txt)
+		--release-tag $(shell cat ./provisioner/resources/version.txt)
 
 .PHONY: pip-github-delete-tag
 pip-github-delete-tag: ## Publish a pip package tarball as a GitHub release
 	@${POETRY_PIP_RELEASER} delete \
 		--origin github \
-		--delete-tag $(shell cat ./resources/version.txt)
+		--delete-tag $(shell cat ./provisioner/resources/version.txt)
+
+.PHONY: pip-publish-pypi
+pip-publish-pypi: ## Publish a pip package tarball as a PyPi release
+	@${POETRY_PIP_RELEASER} publish \
+		--build-type wheel \
+		--release-type pypi
 
 .PHONY: clear-virtual-env
 clear-virtual-env: ## Clear Poetry virtual environments

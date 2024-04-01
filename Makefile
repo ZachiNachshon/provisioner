@@ -116,17 +116,30 @@ test-coverage-xml-all: ## Run Unit/E2E/IT tests
 		cd ../..; \
 	done
 
-.PHONY: enable-provisioner-dependency
-enable-provisioner-dependency: ## Enable provisioner as a direct dependency to all Python modules
+.PHONY: enable-provisioner-dependency-linux
+enable-provisioner-dependency-linux: ## Enable provisioner as a direct dependency to all Python modules
 	@for project in $(PROJECTS); do \
 		if [ "$$project" != "provisioner" ]; then \
 			echo "\n========= PROJECT: $$project ==============\n"; \
-			cd $${project}; sed -i '/# provisioner = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml; poetry lock; cd ..; \
+			cd $${project}; sed -i '/# provisioner = { path = "..\/provisioner_runtime", develop = true }/s/^# //' pyproject.toml; poetry lock; cd ..; \
 		fi \
 	done
 	@for plugin in $(PLUGINS); do \
 		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; sed -i '/# provisioner = { path = "..\/..\/provisioner", develop = true }/s/^# //' pyproject.toml; poetry lock; cd ../..; \
+		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; sed -i '/# provisioner_runtime = { path = "..\/..\/provisioner", develop = true }/s/^# //' pyproject.toml; poetry lock; cd ../..; \
+	done
+
+.PHONY: enable-provisioner-dependency-macos
+enable-provisioner-dependency-macos: ## Enable provisioner as a direct dependency to all Python modules
+	@for project in $(PROJECTS); do \
+		if [ "$$project" != "provisioner" ]; then \
+			echo "\n========= PROJECT: $$project ==============\n"; \
+			cd $${project}; sed -i '' '/# provisioner_runtime = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml; poetry lock; cd ..; \
+		fi \
+	done
+	@for plugin in $(PLUGINS); do \
+		echo "\n========= PLUGIN: $$plugin ==============\n"; \
+		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; sed -i '' '/# provisioner_runtime = { path = "..\/..\/provisioner", develop = true }/s/^# //' pyproject.toml; poetry lock; cd ../..; \
 	done
 
 .PHONY: pip-install
