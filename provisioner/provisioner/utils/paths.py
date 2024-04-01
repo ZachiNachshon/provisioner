@@ -4,9 +4,9 @@ import os
 import pathlib
 import sys
 from importlib import resources
+from importlib.resources import files
 from pathlib import Path
 from typing import Optional
-from importlib.resources import files
 
 from loguru import logger
 

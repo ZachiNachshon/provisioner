@@ -229,7 +229,7 @@ start_local_docs_site() {
     new_line
     cmd_run "npm run docs-serve-lan"
   else
-    log_info "Running a local docs site (http://localhost:9001/provisioner/)"
+    log_info "Running a local docs site (http://localhost:9001/anchor/)"
     new_line
     cmd_run "npm run docs-serve"
   fi

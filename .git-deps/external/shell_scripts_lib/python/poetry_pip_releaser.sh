@@ -10,6 +10,7 @@ source "${ROOT_FOLDER_ABS_PATH}/strings.sh"
 source "${ROOT_FOLDER_ABS_PATH}/checks.sh"
 source "${ROOT_FOLDER_ABS_PATH}/github.sh"
 source "${ROOT_FOLDER_ABS_PATH}/prompter.sh"
+source "${ROOT_FOLDER_ABS_PATH}/envs.sh"
 
 SCRIPT_MENU_TITLE="Poetry pip Releaser"
 
@@ -39,6 +40,8 @@ POETRY_PACKAGE_NAME=""
 POETRY_PACKAGE_VERSION=""
 
 DEV_BINARY_PATH="${HOME}/.local/bin"
+
+BUILD_OUTPUT_FILE_PATH=""
 
 is_install() {
   [[ -n "${CLI_ARGUMENT_INSTALL}" ]]
@@ -129,13 +132,18 @@ get_sdist_name() {
   echo "${escaped_pkg_name}-${POETRY_PACKAGE_VERSION}.tar.gz"
 }
 
+get_wheel_name() {
+  local escaped_pkg_name=$(get_escaped_package_path)
+  echo "${escaped_pkg_name}-${POETRY_PACKAGE_VERSION}-py3-none-any.whl"
+}
+
 get_dev_pip_pkg_path() {
   echo "${HOME}/.config/${POETRY_PACKAGE_NAME}/.pip-pkg"
 }
 
 dev_prepare_pip_pkg_folder() {
   local dev_pip_pkg_path=$(get_dev_pip_pkg_path)
-  if is_dry_run || is_directory_exist "${dev_pip_pkg_path}"; then
+  if ! is_dry_run && is_directory_exist "${dev_pip_pkg_path}"; then
     log_info "Clearing previous locally installed Python distribution"
     cmd_run "rm -rf ${dev_pip_pkg_path}"
   fi
@@ -143,11 +151,10 @@ dev_prepare_pip_pkg_folder() {
 }
 
 dev_copy_pip_pkg_tarball() {
-  local sdist_name=$(get_sdist_name)
   local dev_pip_pkg_path=$(get_dev_pip_pkg_path)
 
   log_info "Copy local pip package sdist tarball"
-  cmd_run "mv dist/${sdist_name} ${dev_pip_pkg_path}"
+  cmd_run "mv ${BUILD_OUTPUT_FILE_PATH} ${dev_pip_pkg_path}"
 }
 
 dev_unpack_pip_pkg_tarball() {
@@ -268,33 +275,30 @@ delete_dev_local_pip_package() {
   fi 
 }
 
-install_pip_package_from_sdist() {
-  local cwd=$(pwd)
-  local sdist_filename=$(get_sdist_name)
-  local pip_tarball_folder_path=""
+set_built_output_file_path() {
+  local bundle_filename=$1
+  local pip_package_folder_path=""
 
   if ! is_dry_run; then
-    pip_tarball_folder_path=$(mktemp -d "${TMPDIR:-/tmp}/${POETRY_PACKAGE_NAME}.XXXXXX")
+    pip_package_folder_path=$(mktemp -d "${TMPDIR:-/tmp}/${POETRY_PACKAGE_NAME}.XXXXXX")
   else
-    pip_tarball_folder_path="/dry/run/dummy/path"
-  fi 
-
-  log_info "Copy sdist tarball. path: ${pip_tarball_folder_path}"
-  cmd_run "mv dist/${sdist_filename} ${pip_tarball_folder_path}"
-
-  if ! is_dry_run; then
-    cd "${pip_tarball_folder_path}" || exit
+    pip_package_folder_path="/dry/run/dummy/path"
   fi
-  
-  log_info "Installing pip package from sdist tarball..."
-  cmd_run "python3 -m pip install ${pip_tarball_folder_path}/${sdist_filename} --no-python-version-warning --disable-pip-version-check"
-  
+
+  new_line
+  log_info "Copy build output. path: ${pip_package_folder_path}"
+  cmd_run "mv dist/${bundle_filename} ${pip_package_folder_path}"
+  BUILD_OUTPUT_FILE_PATH="${pip_package_folder_path}/${bundle_filename}"
+}
+
+cleanup_build_path() {
   if ! is_dry_run; then
-    cd "${cwd}" || exit
-    # Clear temporary folder
-    if [[ -n "${POETRY_PACKAGE_NAME}" ]]; then
-      cmd_run "rm -rf ${pip_tarball_folder_path}"
-    fi
+    if [[ "${BUILD_OUTPUT_FILE_PATH}" == *"${POETRY_PACKAGE_VERSION}-py3-none-any.whl"* || \
+          "${BUILD_OUTPUT_FILE_PATH}" == *"${POETRY_PACKAGE_VERSION}.tar.gz"* ]]; then
+      new_line
+      log_info "Clearing build output temporary folder..."
+      cmd_run "rm -rf ${BUILD_OUTPUT_FILE_PATH}"
+    fi 
   fi
 }
 
@@ -329,30 +333,9 @@ delete_release_from_github() {
   fi
 }
 
-install_pip_package_from_wheel() {
-  log_fatal "Installing a pip wheel is not yet supported"
-}
-
-delete_pip_package_from_wheel() {
-  log_fatal "Uninstalling a pip wheel is not yet supported"
-}
-
-build_sdist_tarball()  {
-  local build_cmd=""
-
-  if is_multi_project; then
-    log_info "Build a local Python source distribution ${COLOR_YELLOW}BUNDLED MULTI PROJECT${COLOR_NONE} (sdist tarball)"
-    build_cmd="poetry build-project -f sdist"
-  else
-    log_info "Build a local Python source distribution ${COLOR_YELLOW}NON-BUNDLED SINGLE PROJECT${COLOR_NONE} (sdist tarball)"
-    build_cmd="poetry build -f sdist"
-  fi
-
-  if is_verbose; then
-    build_cmd+=" -vv"
-  fi
-  
-  cmd_run "${build_cmd} || exit"
+install_pip_package() {
+  log_info "Installing pip package..."
+  cmd_run "python3 -m pip install ${BUILD_OUTPUT_FILE_PATH} --no-python-version-warning --disable-pip-version-check"
 }
 
 maybe_force_install_deps() {
@@ -361,8 +344,47 @@ maybe_force_install_deps() {
   fi
 }
 
+build_sdist_tarball()  {
+  local build_cmd=""
+
+  if is_multi_project; then
+    log_info "Building a local Python source distribution ${COLOR_YELLOW}BUNDLED MULTI PROJECT${COLOR_NONE} (sdist tarball)"
+    build_cmd="poetry build-project -f sdist"
+  else
+    log_info "Building a local Python source distribution ${COLOR_YELLOW}NON-BUNDLED SINGLE PROJECT${COLOR_NONE} (sdist tarball)"
+    build_cmd="poetry build -f sdist"
+  fi
+
+  if is_verbose; then
+    build_cmd+=" -vv"
+  fi
+  
+  cmd_run "${build_cmd} || exit"
+  new_line
+
+  local sdist_filename=$(get_sdist_name)
+  set_built_output_file_path "${sdist_filename}"
+}
+
 build_wheel_package() {
-  log_fatal "Building pip wheel is not supported yet"
+  local build_cmd=""
+
+  if is_multi_project; then
+    log_info "Building a local Python wheel ${COLOR_YELLOW}BUNDLED MULTI PROJECT${COLOR_NONE}"
+    build_cmd="poetry build-project -f wheel"
+  else
+    log_info "Building a local Python wheel ${COLOR_YELLOW}NON-BUNDLED SINGLE PROJECT${COLOR_NONE}"
+    build_cmd="poetry build -f wheel"
+  fi
+
+  if is_verbose; then
+    build_cmd+=" -vv"
+  fi
+  
+  cmd_run "${build_cmd} || exit"
+
+  local wheel_filename=$(get_wheel_name)
+  set_built_output_file_path "${wheel_filename}"
 }
 
 build_pip_package() {
@@ -377,14 +399,14 @@ build_pip_package() {
   fi
 }
 
-install_pip_package() {
+install_pip_package_by_type() {
   if is_dev_mode; then
     install_dev_local_pip_package
   elif is_sdist_build_type; then
-    install_pip_package_from_sdist
+    install_pip_package
     maybe_force_install_deps
   elif is_wheel_build_type; then
-    install_pip_package_from_wheel
+    install_pip_package
     maybe_force_install_deps
   else
     log_fatal "Flag --build-type has invalid value or missing a value. value: ${CLI_VALUE_BUILD_TYPE}"
@@ -410,6 +432,7 @@ publish_asset_to_github_release() {
   local filepath=$2
 
   if github_prompt_for_approval_before_release "${tag}"; then
+    new_line
     if github_is_release_tag_exist "${tag}"; then
       log_info "GitHub release tag was found. tag: ${tag}"
       github_upload_release_asset "${tag}" "${filepath}"
@@ -423,40 +446,39 @@ publish_asset_to_github_release() {
   fi
 }
 
-publish_pip_package_to_github_from_sdist() {
-  local sdist_filename=$(get_sdist_name)
-  local sdist_filename_escaped=$(echo "${sdist_filename}" | tr '-' '_')
-  local pip_tarball_folder_path="dist/${sdist_filename_escaped}"
-
-  log_info "Escaping release asset name. name: ${sdist_filename_escaped}"
-  cmd_run "mv dist/${sdist_filename} ${pip_tarball_folder_path}"
-
-  log_info "Publishing pip package as a GitHub release from sdist tarball..."
-  new_line
+publish_pip_package_to_github() {
   local tag=$(get_release_tag)
-  publish_asset_to_github_release "${tag}" "${pip_tarball_folder_path}"
+  log_info "Publishing pip package as a GitHub release (${tag})..."
+  new_line
+  publish_asset_to_github_release "${tag}" "${BUILD_OUTPUT_FILE_PATH}"
 }
 
-publish_pip_package_to_github_from_wheel() {
-  log_fatal "Publishing pip package from a wheel is not supported yet"
+publish_to_pypi() {
+  local tag="${POETRY_PACKAGE_VERSION}"
+  local username="__token__"
+  local password="${PYPI_API_TOKEN}"
+
+  if github_prompt_for_approval_before_release "${tag}"; then
+    log_info "Publishing pip package to PyPi (${tag})..."
+    cmd_run "twine upload --username ${username} --password ${password} ${BUILD_OUTPUT_FILE_PATH}"
+  else
+    log_info "Nothing was published."
+  fi
 }
 
 publish_package() {
   if is_github_release_type; then
     check_tool "gh"
-    if is_sdist_build_type; then
-      publish_pip_package_to_github_from_sdist
-    elif is_wheel_build_type; then
-      publish_pip_package_to_github_from_wheel
-    fi
+    publish_pip_package_to_github
   elif is_pypi_release_type; then
-    log_fatal "Releasing to PyPi is not supported yet"
+    check_tool "twine"
+    publish_to_pypi
   else
     log_fatal "Invalid publish release type. value: ${CLI_FLAG_RELEASE_TYPE}"
   fi
 }
 
-resolve_project_name_version() {
+poetry_resolve_project_name_version() {
   # POETRY_PACKAGE_NAME="provisioner"
   # POETRY_PACKAGE_VERSION="0.0.0"
 
@@ -526,7 +548,7 @@ print_help_menu_and_exit() {
   echo -e " "
   echo -e "${COLOR_WHITE}PUBLISH FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--release-type${COLOR_NONE} <option>   Publish pkg destination [${COLOR_GREEN}options: pypi/github${COLOR_NONE}]"
-  echo -e "  ${COLOR_LIGHT_CYAN}--release-tag${COLOR_NONE} <value>     Tag of the release"
+  echo -e "  ${COLOR_LIGHT_CYAN}--release-tag${COLOR_NONE} <value>     Tag for GitHub release only"
   echo -e " "
   echo -e "${COLOR_WHITE}DELETE FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--origin${COLOR_NONE} <option>         Origin of the pip package to delete from [${COLOR_GREEN}options: pypi-local/pypi-remote/github${COLOR_NONE}]"
@@ -541,8 +563,8 @@ print_help_menu_and_exit() {
   echo -e "  ${COLOR_LIGHT_CYAN}-h${COLOR_NONE} (--help)               Show available actions and their description"
   echo -e " "
   echo -e "${COLOR_WHITE}GLOBALS${COLOR_NONE}"
-  echo -e "  ${COLOR_LIGHT_CYAN}PYPI_TOKEN${COLOR_NONE}                Valid PyPI token with write access for publishing releases"
   echo -e "  ${COLOR_LIGHT_CYAN}GITHUB_TOKEN${COLOR_NONE}              Valid GitHub token with write access for publishing releases"
+  echo -e "  ${COLOR_LIGHT_CYAN}PYPI_API_TOKEN${COLOR_NONE}            Valid PyPI API token write access for publishing releases"
   echo -e " "
   exit 0
 }
@@ -656,18 +678,20 @@ check_delete_invalid_origin() {
 
 check_publish_release_type_missing_tokens() {
   if is_publish; then
-    if is_pypi_release_type && [[ -z "${PYPI_TOKEN}" ]]; then
-      log_fatal "Publish command is missing an authentication token. name: PYPI_TOKEN"
+    if is_pypi_release_type; then
+      if [[ -z "${PYPI_API_TOKEN}" ]]; then
+        log_fatal "Publish command is missing a PyPi authentication token. name: PYPI_API_TOKEN"
+      fi
     fi
     if is_github_release_type && [[ -z "${GITHUB_TOKEN}" ]]; then
-      log_fatal "Publish command is missing an authentication token. name: GITHUB_TOKEN"
+      log_fatal "Publish command is missing a GitHub authentication token. name: GITHUB_TOKEN"
     fi
   fi
 }
 
 check_publish_release_type_missing_tag() {
-  if is_publish && [[ -z "${CLI_VALUE_RELEASE_TAG}" ]]; then
-    log_fatal "Publish command is missing a release tag. flag: --release-tag"
+  if is_publish && is_github_release_type && [[ -z "${CLI_VALUE_RELEASE_TAG}" ]]; then
+    log_fatal "Publish command is missing a GitHub release tag. flag: --release-tag"
   fi
 }
 
@@ -687,14 +711,14 @@ check_no_dev_mode_for_publish() {
   fi
 }
 
-check_unsupported_actions() {
-  if is_wheel_build_type; then
-    log_fatal "Building pip wheel is not supported yet"
-  fi
-  if is_pypi_release_type; then
-    log_fatal "Releasing to PyPi is not supported yet"
-  fi 
-}
+# check_unsupported_actions() {
+  # if is_wheel_build_type; then
+  #   log_fatal "Building pip wheel is not supported yet"
+  # fi
+  # if is_pypi_release_type; then
+  #   log_fatal "Releasing to PyPi is not supported yet"
+  # fi 
+# }
 
 verify_program_arguments() {
   if check_legal_arguments; then
@@ -713,7 +737,7 @@ verify_program_arguments() {
   check_publish_release_type_missing_tag
   # check_delete_missing_tag
   check_no_dev_mode_for_publish
-  check_unsupported_actions
+  # check_unsupported_actions
   evaluate_dry_run_mode
 }
 
@@ -724,6 +748,7 @@ prerequisites() {
     # Update lock file changes
     log_info "Updating changes to the Poetry lock file"
     cmd_run "poetry lock"
+    new_line
   fi
 }
 
@@ -738,11 +763,11 @@ main() {
   verify_program_arguments
 
   prerequisites
-  resolve_project_name_version
+  poetry_resolve_project_name_version
 
   if is_install; then
     build_pip_package
-    install_pip_package
+    install_pip_package_by_type
   fi
 
   if is_delete; then
@@ -753,6 +778,8 @@ main() {
     build_pip_package
     publish_package
   fi
+
+  cleanup_build_path
 }
 
 main "$@"

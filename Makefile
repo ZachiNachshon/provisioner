@@ -117,7 +117,7 @@ test-coverage-xml-all: ## Run Unit/E2E/IT tests
 	done
 
 .PHONY: enable-provisioner-dependency-linux
-enable-provisioner-dependency-linux: ## Enable provisioner as a direct dependency to all Python modules
+enable-provisioner-dependency-linux: ## Enable provisioner as a direct dependency to all Python modules (for testing)
 	@for project in $(PROJECTS); do \
 		if [ "$$project" != "provisioner" ]; then \
 			echo "\n========= PROJECT: $$project ==============\n"; \
@@ -130,7 +130,7 @@ enable-provisioner-dependency-linux: ## Enable provisioner as a direct dependenc
 	done
 
 .PHONY: enable-provisioner-dependency-macos
-enable-provisioner-dependency-macos: ## Enable provisioner as a direct dependency to all Python modules
+enable-provisioner-dependency-macos: ## Enable provisioner as a direct dependency to all Python modules (for testing)
 	@for project in $(PROJECTS); do \
 		if [ "$$project" != "provisioner" ]; then \
 			echo "\n========= PROJECT: $$project ==============\n"; \

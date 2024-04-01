@@ -4,6 +4,7 @@ import os
 import pathlib
 
 from loguru import logger
+
 from provisioner.cli.entrypoint import EntryPoint
 from provisioner.config.domain.config import ProvisionerConfig
 from provisioner.config.manager.config_manager import ConfigManager
@@ -26,9 +27,7 @@ if not debug_pre_init:
 
 app = EntryPoint.create_typer(
     title="Provision Everything Anywhere (install plugins from https://zachinachshon.com/provisioner)",
-    config_resolver_fn=lambda: ConfigManager.instance().load(
-        CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig
-    ),
+    config_resolver_fn=lambda: ConfigManager.instance().load(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig),
 )
 
 
