@@ -22,6 +22,8 @@ cmd_run() {
 """ >&1
   fi
   if ! is_dry_run; then
+    set -e
     eval "${cmd_string}"
+    set +e
   fi
 }

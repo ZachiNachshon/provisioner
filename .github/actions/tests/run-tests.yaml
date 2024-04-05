@@ -1,0 +1,86 @@
+name: 'Tests Suite'
+description: 'Run Tests Suite'
+runs:
+  using: 'composite'
+  steps:
+    - name: Enable provisioner as a direct dependency in all modules (for testing)
+      run: make enable-provisioner-dependency-linux
+
+    - name: (Cache) Try Load - provisioner
+      id: cached-venv-provisioner
+      uses: actions/cache@v3
+      with:
+        path: ./provisioner/.venv
+        key: provisioner-venv-${{ runner.os }}-${{ hashFiles('./provisioner/poetry.lock') }}-${{ hashFiles('./provisioner/pyproject.toml') }}
+
+    - name: (Install) provisioner
+      if: steps.cached-venv-provisioner.outputs.cache-hit != 'true'
+      run: |
+        cd provisioner
+        poetry install --all-extras
+        cd ..
+    
+    - name: (Cache) Try Load - provisioner_features_lib
+      id: cached-venv-provisioner-features-lib
+      uses: actions/cache@v3
+      with:
+        path: ./provisioner_features_lib/.venv
+        key: provisioner_features_lib-venv-${{ runner.os }}-${{ hashFiles('./provisioner_features_lib/poetry.lock') }}-${{ hashFiles('./provisioner_features_lib/pyproject.toml') }}
+
+    - name: (Install) provisioner_features_lib
+      if: steps.cached-venv-provisioner-features-lib.outputs.cache-hit != 'true'
+      run: |
+        cd provisioner_features_lib
+        poetry install
+        cd ..
+
+    - name: (Cache) Try Load - provisioner_examples_plugin
+      id: cached-venv-provisioner-examples-plugin
+      uses: actions/cache@v3
+      with:
+        path: ./plugins/provisioner_examples_plugin/.venv
+        key: provisioner_examples_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_examples_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_examples_plugin/pyproject.toml') }}
+
+    - name: (Install) provisioner_examples_plugin
+      if: steps.cached-venv-provisioner-examples-plugin.outputs.cache-hit != 'true'
+      run: |
+        cd plugins/provisioner_examples_plugin
+        poetry install
+        cd ..
+
+    - name: (Cache) Try Load - provisioner_installers_plugin
+      id: cached-venv-provisioner-installers-plugin
+      uses: actions/cache@v3
+      with:
+        path: ./plugins/provisioner_installers_plugin/.venv
+        key: provisioner_installers_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_installers_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_installers_plugin/pyproject.toml') }}
+
+    - name: (Install) provisioner_installers_plugin
+      if: steps.cached-venv-provisioner-installers-plugin.outputs.cache-hit != 'true'
+      run: |
+        cd plugins/provisioner_installers_plugin
+        poetry install
+        cd ..
+    
+    - name: (Cache) Try Load - provisioner_single_board_plugin
+      id: cached-venv-provisioner-single-board-plugin
+      uses: actions/cache@v3
+      with:
+        path: ./plugins/provisioner_single_board_plugin/.venv
+        key: provisioner_single_board_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_single_board_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_single_board_plugin/pyproject.toml') }}
+
+    - name: (Install) provisioner_single_board_plugin
+      if: steps.cached-venv-provisioner-single-board-plugin.outputs.cache-hit != 'true'
+      run: |
+        cd plugins/provisioner_single_board_plugin
+        poetry install
+        cd ..
+
+    - name: Install Required pip packages
+      run: |
+        pip install coverage
+        
+    - name: Run tests suite
+      run: |
+        make test-coverage-xml-all
+    
