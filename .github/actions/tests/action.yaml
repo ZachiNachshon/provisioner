@@ -3,8 +3,8 @@ description: 'Run Tests Suite'
 runs:
   using: 'composite'
   steps:
-    - name: Enable provisioner as a direct dependency in all modules (for testing)
-      run: make enable-provisioner-dependency-linux
+    - name: Enable provisioner sources as a direct dependency in all modules (for testing)
+      run: make use-provisioner-from-soruces
       shell: bash
 
     - name: (Cache) Try Load - provisioner

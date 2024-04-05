@@ -65,6 +65,7 @@ python-hosts = "^1.0.3"
 # #sh = "^1.14.2"         - Subprocess replacement for Python (https://github.com/amoffat/sh)
 # #backoff = "^1.10.0"    - Function decoration for backoff and retry (https://github.com/litl/backoff)
 # #tenacity = "^8.0.1"    - General-purpose retrying library (https://github.com/jd/tenacity)
+# provisioner-runtime = "^0.1.2"
 
 ####################################################
 # USED ONLY FOR PLUGIN DEVELOPMENT

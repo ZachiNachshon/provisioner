@@ -3,6 +3,17 @@ default: help
 POETRY_DEV=../external/shell_scripts_lib/python/poetry_dev.sh
 POETRY_PIP_RELEASER=../external/shell_scripts_lib/python/poetry_pip_releaser.sh
 
+# This section allows us to make commands self aware with the OS we are running
+# and adjust the sed command accordingly, sed for examle
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Linux)
+    SED_INPLACE := -i
+endif
+ifeq ($(UNAME_S),Darwin)
+    SED_INPLACE := -i ''
+endif
+
 .PHONY: deps
 deps: ## Update and install pyproject.toml dependencies on the virtual environment
 	@${POETRY_DEV} deps
@@ -35,6 +46,16 @@ test-coverage-xml: ## Run tests suite with XML coverage report (for app.codecov.
 clear-virtual-env: ## Clear Poetry virtual environments
 	@rm -rf .venv
 	@echo Cleared.
+
+.PHONY: use-provisioner-from-sources
+use-provisioner-sources: ## Use provisioner from local sources
+	@sed $(SED_INPLACE) '/# provisioner_runtime = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml
+	@poetry lock
+
+.PHONY: use-provisioner-from-pypi
+use-provisioner-pypi: ## Use provisioner from remote PyPi
+	@sed $(SED_INPLACE) '/# provisioner-runtime =/s/^# //' pyproject.toml
+	@poetry lock
 
 .PHONY: pDev
 pDev: ## Interact with ../external/.../poetry_dev.sh            (Usage: make pDev 'fmt --check-only')
