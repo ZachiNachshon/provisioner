@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
+import pathlib
 from typing import Callable, Optional
 
+from loguru import logger
 import typer
 
 from provisioner.cli.state import CliGlobalArgs
@@ -9,7 +11,7 @@ from provisioner.infra.context import Context
 from provisioner.infra.log import LoggerManager
 from provisioner.utils.paths import Paths
 
-STATIC_VERSION_PACKAGE_PATH = None
+STATIC_RESOURCES_PACKAGE = "provisioner.resources"
 
 MODIFIERS_FLAGS_HELP_TITLE = "Modifiers"
 
@@ -88,12 +90,13 @@ def try_read_version() -> str:
     content = "no version"
     try:
         file_path = Paths.create(Context.create()).get_file_path_from_python_package(
-            STATIC_VERSION_PACKAGE_PATH, "version.txt"
+            STATIC_RESOURCES_PACKAGE, "version.txt"
         )
         with open(file_path, "r+") as opened_file:
             content = opened_file.read()
             opened_file.close()
-    except Exception:
+    except Exception as ex:
+        logger.error(f"Failed to read version file. ex: {ex}")
         pass
     return content
 
@@ -103,11 +106,12 @@ class EntryPoint:
     def create_typer(
         title: str,
         config_resolver_fn: Optional[Callable] = None,
-        version_package_path: Optional[str] = "resources",
+        version_package_path: Optional[str] = STATIC_RESOURCES_PACKAGE,
     ) -> typer.Typer:
 
-        global STATIC_VERSION_PACKAGE_PATH
-        STATIC_VERSION_PACKAGE_PATH = version_package_path
+        if len(version_package_path) > 0:
+            global STATIC_RESOURCES_PACKAGE
+            STATIC_RESOURCES_PACKAGE = version_package_path
 
         if config_resolver_fn:
             config_resolver_fn()

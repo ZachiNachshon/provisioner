@@ -39,7 +39,7 @@ def load_plugin(plugin_module):
 PackageLoader.create().load_modules_fn(
     filter_keyword="provisioner",
     import_path="main",
-    exclusions=["provisioner", "provisioner-features-lib"],
+    exclusions=["provisioner-runtime", "provisioner-features-lib"],
     callback=lambda module: load_plugin(plugin_module=module),
     debug=debug_pre_init,
 )

@@ -11,12 +11,14 @@ PLUGINS_ROOT_FOLDER=plugins
 #     - Select Token (Classic)
 #     - Generate new token on the classic mode with full 'repo' scope
 #     - Copy the GitHub PAT secret
-#  3. Add the private key as a secret in the repository running the workflow:
+#  2. Add the private key as a secret in the repository running the workflow:
 #     - Go to the repository’s settings page on GitHub.
 #     - Click on “Secrets and variables” in the left sidebar and then "Actions".
 #     - Click on “New repository secret”.
 #     - Enter a name for the secret, such as MY_REPO_ACCESS_TOKEN, and paste the contents of the private key file into the “Value” field.
 #     - Click on “Add secret”.
+#  3. On the GitHub workflow use is as:
+#     - token: ${{ secrets.MY_REPO_ACCESS_TOKEN }}
 
 .PHONY: update-externals-all
 update-externals-all: ## Update external source dependents
@@ -117,11 +119,11 @@ test-coverage-xml-all: ## Run Unit/E2E/IT tests
 	done
 
 .PHONY: enable-provisioner-dependency-linux
-enable-provisioner-dependency-linux: ## Enable provisioner as a direct dependency to all Python modules (for testing)
+enable-provisioner-dependency-linux: ## Enable provisioner as a direct dependency to all Python modules (for testing in CI)
 	@for project in $(PROJECTS); do \
 		if [ "$$project" != "provisioner" ]; then \
 			echo "\n========= PROJECT: $$project ==============\n"; \
-			cd $${project}; sed -i '/# provisioner = { path = "..\/provisioner_runtime", develop = true }/s/^# //' pyproject.toml; poetry lock; cd ..; \
+			cd $${project}; sed -i '/# provisioner_runtime = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml; poetry lock; cd ..; \
 		fi \
 	done
 	@for plugin in $(PLUGINS); do \
@@ -130,7 +132,7 @@ enable-provisioner-dependency-linux: ## Enable provisioner as a direct dependenc
 	done
 
 .PHONY: enable-provisioner-dependency-macos
-enable-provisioner-dependency-macos: ## Enable provisioner as a direct dependency to all Python modules (for testing)
+enable-provisioner-dependency-macos: ## Enable provisioner as a direct dependency to all Python modules (for testing in CI)
 	@for project in $(PROJECTS); do \
 		if [ "$$project" != "provisioner" ]; then \
 			echo "\n========= PROJECT: $$project ==============\n"; \
@@ -164,18 +166,6 @@ pip-uninstall-plugins: ## Uninstall all plugins source distributions from local 
 	@for plugin in $(PLUGINS); do \
 		echo "\n========= PLUGIN: $$plugin ==============\n"; \
 		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make pip-uninstall; cd ../..; \
-	done
-
-.PHONY: pip-publish-github
-pip-publish-github: ## Publish all pip packages tarballs as GitHub releases
-	@echo "\n========= PROJECT: provisioner ==============\n"
-	@cd provisioner; make pip-publish-github; cd ..
-
-.PHONY: pip-publish-plugins-github
-pip-publish-plugins-github: ## Publish all plugins pip packages tarballs as GitHub releases
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make pip-publish-github; cd ../..; \
 	done
 
 .PHONY: clear-virtual-env-all
