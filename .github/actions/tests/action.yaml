@@ -5,6 +5,7 @@ runs:
   steps:
     - name: Enable provisioner as a direct dependency in all modules (for testing)
       run: make enable-provisioner-dependency-linux
+      shell: bash
 
     - name: (Cache) Try Load - provisioner
       id: cached-venv-provisioner
@@ -19,6 +20,7 @@ runs:
         cd provisioner
         poetry install --all-extras
         cd ..
+      shell: bash
     
     - name: (Cache) Try Load - provisioner_features_lib
       id: cached-venv-provisioner-features-lib
@@ -33,6 +35,7 @@ runs:
         cd provisioner_features_lib
         poetry install
         cd ..
+      shell: bash
 
     - name: (Cache) Try Load - provisioner_examples_plugin
       id: cached-venv-provisioner-examples-plugin
@@ -47,6 +50,7 @@ runs:
         cd plugins/provisioner_examples_plugin
         poetry install
         cd ..
+      shell: bash
 
     - name: (Cache) Try Load - provisioner_installers_plugin
       id: cached-venv-provisioner-installers-plugin
@@ -61,7 +65,8 @@ runs:
         cd plugins/provisioner_installers_plugin
         poetry install
         cd ..
-    
+      shell: bash
+
     - name: (Cache) Try Load - provisioner_single_board_plugin
       id: cached-venv-provisioner-single-board-plugin
       uses: actions/cache@v3
@@ -75,12 +80,14 @@ runs:
         cd plugins/provisioner_single_board_plugin
         poetry install
         cd ..
+      shell: bash
 
     - name: Install Required pip packages
       run: |
         pip install coverage
+      shell: bash
         
     - name: Run tests suite
       run: |
         make test-coverage-xml-all
-    
+      shell: bash
