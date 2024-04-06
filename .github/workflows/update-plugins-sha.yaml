@@ -22,8 +22,8 @@ env:
   GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA: ${{ github.event.inputs.commit_sha }}
   
 jobs:
-  deploy:
-    name: Deployment
+  update_plugins_sha:
+    name: Update Plugins SHA
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -52,20 +52,6 @@ jobs:
       - name: Run Tests
         uses: ./.github/actions/tests
 
-      - name: (Cache) Try Load - gh
-        id: cache-gh
-        uses: actions/cache@v2
-        with:
-          path: /usr/local/bin/gh
-          key: provisioner-venv-${{ runner.os }}
-
-      - name: (Install) gh
-        if: steps.cache-gh.outputs.cache-hit != 'true'
-        run: |
-          curl -sSL https://github.com/cli/cli/releases/download/v2.41.0/gh_2.41.0_linux_amd64.tar.gz | tar xz
-          sudo mv gh_*_linux_amd64/bin/gh /usr/local/bin/
-          gh --version
-
       # After we made sure that Provisioner-Plugins commit hash does not break Provisioner repository, we can create the PR
       - name: Commit Taps Plugins SHA
         run: |
@@ -75,4 +61,7 @@ jobs:
           git add plugins
           git commit -m "Update Tapas Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}"
           git push --set-upstream origin update-plugins-${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}
-          gh pr create --title "Update Tapas Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}" --body "Update Provisioner Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}" --base master --head update-plugins-${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA} --label "auto pr"
+          gh pr create --title "Update Tapas Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}" \
+              --body "Update Provisioner Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}" \
+              --base master --head update-plugins-${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA} \
+              --label "auto pr"

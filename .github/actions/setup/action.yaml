@@ -22,3 +22,16 @@ runs:
       with:
         version: ${{ env.POETRY_VERSION }}
       
+    - name: (Cache) Try Load - gh
+        id: cache-gh
+        uses: actions/cache@v2
+        with:
+          path: /usr/local/bin/gh
+          key: provisioner-venv-${{ runner.os }}
+
+    - name: (Install) gh
+      if: steps.cache-gh.outputs.cache-hit != 'true'
+      run: |
+        curl -sSL https://github.com/cli/cli/releases/download/v2.41.0/gh_2.41.0_linux_amd64.tar.gz | tar xz
+        sudo mv gh_*_linux_amd64/bin/gh /usr/local/bin/
+        gh --version

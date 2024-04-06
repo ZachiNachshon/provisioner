@@ -1,0 +1,64 @@
+name: Publish Provisioner to PyPi
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to be published to PyPi'
+        required: true
+        default: '0.0.0'
+
+env:
+  PYPI_API_TOKEN: ${{ secrets.PROVISIONER_PYPI_API_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_ACTION_PROVISIONER_PUBLISHED_VERSION: ${{ github.event.inputs.version }}
+  # Semantic version range syntax (3.x) or exact version of a Python version
+  POETRY_VERSION: "1.4.1"
+  
+jobs:
+  publis_to_pypi:
+    name: Publish provisioner to PyPi
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: [ '3.10' ]
+
+    steps:
+      - name: Checkout repository code (with submodules)
+        uses: actions/checkout@v3
+        with:
+          submodules: true  # Fetch Git submodules
+          token: ${{ secrets.PROVISIONER_PLUGINS_REPO_ACCESS_TOKEN }}
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+          POETRY_VERSION: ${{ env.POETRY_VERSION }}
+
+      - name: Run Tests
+        uses: ./.github/actions/tests
+
+      - name: Install Required pip packages
+        run: |
+          pip install coverage twine
+          
+      - name: Publish to PyPi
+        run: |
+          cd provisioner
+          poetry version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}
+          echo -n ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION} > provisioner/resources/version.txt
+          make pip-publish-pypi
+          cd ..
+
+      - name: Commit new version bump
+        run: |
+          git config --global user.email "zachi.nachshon@gmail.com"
+          git config --global user.name "ZachiNachshon"
+          git checkout -b released-ver-${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}
+          git commit -am "Released provisioner version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}"
+          git push --set-upstream origin released-ver-${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}
+          gh pr create --title "Released provisioner version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}" \
+              --body "Released provisioner version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}" \
+              --base master --head released-ver-${GH_ACTION_PROVISIONER_PUBLISHED_VERSION} \
+              --label "auto pr"
