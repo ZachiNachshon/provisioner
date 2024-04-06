@@ -18,18 +18,18 @@ CLI_ARGUMENT_INSTALL=""
 CLI_ARGUMENT_PUBLISH=""
 CLI_ARGUMENT_DELETE=""
 
-CLI_FLAG_BUILD_TYPE=""             # options: sdist/wheel
-CLI_FLAG_IS_MULTI_PROJECT=""       # true/false if missing
-CLI_FLAG_FORCE_INSTALL_DEPS=""     # true/false if missing
+CLI_FLAG_BUILD_TYPE=""         # options: sdist/wheel
+CLI_FLAG_IS_MULTI_PROJECT=""   # true/false if missing
+CLI_FLAG_FORCE_INSTALL_DEPS="" # true/false if missing
 
-CLI_FLAG_RELEASE_TYPE=""           # options: pypi/github
-CLI_FLAG_RELEASE_TAG=""            # true/false if missing
+CLI_FLAG_RELEASE_TYPE="" # options: pypi/github
+CLI_FLAG_RELEASE_TAG=""  # true/false if missing
 
-CLI_FLAG_DELETE_ORIGIN=""          
-CLI_VALUE_DELETE_ORIGIN=""         # options: pypi-local/pypi-remote/github
+CLI_FLAG_DELETE_ORIGIN=""
+CLI_VALUE_DELETE_ORIGIN="" # options: pypi-local/pypi-remote/github
 CLI_FLAG_DELETE_TAG=""
 
-CLI_FLAG_DEV_MODE=""               # true/false if missing
+CLI_FLAG_DEV_MODE="" # true/false if missing
 
 CLI_VALUE_BUILD_TYPE=""
 CLI_VALUE_RELEASE_TYPE=""
@@ -180,7 +180,7 @@ dev_unpack_pip_pkg_tarball() {
 dev_generate_launcher_script() {
   local escaped_pkg_name=$(get_escaped_package_path)
   local escaped_pkg_name_upper=$(to_upper "${escaped_pkg_name}")
-  cat << EOF
+  cat <<EOF
 #!/usr/bin/env python3
 import os
 import sys
@@ -241,7 +241,7 @@ dev_install_launcher_binary() {
     log_info "\n\n${dev_launch_script}\n"
   else
     log_info "Copy ${POETRY_PACKAGE_NAME} binary. path: ${binary_path}"
-    echo "${dev_launch_script}" > "${binary_path}"
+    echo "${dev_launch_script}" >"${binary_path}"
   fi
 
   log_info "Elevating execution permissions"
@@ -272,7 +272,7 @@ delete_dev_local_pip_package() {
     cmd_run "rm -rf ${binary_path}"
   else
     log_info "No locally installed Python binary could be found"
-  fi 
+  fi
 }
 
 set_built_output_file_path() {
@@ -293,12 +293,12 @@ set_built_output_file_path() {
 
 cleanup_build_path() {
   if ! is_dry_run; then
-    if [[ "${BUILD_OUTPUT_FILE_PATH}" == *"${POETRY_PACKAGE_VERSION}-py3-none-any.whl"* || \
-          "${BUILD_OUTPUT_FILE_PATH}" == *"${POETRY_PACKAGE_VERSION}.tar.gz"* ]]; then
+    if [[ "${BUILD_OUTPUT_FILE_PATH}" == *"${POETRY_PACKAGE_VERSION}-py3-none-any.whl"* ||
+      "${BUILD_OUTPUT_FILE_PATH}" == *"${POETRY_PACKAGE_VERSION}.tar.gz"* ]]; then
       new_line
       log_info "Clearing build output temporary folder..."
       cmd_run "rm -rf ${BUILD_OUTPUT_FILE_PATH}"
-    fi 
+    fi
   fi
 }
 
@@ -320,16 +320,16 @@ delete_release_from_github() {
   fi
   if [[ -n "${tag}" ]]; then
     if github_is_release_tag_exist "${tag}"; then
-        log_info "GitHub release tag was found. tag: ${tag}"
-        new_line
-        if github_prompt_for_approval_before_delete "${tag}"; then
-          github_delete_release_tag "${tag}"
-        else
-          log_info "No GitHub release tag was deleted."
-        fi
+      log_info "GitHub release tag was found. tag: ${tag}"
+      new_line
+      if github_prompt_for_approval_before_delete "${tag}"; then
+        github_delete_release_tag "${tag}"
       else
-        log_warning "No GitHub release tag was found. tag: ${tag}"
+        log_info "No GitHub release tag was deleted."
       fi
+    else
+      log_warning "No GitHub release tag was found. tag: ${tag}"
+    fi
   fi
 }
 
@@ -344,7 +344,7 @@ maybe_force_install_deps() {
   fi
 }
 
-build_sdist_tarball()  {
+build_sdist_tarball() {
   local build_cmd=""
 
   if is_multi_project; then
@@ -358,7 +358,7 @@ build_sdist_tarball()  {
   if is_verbose; then
     build_cmd+=" -vv"
   fi
-  
+
   cmd_run "${build_cmd} || exit"
   new_line
 
@@ -380,7 +380,7 @@ build_wheel_package() {
   if is_verbose; then
     build_cmd+=" -vv"
   fi
-  
+
   cmd_run "${build_cmd} || exit"
 
   local wheel_filename=$(get_wheel_name)
@@ -497,7 +497,7 @@ pip_install_all_dependencies() {
   # Create a virtual environment and install the project's dependencies.
   cmd_run "poetry install"
 
-  # Create a requirements.txt file in the project directory 
+  # Create a requirements.txt file in the project directory
   # that lists all the dependencies needed by the project
   cmd_run """poetry export \
     -f requirements.txt \
@@ -509,7 +509,7 @@ pip_install_all_dependencies() {
   # Install Poetry into pip to avoid error - ModuleNotFoundError: No module named 'poetry'
   cmd_run "python3 -m pip install -U poetry"
 
-  # Install all the packages listed in the requirements.txt file 
+  # Install all the packages listed in the requirements.txt file
   # in the virtual environment or globally
   cmd_run "python3 -m pip install -r requirements.txt"
 }
@@ -553,7 +553,7 @@ print_help_menu_and_exit() {
   echo -e "${COLOR_WHITE}DELETE FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--origin${COLOR_NONE} <option>         Origin of the pip package to delete from [${COLOR_GREEN}options: pypi-local/pypi-remote/github${COLOR_NONE}]"
   echo -e "  ${COLOR_LIGHT_CYAN}--delete-tag${COLOR_NONE} <value>      Remote pip package tag to delete (pypi-remote/github only)"
-  echo -e " "  
+  echo -e " "
   echo -e "${COLOR_WHITE}GENERAL FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--dev-mode${COLOR_NONE}                Install/delete actions refer to a locally bundled Python package without pip (for development)"
   echo -e "  ${COLOR_LIGHT_CYAN}-y${COLOR_NONE} (--auto-prompt)        Do not prompt for approval and accept everything"
@@ -712,12 +712,12 @@ check_no_dev_mode_for_publish() {
 }
 
 # check_unsupported_actions() {
-  # if is_wheel_build_type; then
-  #   log_fatal "Building pip wheel is not supported yet"
-  # fi
-  # if is_pypi_release_type; then
-  #   log_fatal "Releasing to PyPi is not supported yet"
-  # fi 
+# if is_wheel_build_type; then
+#   log_fatal "Building pip wheel is not supported yet"
+# fi
+# if is_pypi_release_type; then
+#   log_fatal "Releasing to PyPi is not supported yet"
+# fi
 # }
 
 verify_program_arguments() {

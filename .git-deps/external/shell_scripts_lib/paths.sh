@@ -8,15 +8,15 @@ source "${CURRENT_FOLDER_ABS_PATH}/io.sh"
 # Return an external git dependency folder path
 # or just a folder path if it is not an external
 # dependency.
-# 
+#
 # Globals:
 #   None
-# 
+#
 # Arguments:
 #   working_dir      - ABS of working directory path
 #   dependency_name  - (Optional) external dependency name
 #   inner_path       - Path from the working directory / external dependency folder
-# 
+#
 # Usage:
 #   get_external_folder_dependency_path \
 #     "$PWD" \

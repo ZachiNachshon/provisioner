@@ -11,14 +11,14 @@ github_prompt_for_approval_before_release() {
   local tag=$1
   log_warning "Make sure to update all version releated files/variables before you continue !"
   new_line
-  [[ $(prompt_yes_no "Release tag ${tag}" "warning") == "y" ]];
+  [[ $(prompt_yes_no "Release tag ${tag}" "warning") == "y" ]]
 }
 
 github_prompt_for_approval_before_delete() {
   local tag=$1
   log_warning "Make sure that you are deleting the correct tag before you continue !"
   new_line
-  [[ $(prompt_yes_no "Delete tag ${tag}" "warning") == "y" ]];
+  [[ $(prompt_yes_no "Delete tag ${tag}" "warning") == "y" ]]
 }
 
 github_is_release_tag_exist() {
@@ -63,7 +63,7 @@ github_download_release_asset() {
 }
 
 github_delete_release_tag_asset_from_any_repo() {
-  local owner=$1  
+  local owner=$1
   local repo=$2
   local tag_name=$3
   local asset_name=$4
@@ -94,7 +94,7 @@ github_delete_release_tag_asset_from_any_repo() {
 }
 
 github_download_release_asset_from_any_repo() {
-  local owner=$1  
+  local owner=$1
   local repo=$2
   local tag_name=$3
   local asset_name=$4

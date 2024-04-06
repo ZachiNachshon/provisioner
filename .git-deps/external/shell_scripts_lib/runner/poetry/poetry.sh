@@ -60,7 +60,7 @@ install_poetry_if_missing() {
 
   if [[ -n "${maybe_poetry_binary}" ]]; then
     POETRY_BINARY_IN_USE="${maybe_poetry_binary}"
-  else 
+  else
     log_warning "Missing '${PROP_POETRY_CLI_NAME}' to manage Python virtual environment, installing..."
     install_poetry "${PROP_POETRY_VERSION}"
     POETRY_BINARY_IN_USE="${PATTERN_POETRY_BINARY_PATH}"
@@ -92,8 +92,8 @@ install_poetry() {
 run_poetry() {
   local args="$@"
 
-  if [[ "${POETRY_BINARY_IN_USE}" == "${PROP_POETRY_CLI_NAME}" || \
-        "${POETRY_BINARY_IN_USE}" == "${PATTERN_POETRY_BINARY_PATH}" ]]; then
+  if [[ "${POETRY_BINARY_IN_USE}" == "${PROP_POETRY_CLI_NAME}" ||
+    "${POETRY_BINARY_IN_USE}" == "${PATTERN_POETRY_BINARY_PATH}" ]]; then
     cmd_run "${POETRY_BINARY_IN_USE} ${args}"
   else
     log_fatal "Cannot identify a valid Poetry binary. value: ${POETRY_BINARY_IN_USE}"
@@ -116,8 +116,8 @@ poetry_set_env_configuration() {
 
 poetry_create_virtual_environment() {
   local no_dev_deps_flag=''
-  if is_dev_mode; then 
-    no_dev_deps_flag="--without dev" 
+  if is_dev_mode; then
+    no_dev_deps_flag="--without dev"
   fi
   run_poetry env use "$(pyenv which python3)" # Don't want to force using pyenv
   run_poetry update "${no_dev_deps_flag}"
@@ -223,10 +223,10 @@ resolve_required_patterns() {
 
 ####################################################################
 # Run Poetry from local binary or download and install if missing
-# 
+#
 # Globals:
 #   None
-# 
+#
 # Arguments:
 #   working_dir    - Host root working directory
 #   poetry_args    - Poetry command arguments
@@ -234,7 +234,7 @@ resolve_required_patterns() {
 #   --dev_mode     - Should install development packages
 #   --dry-run      - Run all commands in dry-run mode without file system changes
 #   --verbose      - Output debug logs for commands executions
-# 
+#
 # Usage:
 # ./runner/poetry/poetry.sh \
 #   "working_dir: /path/to/working/dir" \
@@ -259,7 +259,7 @@ main() {
   if is_verify_venv; then
     create_virtual_env_if_missing
   fi
-  
+
   run_poetry "${PARAM_POETRY_ARGS}"
 }
 

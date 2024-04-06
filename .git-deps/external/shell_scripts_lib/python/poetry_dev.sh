@@ -24,14 +24,14 @@ CLI_ARGUMENT_FMT=""
 CLI_ARGUMENT_TEST=""
 CLI_ARGUMENT_DOCS=""
 
-CLI_FLAG_IS_MULTI_PROJECT=""               # true/false if missing
-CLI_FLAG_FMT_CHECK_ONLY=""                 # true/false if missing
-CLI_FLAG_TYPECHECK_PATH=""                     
-CLI_FLAG_TESTS_PATH=""                     
-CLI_FLAG_TEST_CONTAINERIZED=""             # true/false if missing
-CLI_FLAG_TEST_COVERAGE=""                  # options: html/xml
-CLI_FLAG_TEST_COVERAGE=""                  # true/false if missing
-CLI_FLAG_DOCS_LAN=""                       # true/false if missing
+CLI_FLAG_IS_MULTI_PROJECT="" # true/false if missing
+CLI_FLAG_FMT_CHECK_ONLY=""   # true/false if missing
+CLI_FLAG_TYPECHECK_PATH=""
+CLI_FLAG_TESTS_PATH=""
+CLI_FLAG_TEST_CONTAINERIZED="" # true/false if missing
+CLI_FLAG_TEST_COVERAGE=""      # options: html/xml
+CLI_FLAG_TEST_COVERAGE=""      # true/false if missing
+CLI_FLAG_DOCS_LAN=""           # true/false if missing
 
 CLI_VALUE_TESTS_PATH=""
 CLI_VALUE_TYPECHECK_PATH=""
@@ -165,8 +165,8 @@ maybe_format_python_sources() {
 run_tests_on_host() {
   local tests_path=$(get_test_path)
   log_info "Runing tests suite on: ${COLOR_YELLOW}HOST MACHINE${COLOR_NONE}"
-  check_poetry_dev_dep "coverage"  
-	cmd_run "poetry run coverage run -m pytest"
+  check_poetry_dev_dep "coverage"
+  cmd_run "poetry run coverage run -m pytest"
 
   if is_test_generate_coverage; then
     local clean_path=""
@@ -186,12 +186,12 @@ run_tests_on_host() {
     else
       log_fatal "Invalid test coverage type. value: ${CLI_VALUE_TEST_COVERAGE_TYPE}"
     fi
-    
+
     if [[ -n "${clean_path}" ]]; then
       log_info "Cleaning up previous test runs. path: ${clean_path}"
       cmd_run "rm -rf ${clean_path}"
     fi
-    
+
     log_info "Generating test suite output"
     new_line
     cmd_run "poetry run coverage report"
@@ -267,7 +267,7 @@ print_help_menu_and_exit() {
   echo -e " "
   echo -e "${COLOR_WHITE}DOCS FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--lan${COLOR_NONE}                     Make the documentation site avaialble within LAN (http://192.168.x.xx:9001/)"
-  echo -e " "  
+  echo -e " "
   echo -e "${COLOR_WHITE}GENERAL FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}-y${COLOR_NONE} (--auto-prompt)        Do not prompt for approval and accept everything"
   echo -e "  ${COLOR_LIGHT_CYAN}-d${COLOR_NONE} (--dry-run)            Run all commands in dry-run mode without file system changes"
@@ -394,7 +394,7 @@ prerequisites() {
 check_poetry_dev_dep() {
   local name=$1
   local result=$(cmd_run "poetry show --no-ansi | grep '${name}'")
-  if [[ -z "${result}" ]] ; then
+  if [[ -z "${result}" ]]; then
     log_fatal "Missing pip dev package on local venv. name: ${name}"
   fi
 }
@@ -402,7 +402,7 @@ check_poetry_dev_dep() {
 check_poetry_plugin() {
   local name=$1
   local result=$(cmd_run "poetry self show plugins --no-ansi | grep '${name}'")
-  if [[ -z "${result}" ]] ; then
+  if [[ -z "${result}" ]]; then
     log_fatal "Missing Poetry plugin on local venv. name: ${name}"
   fi
 }

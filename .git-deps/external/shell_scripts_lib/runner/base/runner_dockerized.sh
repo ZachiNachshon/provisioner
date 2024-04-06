@@ -44,7 +44,7 @@ run_locally() {
 }
 
 # There are two methods of running with Docker - inline arguments or via RUNNER_ARGS env var
-# 
+#
 # inline:
 #  docker run -it --entrypoint /bin/bash \
 #     -v "<repository-abs-path>":/usr/runner/workspace \
@@ -209,7 +209,7 @@ parse_runner_arguments() {
         docker_volume_container=$(cut -d : -f 2 <<<"${docker_volume}" | xargs)
         PARAM_RUNNER_DOCKER_VOLUMES+="""-v \"${docker_volume_host}\":\"${docker_volume_container}\" """
         shift
-       ;;
+        ;;
       docker_build_context*)
         PARAM_RUNNER_DOCKER_BUILD_CONTEXT=$(cut -d : -f 2- <<<"${1}" | xargs)
         shift
@@ -267,10 +267,10 @@ verify_runner_arguments() {
 
 ####################################################################
 # Runs shell formatter and linter using local shfmt if exists or run via Docker container
-# 
+#
 # Globals:
 #   None
-# 
+#
 # Arguments:
 #   working_dir           - shfmt root working directory
 #   runner_name           - Utility binary name
@@ -284,7 +284,7 @@ verify_runner_arguments() {
 #   --force-dockerized    - Force to run the CLI runner in a dockerized container
 #   --dry-run             - Run all commands in dry-run mode without file system changes
 #   --verbose             - Output debug logs for commands executions
-# 
+#
 # Usage:
 # run_maybe_docker \
 #   "working_dir: /path/to/working/dir" \
@@ -304,7 +304,7 @@ run_maybe_docker() {
   parse_runner_arguments "$@"
   verify_runner_arguments
 
-  # Warn on supported runner version, locally installed utility might 
+  # Warn on supported runner version, locally installed utility might
   # be of a differnet version, potentially with breaking changes
   log_warning "Supported ${PARAM_RUNNER_NAME} version is ${PARAM_RUNNER_VERSION}"
 
