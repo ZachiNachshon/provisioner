@@ -118,17 +118,17 @@ test-coverage-xml-all: ## Run Unit/E2E/IT tests
 		cd ../..; \
 	done
 
-.PHONY: use-provisioner-from-soruces
-use-provisioner-from-soruces: ## Use provisioner sources as a direct dependency to all Python modules (for testing in CI)
+.PHONY: use-provisioner-from-sources
+use-provisioner-from-sources: ## Use provisioner sources as a direct dependency to all Python modules (for testing in CI)
 	@for project in $(PROJECTS); do \
 		if [ "$$project" != "provisioner" ]; then \
 			echo "\n========= PROJECT: $$project ==============\n"; \
-			cd $${project}; make use-provisioner-from-soruces; cd ..; \
+			cd $${project}; make use-provisioner-from-sources; cd ..; \
 		fi \
 	done
 	@for plugin in $(PLUGINS); do \
 		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make use-provisioner-from-soruces; cd ../..; \
+		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make use-provisioner-from-sources; cd ../..; \
 	done
 
 .PHONY: pip-install

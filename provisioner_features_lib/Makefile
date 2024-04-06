@@ -48,12 +48,12 @@ clear-virtual-env: ## Clear Poetry virtual environments
 	@echo Cleared.
 
 .PHONY: use-provisioner-from-sources
-use-provisioner-sources: ## Use provisioner from local sources
+use-provisioner-from-sources: ## Use provisioner from local sources
 	@sed $(SED_INPLACE) '/# provisioner_runtime = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml
 	@make deps
 
 .PHONY: use-provisioner-from-pypi
-use-provisioner-pypi: ## Use provisioner from remote PyPi
+use-provisioner-from-pypi: ## Use provisioner from remote PyPi
 	@sed $(SED_INPLACE) '/# provisioner-runtime =/s/^# //' pyproject.toml
 	@make deps
 
