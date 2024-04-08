@@ -51,37 +51,12 @@ show_error_codes = "True"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-typer = "^0.6.1"
-loguru = "^0.6.0"
-requests = "^2.28.1"
-rich = "^12.5.1"      # - Progress Bar for Python and CLI (https://github.com/Textualize/rich)
-python3-nmap = "^1.5.4"
-python-libnmap = "^0.7.3"
-PyYAML = "^6.0"
-inquirer = "^2.10.0"
-python-hosts = "^1.0.3"
-# GitPython = "^3.1.18" # - GitPython provides object model access to your git repository (https://github.com/gitpython-developers/GitPython)
-# #Jinja2 = "^3.0.3"      - Templating engine (https://github.com/pallets/jinja)
-# #sh = "^1.14.2"         - Subprocess replacement for Python (https://github.com/amoffat/sh)
-# #backoff = "^1.10.0"    - Function decoration for backoff and retry (https://github.com/litl/backoff)
-# #tenacity = "^8.0.1"    - General-purpose retrying library (https://github.com/jd/tenacity)
+
+# For production and PyPi publishing
 # provisioner-runtime = "^0.1.2"
 
-####################################################
-# USED ONLY FOR PLUGIN DEVELOPMENT
-# 
-# When 'pip install' packages for production, this line must be kept commented out
-# otherwise, the 'provisioner' package won't be found (E ModuleNotFoundError: No module named 'provisioner')
-# Either:
-#   * Pip install 'provisioner' globally or under user
-#   * Uncomment the line below  
-# 
+# For development or testing, uncomment the line below
 # provisioner_runtime = { path = "../provisioner", develop = true }
-# 
-# Note: 
-# On GitHub CI, this line is enabled before running the tests suite.
-# We are not installing via pip since it is not shared between every GitHub action steps
-####################################################
 
 [tool.poetry.dev-dependencies]
 black = "^22.8.0"
