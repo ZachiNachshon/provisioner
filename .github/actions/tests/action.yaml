@@ -8,12 +8,12 @@ runs:
   using: 'composite'
   steps:
     - name: Enable provisioner as a direct sources dependency in all modules (for testing)
-      if: {{ input.use_provisioner_from == 'source' }}
+      if: ${{ input.use_provisioner_from == 'source' }}
       run: make use-provisioner-from-sources
       shell: bash
 
     - name: Enable provisioner as a PyPi package in all modules (for testing)
-      if: {{ input.use_provisioner_from == 'pypi' }}
+      if: ${{ input.use_provisioner_from == 'pypi' }}
       run: make use-provisioner-from-pypi
       shell: bash
 
