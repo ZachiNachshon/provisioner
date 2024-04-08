@@ -119,7 +119,7 @@ test-coverage-xml-all: ## Run Unit/E2E/IT tests
 	done
 
 .PHONY: use-provisioner-from-sources
-use-provisioner-from-sources: ## Use provisioner sources as a direct dependency to all Python modules (for testing in CI)
+use-provisioner-from-sources: ## Use provisioner as a direct sources dependency to all Python modules (for testing in CI)
 	@for project in $(PROJECTS); do \
 		if [ "$$project" != "provisioner" ]; then \
 			echo "\n========= PROJECT: $$project ==============\n"; \
@@ -129,6 +129,19 @@ use-provisioner-from-sources: ## Use provisioner sources as a direct dependency 
 	@for plugin in $(PLUGINS); do \
 		echo "\n========= PLUGIN: $$plugin ==============\n"; \
 		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make use-provisioner-from-sources; cd ../..; \
+	done
+
+.PHONY: use-provisioner-from-pypi
+use-provisioner-from-pypi: ## Use provisioner as a PyPi package to all Python modules (for testing in CI)
+	@for project in $(PROJECTS); do \
+		if [ "$$project" != "provisioner" ]; then \
+			echo "\n========= PROJECT: $$project ==============\n"; \
+			cd $${project}; make use-provisioner-from-pypi; cd ..; \
+		fi \
+	done
+	@for plugin in $(PLUGINS); do \
+		echo "\n========= PLUGIN: $$plugin ==============\n"; \
+		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make use-provisioner-from-pypi; cd ../..; \
 	done
 
 .PHONY: pip-install

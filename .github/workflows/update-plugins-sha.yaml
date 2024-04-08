@@ -51,6 +51,8 @@ jobs:
 
       - name: Run Tests
         uses: ./.github/actions/tests
+        with:
+          use_provisioner_from: source
 
       # After we made sure that Provisioner-Plugins commit hash does not break Provisioner repository, we can create the PR
       - name: Commit Taps Plugins SHA

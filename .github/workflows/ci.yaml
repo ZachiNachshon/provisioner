@@ -9,7 +9,6 @@ on:
       - '**' # Triggers the workflow on any pull request and on any branch
 
 env:
-  # Semantic version range syntax (3.x) or exact version of a Python version
   POETRY_VERSION: "1.4.1"
 
 jobs:
@@ -35,6 +34,8 @@ jobs:
       
       - name: Run Tests
         uses: ./.github/actions/tests
+        with:
+          use_provisioner_from: source
 
       # Requires CODECOV_TOKEN in GitHub repository secrets
       - name: Upload coverage

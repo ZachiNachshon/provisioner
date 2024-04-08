@@ -7,7 +7,6 @@ env:
   PYPI_API_TOKEN: ${{ secrets.PROVISIONER_PYPI_API_TOKEN }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GH_ACTION_PROVISIONER_PUBLISHED_VERSION: ${{ github.event.inputs.version }}
-  # Semantic version range syntax (3.x) or exact version of a Python version
   POETRY_VERSION: "1.4.1"
   
 jobs:
@@ -33,6 +32,8 @@ jobs:
 
       - name: Run Tests
         uses: ./.github/actions/tests
+        with:
+          use_provisioner_from: source
 
       - name: Install Required pip packages
         run: |
