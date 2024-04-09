@@ -39,6 +39,8 @@ jobs:
 
       # Requires CODECOV_TOKEN in GitHub repository secrets
       - name: Upload coverage
+        # Do not upload code coverage for dependabot opened PRs 
+        if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}  # Only required for private repositories
