@@ -1,5 +1,7 @@
 default: help
 
+SOURCE_DEV_DEPS_PATH=../provisioner/pyproject.toml
+DEV_DEPS=../dev_deps.py
 POETRY_DEV=../external/shell_scripts_lib/python/poetry_dev.sh
 POETRY_PIP_RELEASER=../external/shell_scripts_lib/python/poetry_pip_releaser.sh
 
@@ -13,6 +15,10 @@ endif
 ifeq ($(UNAME_S),Darwin)
     SED_INPLACE := -i ''
 endif
+
+.PHONY: set-dev-deps
+set-dev-deps: ## Update dev dependencies and their config based on provisioner pyproject.toml
+	@${DEV_DEPS} ${SOURCE_DEV_DEPS_PATH} pyproject.toml
 
 .PHONY: deps
 deps: ## Update and install pyproject.toml dependencies on the virtual environment

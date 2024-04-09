@@ -20,6 +20,20 @@ PLUGINS_ROOT_FOLDER=plugins
 #  3. On the GitHub workflow use is as:
 #     - token: ${{ secrets.MY_REPO_ACCESS_TOKEN }}
 
+.PHONY: set-dev-deps-all
+set-dev-deps-all: ## Update dev dependencies and their config based on provisioner pyproject.toml
+	@for project in $(PROJECTS); do \
+		echo "\n========= PROJECT: $$project ==============\n"; \
+		if [ "$$project" != "provisioner" ]; then \
+			echo "\n========= PROJECT: $$project ==============\n"; \
+			cd $${project}; make set-dev-deps; cd ..; \
+		fi \
+	done
+	@for plugin in $(PLUGINS); do \
+		echo "\n========= PLUGIN: $$plugin ==============\n"; \
+		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make set-dev-deps; cd ../..; \
+	done
+
 .PHONY: update-externals-all
 update-externals-all: ## Update external source dependents
 	@echo "\n========= ROOT FOLDER ==============\n"

@@ -7,6 +7,10 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Set provisioner developement dependencies on all other projects
+      run: make set-dev-deps-all
+      shell: bash
+
     - name: Enable provisioner as a direct sources dependency in all modules (for testing)
       if: ${{ inputs.use_provisioner_from == 'source' }}
       run: make use-provisioner-from-sources
