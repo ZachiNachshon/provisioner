@@ -8,7 +8,9 @@ runs:
   using: 'composite'
   steps:
     - name: Set provisioner developement dependencies on all other projects
-      run: make set-dev-deps-all
+      run: |
+        pip install tomlkit
+        make set-dev-deps-all
       shell: bash
 
     - name: Enable provisioner as a direct sources dependency in all modules (for testing)
