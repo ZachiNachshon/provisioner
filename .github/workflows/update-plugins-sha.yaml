@@ -61,9 +61,9 @@ jobs:
           git config --global user.name "ZachiNachshon"
           git checkout -b update-plugins-${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}
           git add plugins
-          git commit -m "Update Tapas Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}"
+          git commit -m "Update Provisioner Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}"
           git push --set-upstream origin update-plugins-${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}
-          gh pr create --title "Update Tapas Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}" \
+          gh pr create --title "Update Provisioner Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}" \
               --body "Update Provisioner Plugins to ${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA}" \
               --base master --head update-plugins-${GH_ACTION_PROVISIONER_PLUGINS_COMMIT_SHA} \
               --label "auto pr"
