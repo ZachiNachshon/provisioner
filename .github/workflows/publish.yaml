@@ -6,7 +6,6 @@ on:
 env:
   PYPI_API_TOKEN: ${{ secrets.PROVISIONER_PYPI_API_TOKEN }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  GH_ACTION_PROVISIONER_PUBLISHED_VERSION: ${{ github.event.inputs.version }}
   POETRY_VERSION: "1.4.1"
   
 jobs:
@@ -42,8 +41,9 @@ jobs:
       - name: Publish to PyPi
         run: |
           cd provisioner
-          poetry version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}
-          echo -n ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION} > provisioner/resources/version.txt
+          poetry version patch
+          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+          echo -n $ver > provisioner/resources/version.txt
           make pip-publish-pypi
           cd ..
 
