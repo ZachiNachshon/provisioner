@@ -40,6 +40,11 @@ jobs:
           
       - name: Publish to PyPi
         run: |
+          echo "======================================"
+          echo "======================================"
+          echo "TEST: ${PYPI_API_TOKEN}"
+          echo "======================================"
+          echo "======================================"
           cd provisioner
           poetry version patch
           ver=$(poetry version | awk '{print $2}' | tr -d '\n')
