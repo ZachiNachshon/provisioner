@@ -66,9 +66,7 @@ pip-github-delete-tag: ## Publish a pip package tarball as a GitHub release
 
 .PHONY: pip-publish-pypi
 pip-publish-pypi: ## Publish a pip package tarball as a PyPi release
-	@${POETRY_PIP_RELEASER} publish \
-		--build-type wheel \
-		--release-type pypi
+	@${POETRY_PIP_RELEASER} publish --build-type wheel --release-type pypi -y
 
 .PHONY: clear-virtual-env
 clear-virtual-env: ## Clear Poetry virtual environments
