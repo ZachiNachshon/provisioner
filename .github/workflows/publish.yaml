@@ -49,14 +49,15 @@ jobs:
 
       - name: Commit new version bump
         run: |
+          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           git config --global user.email "zachi.nachshon@gmail.com"
           git config --global user.name "ZachiNachshon"
-          git checkout -b released-ver-${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}
+          git checkout -b released-ver-${ver}
           git add provisioner/provisioner/resources/version.txt
           git add provisioner/pyproject.yaml
-          git commit -m "Released provisioner version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}"
-          git push --set-upstream origin released-ver-${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}
-          gh pr create --title "Released provisioner version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}" \
-              --body "Released provisioner version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}" \
-              --base master --head released-ver-${GH_ACTION_PROVISIONER_PUBLISHED_VERSION} \
+          git commit -m "Released provisioner version ${ver}"
+          git push --set-upstream origin released-ver-${ver}
+          gh pr create --title "Released provisioner version ${ver}" \
+              --body "Released provisioner version ${ver}" \
+              --base master --head released-ver-${ver} \
               --label "auto pr"
