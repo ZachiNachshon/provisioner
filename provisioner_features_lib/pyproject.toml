@@ -25,12 +25,51 @@ python = "^3.10"
 # provisioner-runtime = "^0.1.2"
 
 # For development or testing, uncomment the line below
-# provisioner_runtime = { path = "../provisioner", develop = true }
+provisioner_runtime = { path = "../provisioner", develop = true }
 
 # 
 # DEV DEPENDENCIES AND THEIR CONFIGS ARE AUTO GENERATED USING:
 #   make set-dev-deps
 # 
+
+[tool.poetry.dev-dependencies]
+black = "^24.3.0"
+pytest = "^8.1.1"
+mypy = "^1.9"
+coverage = "^7.4.4"
+diagrams = "^0.23.4"
+ruff = "^0.3.7"
+
+[tool.mypy]
+exclude = ["external"]
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+disallow_any_unimported = false # Generates an error if a component of a type becomes Any because mypy couldn’t resolve an import
+warn_return_any = false # Generates an error if you return a value with an Any type in a function that is annotated to return a non-Any value
+warn_unused_ignores = true
+no_implicit_optional = true
+show_error_codes = true
+
+[tool.ruff]
+exclude = [".venv", "external", ".git-deps"]
+line-length = 120
+ignore = [ "E501", "E402", "F403", "F405" ]
+select = [
+    # Pyflakes
+    "F",
+    # Pycodestyle
+    "E",
+    # isort
+    "I",
+    # Whitespaces
+    "W", 
+]
+
+[tool.black]
+line-length = 120
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
