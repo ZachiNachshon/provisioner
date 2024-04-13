@@ -46,7 +46,7 @@ jobs:
           cd provisioner
           poetry version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}
           echo -n ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION} > provisioner/resources/version.txt
-          make pip-publish-pypi
+          export PYPI_API_TOKEN=${PYPI_API_TOKEN}; make pip-publish-pypi
           cd ..
 
       - name: Commit new version bump
