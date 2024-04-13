@@ -52,7 +52,9 @@ jobs:
           git config --global user.email "zachi.nachshon@gmail.com"
           git config --global user.name "ZachiNachshon"
           git checkout -b released-ver-${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}
-          git commit -am "Released provisioner version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}"
+          git add provisioner/provisioner/resources/version.txt
+          git add provisioner/pyproject.yaml
+          git commit -m "Released provisioner version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}"
           git push --set-upstream origin released-ver-${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}
           gh pr create --title "Released provisioner version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}" \
               --body "Released provisioner version ${GH_ACTION_PROVISIONER_PUBLISHED_VERSION}" \
