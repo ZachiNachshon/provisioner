@@ -13,6 +13,16 @@ runs:
         make set-dev-deps-all
       shell: bash
 
+    - name: Enable provisioner as a direct sources dependency in all modules (for testing)
+      if: ${{ inputs.use_provisioner_from == 'source' }}
+      run: make use-provisioner-from-sources
+      shell: bash
+
+    - name: Enable provisioner as a PyPi package in all modules (for testing)
+      if: ${{ inputs.use_provisioner_from == 'pypi' }}
+      run: make use-provisioner-from-pypi
+      shell: bash
+
     - name: (Cache) Try Load - provisioner
       id: cached-venv-provisioner
       uses: actions/cache@v3
@@ -86,16 +96,6 @@ runs:
         cd plugins/provisioner_single_board_plugin
         poetry install
         cd ..
-      shell: bash
-
-    - name: Enable provisioner as a direct sources dependency in all modules (for testing)
-      if: ${{ inputs.use_provisioner_from == 'source' }}
-      run: make use-provisioner-from-sources
-      shell: bash
-
-    - name: Enable provisioner as a PyPi package in all modules (for testing)
-      if: ${{ inputs.use_provisioner_from == 'pypi' }}
-      run: make use-provisioner-from-pypi
       shell: bash
       
     - name: Install Required pip packages
