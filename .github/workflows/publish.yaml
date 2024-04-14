@@ -50,15 +50,17 @@ jobs:
 
       - name: Commit new version bump
         run: |
-          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+          echo "VER=$(poetry version | awk '{print $2}' | tr -d '\n')" >> $GITHUB_ENV
           git config --global user.email "zachi.nachshon@gmail.com"
           git config --global user.name "ZachiNachshon"
-          git checkout -b released-ver-${ver}
+          git checkout -b released-ver-${{ env.VER }}
           git add provisioner/provisioner/resources/version.txt
           git add provisioner/pyproject.toml
-          git commit -m "Released provisioner version ${ver}"
-          git push --set-upstream origin released-ver-${ver}
-          gh pr create --title "Released provisioner version ${ver}" \
-              --body "Released provisioner version ${ver}" \
-              --base master --head released-ver-${ver} \
+          git commit -m "Released provisioner version ${{ env.VER }}"
+          git push --set-upstream origin released-ver-${{ env.VER }}
+          gh pr create --title "Released provisioner version ${{ env.VER }}" \
+              --body "Released provisioner version ${{ env.VER }}" \
+              --base master --head released-ver-${{ env.VER }} \
               --label "auto pr"
+        shell: bash
+
