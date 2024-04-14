@@ -33,6 +33,7 @@ jobs:
         uses: ./.github/actions/tests
         with:
           use_provisioner_from: source
+          modules_to_test: all
 
       - name: Install Required pip packages
         run: |
@@ -54,7 +55,7 @@ jobs:
           git config --global user.name "ZachiNachshon"
           git checkout -b released-ver-${ver}
           git add provisioner/provisioner/resources/version.txt
-          git add provisioner/provisioner/pyproject.toml
+          git add provisioner/pyproject.toml
           git commit -m "Released provisioner version ${ver}"
           git push --set-upstream origin released-ver-${ver}
           gh pr create --title "Released provisioner version ${ver}" \

@@ -157,7 +157,7 @@ runs:
       if: >- 
         ${{ 
           contains(github.event.inputs.modules_to_test, 'examples-plugin') || 
-          github.event.inputs.modules_to_test == 'all' 
+          contains(github.event.inputs.modules_to_test, 'all')
         }}
       run: |
         cd plugins/provisioner_examples_plugin
@@ -169,7 +169,7 @@ runs:
       if: >- 
         ${{ 
           contains(github.event.inputs.modules_to_test, 'installers-plugin') || 
-          github.event.inputs.modules_to_test == 'all' 
+          contains(github.event.inputs.modules_to_test, 'all')
         }}
       run: |
         cd plugins/provisioner_installers_plugin
@@ -181,7 +181,7 @@ runs:
       if: >- 
         ${{ 
           contains(github.event.inputs.modules_to_test, 'single-board-plugin') || 
-          github.event.inputs.modules_to_test == 'all' 
+          contains(github.event.inputs.modules_to_test, 'all')
         }}
       run: |
         cd plugins/provisioner_single_board_plugin
