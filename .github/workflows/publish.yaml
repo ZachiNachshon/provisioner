@@ -54,7 +54,7 @@ jobs:
           git config --global user.name "ZachiNachshon"
           git checkout -b released-ver-${ver}
           git add provisioner/provisioner/resources/version.txt
-          git add provisioner/pyproject.yaml
+          git add provisioner/provisioner/pyproject.yaml
           git commit -m "Released provisioner version ${ver}"
           git push --set-upstream origin released-ver-${ver}
           gh pr create --title "Released provisioner version ${ver}" \
