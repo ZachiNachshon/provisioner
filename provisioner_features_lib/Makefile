@@ -56,12 +56,12 @@ clear-virtual-env: ## Clear Poetry virtual environments
 .PHONY: use-provisioner-from-sources
 use-provisioner-from-sources: ## Use provisioner from local sources
 	@sed $(SED_INPLACE) '/# provisioner_runtime = { path = "..\/provisioner", develop = true }/s/^# //' pyproject.toml
-	@poetry lock
+	@make deps
 
 .PHONY: use-provisioner-from-pypi
 use-provisioner-from-pypi: ## Use provisioner from remote PyPi
 	@sed $(SED_INPLACE) '/# provisioner-runtime =/s/^# //' pyproject.toml
-	@poetry lock
+	@make deps
 
 .PHONY: pDev
 pDev: ## Interact with ../external/.../poetry_dev.sh            (Usage: make pDev 'fmt --check-only')
