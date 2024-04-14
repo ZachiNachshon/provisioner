@@ -11,7 +11,9 @@ authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
 exclude = [
     "**/.venv",
     "**/*_test*", 
-    "**/*_fake*", 
+    # We cannot exclude fakes from the provisioner pip package, the plugins CI rely on
+    # testing with the latest provisioner package
+    # "**/*_fake*", 
     "**/dist*", 
     "**/htmlcov", 
     "**/poetry.lock", 
