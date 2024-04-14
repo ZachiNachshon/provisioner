@@ -4,12 +4,22 @@ inputs:
   use_provisioner_from:
     description: 'Provisioner code to test with (source/pypi)'
     required: true
+  modules_to_test:
+    description: 'Comma delimited modules to test'
+    required: 
+    # Options:
+    #   - examples-plugin
+    #   - installers-plugin
+    #   - single-board-plugin
+    default: 'all'
+    type: string
 runs:
   using: 'composite'
   steps:
     - name: Set provisioner developement dependencies on all other projects
       run: |
         pip install tomlkit
+        pip install coverage
         make set-dev-deps-all
       shell: bash
 
@@ -54,6 +64,11 @@ runs:
       shell: bash
 
     - name: (Cache) Try Load - provisioner_examples_plugin
+      if: >- 
+        ${{ 
+          contains(toLower(github.event.inputs.modules_to_test), 'examples-plugin') || 
+          github.event.inputs.modules_to_test == 'all' 
+        }}
       id: cached-venv-provisioner-examples-plugin
       uses: actions/cache@v3
       with:
@@ -61,7 +76,12 @@ runs:
         key: provisioner_examples_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_examples_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_examples_plugin/pyproject.toml') }}
 
     - name: (Install) provisioner_examples_plugin
-      if: steps.cached-venv-provisioner-examples-plugin.outputs.cache-hit != 'true'
+      if: >- 
+        ${{ 
+          (contains(toLower(github.event.inputs.modules_to_test), 'examples-plugin') || 
+          github.event.inputs.modules_to_test == 'all') && 
+          steps.cached-venv-provisioner-examples-plugin.outputs.cache-hit != 'true' 
+        }}
       run: |
         cd plugins/provisioner_examples_plugin
         poetry install
@@ -69,6 +89,11 @@ runs:
       shell: bash
 
     - name: (Cache) Try Load - provisioner_installers_plugin
+      if: >- 
+        ${{ 
+          contains(toLower(github.event.inputs.modules_to_test), 'installers-plugin') || 
+          github.event.inputs.modules_to_test == 'all' 
+        }}
       id: cached-venv-provisioner-installers-plugin
       uses: actions/cache@v3
       with:
@@ -76,7 +101,12 @@ runs:
         key: provisioner_installers_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_installers_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_installers_plugin/pyproject.toml') }}
 
     - name: (Install) provisioner_installers_plugin
-      if: steps.cached-venv-provisioner-installers-plugin.outputs.cache-hit != 'true'
+      if: >- 
+        ${{ 
+          (contains(toLower(github.event.inputs.modules_to_test), 'installers-plugin') || 
+          github.event.inputs.modules_to_test == 'all') && 
+          steps.cached-venv-provisioner-installers-plugin.outputs.cache-hit != 'true'
+        }}
       run: |
         cd plugins/provisioner_installers_plugin
         poetry install
@@ -84,6 +114,11 @@ runs:
       shell: bash
 
     - name: (Cache) Try Load - provisioner_single_board_plugin
+      if: >- 
+        ${{ 
+          contains(toLower(github.event.inputs.modules_to_test), 'single-board-plugin') || 
+          github.event.inputs.modules_to_test == 'all' 
+        }}
       id: cached-venv-provisioner-single-board-plugin
       uses: actions/cache@v3
       with:
@@ -91,19 +126,64 @@ runs:
         key: provisioner_single_board_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_single_board_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_single_board_plugin/pyproject.toml') }}
 
     - name: (Install) provisioner_single_board_plugin
-      if: steps.cached-venv-provisioner-single-board-plugin.outputs.cache-hit != 'true'
+      if: >- 
+        ${{ 
+          (contains(toLower(github.event.inputs.modules_to_test), 'single-board-plugin') || 
+          github.event.inputs.modules_to_test == 'all') && 
+          steps.cached-venv-provisioner-single-board-plugin.outputs.cache-hit != 'true'
+        }}
       run: |
         cd plugins/provisioner_single_board_plugin
         poetry install
         cd ..
       shell: bash
-      
-    - name: Install Required pip packages
+
+    - name: (Test) provisioner
       run: |
-        pip install coverage
-      shell: bash
-        
-    - name: Run tests suite
+        cd provisioner
+        make test-coverage-xml
+        cd ..
+      shell: bash    
+
+    - name: (Test) provisioner_features_lib
       run: |
-        make test-coverage-xml-all
-      shell: bash
+        cd provisioner_features_lib
+        make test-coverage-xml
+        cd ..
+      shell: bash    
+
+    - name: (Test) provisioner_examples_plugin
+      if: >- 
+        ${{ 
+          contains(toLower(github.event.inputs.modules_to_test), 'examples-plugin') || 
+          github.event.inputs.modules_to_test == 'all' 
+        }}
+      run: |
+        cd plugins/provisioner_examples_plugin
+        make test-coverage-xml
+        cd ..
+      shell: bash    
+    
+    - name: (Test) provisioner_installers_plugin
+      if: >- 
+        ${{ 
+          contains(toLower(github.event.inputs.modules_to_test), 'installers-plugin') || 
+          github.event.inputs.modules_to_test == 'all' 
+        }}
+      run: |
+        cd plugins/provisioner_installers_plugin
+        make test-coverage-xml
+        cd ..
+      shell: bash    
+
+    - name: (Test) provisioner_single_board_plugin
+      if: >- 
+        ${{ 
+          contains(toLower(github.event.inputs.modules_to_test), 'single-board-plugin') || 
+          github.event.inputs.modules_to_test == 'all' 
+        }}
+      run: |
+        cd plugins/provisioner_single_board_plugin
+        make test-coverage-xml
+        cd ..
+      shell: bash    

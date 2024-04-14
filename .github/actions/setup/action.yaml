@@ -22,6 +22,11 @@ runs:
       with:
         version: ${{ env.POETRY_VERSION }}
       
+    - name: (Install) Poetry Plugins
+      run: |
+        poetry self add poetry-multiproject-plugin
+      shell: bash
+      
     - name: (Cache) Try Load - gh
       id: cache-gh
       uses: actions/cache@v3
