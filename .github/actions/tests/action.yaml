@@ -66,7 +66,7 @@ runs:
     - name: (Cache) Try Load - provisioner_examples_plugin
       if: >- 
         ${{ 
-          contains(toLower(github.event.inputs.modules_to_test), 'examples-plugin') || 
+          contains(github.event.inputs.modules_to_test, 'examples-plugin') || 
           github.event.inputs.modules_to_test == 'all' 
         }}
       id: cached-venv-provisioner-examples-plugin
@@ -78,7 +78,7 @@ runs:
     - name: (Install) provisioner_examples_plugin
       if: >- 
         ${{ 
-          (contains(toLower(github.event.inputs.modules_to_test), 'examples-plugin') || 
+          (contains(github.event.inputs.modules_to_test, 'examples-plugin') || 
           github.event.inputs.modules_to_test == 'all') && 
           steps.cached-venv-provisioner-examples-plugin.outputs.cache-hit != 'true' 
         }}
@@ -91,7 +91,7 @@ runs:
     - name: (Cache) Try Load - provisioner_installers_plugin
       if: >- 
         ${{ 
-          contains(toLower(github.event.inputs.modules_to_test), 'installers-plugin') || 
+          contains(github.event.inputs.modules_to_test, 'installers-plugin') || 
           github.event.inputs.modules_to_test == 'all' 
         }}
       id: cached-venv-provisioner-installers-plugin
@@ -103,7 +103,7 @@ runs:
     - name: (Install) provisioner_installers_plugin
       if: >- 
         ${{ 
-          (contains(toLower(github.event.inputs.modules_to_test), 'installers-plugin') || 
+          (contains(github.event.inputs.modules_to_test, 'installers-plugin') || 
           github.event.inputs.modules_to_test == 'all') && 
           steps.cached-venv-provisioner-installers-plugin.outputs.cache-hit != 'true'
         }}
@@ -116,7 +116,7 @@ runs:
     - name: (Cache) Try Load - provisioner_single_board_plugin
       if: >- 
         ${{ 
-          contains(toLower(github.event.inputs.modules_to_test), 'single-board-plugin') || 
+          contains(github.event.inputs.modules_to_test, 'single-board-plugin') || 
           github.event.inputs.modules_to_test == 'all' 
         }}
       id: cached-venv-provisioner-single-board-plugin
@@ -128,7 +128,7 @@ runs:
     - name: (Install) provisioner_single_board_plugin
       if: >- 
         ${{ 
-          (contains(toLower(github.event.inputs.modules_to_test), 'single-board-plugin') || 
+          (contains(github.event.inputs.modules_to_test, 'single-board-plugin') || 
           github.event.inputs.modules_to_test == 'all') && 
           steps.cached-venv-provisioner-single-board-plugin.outputs.cache-hit != 'true'
         }}
@@ -155,7 +155,7 @@ runs:
     - name: (Test) provisioner_examples_plugin
       if: >- 
         ${{ 
-          contains(toLower(github.event.inputs.modules_to_test), 'examples-plugin') || 
+          contains(github.event.inputs.modules_to_test, 'examples-plugin') || 
           github.event.inputs.modules_to_test == 'all' 
         }}
       run: |
@@ -167,7 +167,7 @@ runs:
     - name: (Test) provisioner_installers_plugin
       if: >- 
         ${{ 
-          contains(toLower(github.event.inputs.modules_to_test), 'installers-plugin') || 
+          contains(github.event.inputs.modules_to_test, 'installers-plugin') || 
           github.event.inputs.modules_to_test == 'all' 
         }}
       run: |
@@ -179,7 +179,7 @@ runs:
     - name: (Test) provisioner_single_board_plugin
       if: >- 
         ${{ 
-          contains(toLower(github.event.inputs.modules_to_test), 'single-board-plugin') || 
+          contains(github.event.inputs.modules_to_test, 'single-board-plugin') || 
           github.event.inputs.modules_to_test == 'all' 
         }}
       run: |
