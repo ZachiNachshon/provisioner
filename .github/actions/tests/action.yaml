@@ -6,11 +6,12 @@ inputs:
     required: true
   modules_to_test:
     description: 'Comma delimited modules to test'
-    required: 
-    # Options:
-    #   - examples-plugin
-    #   - installers-plugin
-    #   - single-board-plugin
+    required: true
+    options: 
+          - 'examples-plugin'
+          - 'installers-plugin'
+          - 'single-board-plugin'
+          - 'all'
     default: 'all'
     type: string
 runs:

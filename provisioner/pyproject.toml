@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "provisioner_runtime"
-version = "0.1.4"
+version = "0.1.5"
 description = "Provision Everything Anywhere"
 authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
 
