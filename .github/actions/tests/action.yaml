@@ -24,8 +24,11 @@ runs:
   steps:
     - name: Print Action Arguments
       run: |
+        echo "::group::Print test action arguments"
         echo "use_provisioner_from: ${{ inputs.use_provisioner_from }}"
         echo "modules_to_test: ${{ inputs.modules_to_test }}"
+        echo "::endgroup::"
+      shell: bash
 
     - name: Set developement dependencies on all other projects
       run: |
