@@ -32,8 +32,9 @@ runs:
       shell: bash
 
     - name: Set environment variable
-      run: echo "PUBLISHABLE=${{ inputs.publishable }}" >> $GITHUB_ENV
-      run: echo "IS_PLUGIN=${{ env.is_plugin }}" >> $GITHUB_ENV
+      run: |
+        echo "PUBLISHABLE=${{ inputs.publishable }}" >> $GITHUB_ENV
+        echo "IS_PLUGIN=${{ env.is_plugin }}" >> $GITHUB_ENV
       shell: bash
 
     - name: Install Required pip packages

@@ -33,8 +33,9 @@ runs:
       shell: bash
 
     - name: Set environment variable
-      run: echo "USE_PROVISIONER_FROM=${{ inputs.use_provisioner_from }}" >> $GITHUB_ENV
-      run: echo "MODULE_TO_TEST=${{ env.MODULE_TO_TEST }}" >> $GITHUB_ENV
+      run: |
+        echo "USE_PROVISIONER_FROM=${{ inputs.use_provisioner_from }}" >> $GITHUB_ENV
+        echo "MODULE_TO_TEST=${{ env.MODULE_TO_TEST }}" >> $GITHUB_ENV
       shell: bash
 
     - name: Set developement dependencies on all other projects
