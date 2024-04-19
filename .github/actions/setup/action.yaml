@@ -27,6 +27,11 @@ runs:
         poetry self add poetry-multiproject-plugin
       shell: bash
       
+    - name: (Config) Set Poetry Python shared virtual environment for all projects
+      run: |
+        poetry config virtualenvs.path "${{ github.workspace }}/.venv"
+      shell: bash
+
     - name: (Cache) Try Load - gh
       id: cache-gh
       uses: actions/cache@v3

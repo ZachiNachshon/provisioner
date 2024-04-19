@@ -31,6 +31,11 @@ runs:
         echo "::endgroup::"
       shell: bash
 
+    - name: Set environment variable
+      run: echo "PUBLISHABLE=${{ inputs.publishable }}" >> $GITHUB_ENV
+      run: echo "IS_PLUGIN=${{ env.is_plugin }}" >> $GITHUB_ENV
+      shell: bash
+
     - name: Install Required pip packages
       run: |
         pip install coverage twine
@@ -59,6 +64,15 @@ runs:
         PYPI_API_TOKEN: ${{ inputs.PYPI_API_TOKEN }}
       shell: bash
 
+    # Discard any potential changes to the git index which might
+    # contain dependencies section in the pyproject.toml file
+    # and other non version-bump from previous steps/actions
+  
+    - name: Discard previous changes to git index
+      run: |
+        git reset origin --hard
+      shell: bash    
+
     - name: Prepare git for commit
       run: |
         git config --global user.email "zachi.nachshon@gmail.com"
@@ -74,6 +88,7 @@ runs:
         else
           cd ${publishable}
         fi
+        poetry version patch
         ver=$(poetry version | awk '{print $2}' | tr -d '\n')
         branch_name=released-${publishable}-ver-${ver}
         git add ${publishable}/resources/version.txt

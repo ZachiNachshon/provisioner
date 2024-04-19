@@ -10,7 +10,7 @@ inputs:
       - 'pypi'
     default: 'source'
     type: string
-  modules_to_test:
+  module_to_test:
     description: 'Modules to run tests on'
     required: true
     options: 
@@ -28,13 +28,13 @@ runs:
       run: |
         echo "::group::Print test action arguments"
         echo "use_provisioner_from: ${{ inputs.use_provisioner_from }}"
-        echo "modules_to_test: ${{ inputs.modules_to_test }}"
+        echo "module_to_test: ${{ env.MODULE_TO_TEST }}"
         echo "::endgroup::"
       shell: bash
 
-    - name: Set a commonly shared Python Poetry virtual environment for all projects
-      run: |
-        poetry config virtualenvs.path "${{ github.workspace }}/.venv"
+    - name: Set environment variable
+      run: echo "USE_PROVISIONER_FROM=${{ inputs.use_provisioner_from }}" >> $GITHUB_ENV
+      run: echo "MODULE_TO_TEST=${{ env.MODULE_TO_TEST }}" >> $GITHUB_ENV
       shell: bash
 
     - name: Set developement dependencies on all other projects
@@ -47,7 +47,7 @@ runs:
       shell: bash
 
     - name: Enable provisioner as a direct sources dependency in all modules (for testing)
-      if: ${{ inputs.use_provisioner_from == 'source' }}
+      if: ${{ env.USE_PROVISIONER_FROM == 'source' }}
       run: |
         echo "::group::Setting provisioner as direct dependency on all projects"
         make use-provisioner-from-sources
@@ -55,7 +55,7 @@ runs:
       shell: bash
 
     - name: Enable provisioner as a PyPi package in all modules (for testing)
-      if: ${{ inputs.use_provisioner_from == 'pypi' }}
+      if: ${{ env.USE_PROVISIONER_FROM == 'pypi' }}
       run: |
         echo "::group::Setting provisioner as remote PyPi dependency on all projects"
         make use-provisioner-from-pypi
@@ -99,8 +99,8 @@ runs:
     - name: (Cache) Try Load - provisioner_examples_plugin
       if: >- 
         ${{ 
-          inputs.modules_to_test == 'examples-plugin' || 
-          inputs.modules_to_test == 'all' 
+          env.MODULE_TO_TEST == 'examples-plugin' || 
+          env.MODULE_TO_TEST == 'all' 
         }}
       id: cached-venv-provisioner-examples-plugin
       uses: actions/cache@v3
@@ -111,8 +111,8 @@ runs:
     - name: (Install) provisioner_examples_plugin
       if: >- 
         ${{ 
-          (inputs.modules_to_test == 'examples-plugin' || 
-          inputs.modules_to_test == 'all') && 
+          (env.MODULE_TO_TEST == 'examples-plugin' || 
+          env.MODULE_TO_TEST == 'all') && 
           steps.cached-venv-provisioner-examples-plugin.outputs.cache-hit != 'true' 
         }}
       run: |
@@ -126,8 +126,8 @@ runs:
     - name: (Cache) Try Load - provisioner_installers_plugin
       if: >- 
         ${{ 
-          inputs.modules_to_test == 'installers-plugin' || 
-          inputs.modules_to_test == 'all' 
+          env.MODULE_TO_TEST == 'installers-plugin' || 
+          env.MODULE_TO_TEST == 'all' 
         }}
       id: cached-venv-provisioner-installers-plugin
       uses: actions/cache@v3
@@ -138,8 +138,8 @@ runs:
     - name: (Install) provisioner_installers_plugin
       if: >- 
         ${{ 
-          (inputs.modules_to_test == 'installers-plugin' || 
-          inputs.modules_to_test == 'all') && 
+          (env.MODULE_TO_TEST == 'installers-plugin' || 
+          env.MODULE_TO_TEST == 'all') && 
           steps.cached-venv-provisioner-installers-plugin.outputs.cache-hit != 'true'
         }}
       run: |
@@ -153,8 +153,8 @@ runs:
     - name: (Cache) Try Load - provisioner_single_board_plugin
       if: >- 
         ${{ 
-          inputs.modules_to_test == 'single-board-plugin' || 
-          inputs.modules_to_test == 'all' 
+          env.MODULE_TO_TEST == 'single-board-plugin' || 
+          env.MODULE_TO_TEST == 'all' 
         }}
       id: cached-venv-provisioner-single-board-plugin
       uses: actions/cache@v3
@@ -165,8 +165,8 @@ runs:
     - name: (Install) provisioner_single_board_plugin
       if: >- 
         ${{ 
-          (inputs.modules_to_test == 'single-board-plugin' || 
-          inputs.modules_to_test == 'all') && 
+          (env.MODULE_TO_TEST == 'single-board-plugin' || 
+          env.MODULE_TO_TEST == 'all') && 
           steps.cached-venv-provisioner-single-board-plugin.outputs.cache-hit != 'true'
         }}
       run: |
@@ -198,8 +198,8 @@ runs:
     - name: (Test) provisioner_examples_plugin
       if: >- 
         ${{ 
-          inputs.modules_to_test == 'examples-plugin' || 
-          inputs.modules_to_test == 'all'
+          env.MODULE_TO_TEST == 'examples-plugin' || 
+          env.MODULE_TO_TEST == 'all'
         }}
       run: |
         echo "::group::Running tests on provisioner_examples_plugin module"
@@ -212,8 +212,8 @@ runs:
     - name: (Test) provisioner_installers_plugin
       if: >- 
         ${{ 
-          inputs.modules_to_test == 'installers-plugin' || 
-          inputs.modules_to_test == 'all'
+          env.MODULE_TO_TEST == 'installers-plugin' || 
+          env.MODULE_TO_TEST == 'all'
         }}
       run: |
         echo "::group::Running tests on provisioner_installers_plugin module"
@@ -226,8 +226,8 @@ runs:
     - name: (Test) provisioner_single_board_plugin
       if: >- 
         ${{ 
-          inputs.modules_to_test == 'single-board-plugin' || 
-          inputs.modules_to_test == 'all'
+          env.MODULE_TO_TEST == 'single-board-plugin' || 
+          env.MODULE_TO_TEST == 'all'
         }}
       run: |
         echo "::group::Running tests on provisioner_single_board_plugin module"

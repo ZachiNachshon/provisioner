@@ -33,7 +33,7 @@ jobs:
         uses: ./.github/actions/tests
         with:
           use_provisioner_from: source
-          modules_to_test: all
+          module_to_test: all
 
       - name: Publish to PyPi
         uses: ./.github/actions/publish
