@@ -17,14 +17,14 @@ ansible-core = ">=2.16.5,<2.17.0"
 
 [[package]]
 name = "ansible-core"
-version = "2.16.5"
+version = "2.16.6"
 description = "Radically simple IT automation"
 category = "main"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "ansible-core-2.16.5.tar.gz", hash = "sha256:cdd29b0ec3f20c35657355a2f6a9c1d0cf1131da99cc9a4a3401801b0ab36d6d"},
-    {file = "ansible_core-2.16.5-py3-none-any.whl", hash = "sha256:371b0bb11d109a58982684307c18cc44ff8d408b1b3350c0c5c78d9f096ee1f1"},
+    {file = "ansible_core-2.16.6-py3-none-any.whl", hash = "sha256:f9dea5044a86fd95cc27099f4f5c3ae9beb23acf7c3b6331455726c47825922b"},
+    {file = "ansible_core-2.16.6.tar.gz", hash = "sha256:111e55d358c2297ec0ce03ba98e6c5ce95947fdf50d878215eb8c183d0c275e4"},
 ]
 
 [package.dependencies]
@@ -500,14 +500,14 @@ xmod = "*"
 
 [[package]]
 name = "exceptiongroup"
-version = "1.2.0"
+version = "1.2.1"
 description = "Backport of PEP 654 (exception groups)"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "exceptiongroup-1.2.0-py3-none-any.whl", hash = "sha256:4bfd3996ac73b41e9b9628b04e079f193850720ea5945fc96a08633c66912f14"},
-    {file = "exceptiongroup-1.2.0.tar.gz", hash = "sha256:91f5c769735f051a4290d52edd0858999b57e5876e9f85937691bd4c9fa3ed68"},
+    {file = "exceptiongroup-1.2.1-py3-none-any.whl", hash = "sha256:5258b9ed329c5bbdd31a309f53cbfb0b155341807f6ff7606a1e801a891b29ad"},
+    {file = "exceptiongroup-1.2.1.tar.gz", hash = "sha256:a4785e48b045528f5bfe627b6ad554ff32def154f42372786903b7abcfe1aa16"},
 ]
 
 [package.extras]
