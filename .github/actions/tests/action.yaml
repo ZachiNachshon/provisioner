@@ -1,37 +1,60 @@
 name: 'Tests Suite'
 description: 'Run Tests Suite'
+
 inputs:
   use_provisioner_from:
-    description: 'Provisioner code to test with (source/pypi)'
-    required: true
-  modules_to_test:
-    description: 'Modules to test'
+    description: 'Provisioner origin code to run tests with'
     required: true
     options: 
-      - 'examples-plugin'
-      - 'installers-plugin'
-      - 'single-board-plugin'
+      - 'source'
+      - 'pypi'
+    default: 'source'
+    type: string
+  module_to_test:
+    description: 'Modules to run tests on'
+    required: true
+    options: 
+      - 'provisioner_examples_plugin'
+      - 'provisioner_installers_plugin'
+      - 'provisioner_single_board_plugin'
       - 'all'
     default: 'all'
     type: string
+
 runs:
   using: 'composite'
   steps:
-    - name: Set provisioner developement dependencies on all other projects
+    - name: Print Action Arguments
       run: |
+        echo "::group::Print test action arguments"
+        echo "use_provisioner_from: ${{ inputs.use_provisioner_from }}"
+        echo "module_to_test: ${{ inputs.module_to_test }}"
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Update pyproject.toml with developement dependencies on all projects
+      run: |
+        echo "::group::Update dev dependency on all projects"
         pip install tomlkit
         pip install coverage
         make set-dev-deps-all
+        echo "::endgroup::"
       shell: bash
 
     - name: Enable provisioner as a direct sources dependency in all modules (for testing)
       if: ${{ inputs.use_provisioner_from == 'source' }}
-      run: make use-provisioner-from-sources
+      run: |
+        echo "::group::Setting provisioner as direct dependency on all projects"
+        make use-provisioner-from-sources
+        echo "::endgroup::"
       shell: bash
 
     - name: Enable provisioner as a PyPi package in all modules (for testing)
       if: ${{ inputs.use_provisioner_from == 'pypi' }}
-      run: make use-provisioner-from-pypi
+      run: |
+        echo "::group::Setting provisioner as remote PyPi dependency on all projects"
+        make use-provisioner-from-pypi
+        echo "::endgroup::"
       shell: bash
 
     - name: (Cache) Try Load - provisioner
@@ -44,9 +67,11 @@ runs:
     - name: (Install) provisioner
       if: steps.cached-venv-provisioner.outputs.cache-hit != 'true'
       run: |
+        echo "::group::Installing provisioner dependecies"
         cd provisioner
         poetry install --all-extras
         cd ..
+        echo "::endgroup::"
       shell: bash
     
     - name: (Cache) Try Load - provisioner_features_lib
@@ -59,16 +84,18 @@ runs:
     - name: (Install) provisioner_features_lib
       if: steps.cached-venv-provisioner-features-lib.outputs.cache-hit != 'true'
       run: |
+        echo "::group::Installing provisioner_features_lib dependecies"
         cd provisioner_features_lib
         poetry install
         cd ..
+        echo "::endgroup::"
       shell: bash
 
     - name: (Cache) Try Load - provisioner_examples_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'examples-plugin' || 
-          github.event.inputs.modules_to_test == 'all' 
+          inputs.module_to_test == 'provisioner_examples_plugin' || 
+          inputs.module_to_test == 'all' 
         }}
       id: cached-venv-provisioner-examples-plugin
       uses: actions/cache@v3
@@ -79,21 +106,23 @@ runs:
     - name: (Install) provisioner_examples_plugin
       if: >- 
         ${{ 
-          (github.event.inputs.modules_to_test == 'examples-plugin' || 
-          github.event.inputs.modules_to_test == 'all') && 
+          (inputs.module_to_test == 'provisioner_examples_plugin' || 
+          inputs.module_to_test == 'all') && 
           steps.cached-venv-provisioner-examples-plugin.outputs.cache-hit != 'true' 
         }}
       run: |
+        echo "::group::Installing provisioner_examples_plugin dependecies"
         cd plugins/provisioner_examples_plugin
         poetry install
         cd ..
+        echo "::endgroup::"
       shell: bash
 
     - name: (Cache) Try Load - provisioner_installers_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'installers-plugin' || 
-          github.event.inputs.modules_to_test == 'all' 
+          inputs.module_to_test == 'provisioner_installers_plugin' || 
+          inputs.module_to_test == 'all' 
         }}
       id: cached-venv-provisioner-installers-plugin
       uses: actions/cache@v3
@@ -104,21 +133,23 @@ runs:
     - name: (Install) provisioner_installers_plugin
       if: >- 
         ${{ 
-          (github.event.inputs.modules_to_test == 'installers-plugin' || 
-          github.event.inputs.modules_to_test == 'all') && 
+          (inputs.module_to_test == 'provisioner_installers_plugin' || 
+          inputs.module_to_test == 'all') && 
           steps.cached-venv-provisioner-installers-plugin.outputs.cache-hit != 'true'
         }}
       run: |
+        echo "::group::Installing provisioner_installers_plugin dependecies"
         cd plugins/provisioner_installers_plugin
         poetry install
         cd ..
+        echo "::endgroup::"
       shell: bash
 
     - name: (Cache) Try Load - provisioner_single_board_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'single-board-plugin' || 
-          github.event.inputs.modules_to_test == 'all' 
+          inputs.module_to_test == 'provisioner_single_board_plugin' || 
+          inputs.module_to_test == 'all' 
         }}
       id: cached-venv-provisioner-single-board-plugin
       uses: actions/cache@v3
@@ -129,62 +160,74 @@ runs:
     - name: (Install) provisioner_single_board_plugin
       if: >- 
         ${{ 
-          (github.event.inputs.modules_to_test == 'single-board-plugin' || 
-          github.event.inputs.modules_to_test == 'all') && 
+          (inputs.module_to_test == 'provisioner_single_board_plugin' || 
+          inputs.module_to_test == 'all') && 
           steps.cached-venv-provisioner-single-board-plugin.outputs.cache-hit != 'true'
         }}
       run: |
+        echo "::group::Installing provisioner_single_board_plugin dependecies"
         cd plugins/provisioner_single_board_plugin
         poetry install
         cd ..
+        echo "::endgroup::"
       shell: bash
 
     - name: (Test) provisioner
       run: |
+        echo "::group::Running tests on provisioner module"
         cd provisioner
         make test-coverage-xml
         cd ..
+        echo "::endgroup::"
       shell: bash    
 
     - name: (Test) provisioner_features_lib
       run: |
+        echo "::group::Running tests on provisioner_features_lib module"
         cd provisioner_features_lib
         make test-coverage-xml
         cd ..
+        echo "::endgroup::"
       shell: bash    
 
     - name: (Test) provisioner_examples_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'examples-plugin' || 
-          github.event.inputs.modules_to_test == 'all'
+          inputs.module_to_test == 'provisioner_examples_plugin' || 
+          inputs.module_to_test == 'all'
         }}
       run: |
+        echo "::group::Running tests on provisioner_examples_plugin module"
         cd plugins/provisioner_examples_plugin
         make test-coverage-xml
         cd ..
+        echo "::endgroup::"
       shell: bash    
     
     - name: (Test) provisioner_installers_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'installers-plugin' || 
-          github.event.inputs.modules_to_test == 'all'
+          inputs.module_to_test == 'provisioner_installers_plugin' || 
+          inputs.module_to_test == 'all'
         }}
       run: |
+        echo "::group::Running tests on provisioner_installers_plugin module"
         cd plugins/provisioner_installers_plugin
         make test-coverage-xml
         cd ..
+        echo "::endgroup::"
       shell: bash    
 
     - name: (Test) provisioner_single_board_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'single-board-plugin' || 
-          github.event.inputs.modules_to_test == 'all'
+          inputs.module_to_test == 'provisioner_single_board_plugin' || 
+          inputs.module_to_test == 'all'
         }}
       run: |
+        echo "::group::Running tests on provisioner_single_board_plugin module"
         cd plugins/provisioner_single_board_plugin
         make test-coverage-xml
         cd ..
+        echo "::endgroup::"
       shell: bash    

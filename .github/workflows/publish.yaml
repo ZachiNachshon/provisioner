@@ -33,34 +33,11 @@ jobs:
         uses: ./.github/actions/tests
         with:
           use_provisioner_from: source
-          modules_to_test: all
+          module_to_test: all
 
-      - name: Install Required pip packages
-        run: |
-          pip install coverage twine
-          
       - name: Publish to PyPi
-        run: |
-          cd provisioner
-          poetry version patch
-          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-          echo -n $ver > provisioner/resources/version.txt
-          make pip-publish-pypi
-          cd ..
-
-      - name: Commit new version bump
-        run: |
-          echo "VER=$(poetry version | awk '{print $2}' | tr -d '\n')" >> $GITHUB_ENV
-          git config --global user.email "zachi.nachshon@gmail.com"
-          git config --global user.name "ZachiNachshon"
-          git checkout -b released-ver-${{ env.VER }}
-          git add provisioner/provisioner/resources/version.txt
-          git add provisioner/pyproject.toml
-          git commit -m "Released provisioner version ${{ env.VER }}"
-          git push --set-upstream origin released-ver-${{ env.VER }}
-          gh pr create --title "Released provisioner version ${{ env.VER }}" \
-              --body "Released provisioner version ${{ env.VER }}" \
-              --base master --head released-ver-${{ env.VER }} \
-              --label "auto pr"
-        shell: bash
-
+        uses: ./.github/actions/publish
+        with:
+          publishable: provisioner
+          is_plugin: false
+          PYPI_API_TOKEN: ${{ env.PYPI_API_TOKEN }}
