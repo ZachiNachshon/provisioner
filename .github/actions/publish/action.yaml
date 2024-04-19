@@ -31,12 +31,6 @@ runs:
         echo "::endgroup::"
       shell: bash
 
-    - name: Set environment variable
-      run: |
-        echo "PUBLISHABLE=${{ inputs.publishable }}" >> $GITHUB_ENV
-        echo "IS_PLUGIN=${{ inputs.is_plugin }}" >> $GITHUB_ENV
-      shell: bash
-
     - name: Install Required pip packages
       run: |
         pip install coverage twine
@@ -77,6 +71,9 @@ runs:
     - name: Discard previous changes to git index
       run: |
         git reset --hard
+        cd plugins 
+        git reset --hard
+        cd ..
       shell: bash    
 
     - name: Prepare git for commit
