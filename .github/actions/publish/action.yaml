@@ -34,7 +34,7 @@ runs:
     - name: Set environment variable
       run: |
         echo "PUBLISHABLE=${{ inputs.publishable }}" >> $GITHUB_ENV
-        echo "IS_PLUGIN=${{ env.is_plugin }}" >> $GITHUB_ENV
+        echo "IS_PLUGIN=${{ inputs.is_plugin }}" >> $GITHUB_ENV
       shell: bash
 
     - name: Install Required pip packages
@@ -54,7 +54,12 @@ runs:
         poetry version patch
         ver=$(poetry version | awk '{print $2}' | tr -d '\n')
         echo -n $ver > ${publishable}/resources/version.txt
-        make pip-publish-pypi
+
+        echo "================================="
+        echo "DUMMY Publishing ${publishable} version ${ver} to PyPi"
+        echo "================================="
+        # make pip-publish-pypi
+
         if [ ${{ inputs.is_plugin }} == true ]; then
           cd ../..
         else
@@ -71,7 +76,7 @@ runs:
   
     - name: Discard previous changes to git index
       run: |
-        git reset origin --hard
+        git reset --hard
       shell: bash    
 
     - name: Prepare git for commit

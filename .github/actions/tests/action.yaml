@@ -28,19 +28,19 @@ runs:
       run: |
         echo "::group::Print test action arguments"
         echo "use_provisioner_from: ${{ inputs.use_provisioner_from }}"
-        echo "module_to_test: ${{ env.MODULE_TO_TEST }}"
+        echo "module_to_test: ${{ inputs.MODULE_TO_TEST }}"
         echo "::endgroup::"
       shell: bash
 
     - name: Set environment variable
       run: |
         echo "USE_PROVISIONER_FROM=${{ inputs.use_provisioner_from }}" >> $GITHUB_ENV
-        echo "MODULE_TO_TEST=${{ env.MODULE_TO_TEST }}" >> $GITHUB_ENV
+        echo "MODULE_TO_TEST=${{ inputs.module_to_test }}" >> $GITHUB_ENV
       shell: bash
 
-    - name: Set developement dependencies on all other projects
+    - name: Update pyproject.toml with developement dependencies on all projects
       run: |
-        echo "::group::Setting dev dependency on all projects"
+        echo "::group::Update dev dependency on all projects"
         pip install tomlkit
         pip install coverage
         make set-dev-deps-all
