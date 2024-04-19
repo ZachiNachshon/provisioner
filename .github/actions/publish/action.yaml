@@ -22,8 +22,6 @@ inputs:
 
 runs:
   using: 'composite'  
-  env:
-    PYPI_API_TOKEN: ${{ inputs.PYPI_API_TOKEN }}
   steps:
     - name: Print Action Arguments
       run: |
@@ -57,6 +55,8 @@ runs:
           cd ..
         fi
         echo "::endgroup::" 
+      env:
+        PYPI_API_TOKEN: ${{ inputs.PYPI_API_TOKEN }}
       shell: bash
 
     - name: Prepare git for commit
