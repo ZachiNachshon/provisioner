@@ -49,10 +49,7 @@ runs:
         ver=$(poetry version | awk '{print $2}' | tr -d '\n')
         echo -n $ver > ${publishable}/resources/version.txt
 
-        echo "================================="
-        echo "DUMMY Publishing ${publishable} version ${ver} to PyPi"
-        echo "================================="
-        # make pip-publish-pypi
+        make pip-publish-pypi
 
         if [ ${{ inputs.is_plugin }} == true ]; then
           cd ../..
