@@ -1,5 +1,6 @@
 name: 'Tests Suite'
 description: 'Run Tests Suite'
+
 inputs:
   use_provisioner_from:
     description: 'Provisioner origin code to run tests with'
@@ -19,6 +20,7 @@ inputs:
       - 'all'
     default: 'all'
     type: string
+
 runs:
   using: 'composite'
   steps:
