@@ -32,6 +32,11 @@ runs:
         echo "::endgroup::"
       shell: bash
 
+    - name: Set a commonly shared Python Poetry virtual environment for all projects
+      run: |
+        poetry config virtualenvs.path "${{ github.workspace }}/.venv"
+      shell: bash
+
     - name: Set developement dependencies on all other projects
       run: |
         echo "::group::Setting dev dependency on all projects"
@@ -94,8 +99,8 @@ runs:
     - name: (Cache) Try Load - provisioner_examples_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'examples-plugin' || 
-          github.event.inputs.modules_to_test == 'all' 
+          inputs.modules_to_test == 'examples-plugin' || 
+          inputs.modules_to_test == 'all' 
         }}
       id: cached-venv-provisioner-examples-plugin
       uses: actions/cache@v3
@@ -106,8 +111,8 @@ runs:
     - name: (Install) provisioner_examples_plugin
       if: >- 
         ${{ 
-          (github.event.inputs.modules_to_test == 'examples-plugin' || 
-          github.event.inputs.modules_to_test == 'all') && 
+          (inputs.modules_to_test == 'examples-plugin' || 
+          inputs.modules_to_test == 'all') && 
           steps.cached-venv-provisioner-examples-plugin.outputs.cache-hit != 'true' 
         }}
       run: |
@@ -121,8 +126,8 @@ runs:
     - name: (Cache) Try Load - provisioner_installers_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'installers-plugin' || 
-          github.event.inputs.modules_to_test == 'all' 
+          inputs.modules_to_test == 'installers-plugin' || 
+          inputs.modules_to_test == 'all' 
         }}
       id: cached-venv-provisioner-installers-plugin
       uses: actions/cache@v3
@@ -133,8 +138,8 @@ runs:
     - name: (Install) provisioner_installers_plugin
       if: >- 
         ${{ 
-          (github.event.inputs.modules_to_test == 'installers-plugin' || 
-          github.event.inputs.modules_to_test == 'all') && 
+          (inputs.modules_to_test == 'installers-plugin' || 
+          inputs.modules_to_test == 'all') && 
           steps.cached-venv-provisioner-installers-plugin.outputs.cache-hit != 'true'
         }}
       run: |
@@ -148,8 +153,8 @@ runs:
     - name: (Cache) Try Load - provisioner_single_board_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'single-board-plugin' || 
-          github.event.inputs.modules_to_test == 'all' 
+          inputs.modules_to_test == 'single-board-plugin' || 
+          inputs.modules_to_test == 'all' 
         }}
       id: cached-venv-provisioner-single-board-plugin
       uses: actions/cache@v3
@@ -160,8 +165,8 @@ runs:
     - name: (Install) provisioner_single_board_plugin
       if: >- 
         ${{ 
-          (github.event.inputs.modules_to_test == 'single-board-plugin' || 
-          github.event.inputs.modules_to_test == 'all') && 
+          (inputs.modules_to_test == 'single-board-plugin' || 
+          inputs.modules_to_test == 'all') && 
           steps.cached-venv-provisioner-single-board-plugin.outputs.cache-hit != 'true'
         }}
       run: |
@@ -193,8 +198,8 @@ runs:
     - name: (Test) provisioner_examples_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'examples-plugin' || 
-          github.event.inputs.modules_to_test == 'all'
+          inputs.modules_to_test == 'examples-plugin' || 
+          inputs.modules_to_test == 'all'
         }}
       run: |
         echo "::group::Running tests on provisioner_examples_plugin module"
@@ -207,8 +212,8 @@ runs:
     - name: (Test) provisioner_installers_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'installers-plugin' || 
-          github.event.inputs.modules_to_test == 'all'
+          inputs.modules_to_test == 'installers-plugin' || 
+          inputs.modules_to_test == 'all'
         }}
       run: |
         echo "::group::Running tests on provisioner_installers_plugin module"
@@ -221,8 +226,8 @@ runs:
     - name: (Test) provisioner_single_board_plugin
       if: >- 
         ${{ 
-          github.event.inputs.modules_to_test == 'single-board-plugin' || 
-          github.event.inputs.modules_to_test == 'all'
+          inputs.modules_to_test == 'single-board-plugin' || 
+          inputs.modules_to_test == 'all'
         }}
       run: |
         echo "::group::Running tests on provisioner_single_board_plugin module"

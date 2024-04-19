@@ -39,8 +39,8 @@ runs:
     - name: Publish to PyPi
       run: |
         echo "::group::Publishing to PyPi"
-        publishable=${{ github.event.inputs.publishable }}
-        if [ ${{ github.event.inputs.is_plugin }} == true ]; then
+        publishable=${{ inputs.publishable }}
+        if [ ${{ inputs.is_plugin }} == true ]; then
           cd plugins/${publishable}
         else
           cd ${publishable}
@@ -49,7 +49,7 @@ runs:
         ver=$(poetry version | awk '{print $2}' | tr -d '\n')
         echo -n $ver > ${publishable}/resources/version.txt
         make pip-publish-pypi
-        if [ ${{ github.event.inputs.is_plugin }} == true ]; then
+        if [ ${{ inputs.is_plugin }} == true ]; then
           cd ../..
         else
           cd ..
@@ -68,8 +68,8 @@ runs:
     - name: Open a GitHub PR with released version
       run: |
         echo "::group::Opening a GitHub PR with released version"
-        publishable=${{ github.event.inputs.publishable }}
-        if [ ${{ github.event.inputs.is_plugin }} == true ]; then
+        publishable=${{ inputs.publishable }}
+        if [ ${{ inputs.is_plugin }} == true ]; then
           cd plugins/${publishable}
         else
           cd ${publishable}
@@ -85,7 +85,7 @@ runs:
             --body "Bump ${publishable} released version to ${ver}" \
             --base master --head ${branch_name} \
             --label "auto pr"
-        if [ ${{ github.event.inputs.is_plugin }} == true ]; then
+        if [ ${{ inputs.is_plugin }} == true ]; then
           cd ../..
         else
           cd ..
