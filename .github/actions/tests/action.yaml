@@ -22,6 +22,11 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Print Action Arguments
+      run: |
+        echo "use_provisioner_from: ${{ inputs.use_provisioner_from }}"
+        echo "modules_to_test: ${{ inputs.modules_to_test }}"
+
     - name: Set developement dependencies on all other projects
       run: |
         echo "::group::Setting dev dependency on all projects"
