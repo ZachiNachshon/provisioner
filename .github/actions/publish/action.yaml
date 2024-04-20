@@ -88,8 +88,11 @@ runs:
         else
           cd ${publishable}
         fi
+
         poetry version patch
         ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+        echo -n $ver > ${publishable}/resources/version.txt
+
         branch_name=released-${publishable}-ver-${ver}
         git add ${publishable}/resources/version.txt
         git add pyproject.toml
@@ -100,6 +103,7 @@ runs:
             --body "Bump ${publishable} released version to ${ver}" \
             --base master --head ${branch_name} \
             --label "auto pr"
+            
         if [ ${{ inputs.is_plugin }} == true ]; then
           cd ../..
         else
