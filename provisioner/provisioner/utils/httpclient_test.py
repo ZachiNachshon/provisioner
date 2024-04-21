@@ -3,6 +3,8 @@
 import unittest
 from unittest import mock
 
+from provisioner.errors.cli_errors import DownloadFileException
+from provisioner.test_lib.assertions import Assertion
 import requests
 
 from provisioner.test_lib.test_env import TestEnv
@@ -21,6 +23,7 @@ class HttpClientTestShould(unittest.TestCase):
         return HttpClient.create(
             self.env.get_context(),
             io_utils=self.env.get_collaborators().io_utils(),
+            progress_indicator=self.env.get_collaborators().progress_indicator(),
             printer=self.env.get_collaborators().printer(),
         )
 
@@ -111,3 +114,126 @@ class HttpClientTestShould(unittest.TestCase):
         self.assertEqual("test json", get_call_kwargs["body"])
         self.assertEqual(60, get_call_kwargs["timeout"])
         self.assertEqual({"key": "value"}, get_call_kwargs["headers"])
+
+    @mock.patch("requests.get")
+    def test_download_file_success_with_progress_bar(self, get_call: mock.MagicMock):
+        lib_resp = requests.Response()
+        lib_resp._content = str.encode("downloaded file")
+        lib_resp.status_code = 200
+        get_call.side_effect = [lib_resp]
+
+        test_env = TestEnv.create()
+        fake_io = test_env.get_collaborators().io_utils()
+        fake_io.on("create_directory_fn", str).side_effect = None
+        fake_io.on("file_exists_fn", str).return_value = False
+
+        p_indicator = test_env.get_collaborators().progress_indicator()
+        fake_p_bar = p_indicator.get_progress_bar()
+        fake_p_bar.on("download_file_fn", requests.Response, str).side_effect = None
+
+        http_client = HttpClient.create(
+            self.env.get_context(),
+            io_utils=fake_io,
+            progress_indicator=p_indicator,
+            printer=None,
+        )
+
+        filepath = http_client.download_file_fn(
+            url="http://some-url/filename.tar.gz", 
+            download_folder="/test/download/folder",
+            verify_already_downloaded = True,
+            progress_bar = True)
+        
+        self.assertIsNotNone(filepath)
+        self.assertEqual(filepath, "/test/download/folder/filename.tar.gz")
+
+    @mock.patch('shutil.copyfileobj')
+    @mock.patch('builtins.open', new_callable=mock.mock_open)
+    @mock.patch("requests.get")
+    def test_download_file_success_no_progres_bar(self, get_call: mock.MagicMock, mock_open: mock.MagicMock, mock_copy: mock.MagicMock):
+        lib_resp = requests.Response()
+        lib_resp._content = str.encode("downloaded file")
+        lib_resp.status_code = 200
+        get_call.side_effect = [lib_resp]
+
+        test_env = TestEnv.create()
+        fake_io = test_env.get_collaborators().io_utils()
+        fake_io.on("create_directory_fn", str).side_effect = None
+        fake_io.on("file_exists_fn", str).return_value = False
+
+        fake_printer = test_env.get_collaborators().printer()
+        fake_printer.on("print_fn", str).side_effect = lambda msg: self.assertIn("Downloading file", msg)
+
+        http_client = HttpClient.create(
+            self.env.get_context(),
+            io_utils=fake_io,
+            progress_indicator=None,
+            printer=fake_printer,
+        )
+
+        filepath = http_client.download_file_fn(
+            url="http://some-url/filename.tar.gz", 
+            download_folder="/test/download/folder",
+            verify_already_downloaded = True,
+            progress_bar = False)
+        
+        self.assertIsNotNone(filepath)
+        self.assertEqual(filepath, "/test/download/folder/filename.tar.gz")
+        # Assert that the file was opened in write binary mode
+        mock_open.assert_called_once_with("/test/download/folder/filename.tar.gz", 'wb')
+        # Assert that copyfileobj was called
+        mock_copy.assert_called_once()
+
+    def test_download_file_already_exists(self):
+        test_env = TestEnv.create()
+        fake_io = test_env.get_collaborators().io_utils()
+        fake_io.on("create_directory_fn", str).side_effect = None
+        fake_io.on("file_exists_fn", str).return_value = True
+
+        p_indicator = test_env.get_collaborators().progress_indicator()
+        fake_p_bar = p_indicator.get_progress_bar()
+        fake_p_bar.on("download_file_fn", requests.Response, str).side_effect = None
+
+        http_client = HttpClient.create(
+            self.env.get_context(),
+            io_utils=fake_io,
+            progress_indicator=p_indicator,
+            printer=None,
+        )
+
+        filepath = http_client.download_file_fn(
+            url="http://some-url/filename.tar.gz", 
+            download_folder="/test/download/folder",
+            verify_already_downloaded = True,
+            progress_bar = True)
+        
+        self.assertIsNotNone(filepath)
+        self.assertEqual(filepath, "/test/download/folder/filename.tar.gz")
+
+    @mock.patch("requests.get")
+    def test_download_file_exception(self, get_call: mock.MagicMock):
+        lib_resp = requests.Response()
+        lib_resp.status_code = 400
+        get_call.side_effect = [lib_resp]
+
+        test_env = TestEnv.create()
+        fake_io = test_env.get_collaborators().io_utils()
+        fake_io.on("create_directory_fn", str).side_effect = None
+        fake_io.on("file_exists_fn", str).return_value = False
+
+        http_client = HttpClient.create(
+            self.env.get_context(),
+            io_utils=fake_io,
+            progress_indicator=None,
+            printer=None,
+        )
+        
+        Assertion.expect_raised_failure(
+            self, 
+            ex_type=DownloadFileException,
+            method_to_run=lambda: http_client.download_file_fn(
+                url="http://some-url/filename.tar.gz", 
+                download_folder="/test/download/folder",
+                verify_already_downloaded = True,
+                progress_bar = True)
+            )

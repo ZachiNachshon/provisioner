@@ -5,6 +5,8 @@ import shutil
 import tempfile
 from typing import Optional
 
+from provisioner.utils.printer import Printer
+from provisioner.utils.progress_indicator import ProgressIndicator
 import requests
 from loguru import logger
 from requests import RequestException
@@ -12,7 +14,6 @@ from requests import RequestException
 from provisioner.errors.cli_errors import DownloadFileException
 from provisioner.infra.context import Context
 from provisioner.utils.io_utils import IOUtils
-from provisioner.utils.printer import Printer
 
 
 class ErrorResponse:
@@ -61,20 +62,34 @@ class HttpClient:
     _dry_run: bool = None
     _verbose: bool = None
     io: IOUtils = None
+    progress_indicator: ProgressIndicator = None
     printer: Printer = None
 
     @staticmethod
-    def create(ctx: Context, io_utils: IOUtils, printer: Printer) -> "HttpClient":
+    def create(
+        ctx: Context, 
+        io_utils: IOUtils, 
+        progress_indicator: ProgressIndicator,
+        printer: Printer) -> "HttpClient":
+
         dry_run = ctx.is_dry_run()
         verbose = ctx.is_verbose()
         logger.debug(f"Creating http client (dry_run: {dry_run}, verbose: {verbose})...")
-        client = HttpClient(io_utils, printer, dry_run, verbose)
+        client = HttpClient(io_utils, progress_indicator, printer, dry_run, verbose)
         return client
 
-    def __init__(self, io_utils: IOUtils, printer: Printer, dry_run: bool, verbose: bool) -> None:
+    def __init__(
+            self, 
+            io_utils: IOUtils, 
+            progress_indicator: ProgressIndicator, 
+            printer: Printer, 
+            dry_run: bool, 
+            verbose: bool) -> None:
+        
         self._dry_run = dry_run
         self._verbose = verbose
         self.io = io_utils
+        self.progress_indicator = progress_indicator
         self.printer = printer
 
     def raw_client(self):
@@ -159,12 +174,12 @@ class HttpClient:
             return file_path
 
         resp = requests.get(url, stream=True, allow_redirects=True)
-        if resp.status_code != 200:
-            resp.raise_for_status()
+        if resp.status_code < 200 or resp.status_code > 299:
+            # resp.raise_for_status()
             raise DownloadFileException(f"Request to {url} returned status code {resp.status_code}")
 
         if progress_bar:
-            self.printer.progress_indicator.progress_bar.download_file_fn(
+            self.progress_indicator.get_progress_bar().download_file_fn(
                 response=resp, download_folder=download_folder_resolved
             )
         else:

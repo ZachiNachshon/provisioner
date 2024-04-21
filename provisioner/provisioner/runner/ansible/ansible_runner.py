@@ -32,7 +32,7 @@ ANSIBLE_PLAYBOOKS_DIR_NAME = "playbooks"
 
 ANSIBLE_STDOUT_PLUGIN_NAME = "custom_yaml"
 
-ANSIBLE_VALUES_SENSITIVE_KEYWORDS = ["token", "secret"]
+ANSIBLE_VALUES_SENSITIVE_KEYWORDS = ["token", "secret", "api_token", "api_secret", "password", "pass", "pwd"]
 
 INVENTORY_FORMAT = """
 [all:vars]

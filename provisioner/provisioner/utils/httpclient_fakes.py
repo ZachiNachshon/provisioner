@@ -11,7 +11,7 @@ from provisioner.utils.httpclient import HttpClient
 class FakeHttpClient(TestFakes, HttpClient):
     def __init__(self, dry_run: bool, verbose: bool):
         TestFakes.__init__(self)
-        HttpClient.__init__(self, io_utils=None, printer=None, dry_run=dry_run, verbose=verbose)
+        HttpClient.__init__(self, io_utils=None, progress_indicator=None, printer=None, dry_run=dry_run, verbose=verbose)
 
     @staticmethod
     def create(ctx: Context) -> "FakeHttpClient":

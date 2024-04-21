@@ -157,7 +157,7 @@ class CoreCollaborators:
     def http_client(self) -> HttpClient:
         def create_http_client():
             if not self.__http_client:
-                self.__http_client = HttpClient.create(self.__ctx, io_utils=self.io_utils(), printer=self.printer())
+                self.__http_client = HttpClient.create(self.__ctx, io_utils=self.io_utils(), progress_indicator=self.progress_indicator(), printer=self.printer())
             return self.__http_client
 
         return self._lock_and_get(callback=create_http_client)

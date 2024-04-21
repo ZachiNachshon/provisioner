@@ -12,12 +12,15 @@ from provisioner.runner.ansible.ansible_runner import (
     AnsibleRunnerLocal,
 )
 from provisioner.test_lib.assertions import Assertion
+from provisioner.test_lib.test_env import TestEnv
 from provisioner.utils.io_utils import IOUtils
 from provisioner.utils.io_utils_fakes import FakeIOUtils
 from provisioner.utils.os import OsArch
 from provisioner.utils.paths import Paths
 
 #
+# NOTE: THOES ARE E2E TESTS - THEY'LL CREATE FILES & FOLDERS IN THE FILE SYSTEM
+# 
 # To run these directly from the terminal use:
 #  poetry run coverage run -m pytest provisioner/runner/ansible/ansible_test.py
 #
@@ -87,7 +90,7 @@ class AnsibleRunnerTestShould(unittest.TestCase):
             ex_type=InvalidAnsibleHostPair,
             method_to_run=lambda: AnsibleRunnerLocal.create(
                 ctx=ctx,
-                io_utils=FakeIOUtils.create(ctx),
+                io_utils=IOUtils.create(ctx),
                 paths=Paths.create(ctx),
             ).run_fn(
                 selected_hosts=[AnsibleHost("localhost", None)],
@@ -95,7 +98,7 @@ class AnsibleRunnerTestShould(unittest.TestCase):
             ),
         )
 
-    def test_run_ansible(self):
+    def test_run_ansible_success(self):
         ctx = Context.create(dry_run=True, verbose=True, auto_prompt=True, os_arch=OsArch(os="TEST_OS"))
         Assertion.expect_outputs(
             self,

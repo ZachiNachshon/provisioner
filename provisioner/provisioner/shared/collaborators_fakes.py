@@ -122,7 +122,7 @@ class FakeCoreCollaborators(CoreCollaborators):
 
         return self._lock_and_get(callback=create_printer)
 
-    def progress_indicator(self) -> ProgressIndicator:
+    def progress_indicator(self) -> FakeProgressIndicator:
         def create_progress_indicator():
             if not self.__progress_indicator:
                 self.__progress_indicator = FakeProgressIndicator.create(self.__ctx)
