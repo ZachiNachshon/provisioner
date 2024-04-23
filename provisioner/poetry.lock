@@ -919,13 +919,13 @@ test = ["coverage", "docutils", "testscenarios (>=0.4)", "testtools"]
 
 [[package]]
 name = "python-hosts"
-version = "1.0.5"
+version = "1.0.6"
 description = "A hosts file manager library written in python"
 optional = false
 python-versions = "*"
 files = [
-    {file = "python-hosts-1.0.5.tar.gz", hash = "sha256:c5a6db1a7bf35cd884d24a1056af5d98489be42bfb920d498e9640c9bec864cd"},
-    {file = "python_hosts-1.0.5-py3-none-any.whl", hash = "sha256:66200fe9adf248bf10593078139ef88bf45c709c24f1a8de943daab9ae0c1de3"},
+    {file = "python-hosts-1.0.6.tar.gz", hash = "sha256:2df59f07327753202b707c6b2140ec21af2922bd569148a47fa17abfe2152c6e"},
+    {file = "python_hosts-1.0.6-py3-none-any.whl", hash = "sha256:f902433664cad0f1bc50ef09be7906ac2a06df40945d0515c3e3f4ef39578762"},
 ]
 
 [[package]]
