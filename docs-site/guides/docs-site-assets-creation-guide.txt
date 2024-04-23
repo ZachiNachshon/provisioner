@@ -9,10 +9,10 @@ Code/Terminal Snippets (https://carbon.now.sh/)
 -----------------------------------------------
 Theme: material
 Font: Plain Text / bold
-Highlight color: #3B7ADB
+Highlight color: #6628AE
 
 Colors:
-Provisioner theme - #3B7ADB
+Provisioner theme - #6628AE
 Command name - #8FC747
 Title active - #8FC747
 Title inactive - #81878A
@@ -33,7 +33,7 @@ Font Size: 110
 
 Provisioner:
 Font Color - #FFFFFF
-Background Color - #A26CEB
+Background Color - #9161D3
 
 
 Logo (https://maketext.io/)
@@ -44,8 +44,8 @@ Background: rgba(0%,0%,0%,0)
 
 White (provisioner):
 Fill - #ffffff
-Extrusion - #A26CEB
-Shadow - #A26CEB
+Extrusion - #9161D3
+Shadow - #9161D3
 Offset - 4
 locations:
   - name: <project>-white.svg
@@ -58,9 +58,9 @@ locations:
   - location: site/layouts/partials/icons/
 
 Themed (provisioner):
-Fill - #A26CEB
+Fill - #9161D3
 Extrusion - #ffffff
-Shadow - #A26CEB
+Shadow - #9161D3
 Offset - 4
 locations:
   - name: <project>.svg

@@ -1,53 +1,34 @@
 ---
 layout: docs
 title: Playground
-description: Take <code>provisioner</code> for a spin by using it on a remote playground git repository.
+description: Take <code>provisioner</code> for a spin by using the examples plugin.
 group: getting-started
 toc: true
 ---
 
 ## Instructions
-Follow these steps to connect to a remote git playground repository and check the dynamic CLI live experience. **All actions are no-op**, you can safely run them as they only print to stdout.
+Follow these steps to install the examples plugin and run **no-op** commands just to get the feel of using provisioner, its plugins and overall uesr experience.
 
-1. Register to a remote git playground respository and set it as the default config context:
-
-   ```bash
-   provisioner config set-context-entry playground \
-      --repository.remote.url=https://github.com/ZachiNachshon/provisioner-playground.git \
-      --repository.remote.autoUpdate=false \
-      --set-current-context
-   ```
-
-1. Type `provisioner` to fetch the repository and print all available commands
-
-1. Check which items are available under the `team-infra` command:
+1. Install the playground
 
    ```bash
-   provisioner team-infra status
-   ```
-   
-1. Select the `team-infra` command to start an interactive action selection, try running an action/workflow:
-
-   ```txt
-   provisioner team-infra select
+   pip install provisioner-examples-plugin
    ```
 
-1. Use the `run` command to run an action non-interactively:
+1. List the available Ansible example commands
 
    ```bash
-   provisioner team-infra run backoffice --action=install-jenkins-master
+   provisioner examples ansible
    ```
 
-1. Run an action-set (workflow) non-interactively:
+1. Run an example Ansible no-op local command
 
    ```bash
-   provisioner team-infra run backoffice --workflow=provision-jenkins-server-agents
+   provisioner examples ansible hello
    ```
-
-1. Use other playground commands and run different actions to check different use cases
 
 <br>
 
 {{< callout info >}}
-This is a quick overview just to get a grasp of how simple it is to use `provisioner`.<br>To add `provisioner` support to an existing or new git repository, please see the [structure section](/docs/{{< param docs_version >}}/repository/structure).
+This is a quick overview just to get a grasp of how simple it is to use `provisioner`.<br>For more information, please see the [usage section](/docs/{{< param docs_version >}}/usage/structure).
 {{< /callout >}}

@@ -2,7 +2,7 @@
 layout: docs
 title: Action Sets (Workflow)
 description: Create executable action-sets (a.k.a workflows) for a menu command.
-group: repository
+group: usage
 toc: false
 ---
 

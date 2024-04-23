@@ -2,7 +2,7 @@
 layout: docs
 title: Instructions
 description: Define actions and action-sets for a menu command.
-group: repository
+group: usage
 toc: true
 sections:
   - title: Action

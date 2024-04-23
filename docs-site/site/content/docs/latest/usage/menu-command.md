@@ -3,7 +3,7 @@ layout: docs
 title: Menu Command
 description: Create a dynamic CLI menu command.
 toc: true
-group: repository
+group: usage
 ---
 
 ## The `command.yaml` file

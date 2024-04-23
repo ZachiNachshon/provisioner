@@ -2,7 +2,7 @@
 layout: docs
 title: Action
 description: Create executable actions for a menu command.
-group: repository
+group: usage
 toc: false
 ---
 

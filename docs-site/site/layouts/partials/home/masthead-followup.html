@@ -4,9 +4,10 @@
       <svg class="bi fs-1"><use xlink:href="#git"></use></svg>
     </div>
     <!-- <h2 class="display-5 mb-3 fw-semibold lh-sm">Use on existing &amp; new git&nbsp;repositories</h2> -->
-    <h2 class="display-5 mb-3 fw-semibold lh-sm">Provisioner your Ops environment into a version controlled repository</h2>
+    <!-- <h2 class="display-5 mb-3 fw-semibold lh-sm">Provisioner your Ops environment into a version controlled repository</h2> -->
+    <h2 class="display-5 mb-3 fw-semibold lh-sm">Use any available CLI plugins or contribute new ones</h2>
     <p class="lead fw-normal">
-      Create a CLI utility out-of-the-box from your git repositories <code>scripts</code> / <code>commands</code> / <code>other</code> by adding only a basic YAML config file.
+      Search for existing plugins that are available for use or contribute new ones using a Python based framework in a no-brainer manner, simple and quick.
     </p>
     <p class="d-flex justify-content-md-start justify-content-md-center lead fw-normal">
       <a href="/docs/{{ .Site.Params.docs_version }}/getting-started/download/" class="icon-link fw-semibold justify-content-center ps-md-4">
@@ -21,7 +22,7 @@
       <svg class="bi mb-2 fs-2 text-muted"><use xlink:href="#box-seam"></use></svg>
       <h3 class="fw-semibold">Install using several options</h3>
       <p class="pe-lg-5">
-        Install <code>provisioner</code> via Homebrew, pre-built release or from sources. Package managed installs contains only the bare minimum without documentation / site / dev-scripts etc...
+        Install <code>provisioner</code> from PyPi via pip, pre-built release or from sources. Package managed installs contains only the bare minimum without documentation / site / dev-scripts etc...
       </p>
       <!-- {{ highlight (printf ("npm install bootstrap@%s") .Site.Params.current_version) "sh" "" }} -->
       <p>
@@ -30,16 +31,13 @@
     </div>
     <div class="col-lg-6 py-lg-4 ps-lg-5 border-lg-start">
       <svg class="bi mb-2 fs-2 text-muted"><use xlink:href="#github"></use></svg>
-      <h3 class="fw-semibold">Register a remote git repository</h3>
+      <h3 class="fw-semibold">Browse through available plugins</h3>
       <p class="lead fw-normal">
-        Adding a new git repository to <code>provisioner</code> context is as simple as running the following command:
-        {{ highlight (printf (`provisioner config set-context-entry ops-group \
-    --repository.remote.url=git@github.com:Organization/OpsRepository.git \
-    --repository.remote.autoUpdate=true \
-    --set-current-context`)) "sh" "" }}
+        Browsing through the available plugins is as simple as running the following command:
+        {{ highlight (printf (`provisioner plugins list`)) "sh" "" }}
       </p>
       <p>
-        For all config context options <a href="/docs/{{ .Site.Params.docs_version }}/configuration/context/#set-context-entry">check the configuration section</a>.
+        For the full list of available plugins <a href="/docs/{{ .Site.Params.docs_version }}/configuration/context/#set-context-entry">check the following section</a>.
       </p>
     </div>
   </section>
@@ -48,86 +46,70 @@
     <div class="masthead-followup-icon d-inline-block mb-3" style="--bg-rgb: var(--bs-primary-rgb);">
       <svg class="bi fs-1"><use xlink:href="#braces"></use></svg>
     </div>
-    <h2 class="display-5 mb-3 fw-semibold lh-sm">Define command and instructions</h2>
+    <h2 class="display-5 mb-3 fw-semibold lh-sm">Built-in capabilities out of the box</h2>
     <p class="lead fw-normal">
-      Provisioner relies on the location of <code>command.yaml</code> &amp; <code>instructions.yaml</code> file(s) on the git repository, those files dictate the command and actions hierarchy.
+      Provisioner Python CLI framework supports a wide range of common utilities, interactive terminal and core capabilities such as config-management, flag modifiers (verbose, dry-run, auto-prompt) and much more...
     </p>
     <p class="d-flex justify-content-start lead fw-normal">
       <a href="/docs/{{ .Site.Params.docs_version }}/repository/structure/" class="icon-link fw-semibold">
-        Learn more about the git repository structure
+        Learn more about the provisioner Python framework
         <svg class="bi"><use xlink:href="#arrow-right-short"></use></svg>
       </a>
     </p>
   </section>
-
-  <section class="row g-md-5 mb-5 pb-md-5">
-    <div class="col-lg-6">
-      <h3>Introduce <code>YAML</code> files to the repository</h3>
-      <p>Every <code>command.yaml</code> represent a CLI menu command, the <code>instruction.yaml</code> file and its content describes the available actions.</p>
-      {{ highlight (printf `├── ...
-├── <cli-command-1>                   
-│   └── <cli-actions-1>               
-│       ├── instructions.yaml
-│       ├── <additional-files-and-folders>
-│       └── ...       
-│   ├── command.yaml
-│   ├── <additional-files-and-folders>
-│   └── ...                
-├── team-build
-│   └── bazel
-│       ├── instructions.yaml              
-│       └── ...       
-│   └── buildkite
-│       ├── instructions.yaml              
-│       └── ...       
-│   └── command.yaml
-├── team-infra
-│   └── backoffice
-│       ├── instructions.yaml              
-│       └── ...       
-│   └── production
-│       ├── instructions.yaml              
-│       └── ...       
-│   └── command.yaml
-└── ...
-`) "text" "" }}
-      <p>Learn more about the <a href="/docs/{{ .Site.Params.docs_version }}/repository/menu-command/">menu command structure</a>.</p>
-    </div>
-    <div class="col-lg-6">
-      <h3>Instantly reflect remote git repository changes</h3>
-      <p>When <code>auto-update</code> config context is used, every interaction with <code>provisioner</code> aligns its state to be up to date with the remote git repository.</p>
-      <!-- <img class="img-fluid mt-1 mx-auto" src="/docs/{{ .Site.Params.docs_version }}/assets/img/provisioner-menu.svg"
-           width="700" height="600" alt="Provisioner" loading="lazy"> -->
-    </div>
-  </section>
-
+  <br>
+  <br>
   <section class="row g-md-5 pb-md-5 mb-5 align-items-center">
     <div class="col-lg-8 mb-5">
       <div class="masthead-followup-icon d-inline-block mb-3" style="--bg-rgb: var(--bd-theme-rgb);">
         <svg class="bi fs-1"><use xlink:href="#plugin"></use></svg>
       </div>
-      <h2 class="display-5 mb-3 fw-semibold lh-sm">Choose how to interact with <code>provisioner</code></h2>
+      <h2 class="display-5 mb-3 fw-semibold lh-sm">Commonly used CLI plugins</h2>
       <p class="lead fw-normal">
-        Use <code>provisioner</code> from any environment with an interactive shell menu or use a direct command to run any of its underlying actions.
+        Those are the common and highly used <code>provisioner</code> plugins.
       </p>
       <p class="d-flex align-items-start flex-column lead fw-normal mb-0">
         <a href="/docs/{{ .Site.Params.docs_version }}/repository/structure/" class="icon-link fw-semibold mb-3">
-          Learn how to define a new action
+          Learn more about available plugins
           <svg class="bi"><use xlink:href="#arrow-right-short"></use></svg>
         </a>
       </p>
     </div>
     <div class="row gx-md-5">
       <div class="col-lg-6 mb-3">
-        <h3 class="fw-semibold">Interactive shell</h3>
-        <p>To continue with previous example, interact via <code>provisioner team-build select</code> and use the arrows to select which action to run.</p>
+        <svg class="bi mb-2 fs-2 text-muted"><use xlink:href="#terminal"></use></svg>
+        <h3 class="fw-semibold">Installers Plugin</h3>
+        <p>Install anything anywhere on any OS/Arch either on a local or remote machine.<br>
+          This plugin is designed to install any type of software, package, or application quickly and easily in a one-liner command.<br>
+          Remove the hassle of going through multiple READMEs and/or documentation sites just to get the software installed.<br>
+          <br>
+        </p>
+        {{ highlight (printf `# Print a list of avaialble installables
+$ provisioner install 
+
+# Install Helm CLI interactively (prompt for Local/Remote)
+$ provisioner install cli helm
+
+# Install Helm CLI locally (Non-interactive)
+$ provisioner install --environment=Local cli helm
+
+# Install K3s server remotely (Non-interactive)
+$ provisioner install --environment=Remote k3s server`) "text" "" }}
         <!-- <img class="img-fluid mt-1 mx-auto" src="/docs/{{ .Site.Params.docs_version }}/assets/img/provisioner-build-bazel-example.svg"
                                           alt="provisioner Build Bazel" width="700" height="600" loading="lazy"> -->
       </div>
       <div class="col-lg-6 mb-3">
-        <h3 class="fw-semibold">Direct command</h3>
-        <p>Alternatively, if <code>Provisioner</code> is being used within a managed environment and there is a need to run its actions non-interactively, use the <code>run</code> command as follows:</p>
-        {{ highlight (printf `provisioner team-build run bazel --action=build-bazel-repository`) "sh" "" }}
+        <svg class="bi mb-2 fs-2 text-muted"><use xlink:href="#motherboard"></use></svg>
+        <h3 class="fw-semibold">Single Board Plugin</h3>
+        <p>Single boards management as simple as it gets.<br>Manage small single-board computers such as <b><i>Raspberry Pi</i></b> using interactive commands.<br>Make the provisioning on such machines safe, secure and remotely possible, starting from the initial OS/Network set-up and configuration towards on-going maintenance.</p>
+        {{ highlight (printf `# Select an available local block device to burn a Raspbian OS image (SD-Card / HDD)
+$ provisioner single-board raspberry-pi os burn-image
+
+# Select a remote Raspberry Pi node to configure Raspbian OS software and hardware settings
+$ provisioner single-board raspberry-pi node configure
+
+# Select a remote Raspberry Pi node on the ethernet network to configure a static IP address
+$ provisioner single-board raspberry-pi node network`) "text" "" }}
       </div>
     </div>
   </section>
@@ -138,31 +120,15 @@
         <svg class="bi fs-1"><use xlink:href="#book"></use></svg>
         <!-- {{ partial "icons/circle-square.svg" (dict "width" "32" "height" "32") }} -->
       </div>
-      <h2 class="display-5 mb-3 fw-semibold lh-sm">Document every action</h2>
+      <h2 class="display-5 mb-3 fw-semibold lh-sm">Provisioner motto</h2>
       <p class="lead fw-normal">
-        Add detailed description to any <code>provisioner</code> action, a wrapper for shell script, Python script, binary call with its options/argument or any other executable. Make&nbsp;it&nbsp;clear what is the action responsibility, what are the control arguments and what is the expected outcome.
+        The goal for <code>provisioner</code> is to have the ability to install or use anything either locally or on a remote machine with the focus of making the process as simple as possible, one stop shop for your needs.<br><br>
+        It could be summarized into the following phrase:<br><i>"Provision everything anywhere"</i>
       </p>
     </div>
     <div class="col-lg-6">
       <!-- <img class="img-fluid mt-3 mx-auto" src="/docs/{{ .Site.Params.docs_version }}/assets/img/provisioner-prod-example.svg"
                                           alt="Provisioner Production Example" width="700" height="600" loading="lazy"> -->
-    </div>
-  </section>
-
-  <section class="row g-3 g-md-5 pb-md-5 mb-5 align-items-center">
-    <div class="col-lg-6">
-      <div class="masthead-followup-icon d-inline-block mb-3" style="--bg-rgb: var(--bd-theme-rgb);">
-        <svg class="bi fs-1"><use xlink:href="#boxes"></use></svg>
-        <!-- {{ partial "icons/droplet-fill.svg" (dict "width" "32" "height" "32") }} -->
-      </div>
-      <h2 class="display-5 mb-3 fw-semibold lh-sm">Run multiple actions simultaneously</h2>
-      <p class="lead fw-normal">
-        Create a workflow plan comprised from multiple pre-defined actions to run in a serialized and ordered manner.
-      </p>
-    </div>
-    <div class="col-lg-6">
-        <!-- <img class="img-fluid mt-3 mx-auto" src="/docs/{{ .Site.Params.docs_version }}/assets/img/provisioner-jenkins-workflow-example.svg"
-                                            alt="Provisioner Jenkins Workflow" width="700" height="600" loading="lazy"> -->
     </div>
   </section>
 
@@ -173,15 +139,19 @@
       </div>
       <h2 class="display-5 mb-3 fw-semibold lh-sm">Try the playground</h2>
       <p class="lead fw-normal">
-        Take <code>provisioner</code> for a spin by using it on a remote git playground repository using a single command.
+        Take <code>provisioner</code> for a spin by using the <code>provisioner-examples-plugin</code>.
       </p>
     </div>
     <div class="col-lg-6">
-      {{ highlight (printf `provisioner config set-context-entry playground \
-    --repository.remote.url=https://github.com/ZachiNachshon/provisioner-playground.git \
-    --repository.remote.autoUpdate=true \
-    --set-current-context
-`) "sh" "" }}
+      {{ highlight (printf `$ pip install provisioner-examples-plugin
+
+# Print examples plugin commands
+$ provisioner examples
+
+# Run a no-op Ansible command
+$ provisioner examples ansible hello
+        `) "text" "" }}
+
     </div>
     <p class="d-flex align-items-start flex-column lead fw-normal mb-0">
       <a href="/docs/{{ .Site.Params.docs_version }}/getting-started/playground/" class="icon-link fw-semibold mb-3">

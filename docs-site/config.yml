@@ -52,11 +52,12 @@ params:
   authors:              "Zachi Nachshon"
   social_image_path:    /docs/latest/assets/brand/provisioner-social.png
   social_logo_path:     /docs/latest/assets/brand/provisioner-social-logo.png
-  google_analytics:     "G-NGD31XC4K2"
+  # google_analytics:     ""
 
-  current_version:      "0.1.0"
+  current_version:      "0.1.9"
   docs_version:         "latest"
   go_version:           "1.20"
+  python_version:       "3.10"
   github_org:           "https://github.com/ZachiNachshon"
   domain_base:          "https://zachinachshon.com"
   repo:                 "https://github.com/ZachiNachshon/provisioner"
