@@ -1,6 +1,6 @@
 ---
 layout: docs
-title: Action Sets (Workflow)
+title: "Plugin: Examples"
 description: Create executable action-sets (a.k.a workflows) for a menu command.
 group: usage
 toc: false
