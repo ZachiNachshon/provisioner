@@ -28,10 +28,11 @@ jobs:
   deploy:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
-          submodules: true  # Fetch Hugo themes (true OR recursive)
-          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+          submodules: true  # Fetch Git submodules
+          token: ${{ secrets.PROVISIONER_PLUGINS_REPO_ACCESS_TOKEN }}
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
