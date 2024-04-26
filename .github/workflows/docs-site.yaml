@@ -55,10 +55,6 @@ jobs:
         working-directory: ./docs-site
         run: hugo --cleanDestinationDir
 
-#      - name: List files
-#        working-directory: ./docs-site
-#        run: ls -lah
-
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/master'
