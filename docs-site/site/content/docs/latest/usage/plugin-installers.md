@@ -51,7 +51,8 @@ provisioner install cli <app-name>
 
 #### K3s
 
-Install either k3s server or agent
+K3s is fully compliant lightweight Kubernetes distribution (https://k3s.io).<br>
+Provisioner allows installing either the k3s server or agent.
 
 ```bash
 provisioner install k3s <server/agent>
@@ -64,9 +65,11 @@ When opting-in for a remote installation without an interactive flow, one should
 {{< bs-table >}}
 | Remote Flag | Env Var | Description |
 | --- | --- | --- |
-| `--node-username` | `NODE_USERNAME` | Remote node username |
-| `--node-password` | `NODE_PASSWORD` | Remote node password |
-| `--ssh-private-key-file-path` | `SSH_PRIVATE_KEY_FILE_PATH` | Private SSH key local file path |
+| `--hostname` | `PROV_HOSTNAME` | Remote node host name |
+| `--ip-address` | `PROV_IP_ADDRESS` | Remote node IP address |
+| `--node-username` | `PROV_NODE_USERNAME` | Remote node username |
+| `--node-password` | `PROV_NODE_PASSWORD` | (Optional) Remote node password |
+| `--ssh-private-key-file-path` | `PROV_SSH_PRIVATE_KEY_FILE_PATH` | (Recommended) Private SSH key local file path |
 {{< /bs-table >}}
 
 Example:
@@ -74,6 +77,8 @@ Example:
 ```bash
 provisioner install cli \
   --environment Remote \
+  --hostname rpi-01 \
+  --ip-address 1.2.3.4 \
   --node-username pi \
   --ssh-private-key-file-path /path/to/pkey \
   helm
@@ -82,6 +87,9 @@ provisioner install cli \
 or
 
 ```bash
-NODE_USERNAME=pi SSH_PRIVATE_KEY_FILE_PATH=/path/to/pkey \
-  provisioner install cli --environment Remote helm
+PROV_HOSTNAME=rpi-01 \
+PROV_IP_ADDRESS=1.2.3.4 \
+PROV_NODE_USERNAME=pi \
+PROV_SSH_PRIVATE_KEY_FILE_PATH=/path/to/pkey \
+provisioner install cli --environment Remote helm
 ```

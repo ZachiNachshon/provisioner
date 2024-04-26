@@ -1,42 +1,46 @@
 ---
 layout: docs
-title: Structure
-description: Learn how to connect an existing or new git repository to `provisioner`, reflecting the repository content via command-line-interface utility.
+title: Provisioner Runtime
+description: Python powered CLI for dynamic plugin management.
 group: usage
-toc: false
+toc: true
 aliases: "/docs/latest/usage/"
-sections:
-  - title: Menu Command
-    description: Create a dynamic CLI menu command
-  - title: Instructions
-    description: Define actions and action-sets for a menu command
 ---
 
-## Overview
+## Runtime Engine
 
-`provisioner` connects to any git repository and expose executable commands as dynamic command-line-interface utility to use from any environment, CI and local. 
+The `provisioner-runtime` pip package is required to dynamically load any plugin it finds installed as pip packages.
 
-In order for it to properly scan the respository and extract the commands with their respective actions or workflows, a basic structure should be followed introducing a set of YAML files.
+Provisioner plugins are configured to hook into provisioner CLI menu and add its commands so they'll become visibile once those are identified by provisioner at runtime.
 
-Example of such structure:
+Removing such plugins from pip will remove them from `provisioner` CLI menu as well.
 
-```text
-├── ...
-├── <cli-command-1>                   
-│   └── <command-1-actions-1>               
-│       ├── instructions.yaml
-│       ├── <additional-files-and-folders>
-│       └── ...       
-│   ├── command.yaml
-│   ├── <additional-files-and-folders>
-│   └── ...  
-├── <cli-command-2>                   
-│   └── <command-2-actions-1>               
-│       ├── instructions.yaml
-│       └── ...       
-│   └── <command-2-actions-2>               
-│       ├── instructions.yaml
-│       └── ...       
-│   ├── command.yaml
-│   └── ...  
+## Framework
+
+Provisioner is used as a framework for creating new plugins in a no-brainer manner, simple and quick.
+
+Is is a fully featured Python CLI framework supports a wide range of common utilities, interactive terminal and core capabilities such as config-management, flag modifiers (verbose, dry-run, auto-prompt) and much more...
+
+Partial list of available features:
+
+* Configuration management (internal and custom user config)
+* Collaborators utilities ([lightweight wrappers for common actions](https://github.com/ZachiNachshon/provisioner/blob/05d11dbadd18ac98f44b4b95f8b34e4dd2f00c90/provisioner/provisioner/shared/collaborators.py#L24))
+* Ansible programmatic wrapper for running as-hoc commands or Ansible playbooks - simply and easily 
+* Flags modifiers out of the box (verbose, silent, dry-run, auto-prompt, non-interactive)
+* CLI application lifecycle made easy, simply structured and extensible
+* (Optional) [Functional library](https://github.com/ZachiNachshon/provisioner/blob/master/provisioner/provisioner/func/pyfn.py#L27) for writing functional plugins ([see installers plugin for example](https://github.com/ZachiNachshon/provisioner-plugins/blob/master/provisioner_installers_plugin/provisioner_installers_plugin/installer/runner/installer_runner.py#L131))
+* [Remote connector](https://github.com/ZachiNachshon/provisioner/blob/master/provisioner_features_lib/provisioner_features_lib/remote/remote_connector.py#L48) that encapsulates all remote SSH info collection from different sources (config, user, flags, env vars), acts as a single connection point to any remote machine
+* And much more...
+
+<br>
+
+#### Poetry
+
+To use `provisioner-runtime` as a Python package using the Poetry package manager, add the following to the `pyproject.toml` file:
+
+```toml
+[tool.poetry.dependencies]
+python = "^3.10"
+provisioner-runtime = "^0.1.10"
 ```
+
