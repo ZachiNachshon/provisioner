@@ -222,7 +222,7 @@ class CliRemoteOpts:
             return None
         # In case IP address supplied as a CLI argument - flag or Env Var,
         # it'll be used as the sole remote machine
-        if self.ip_address and len(self.ip_address) > 0:
+        if self.ip_address and len(str(self.ip_address)) > 0:
             # If using a one-liner command with IP address, all other auth flags must be supplied as well
             if (not self.hostname and len(self.hostname) == 0) or \
                 (not self.ip_address and len(self.ip_address) == 0) or \
