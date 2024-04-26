@@ -52,7 +52,7 @@ params:
   authors:              "Zachi Nachshon"
   social_image_path:    /docs/latest/assets/brand/provisioner-social.png
   social_logo_path:     /docs/latest/assets/brand/provisioner-social-logo.png
-  # google_analytics:     ""
+  google_analytics:     "G-BNKSFW05WY"
 
   current_version:      "0.1.9"
   docs_version:         "latest"
