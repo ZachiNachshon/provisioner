@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
-import pathlib
 from typing import Callable, Optional
 
-from loguru import logger
 import typer
+from loguru import logger
 
 from provisioner.cli.state import CliGlobalArgs
 from provisioner.infra.context import Context

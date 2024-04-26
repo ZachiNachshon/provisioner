@@ -21,6 +21,7 @@ ARG_PLUGIN_CONFIG_USER_PATH = "/path/to/user/plugin/config"
 
 TEST_PLUGIN_NAME = "test-plugin"
 
+
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner/config/manager/config_manager_test.py
 #

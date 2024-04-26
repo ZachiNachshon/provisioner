@@ -5,8 +5,6 @@ import shutil
 import tempfile
 from typing import Optional
 
-from provisioner.utils.printer import Printer
-from provisioner.utils.progress_indicator import ProgressIndicator
 import requests
 from loguru import logger
 from requests import RequestException
@@ -14,6 +12,8 @@ from requests import RequestException
 from provisioner.errors.cli_errors import DownloadFileException
 from provisioner.infra.context import Context
 from provisioner.utils.io_utils import IOUtils
+from provisioner.utils.printer import Printer
+from provisioner.utils.progress_indicator import ProgressIndicator
 
 
 class ErrorResponse:
@@ -67,10 +67,8 @@ class HttpClient:
 
     @staticmethod
     def create(
-        ctx: Context, 
-        io_utils: IOUtils, 
-        progress_indicator: ProgressIndicator,
-        printer: Printer) -> "HttpClient":
+        ctx: Context, io_utils: IOUtils, progress_indicator: ProgressIndicator, printer: Printer
+    ) -> "HttpClient":
 
         dry_run = ctx.is_dry_run()
         verbose = ctx.is_verbose()
@@ -79,13 +77,9 @@ class HttpClient:
         return client
 
     def __init__(
-            self, 
-            io_utils: IOUtils, 
-            progress_indicator: ProgressIndicator, 
-            printer: Printer, 
-            dry_run: bool, 
-            verbose: bool) -> None:
-        
+        self, io_utils: IOUtils, progress_indicator: ProgressIndicator, printer: Printer, dry_run: bool, verbose: bool
+    ) -> None:
+
         self._dry_run = dry_run
         self._verbose = verbose
         self.io = io_utils

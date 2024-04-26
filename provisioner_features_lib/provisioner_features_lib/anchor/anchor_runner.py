@@ -74,26 +74,30 @@ class AnchorCmdRunner:
         collaborators.summary().append(attribute_name="ssh_conn_info", value=ssh_conn_info)
 
         collaborators.printer().new_line_fn()
-        output = collaborators.progress_indicator().get_status().long_running_process_fn(
-            call=lambda: collaborators.ansible_runner().run_fn(
-                selected_hosts=ssh_conn_info.ansible_hosts,
-                playbook=AnsiblePlaybook(
-                    name="anchor_run",
-                    content=ANSIBLE_PLAYBOOK_ANCHOR_RUN,
-                    remote_context=args.remote_opts.get_remote_context(),
+        output = (
+            collaborators.progress_indicator()
+            .get_status()
+            .long_running_process_fn(
+                call=lambda: collaborators.ansible_runner().run_fn(
+                    selected_hosts=ssh_conn_info.ansible_hosts,
+                    playbook=AnsiblePlaybook(
+                        name="anchor_run",
+                        content=ANSIBLE_PLAYBOOK_ANCHOR_RUN,
+                        remote_context=args.remote_opts.get_remote_context(),
+                    ),
+                    ansible_vars=[
+                        "anchor_command=Run",
+                        f"\"anchor_args='{args.anchor_run_command}'\"",
+                        f"anchor_github_organization={args.vcs_opts.github_organization}",
+                        f"anchor_github_repository={args.vcs_opts.repository_name}",
+                        f"anchor_github_repo_branch={args.vcs_opts.branch_name}",
+                        f"git_access_token={args.vcs_opts.git_access_token}",
+                    ],
+                    ansible_tags=["anchor_run"],
                 ),
-                ansible_vars=[
-                    "anchor_command=Run",
-                    f"\"anchor_args='{args.anchor_run_command}'\"",
-                    f"anchor_github_organization={args.vcs_opts.github_organization}",
-                    f"anchor_github_repository={args.vcs_opts.repository_name}",
-                    f"anchor_github_repo_branch={args.vcs_opts.branch_name}",
-                    f"git_access_token={args.vcs_opts.git_access_token}",
-                ],
-                ansible_tags=["anchor_run"],
-            ),
-            desc_run="Running Ansible playbook (Anchor Run)",
-            desc_end="Ansible playbook finished (Anchor Run).",
+                desc_run="Running Ansible playbook (Anchor Run)",
+                desc_end="Ansible playbook finished (Anchor Run).",
+            )
         )
 
         collaborators.printer().new_line_fn().print_fn(output).print_with_rich_table_fn(

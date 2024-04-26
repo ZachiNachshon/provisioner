@@ -2,10 +2,10 @@
 
 from typing import List, Optional
 
-from provisioner.errors.cli_errors import MissingCliArgument
 import typer
 from loguru import logger
 from provisioner.cli.typer_callbacks import exclusivity_callback
+from provisioner.errors.cli_errors import MissingCliArgument
 from provisioner.infra.remote_context import RemoteContext
 from provisioner.runner.ansible.ansible_runner import AnsibleHost
 
@@ -66,7 +66,7 @@ class TyperRemoteOpts:
             envvar="PROV_IP_DISCOVERY_RANGE",
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
-    
+
     def ip_address(self):
         return typer.Option(
             default="",
@@ -74,7 +74,7 @@ class TyperRemoteOpts:
             envvar="PROV_IP_ADDRESS",
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
-    
+
     def hostname(self):
         return typer.Option(
             default="",
@@ -82,7 +82,7 @@ class TyperRemoteOpts:
             envvar="PROV_HOSTNAME",
             rich_help_panel=REMOTE_ONLY_HELP_TITLE,
         )
-    
+
     def dry_run(self):
         return typer.Option(
             False,
@@ -224,10 +224,14 @@ class CliRemoteOpts:
         # it'll be used as the sole remote machine
         if self.ip_address and len(str(self.ip_address)) > 0:
             # If using a one-liner command with IP address, all other auth flags must be supplied as well
-            if (not self.hostname and len(self.hostname) == 0) or \
-                (not self.ip_address and len(self.ip_address) == 0) or \
-                (not self.node_username and len(self.node_username) == 0):
-                raise MissingCliArgument("When using ip-address flag, other remote flags become mandatory (hostname, node-username, node-password/ssh-private_key-file_path)")
+            if (
+                (not self.hostname and len(self.hostname) == 0)
+                or (not self.ip_address and len(self.ip_address) == 0)
+                or (not self.node_username and len(self.node_username) == 0)
+            ):
+                raise MissingCliArgument(
+                    "When using ip-address flag, other remote flags become mandatory (hostname, node-username, node-password/ssh-private_key-file_path)"
+                )
             return [
                 AnsibleHost(
                     host=self.hostname,
@@ -247,9 +251,11 @@ class CliRemoteOpts:
                         ip_address=value.address,
                         username=self.node_username if self.node_username else value.auth.username,
                         password=self.node_password if self.node_password else value.auth.password,
-                        ssh_private_key_file_path=self.ssh_private_key_file_path
-                        if self.ssh_private_key_file_path
-                        else value.auth.ssh_private_key_file_path,
+                        ssh_private_key_file_path=(
+                            self.ssh_private_key_file_path
+                            if self.ssh_private_key_file_path
+                            else value.auth.ssh_private_key_file_path
+                        ),
                     )
                 )
             return result

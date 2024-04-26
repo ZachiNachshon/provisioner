@@ -35,46 +35,45 @@ class FakeIOUtils(TestFakes, IOUtils):
 
     def create_directory_fn(self, folder_path: str) -> bool:
         return self.trigger_side_effect("create_directory_fn", folder_path)
-    
+
     def copy_file_fn(self, from_path: str, to_path: str) -> bool:
         return self.trigger_side_effect("copy_file_fn", from_path, to_path)
-    
+
     def copy_directory_fn(self, from_path: str, to_path: str) -> bool:
         return self.trigger_side_effect("copy_directory_fn", from_path, to_path)
-    
+
     def write_file_fn(self, content: str, file_name: str, dir_path: str = None, executable: bool = False) -> str:
         return self.trigger_side_effect("write_file_fn", content, file_name, dir_path, executable)
-    
+
     def delete_file_fn(self, file_path: str) -> bool:
         return self.trigger_side_effect("delete_file_fn", file_path)
-    
+
     def read_file_safe_fn(self, file_path: str) -> str:
         return self.trigger_side_effect("read_file_safe_fn", file_path)
-    
+
     def write_symlink_fn(self, file_path: str, symlink_path: str) -> bool:
         return self.trigger_side_effect("write_symlink_fn", file_path, symlink_path)
-    
+
     def read_symlink_fn(self, symlink_path: str) -> str:
         return self.trigger_side_effect("read_symlink_fn", symlink_path)
-    
+
     def get_symlink_real_path_fn(self, symlink_path: str) -> str:
         return self.trigger_side_effect("get_symlink_real_path_fn", symlink_path)
-    
+
     def remove_symlink_fn(self, symlink_path: str) -> bool:
         return self.trigger_side_effect("remove_symlink_fn", symlink_path)
-    
+
     def symlink_exists_fn(self, symlink_path: str) -> bool:
         return self.trigger_side_effect("symlink_exists_fn", symlink_path)
-    
+
     def file_exists_fn(self, file_path: str) -> bool:
         return self.trigger_side_effect("file_exists_fn", file_path)
-    
+
     def is_archive_fn(self, file_path: str) -> bool:
         return self.trigger_side_effect("is_archive_fn", file_path)
-    
+
     def unpack_archive_fn(self, file_path: str) -> str:
         return self.trigger_side_effect("unpack_archive_fn", file_path)
-    
+
     def set_file_permissions_fn(self, file_path: str, permissions_octal: int = 0o111) -> bool:
         return self.trigger_side_effect("set_file_permissions_fn", file_path, permissions_octal)
-    

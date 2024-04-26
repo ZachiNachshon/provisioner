@@ -3,10 +3,10 @@
 import unittest
 from unittest import mock
 
-from provisioner.errors.cli_errors import DownloadFileException
-from provisioner.test_lib.assertions import Assertion
 import requests
 
+from provisioner.errors.cli_errors import DownloadFileException
+from provisioner.test_lib.assertions import Assertion
 from provisioner.test_lib.test_env import TestEnv
 from provisioner.utils.httpclient import HttpClient, HttpResponse
 
@@ -139,18 +139,21 @@ class HttpClientTestShould(unittest.TestCase):
         )
 
         filepath = http_client.download_file_fn(
-            url="http://some-url/filename.tar.gz", 
+            url="http://some-url/filename.tar.gz",
             download_folder="/test/download/folder",
-            verify_already_downloaded = True,
-            progress_bar = True)
-        
+            verify_already_downloaded=True,
+            progress_bar=True,
+        )
+
         self.assertIsNotNone(filepath)
         self.assertEqual(filepath, "/test/download/folder/filename.tar.gz")
 
-    @mock.patch('shutil.copyfileobj')
-    @mock.patch('builtins.open', new_callable=mock.mock_open)
+    @mock.patch("shutil.copyfileobj")
+    @mock.patch("builtins.open", new_callable=mock.mock_open)
     @mock.patch("requests.get")
-    def test_download_file_success_no_progres_bar(self, get_call: mock.MagicMock, mock_open: mock.MagicMock, mock_copy: mock.MagicMock):
+    def test_download_file_success_no_progres_bar(
+        self, get_call: mock.MagicMock, mock_open: mock.MagicMock, mock_copy: mock.MagicMock
+    ):
         lib_resp = requests.Response()
         lib_resp._content = str.encode("downloaded file")
         lib_resp.status_code = 200
@@ -172,15 +175,16 @@ class HttpClientTestShould(unittest.TestCase):
         )
 
         filepath = http_client.download_file_fn(
-            url="http://some-url/filename.tar.gz", 
+            url="http://some-url/filename.tar.gz",
             download_folder="/test/download/folder",
-            verify_already_downloaded = True,
-            progress_bar = False)
-        
+            verify_already_downloaded=True,
+            progress_bar=False,
+        )
+
         self.assertIsNotNone(filepath)
         self.assertEqual(filepath, "/test/download/folder/filename.tar.gz")
         # Assert that the file was opened in write binary mode
-        mock_open.assert_called_once_with("/test/download/folder/filename.tar.gz", 'wb')
+        mock_open.assert_called_once_with("/test/download/folder/filename.tar.gz", "wb")
         # Assert that copyfileobj was called
         mock_copy.assert_called_once()
 
@@ -202,11 +206,12 @@ class HttpClientTestShould(unittest.TestCase):
         )
 
         filepath = http_client.download_file_fn(
-            url="http://some-url/filename.tar.gz", 
+            url="http://some-url/filename.tar.gz",
             download_folder="/test/download/folder",
-            verify_already_downloaded = True,
-            progress_bar = True)
-        
+            verify_already_downloaded=True,
+            progress_bar=True,
+        )
+
         self.assertIsNotNone(filepath)
         self.assertEqual(filepath, "/test/download/folder/filename.tar.gz")
 
@@ -227,13 +232,14 @@ class HttpClientTestShould(unittest.TestCase):
             progress_indicator=None,
             printer=None,
         )
-        
+
         Assertion.expect_raised_failure(
-            self, 
+            self,
             ex_type=DownloadFileException,
             method_to_run=lambda: http_client.download_file_fn(
-                url="http://some-url/filename.tar.gz", 
+                url="http://some-url/filename.tar.gz",
                 download_folder="/test/download/folder",
-                verify_already_downloaded = True,
-                progress_bar = True)
-            )
+                verify_already_downloaded=True,
+                progress_bar=True,
+            ),
+        )

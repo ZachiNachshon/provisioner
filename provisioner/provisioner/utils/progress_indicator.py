@@ -221,7 +221,9 @@ class ProgressIndicator:
         logger.debug(f"Creating progress bar (dry_run: {dry_run}, verbose: {verbose})...")
         return ProgressIndicator(
             status if status else ProgressIndicator.Status(dry_run, verbose, non_interactive),
-            progress_bar
-            if progress_bar
-            else ProgressIndicator.ProgressBar(io_utils, dry_run, verbose, non_interactive),
+            (
+                progress_bar
+                if progress_bar
+                else ProgressIndicator.ProgressBar(io_utils, dry_run, verbose, non_interactive)
+            ),
         )

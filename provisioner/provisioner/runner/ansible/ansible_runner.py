@@ -152,9 +152,11 @@ class AnsibleHost:
             ip_address=ansible_host_dict["ip_address"],
             username=ansible_host_dict["username"] if "username" in ansible_host_dict else None,
             password=ansible_host_dict["password"] if "password" in ansible_host_dict else None,
-            ssh_private_key_file_path=ansible_host_dict["ssh_private_key_file_path"]
-            if "ssh_private_key_file_path" in ansible_host_dict
-            else None,
+            ssh_private_key_file_path=(
+                ansible_host_dict["ssh_private_key_file_path"]
+                if "ssh_private_key_file_path" in ansible_host_dict
+                else None
+            ),
         )
 
 
