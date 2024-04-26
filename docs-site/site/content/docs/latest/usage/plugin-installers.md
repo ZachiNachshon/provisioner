@@ -75,13 +75,13 @@ When opting-in for a remote installation without an interactive flow, one should
 Example:
 
 ```bash
-provisioner install cli \
+provisioner install \
   --environment Remote \
   --hostname rpi-01 \
   --ip-address 1.2.3.4 \
   --node-username pi \
   --ssh-private-key-file-path /path/to/pkey \
-  helm
+  cli helm
 ```
 
 or
@@ -91,5 +91,5 @@ PROV_HOSTNAME=rpi-01 \
 PROV_IP_ADDRESS=1.2.3.4 \
 PROV_NODE_USERNAME=pi \
 PROV_SSH_PRIVATE_KEY_FILE_PATH=/path/to/pkey \
-provisioner install cli --environment Remote helm
+provisioner install --environment Remote cli helm
 ```

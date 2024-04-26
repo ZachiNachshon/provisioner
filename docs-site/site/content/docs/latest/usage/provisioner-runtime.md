@@ -36,7 +36,7 @@ Partial list of available features:
 
 #### Poetry
 
-To use `provisioner-runtime` as a Python package using the Poetry package manager, add the following to the `pyproject.toml` file:
+This section is relevant when using the [Poetry package manager](https://python-poetry.org/) to pacakge your Python modules. To use `provisioner-runtime` as a Python dependency simply add it to the `pyproject.toml` file:
 
 ```toml
 [tool.poetry.dependencies]

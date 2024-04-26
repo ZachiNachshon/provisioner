@@ -42,4 +42,4 @@ Using `provisioner`, every command is a playground.
 
 Use the `--dry-run` (short: `-d`) to check command exeuction breakdown, you can also add the `--verbose` (short: `-v`) flag to read DEBUG information.
 
-All dry-run actions are no-op, you can safely run them as they only print to stdout.
+*All dry-run actions are no-op, you can safely run them as they only print to stdout.*
