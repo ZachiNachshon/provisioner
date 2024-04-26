@@ -222,9 +222,11 @@ class CliRemoteOpts:
             return None
         # In case IP address supplied as a CLI argument - flag or Env Var,
         # it'll be used as the sole remote machine
-        if len(self.ip_address) > 0:
+        if self.ip_address and len(self.ip_address) > 0:
             # If using a one-liner command with IP address, all other auth flags must be supplied as well
-            if len(self.hostname) == 0 or len(self.ip_address) == 0 or len(self.node_username) == 0:
+            if (not self.hostname and len(self.hostname) == 0) or \
+                (not self.ip_address and len(self.ip_address) == 0) or \
+                (not self.node_username and len(self.node_username) == 0):
                 raise MissingCliArgument("When using ip-address flag, other remote flags become mandatory (hostname, node-username, node-password/ssh-private_key-file_path)")
             return [
                 AnsibleHost(
