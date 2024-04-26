@@ -8,7 +8,8 @@ group: about
 Provisioner is released under the `MIT license`.
 
 {{< callout info >}}
-The full Provisioner license is located [in the project repository]({{< param repo >}}/blob/v{{< param current_version >}}/LICENSE) for more information.
+The full Provisioner license is located [in the project repository](https://github.com/ZachiNachshon/provisioner/blob/master/LICENSE) for more information.
+<!-- The full Provisioner license is located [in the project repository]({{< param repo >}}/blob/v{{< param current_version >}}/LICENSE) for more information. -->
 {{< /callout >}}
 
 ## Licence simplified:

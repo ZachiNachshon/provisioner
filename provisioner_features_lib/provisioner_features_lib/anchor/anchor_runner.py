@@ -74,7 +74,7 @@ class AnchorCmdRunner:
         collaborators.summary().append(attribute_name="ssh_conn_info", value=ssh_conn_info)
 
         collaborators.printer().new_line_fn()
-        output = collaborators.printer().progress_indicator.status.long_running_process_fn(
+        output = collaborators.progress_indicator().get_status().long_running_process_fn(
             call=lambda: collaborators.ansible_runner().run_fn(
                 selected_hosts=ssh_conn_info.ansible_hosts,
                 playbook=AnsiblePlaybook(

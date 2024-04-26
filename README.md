@@ -36,20 +36,10 @@ It comes with built-in CLI capabilities, such as:
 
 <h2 id="quickstart">⚡️ QuickStart</h2>
 
-The fastest way (for macOS and Linux) to install anchor is using Homebrew:
+The fastest way (for macOS and Linux) to install anchor is from [PyPi](https://pypi.org/) via pip:
 
 ```bash
-brew install ZachiNachshon/tap/provisioner
-```
-
-Alternatively, tap into the formula to have brew search capabilities on that tap formulas:
-
-```bash
-# Tap
-brew tap ZachiNachshon/tap
-
-# Install
-brew install provisioner
+pip install provisioner-runtime
 ```
 
 For additional installation methods read here.

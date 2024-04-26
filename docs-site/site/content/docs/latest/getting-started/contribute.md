@@ -9,7 +9,7 @@ aliases: "/docs/latest/getting-started/contribute/"
 
 ## Tooling setup
 
-- [Go lang](https://go.dev/dl/) `v1.20` is required for compilation and tests
+- [Python](https://www.python.org/) `v3.10` is required for packaging and tests
 - [Node.js](https://nodejs.org/en/download/) is optional for managing the documentation site
 
 {{< callout info >}}
@@ -38,21 +38,27 @@ The `makefile` within this repository contains numerous tasks used for project d
 {{< bs-table >}}
 | Task | Description |
 | --- | --- |
-| `update-externals` | Update external source dependents |
-| `deps` | Tidy, verify and vendor go dependencies |
-| `fmtcheck` | Validate Go code format and imports |
-| `fmt` | Format Go code using gofmt style and sort imports |
-| `test` | Run tests suite on host machine |
-| `test-containerized` | Run tests suite within a Docker container |
-| `test-with-coverage` | Run tests suite on host machine with coverage report |
+| `set-dev-deps-all` | Update dev dependencies and their config based on provisioner pyproject.toml |
+| `update-externals-all` | Update external source dependents |
+| `deps-all` | Update and install pyproject.toml dependencies on all virtual environments |
+| `fmtcheck-all` | Validate Python code format and imports |
+| `fmt-all` | Format Python code using Black style and sort imports |
+| `test-all` | Run Unit/E2E/IT tests suite |
+| `test-coverage-xml-all` | Run Unit/E2E/IT tests with coverage reports |
+| `use-provisioner-from-sources` | Use provisioner as a direct sources dependency to all Python modules (for testing in CI) |
+| `use-provisioner-from-pypi` | Use provisioner as a PyPi package to all Python modules (for testing in CI) |
+| `pip-install` | Install provisioner sdist to local pip |
+| `pip-install-plugins` | Install all plugins source distributions to local pip |
+| `pip-uninstall` | Uninstall provisioner from local pip |
+| `pip-uninstall-plugins` | Uninstall all plugins source distributions from local pip |
+| `clear-virtual-env-all` | Clear all Poetry virtual environments |
 | `docs-site` | Run a local documentation site |
 | `docs-site-lan` | Run a local documentation site (LAN available) |
-| `build` | Build a binary for system OS/Arch |
-| `build-main-package` | Build main package for system OS/Arch |
-| `install` | Build and Install a Go binary locally |
-| `delete` | Delete a locally installed Go binary |
-| `github-release-create` | Build and publish Go binary(ies) as GitHub release |
-| `github-release-delete` | Prompt for a GitHub release tag to delete |
+| `pDev` | Interact with `./external/.../poetry_dev.sh` (Usage: `make pDev 'fmt --check-only'`) |
+| `pReleaser` | Interact with `./external/.../poetry_pip_releaser.sh` (Usage: `make pReleaser 'install --build-type sdist --multi-project'`) |
+| `plugins-init` | Initialize Provisioner Plugins git-submodule (only on fresh clone) |
+| `plugins-status` | Show plugins submodule status (commit-hash) |
+| `plugins-fetch` | Prompt for Provisioner Plugins commit-hash to update the sub-module |
 {{< /bs-table >}}
 
 ## Testing Locally
@@ -64,12 +70,8 @@ Running tests locally allows you to have short validation cycles instead of wait
 **How to run a test suite?**
 
 1. Clone the `provisioner` repository
-2. Run `make tests` to use the locally installed `go` runtime
-3. Alternatively, run `make test-containerized` to use the same `go` runtime which is supported by this repository
-
-{{< callout info >}}
-`tparse` should be installed for performing `go test` output analysis ([instructions in here](https://github.com/mfridman/tparse))
-{{< /callout >}}
+2. Run `make tests-all` to use the locally installed Python interpreter
+3. Alternatively, run `make test-coverage-xml-all` if you are interested in coverage reports
 
 ## Documentation Scripts
 
@@ -84,7 +86,7 @@ The `/docs-site/package.json` includes numerous tasks for developing the documen
 
 ## Local documentation 
 
-Running our documentation locally requires the use of Hugo, which gets installed via the `hugo-bin` npm package. Hugo is a blazingly fast and quite extensible static site generator. Here’s how to get it started:
+Running the documentation locally requires the use of Hugo, which gets installed via the `hugo-bin` npm package. Hugo is a blazingly fast and quite extensible static site generator. Here’s how to get it started:
 
 - Run through the [tooling setup](#tooling-setup) above to install all dependencies
 - Navigate to `/docs-site` directory and run `npm install` to install local dependencies listed in `package.json`
@@ -93,6 +95,10 @@ Running our documentation locally requires the use of Hugo, which gets installed
 
 Learn more about using Hugo by reading its [documentation](https://gohugo.io/documentation/).
 
+{{< callout info >}}
+Makefile contains a `make docs-site` command that does all of the above for you, it allows a quick start of the documentation site.
+{{< /callout >}}
+
 ## Troubleshooting
 
-In case you encounter problems with missing dependencies, run `make align-deps`.
+In case you encounter problems with missing dependencies, run `make clear-virtual-env-all` and start over.

@@ -1,45 +1,31 @@
 ---
 layout: docs
 title: Download
-description: Download `provisioner` binary / source-files to any environment, local or CI.
+description: Download `provisioner` package / source-files to any environment, local or CI.
 group: getting-started
 toc: true
 ---
 
-## Package Managers
+## Package Manager
 
-Pull in `provisioner`'s binary using popular package managers.
+Pull in `provisioner`'s package from PyPi via pip.
 
-### Homebrew
+### PyPi
 
-The fastest way (for `macOS` and `Linux`) to install `provisioner` is using [Homebrew](https://brew.sh/):
+The fastest way (for `macOS` and `Linux`) to install `provisioner` is from [PyPi](https://pypi.org/) via pip:
 
 ```bash
-brew install ZachiNachshon/tap/provisioner
+pip install provisioner-runtime
 ```
 
-Alternatively, tap into the formula to have brew search capabilities on that tap formulas:
-
-1. Tap into `ZachiNachshon` formula
-
-    ```bash
-    brew tap ZachiNachshon/tap
-    ```
-
-1. Install the latest `provisioner` binary
-
-    ```bash
-    brew install provisioner
-    ```
-
-## Pre-Built Release
+<!-- ## Pre-Built Release
 
 1. Update the download script with the following parameters:
 
-     - **VERSION:** binary released version
+     - **VERSION:** package released version
      - **OS_ARCH:** operating system &amp; architecture tuple
 
-1. Download and install `provisioner` binary (copy & paste into a terminal):
+1. Download and install `provisioner` package (copy & paste into a terminal):
 
 ```bash
 bash <<'EOF'
@@ -92,58 +78,28 @@ Alternatively, you can download a release directy from GitHub
 ## `PATH` awareness
 
 Make sure `${HOME}/.local/bin` exists on the `PATH` or sourced on every new shell session.
-{{< /callout >}}
+{{< /callout >}} -->
 
 ## Build from Source
 
-Clone `provisioner` repository into a directory of your choice:
+Clone `provisioner` repository into a directory of your choice and run the following:
 
-```bash
-git clone https://github.com/ZachiNachshon/provisioner.git; cd provisioner
+```text
+$ git clone https://github.com/ZachiNachshon/provisioner.git
+$ cd provisioner
+
+# Link the provisioner-plugins sub-modules git repository
+$ make plugins-init
+
+# Update developement dependencies on all modules based on provisioner pyproject.toml
+$ make set-dev-deps-all
+
+# Link local provisioner module as source dependent for all other modules 
+$ make use-provisioner-from-sources
 ```
 
 {{< callout info >}}
 {{< js.inline >}}
-***Note:** Go `{{ $.Site.Params.go_version }}` is required to build from source.*
+***Note:** Python `{{ $.Site.Params.python_version }}` is required to build from source.*
 {{< /js.inline >}}
 {{< /callout >}}
-
-<br>
-
-#### Build to Custom Path
-
-1. Change directory to the local `provisioner` cloned repository
-1. Build the binary (destination: `PWD`)
-
-   ```bash
-   make build
-   ```
-
-1. Copy the binary to a bin folder that exists on `PATH`
-
-   ```bash
-   cp provisioner ${HOME}/.local/bin
-   ```
-
-1. **(Optional)** Alternatively, copy directly to `/usr/local/bin`
-
-    ```bash
-   cp provisioner /usr/local/bin
-   ```
-
-{{< callout warning >}}
-## `PATH` awareness
-
-Make sure `${HOME}/.local/bin` exists on the `PATH` or sourced on every new shell session.
-{{< /callout >}}
-
-<br>
-
-#### Build to GOPATH
-
-1. Change directory to the local `provisioner` cloned repository
-1. Build the binary (destination: `GOPATH/bin`)
-
-   ```bash
-   make build-to-gopath
-   ```

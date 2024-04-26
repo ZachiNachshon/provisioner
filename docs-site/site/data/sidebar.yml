@@ -15,18 +15,17 @@
   icon: gear
   icon_color: blue
   pages:
-    - title: Context
+    - title: Overview
     - title: Auto-Completion
     
-- title: Repository
+- title: Usage
   icon: git
   icon_color: pink
   pages:
-    - title: Structure
-    - title: Menu Command
-    - title: Instructions
-    - title: Action
-    - title: Action Set (Workflow)
+    - title: Provisioner Runtime
+    - title: "Plugin: Installers"
+    - title: "Plugin: Single Board"
+    - title: "Plugin: Examples"
 
 - title: About
   icon: globe2
