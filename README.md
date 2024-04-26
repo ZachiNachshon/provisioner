@@ -117,22 +117,3 @@ Provisioner is an open source project that is currently self maintained in addit
 MIT
 
 <br>
-
----
-Document for later (contribution):
-
-To build a Python sdist with relative paths - 
-
-Install a plugin that allow buidling sdist for a multiproject (monorepo)
-See:
-  - https://github.com/DavidVujic/poetry-multiproject-plugin
-  - https://github.com/python-poetry/poetry/issues/5621
-  - https://github.com/python-poetry/poetry-core/pull/273
-
-```bash
-poetry self add poetry-multiproject-plugin
-
-OR
-
-pip install poetry-multiproject-plugin
-```
