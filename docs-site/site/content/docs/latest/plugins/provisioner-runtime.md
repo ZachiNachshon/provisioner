@@ -9,11 +9,11 @@ aliases: "/docs/latest/usage/"
 
 ## Runtime Engine
 
-The `provisioner-runtime` pip package is required to dynamically load any plugin it finds installed as pip packages.
+The `provisioner-runtime` pip package is required to dynamically load plugins from local pip.
 
-Provisioner plugins are configured to hook into provisioner CLI menu and add its commands so they'll become visibile once those are identified by provisioner at runtime.
+Provisioner plugins are configured to hook into provisioner CLI menu, their commands become visibile once those are identified and loaded by provisioner at runtime.
 
-Removing such plugins from pip will remove them from `provisioner` CLI menu as well.
+Removing such plugins from pip will remove their commands from `provisioner` CLI menu as well.
 
 ## Framework
 
