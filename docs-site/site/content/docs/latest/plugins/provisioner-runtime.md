@@ -2,10 +2,27 @@
 layout: docs
 title: Provisioner Runtime
 description: Python powered CLI for dynamic plugin management.
-group: usage
+group: plugins
 toc: true
-aliases: "/docs/latest/usage/"
+aliases: "/docs/latest/plugins/"
 ---
+
+## Quickstart
+
+Provisioner has a built-in `plugins` CLI command for plugins management. To get a list of available commands:
+
+```bash
+provisioner plugins
+```
+
+{{< bs-table >}}
+| Task | Description |
+| --- | --- |
+| `install` | Search and install plugins from remote |
+| `list` | List locally installed provisioner plugins |
+| `uninstall` | Select local plugins to uninstall |
+{{< /bs-table >}}
+
 
 ## Runtime Engine
 

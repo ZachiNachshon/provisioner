@@ -5,13 +5,18 @@ import pathlib
 
 from loguru import logger
 
+from provisioner.cmd.config.cli import append_config_cmd_to_cli
+from provisioner.cmd.plugins.cli import append_plugins_cmd_to_cli
+from provisioner.infra.context import CliContextManager, Context
+from provisioner.shared.collaborators import CoreCollaborators
 from provisioner.cli.entrypoint import EntryPoint
 from provisioner.config.domain.config import ProvisionerConfig
 from provisioner.config.manager.config_manager import ConfigManager
 from provisioner.utils.package_loader import PackageLoader
+from provisioner.cmd.config.cli import CONFIG_USER_PATH
 
-CONFIG_USER_PATH = os.path.expanduser("~/.config/provisioner/config.yaml")
 CONFIG_INTERNAL_PATH = f"{pathlib.Path(__file__).parent}/resources/config.yaml"
+COMMON_COMMANDS_GROUP_NAME = "Common"
 
 """
 The --dry-run and --verbose flags aren't available on the pre-init phase
@@ -36,13 +41,21 @@ def load_plugin(plugin_module):
     plugin_module.append_to_cli(app)
 
 
-PackageLoader.create().load_modules_fn(
+cols = CoreCollaborators(Context.createEmpty())
+cols.package_loader().load_modules_fn(
     filter_keyword="provisioner",
     import_path="main",
-    exclusions=["provisioner-runtime", "provisioner-features-lib"],
+    exclusions=[
+        "provisioner-runtime", 
+        "provisioner_runtime", 
+        "provisioner-features-lib",
+        "provisioner_features_lib"],
     callback=lambda module: load_plugin(plugin_module=module),
     debug=debug_pre_init,
 )
+
+append_config_cmd_to_cli(app, cli_group_name=COMMON_COMMANDS_GROUP_NAME, cols=cols)
+append_plugins_cmd_to_cli(app, cli_group_name=COMMON_COMMANDS_GROUP_NAME, cols=cols)
 
 
 # ==============

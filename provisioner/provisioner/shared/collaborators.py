@@ -6,12 +6,14 @@ from typing import Any, Callable
 from provisioner.infra.context import Context
 from provisioner.runner.ansible.ansible_runner import AnsibleRunnerLocal
 from provisioner.utils.checks import Checks
+from provisioner.utils.editor import Editor
 from provisioner.utils.github import GitHub
 from provisioner.utils.hosts_file import HostsFile
 from provisioner.utils.httpclient import HttpClient
 from provisioner.utils.io_utils import IOUtils
 from provisioner.utils.json_util import JsonUtil
 from provisioner.utils.network import NetworkUtil
+from provisioner.utils.package_loader import PackageLoader
 from provisioner.utils.paths import Paths
 from provisioner.utils.printer import Printer
 from provisioner.utils.process import Process
@@ -38,6 +40,8 @@ class CoreCollaborators:
         self.__github: GitHub = None
         self.__hosts_file: HostsFile = None
         self.__http_client: HttpClient = None
+        self.__editor: Editor = None
+        self.__package_loader: PackageLoader = None
 
     # def run_in_sequence(*func):
     #     def compose(f, g):
@@ -166,3 +170,19 @@ class CoreCollaborators:
             return self.__http_client
 
         return self._lock_and_get(callback=create_http_client)
+    
+    def editor(self) -> Editor:
+        def create_editor():
+            if not self.__editor:
+                self.__editor = Editor.create(self.__ctx)
+            return self.__editor
+
+        return self._lock_and_get(callback=create_editor)
+
+    def package_loader(self) -> PackageLoader:
+        def create_package_loader():
+            if not self.__package_loader:
+                self.__package_loader = PackageLoader.create(self.__ctx)
+            return self.__package_loader
+
+        return self._lock_and_get(callback=create_package_loader)

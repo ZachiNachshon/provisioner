@@ -2,7 +2,7 @@
 layout: docs
 title: "Plugin: Installers"
 description: Install anything anywhere on any OS/Arch either on a local or remote machine.
-group: usage
+group: plugins
 toc: true
 ---
 
@@ -25,6 +25,12 @@ To install on a remote machine without starting an interactive flow, `Remote-Onl
 
 ```bash
 pip install provisioner-installers-plugin
+```
+
+or, interactive plugin installation via:
+
+```bash 
+provisioner plugins install
 ```
 
 ## Usage

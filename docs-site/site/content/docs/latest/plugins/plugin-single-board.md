@@ -3,7 +3,7 @@ layout: docs
 title: "Plugin: Single Board"
 description: Single boards management as simple as it gets.
 toc: true
-group: usage
+group: plugins
 ---
 
 ## Overview
@@ -16,6 +16,12 @@ Make the provisioning on such machines safe, secure and remotely possible, start
 
 ```bash
 pip install provisioner-single-board-plugin
+```
+
+or, interactive plugin installation via:
+
+```bash 
+provisioner plugins install
 ```
 
 ## Usage

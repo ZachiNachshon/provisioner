@@ -19,6 +19,16 @@ class Context:
     _non_interactive: bool = None
 
     @staticmethod
+    def createEmpty() -> "Context":
+        ctx = Context()
+        ctx.os_arch = OsArch()
+        ctx._dry_run = False
+        ctx._verbose = False
+        ctx._auto_prompt = False
+        ctx._non_interactive = False
+        return ctx
+
+    @staticmethod
     def create(
         dry_run: Optional[bool] = False,
         verbose: Optional[bool] = False,
