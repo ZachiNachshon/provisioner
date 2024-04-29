@@ -170,8 +170,12 @@ class Prompter:
         #   - Selectable lines
         lines_number = len(options) + 2
         self._clear_previous_line(lines_number)
+        message = f"Selected :: [\n"
+        for item in result:
+            message += f"  {item}\n" 
+        message += "]"
         self._overwrite_previous_line(
-            color_in_use=color.GREEN, message=f"Selected :: {str(result)}", icon=CHECKMARK_ICON
+            color_in_use=color.GREEN, message=message, icon=CHECKMARK_ICON
         )
         return result
 

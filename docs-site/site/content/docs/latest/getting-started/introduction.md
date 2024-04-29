@@ -24,9 +24,15 @@ pip install provisioner-runtime
 
 ### Plugins
 
-There are two methods for plugins installation, from PyPi or direcly from provisioner CLI.
+There are two methods for plugins installation, from PyPi or interactively from provisioner CLI.
 
 <br>
+
+**Provisioner CLI:**
+
+```bash
+provisioner plugins install
+```
 
 **PyPi via pip:**
 
@@ -40,10 +46,4 @@ pip install provisioner-single-board-plugin
 
 ```bash
 pip install provisioner-examples-plugin
-```
-
-**Provisioner CLI:**
-
-```bash
-provisioner plugins install
 ```

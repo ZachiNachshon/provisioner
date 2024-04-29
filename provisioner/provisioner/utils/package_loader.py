@@ -6,16 +6,19 @@ from types import ModuleType
 from typing import Callable, List, Optional
 
 from loguru import logger
+from provisioner.infra.context import Context
 
 
 class PackageLoader:
-    def __init__(self) -> None:
-        pass
+    _ctx: Context = None
+
+    def __init__(self, ctx: Context) -> None:
+        self._ctx = ctx
 
     @staticmethod
-    def create() -> "PackageLoader":
-        # logger.debug(f"Creating package loader")
-        return PackageLoader()
+    def create(ctx: Context) -> "PackageLoader":
+        logger.debug(f"Creating package loader")
+        return PackageLoader(ctx)
 
     def _filter_by_keyword(self, pip_lines: List[str], filter_keyword: str, exclusions: List[str]) -> List[str]:
         filtered_packages = []
@@ -47,15 +50,12 @@ class PackageLoader:
             except Exception as ex:
                 logger.error(f"Import module callback failed. import_path: {plugin_import_path}, ex: {ex}")
 
-    def _load_modules(
-        self,
-        filter_keyword: str,
-        import_path: str,
-        exclusions: Optional[List[str]] = [],
-        callback: Optional[Callable[[ModuleType], None]] = None,
-        debug: Optional[bool] = False,
-    ) -> None:
-
+    def _get_pip_installed_packages(
+            self, 
+            filter_keyword: str, 
+            exclusions: Optional[List[str]] = [], 
+            debug: Optional[bool] = False,) -> List[str]:
+        
         if not debug:
             logger.remove()
 
@@ -84,6 +84,21 @@ class PackageLoader:
 
         filtered_packages = self._filter_by_keyword(pip_lines, filter_keyword, exclusions)
         logger.debug(f"Successfully retrieved the following packages: {str(filtered_packages)}")
+        return filtered_packages
+
+    def _load_modules(
+        self,
+        filter_keyword: str,
+        import_path: str,
+        exclusions: Optional[List[str]] = [],
+        callback: Optional[Callable[[ModuleType], None]] = None,
+        debug: Optional[bool] = False,
+    ) -> None:
+
+        filtered_packages = self._get_pip_installed_packages(
+            filter_keyword=filter_keyword,
+            exclusions=exclusions,
+            debug=debug)
 
         self._import_modules(filtered_packages, import_path, callback)
 
@@ -110,7 +125,53 @@ class PackageLoader:
             return type_object()
 
         return None
+    
+    def _install_pip_package(self, package_name: str) -> None:
+        try:
+            logger.debug(
+                f"About to install pip package. name: {package_name}"
+            )
+            subprocess.check_output(
+                [
+                    "python3",
+                    "-m",
+                    "pip",
+                    "install",
+                    package_name,
+                    "--no-color",
+                    "--no-python-version-warning",
+                    "--disable-pip-version-check",
+                ]
+            )
+        except Exception as ex:
+            logger.error(f"Failed to install pip package. name: {package_name}, ex: {ex}")
+            raise ex
+        
+    def _uninstall_pip_package(self, package_name: str) -> None:
+        try:
+            logger.debug(
+                f"About to uninstall pip package. name: {package_name}"
+            )
+            subprocess.check_output(
+                [
+                    "python3",
+                    "-m",
+                    "pip",
+                    "uninstall",
+                    package_name,
+                    "-y",
+                    "--no-color",
+                    "--no-python-version-warning",
+                    "--disable-pip-version-check",
+                ]
+            )
+        except Exception as ex:
+            logger.error(f"Failed to uninstall pip package. name: {package_name}, ex: {ex}")
+            raise ex
 
     load_modules_fn = _load_modules
     is_module_loaded_fn = _is_module_loaded
     create_instance_fn = _create_instance
+    get_pip_installed_packages_fn = _get_pip_installed_packages
+    install_pip_package_fn = _install_pip_package
+    uninstall_pip_package_fn = _uninstall_pip_package

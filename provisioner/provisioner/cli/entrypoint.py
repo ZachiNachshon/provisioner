@@ -12,8 +12,7 @@ from provisioner.utils.paths import Paths
 
 STATIC_RESOURCES_PACKAGE = "provisioner.resources"
 
-MODIFIERS_FLAGS_HELP_TITLE = "Modifiers"
-
+MODIFIERS_FLAGS_GROUP_NAME = "Modifiers"
 
 def main_runner(
     verbose: Optional[bool] = typer.Option(
@@ -22,7 +21,7 @@ def main_runner(
         "-v",
         help="Run command with DEBUG verbosity",
         is_flag=True,
-        rich_help_panel=MODIFIERS_FLAGS_HELP_TITLE,
+        rich_help_panel=MODIFIERS_FLAGS_GROUP_NAME,
     ),
     auto_prompt: Optional[bool] = typer.Option(
         False,
@@ -30,7 +29,7 @@ def main_runner(
         "-y",
         help="Do not prompt for approval and accept everything",
         is_flag=True,
-        rich_help_panel=MODIFIERS_FLAGS_HELP_TITLE,
+        rich_help_panel=MODIFIERS_FLAGS_GROUP_NAME,
     ),
     dry_run: Optional[bool] = typer.Option(
         False,
@@ -38,7 +37,7 @@ def main_runner(
         "-d",
         help="Run command as NO-OP, print commands to output, do not execute",
         is_flag=True,
-        rich_help_panel=MODIFIERS_FLAGS_HELP_TITLE,
+        rich_help_panel=MODIFIERS_FLAGS_GROUP_NAME,
     ),
     non_interactive: Optional[bool] = typer.Option(
         False,
@@ -46,17 +45,17 @@ def main_runner(
         "-n",
         help="Turn off interactive prompts and outputs, basic output only",
         is_flag=True,
-        rich_help_panel=MODIFIERS_FLAGS_HELP_TITLE,
+        rich_help_panel=MODIFIERS_FLAGS_GROUP_NAME,
     ),
     os_arch: Optional[str] = typer.Option(
         None,
         "--os-arch",
         help="Specify a OS_ARCH tuple manually",
         is_flag=True,
-        rich_help_panel=MODIFIERS_FLAGS_HELP_TITLE,
+        rich_help_panel=MODIFIERS_FLAGS_GROUP_NAME,
     ),
     version: Optional[bool] = typer.Option(
-        False, "--version", help="Print client version", is_flag=True, rich_help_panel=MODIFIERS_FLAGS_HELP_TITLE
+        False, "--version", help="Print client version", is_flag=True, rich_help_panel=MODIFIERS_FLAGS_GROUP_NAME
     ),
 ) -> None:
 

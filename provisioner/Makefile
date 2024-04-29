@@ -86,7 +86,7 @@ pReleaser: ## Interact with ../external/.../poetry_pip_releaser.sh   (Usage: mak
 # 	@${POETRY_WRAPPER_DEV} run diagrams ${PROJECT_LOCATION}/rpi/os/diagrams/install_diag.py
 
 .PHONY: run
-run: ## Compile and run Provisioner CLI                                  (Usage: make run '<command> <sub-command>')
+run: ## Compile and run Provisioner CLI                        (Usage: make run '<command> <sub-command>')
 	@poetry run provisioner $(filter-out $@,$(MAKECMDGOALS))
 
 .PHONY: help

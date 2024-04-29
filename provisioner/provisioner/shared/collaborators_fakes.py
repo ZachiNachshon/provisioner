@@ -9,6 +9,8 @@ from provisioner.runner.ansible.ansible_runner import AnsibleRunnerLocal
 from provisioner.shared.collaborators import CoreCollaborators
 from provisioner.utils.checks import Checks
 from provisioner.utils.checks_fakes import FakeChecks
+from provisioner.utils.editor import Editor
+from provisioner.utils.editor_fakes import FakeEditor
 from provisioner.utils.github import GitHub
 from provisioner.utils.github_fakes import FakeGitHub
 from provisioner.utils.hosts_file import HostsFile
@@ -20,6 +22,7 @@ from provisioner.utils.io_utils_fakes import FakeIOUtils
 from provisioner.utils.json_util import JsonUtil
 from provisioner.utils.network import NetworkUtil
 from provisioner.utils.network_fakes import FakeNetworkUtil
+from provisioner.utils.package_loader_fakes import FakePackageLoader
 from provisioner.utils.paths import Paths
 from provisioner.utils.paths_fakes import FakePaths
 from provisioner.utils.printer import Printer
@@ -52,6 +55,8 @@ class FakeCoreCollaborators(CoreCollaborators):
         self.__github: GitHub = None
         self.__hosts_file: HostsFile = None
         self.__http_client: HttpClient = None
+        self.__editor: Editor = None
+        self.__package_loader: PackageLoader = None
 
     def _lock_and_get(self, callback: Callable) -> Any:
         # TODO: Fix me, do not lock in here
@@ -209,3 +214,25 @@ class FakeCoreCollaborators(CoreCollaborators):
 
     def override_http_client(self, http_client: HttpClient) -> None:
         self.__http_client = http_client
+
+    def editor(self) -> FakeEditor:
+        def create_editor():
+            if not self.__editor:
+                self.__editor = FakeEditor.create(self.__ctx)
+            return self.__editor
+
+        return self._lock_and_get(callback=create_editor)
+
+    def override_editor(self, editor: FakeEditor) -> None:
+        self.__editor = editor
+
+    def package_loader(self) -> FakePackageLoader:
+        def create_package_loader():
+            if not self.__package_loader:
+                self.__package_loader = FakePackageLoader.create(self.__ctx)
+            return self.__package_loader
+
+        return self._lock_and_get(callback=create_package_loader)
+
+    def override_editor(self, package_loader: FakePackageLoader) -> None:
+        self.__package_loader = package_loader

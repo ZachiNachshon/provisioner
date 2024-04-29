@@ -335,7 +335,8 @@ delete_release_from_github() {
 
 install_pip_package() {
   log_info "Installing pip package..."
-  cmd_run "python3 -m pip install ${BUILD_OUTPUT_FILE_PATH} --no-python-version-warning --disable-pip-version-check"
+  # cmd_run "python3 -m pip install --upgrade --force-reinstall --no-deps ${BUILD_OUTPUT_FILE_PATH} --no-python-version-warning --disable-pip-version-check"
+  cmd_run "python3 -m pip install --upgrade ${BUILD_OUTPUT_FILE_PATH} --no-python-version-warning --disable-pip-version-check"
 }
 
 maybe_force_install_deps() {

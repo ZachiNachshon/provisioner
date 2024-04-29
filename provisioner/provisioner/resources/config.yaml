@@ -1,2 +1,18 @@
 provisioner:
+  plugins_definitions: 
+    - name: "Installers"
+      description: "Install anything anywhere on any OS/Arch either on a local or remote machine"
+      author: "Zachi Nachshon"
+      maintainer: "Zachi Nachshon"
+      package_name: "provisioner_installers_plugin"
+    - name: "Single-Board"
+      description: "Single boards management as simple as it gets"
+      author: "Zachi Nachshon"
+      maintainer: "Zachi Nachshon"
+      package_name: "provisioner_single_board_plugin"
+    - name: "Examples"
+      description: "Playground for using the CLI framework with basic dummy commands"
+      author: "Zachi Nachshon"
+      maintainer: "Zachi Nachshon"
+      package_name: "provisioner_examples_plugin"
   plugins: {}

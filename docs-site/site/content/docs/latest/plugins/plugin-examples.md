@@ -2,7 +2,7 @@
 layout: docs
 title: "Plugin: Examples"
 description: Playground for using the CLI framework with basic dummy commands.
-group: usage
+group: plugins
 toc: true
 ---
 
@@ -14,6 +14,12 @@ The exampels plugin was introduced to allow users to experience the `provisioner
 
 ```bash
 pip install provisioner-examples-plugin
+```
+
+or, interactive plugin installation via:
+
+```bash 
+provisioner plugins install
 ```
 
 ## Usage
