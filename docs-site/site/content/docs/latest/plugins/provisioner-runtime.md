@@ -1,7 +1,7 @@
 ---
 layout: docs
 title: Provisioner Runtime
-description: Python powered CLI for dynamic plugin management.
+description: Python powered CLI for dynamic plugins management.
 group: plugins
 toc: true
 aliases: "/docs/latest/plugins/"
