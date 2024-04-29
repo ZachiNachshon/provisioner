@@ -1,4 +1,4 @@
-<h3 align="center" id="provisioner-logo"><img src="assets/provisioner.svg" height="300"></h3>
+<h3 align="center" id="provisioner-logo"><img src="docs-site/site/static/docs/latest/assets/img/provisioner.svg" height="300"></h3>
 
 <p align="center">
   <a href="#requirements">Requirements</a> •
