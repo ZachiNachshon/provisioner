@@ -24,10 +24,8 @@ class ProvisionerConfig(SerializationBase):
     def _try_parse_config(self, dict_obj: dict):
         if not dict_obj:
             return 
-        if "provisioner" in dict_obj:
-            provisioner_data = dict_obj["provisioner"]
-            if "plugins_definitions" in provisioner_data:
-                self._parse_plugins_definitions_block(provisioner_data["plugins_definitions"])
+        if "plugins_definitions" in dict_obj:
+            self._parse_plugins_definitions_block(dict_obj["plugins_definitions"])
 
     def merge(self, other: "ProvisionerConfig") -> SerializationBase:
         # Provisioner config is internal only and shouldn't get merged from user config

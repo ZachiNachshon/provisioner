@@ -108,6 +108,7 @@ class ConfigManager:
             merged_config = internal_config.merge(user_config)
             return merged_config
         except Exception as ex:
+            print(f"Failed to merge user and internal configurations. cls: {type(internal_config).__name__}, ex: {ex}")
             logger.error(
                 f"Failed to merge user and internal configurations. cls: {type(internal_config).__name__}, ex: {ex}"
             )
@@ -117,4 +118,4 @@ class ConfigManager:
         return self.config
 
     def get_plugin_config(self, name: str) -> SerializationBase:
-        return self.config.dict_obj["plugins"].get(name)
+        return self.config.dict_obj["plugins"].get(name, {})

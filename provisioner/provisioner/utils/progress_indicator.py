@@ -21,7 +21,7 @@ from rich.progress import (
     TransferSpeedColumn,
 )
 
-from provisioner.colors.color import *
+from provisioner.colors.colors import *
 from provisioner.infra.context import Context
 from provisioner.utils.io_utils import IOUtils
 

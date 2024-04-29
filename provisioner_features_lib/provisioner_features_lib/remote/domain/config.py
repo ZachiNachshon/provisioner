@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 from enum import Enum
+from typing import List
 
+from loguru import logger
 from provisioner.domain.serialize import SerializationBase
 
 
@@ -54,23 +56,33 @@ class RemoteConfig(SerializationBase):
             self._parse_remote_block(dict_obj["remote"])
 
     def merge(self, other: "RemoteConfig") -> SerializationBase:
-        if other.hosts:
+        # Hosts config are all or nothing, if partial config is provided, user overrides won't apply
+        if hasattr(other, "hosts"):
+            for host in other.hosts:
+                if not hasattr(host, "name") and \
+                not hasattr(host, "address") and \
+                not hasattr(host, "auth"):
+                    logger.error(f"Partial hosts config identified, missing a name, address or auth, user overrides won't apply !")
             self.hosts = other.hosts
 
-        if other.lan_scan.ip_discovery_range:
-            self.lan_scan.ip_discovery_range = other.lan_scan.ip_discovery_range
+        if hasattr(other, "lan_scan"):
+            if hasattr(other.lan_scan, "ip_discovery_range"):
+                self.lan_scan.ip_discovery_range = other.lan_scan.ip_discovery_range
 
         return self
 
+    def to_hosts_dict(self) -> dict[str, "RemoteConfig.Host"]:
+        return {host.name: host for host in self.hosts}
+    
     def _parse_remote_block(self, remote_block: dict):
         if "hosts" in remote_block:
             hosts_block = remote_block["hosts"]
-            self.hosts = {}
+            self.hosts = []
             for host in hosts_block:
                 if "name" in host and "address" in host:
-                    auth_block = self._parse_host_auth_block(host)
-                    h = RemoteConfig.Host(host["name"], host["address"], auth_block)
-                    self.hosts[host["name"]] = h
+                    h = RemoteConfig.Host()
+                    h.parse(host)
+                    self.hosts.append(h)
                 else:
                     print("Bad hosts configuration, please check YAML file")
 
@@ -79,19 +91,6 @@ class RemoteConfig(SerializationBase):
             lan_scan_block = remote_block["lan_scan"]
             if "ip_discovery_range" in lan_scan_block:
                 self.lan_scan.ip_discovery_range = lan_scan_block["ip_discovery_range"]
-
-    def _parse_host_auth_block(self, host_block: dict) -> "RemoteConfig.Host.Auth":
-        auth_obj = RemoteConfig.Host.Auth()
-        if "auth" in host_block:
-            auth_block = host_block["auth"]
-            if "username" in auth_block:
-                auth_obj.username = auth_block["username"]
-            if "password" in auth_block:
-                auth_obj.password = auth_block["password"]
-            if "ssh_private_key_file_path" in auth_block:
-                auth_obj.ssh_private_key_file_path = auth_block["ssh_private_key_file_path"]
-
-        return auth_obj
 
     class Host:
         class Auth:
@@ -106,6 +105,14 @@ class RemoteConfig(SerializationBase):
                 self.password = password
                 self.ssh_private_key_file_path = ssh_private_key_file_path
 
+            def parse(self, auth_block: dict) -> None:
+                if "username" in auth_block:
+                    self.username = auth_block["username"]
+                if "password" in auth_block:
+                    self.password = auth_block["password"]
+                if "ssh_private_key_file_path" in auth_block:
+                    self.ssh_private_key_file_path = auth_block["ssh_private_key_file_path"]
+
         name: str
         address: str
         auth: Auth
@@ -115,6 +122,15 @@ class RemoteConfig(SerializationBase):
             self.address = address
             self.auth = auth
 
+        def parse(self, host_block: dict) -> None:
+            if "name" in host_block:
+                self.name = host_block["name"]
+            if "address" in host_block:
+                self.address = host_block["address"]
+            if "auth" in host_block:
+                self.auth = RemoteConfig.Host.Auth()
+                self.auth.parse(host_block["auth"])
+
     class LanScan:
         ip_discovery_range: str
 
@@ -122,4 +138,4 @@ class RemoteConfig(SerializationBase):
             self.ip_discovery_range = ip_discovery_range
 
     lan_scan: LanScan
-    hosts: dict[str, Host]
+    hosts: List[Host]

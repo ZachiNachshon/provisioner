@@ -7,7 +7,7 @@ import inquirer
 from inquirer.themes import GreenPassion
 from loguru import logger
 
-from provisioner.colors import color
+from provisioner.colors import colors
 from provisioner.infra.context import Context
 
 GO_UP_ONE_LINE = "\033[1A"
@@ -48,19 +48,19 @@ class Prompter:
     def _overwrite_previous_line(self, message: str, color_in_use: str, icon: Optional[str] = None):
         msg_format = ""
         if icon:
-            msg_format += f"{GO_UP_ONE_LINE}{color_in_use}{icon} {message}{color.NONE}{DELETE_LINE_TO_BEGINNING}"
+            msg_format += f"{GO_UP_ONE_LINE}{color_in_use}{icon} {message}{colors.NONE}{DELETE_LINE_TO_BEGINNING}"
         else:
-            msg_format += f"{GO_UP_ONE_LINE}{color_in_use}{message}{color.NONE}{DELETE_LINE_TO_BEGINNING}"
+            msg_format += f"{GO_UP_ONE_LINE}{color_in_use}{message}{colors.NONE}{DELETE_LINE_TO_BEGINNING}"
         print(msg_format)
 
     def _get_color_from_prompt_level(self, level: PromptLevel) -> str:
-        color_in_use = color.NONE
+        color_in_use = colors.NONE
         if level == PromptLevel.HIGHLIGHT:
-            color_in_use = color.LIGHT_CYAN
+            color_in_use = colors.LIGHT_CYAN
         elif level == PromptLevel.CRITICAL:
-            color_in_use = color.RED
+            color_in_use = colors.RED
         elif level == PromptLevel.WARNING:
-            color_in_use = color.YELLOW
+            color_in_use = colors.YELLOW
         return color_in_use
 
     def _prompt_user_input(
@@ -85,21 +85,21 @@ class Prompter:
             enriched_msg = "{} (default: {}): ".format(message, "REDACTED" if redact_value else default)
 
         color_in_use = self._get_color_from_prompt_level(level)
-        prompt = f"{color_in_use}{enriched_msg}{color.NONE}"
+        prompt = f"{color_in_use}{enriched_msg}{colors.NONE}"
         user_input = input(prompt)
 
         if user_input:
             display_value = "REDACTED" if redact_value else user_input
             if post_user_input_message:
                 self._overwrite_previous_line(
-                    message=f"{post_user_input_message}{display_value}", color_in_use=color.GREEN, icon=CHECKMARK_ICON
+                    message=f"{post_user_input_message}{display_value}", color_in_use=colors.GREEN, icon=CHECKMARK_ICON
                 )
             return user_input
         elif default is not None:
             if post_user_input_message:
                 value = "REDACTED" if redact_value else default
                 self._overwrite_previous_line(
-                    message=f"{post_user_input_message}{value}", color_in_use=color.GREEN, icon=CHECKMARK_ICON
+                    message=f"{post_user_input_message}{value}", color_in_use=colors.GREEN, icon=CHECKMARK_ICON
                 )
             return default
 
@@ -144,7 +144,7 @@ class Prompter:
         #   - Cancel line
         lines_number = len(inq_opts) + 2
         self._clear_previous_line(lines_number)
-        self._overwrite_previous_line(color_in_use=color.GREEN, message=f"Selected :: {result}", icon=CHECKMARK_ICON)
+        self._overwrite_previous_line(color_in_use=colors.GREEN, message=f"Selected :: {result}", icon=CHECKMARK_ICON)
 
         return result
 
@@ -175,7 +175,7 @@ class Prompter:
             message += f"  {item}\n" 
         message += "]"
         self._overwrite_previous_line(
-            color_in_use=color.GREEN, message=message, icon=CHECKMARK_ICON
+            color_in_use=colors.GREEN, message=message, icon=CHECKMARK_ICON
         )
         return result
 
@@ -196,7 +196,7 @@ class Prompter:
             return True
 
         color_in_use = self._get_color_from_prompt_level(level)
-        prompt = f"{color_in_use}{message}? (y/n): {color.NONE}"
+        prompt = f"{color_in_use}{message}? (y/n): {colors.NONE}"
         user_input = input(prompt)
         if user_input == "" or user_input not in ["y", "n"]:
             self._clear_previous_line(count=2)
@@ -207,11 +207,11 @@ class Prompter:
 
         if is_approved:
             if post_yes_message:
-                self._overwrite_previous_line(message=post_yes_message, color_in_use=color.GREEN, icon=CHECKMARK_ICON)
+                self._overwrite_previous_line(message=post_yes_message, color_in_use=colors.GREEN, icon=CHECKMARK_ICON)
         else:
             if post_no_message:
                 self._overwrite_previous_line(
-                    message=post_no_message, color_in_use=color.BRIGHT_BLACK, icon=CROSSMARK_ICON
+                    message=post_no_message, color_in_use=colors.BRIGHT_BLACK, icon=CROSSMARK_ICON
                 )
 
         return is_approved
@@ -226,7 +226,7 @@ class Prompter:
             return True
 
         color_in_use = self._get_color_from_prompt_level(level)
-        prompt = f"{color_in_use}  Press ENTER to continue...{color.NONE}"
+        prompt = f"{color_in_use}  Press ENTER to continue...{colors.NONE}"
         user_input = input(prompt)
         # Empty input means an Enter was pressed
         enter_pressed = not user_input

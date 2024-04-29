@@ -165,7 +165,7 @@ class TyperRemoteOpts:
                 ip_address=ip_address,
                 hostname=hostname,
                 # Hosts are not supplied via CLI arguments, only via user config
-                remote_hosts=self._remote_config.hosts,
+                remote_hosts=self._remote_config.to_hosts_dict(),
                 remote_context=remote_context,
             )
 

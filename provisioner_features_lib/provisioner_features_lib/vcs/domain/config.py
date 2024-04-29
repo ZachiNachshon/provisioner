@@ -23,9 +23,9 @@ class VersionControlConfig(SerializationBase):
             self._parse_github_block(dict_obj["vcs"])
 
     def merge(self, other: "VersionControlConfig") -> SerializationBase:
-        if other.github:
-            self.github = other.github
-
+        if hasattr(other, "github"):
+            self.github.merge(other.github)
+            
         return self
 
     def _parse_github_block(self, vcs_block: dict):
@@ -54,5 +54,17 @@ class VersionControlConfig(SerializationBase):
             self.repository = repository
             self.branch = branch
             self.git_access_token = git_access_token
+
+        def merge(self, other: "VersionControlConfig.GitHub") -> SerializationBase:
+            if hasattr(other, "organization"):
+                self.organization = other.organization
+            if hasattr(other, "repository"):
+                self.repository = other.repository
+            if hasattr(other, "branch"):
+                self.branch = other.branch
+            if hasattr(other, "git_access_token"):
+                self.git_access_token = other.git_access_token
+
+            return self
 
     github: GitHub = None

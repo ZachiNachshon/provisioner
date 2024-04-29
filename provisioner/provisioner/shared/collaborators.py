@@ -20,6 +20,7 @@ from provisioner.utils.process import Process
 from provisioner.utils.progress_indicator import ProgressIndicator
 from provisioner.utils.prompter import Prompter
 from provisioner.utils.summary import Summary
+from provisioner.utils.yaml_util import YamlUtil
 
 
 class CoreCollaborators:
@@ -42,6 +43,7 @@ class CoreCollaborators:
         self.__http_client: HttpClient = None
         self.__editor: Editor = None
         self.__package_loader: PackageLoader = None
+        self.__yaml_util: YamlUtil = None
 
     # def run_in_sequence(*func):
     #     def compose(f, g):
@@ -186,3 +188,11 @@ class CoreCollaborators:
             return self.__package_loader
 
         return self._lock_and_get(callback=create_package_loader)
+
+    def yaml_util(self) -> YamlUtil:
+        def create_yaml_util():
+            if not self.__yaml_util:
+                self.__yaml_util = YamlUtil.create(self.__ctx, self.io_utils())
+            return self.__yaml_util
+
+        return self._lock_and_get(callback=create_yaml_util)
