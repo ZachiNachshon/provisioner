@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="Install anything anywhere on any OS/Arch either on a local or remote machine.">
+<meta name="description" content="Single boards management as simple as it gets.">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>Plugin: Installers · Provisioner vlatest</title>
+<title>Plugin: Single Board · Provisioner vlatest</title>
 
-<link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/usage/plugin-installers/">
+<link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-single-board/">
 
 
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="Plugin: Installers">
-<meta name="twitter:description" content="Install anything anywhere on any OS/Arch either on a local or remote machine.">
+<meta name="twitter:title" content="Plugin: Single Board">
+<meta name="twitter:description" content="Single boards management as simple as it gets.">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
-<meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/usage/plugin-installers/">
-<meta property="og:title" content="Plugin: Installers">
-<meta property="og:description" content="Install anything anywhere on any OS/Arch either on a local or remote machine.">
+<meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-single-board/">
+<meta property="og:title" content="Plugin: Single Board">
+<meta property="og:description" content="Single boards management as simple as it gets.">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -279,14 +279,14 @@
       <li class="bd-links-group py-2">
         <strong class="bd-links-heading d-flex w-100 align-items-center fw-semibold">
             <svg class="bi me-2" style="color: var(--bs-pink);" aria-hidden="true"><use xlink:href="#git"></use></svg>
-          Usage
+          Plugins
         </strong>
 
         <ul class="list-unstyled fw-normal pb-2 small">
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/usage/provisioner-runtime/" class="bd-links-link d-inline-block rounded">Provisioner Runtime</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/usage/plugin-installers/" class="bd-links-link d-inline-block rounded active" aria-current="page">Plugin: Installers</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/usage/plugin-single-board/" class="bd-links-link d-inline-block rounded">Plugin: Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/usage/plugin-examples/" class="bd-links-link d-inline-block rounded">Plugin: Examples</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/provisioner-runtime/" class="bd-links-link d-inline-block rounded">Provisioner Runtime</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-installers/" class="bd-links-link d-inline-block rounded">Plugin: Installers</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-single-board/" class="bd-links-link d-inline-block rounded active" aria-current="page">Plugin: Single Board</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-examples/" class="bd-links-link d-inline-block rounded">Plugin: Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -310,12 +310,12 @@
     <main class="bd-main order-1">
       <div class="bd-intro pt-2 ps-lg-2">
         <div class="d-md-flex flex-md-row-reverse align-items-center justify-content-between">
-          <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/usage/plugin-installers.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
+          <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/plugins/plugin-single-board.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">Plugin: Installers</h1>
+          <h1 class="bd-title mb-0" id="content">Plugin: Single Board</h1>
         </div>
-        <p class="bd-lead">Install anything anywhere on any OS/Arch either on a local or remote machine.</p>
+        <p class="bd-lead">Single boards management as simple as it gets.</p>
         
       </div>
 
@@ -336,13 +336,11 @@
       <ul>
         <li>
           <ul>
-            <li><a href="#cli">CLI</a></li>
-            <li><a href="#k3s">K3s</a></li>
+            <li><a href="#raspberry-pi">Raspberry Pi</a></li>
           </ul>
         </li>
       </ul>
     </li>
-    <li><a href="#remote-installation">Remote Installation</a></li>
   </ul>
 </nav>
           </div>
@@ -353,91 +351,41 @@
         
 
         <h2 id="overview">Overview <a class="anchor-link" href="#overview" aria-label="Link to this section: Overview"></a></h2>
-<p>The installers plugin is designed to install any type of software, package, or application quickly and easily in a one-liner command.</p>
-<p>Remove the hassle of going through multiple READMEs and/or documentation sites just to get the software installed.</p>
-<div class="bd-callout bd-callout-info">
-<p><strong>Important !</strong> <br>
-Installation can run either locally on the host machine or on a remote machine.<br></p>
-<p>When opting for remote machine, upon installation, an interactive flow will start using TUI (Terminal UI).<br></p>
-<p>To install on a remote machine without starting an interactive flow, <code>Remote-Only</code> flags should be used to supply the remote machine info (ENV VARs are also supported).</p>
-
-</div>
-
+<p>Manage small single-board computers such as Raspberry Pi using interactive commands.</p>
+<p>Make the provisioning on such machines safe, secure and remotely possible, starting from the initial OS/Network set-up and configuration towards on-going maintenance.</p>
 <h2 id="quickstart">Quickstart <a class="anchor-link" href="#quickstart" aria-label="Link to this section: Quickstart"></a></h2>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">pip install provisioner-installers-plugin
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">pip install provisioner-single-board-plugin
+</code></pre></div><p>or, interactive plugin installation via:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner plugins install
 </code></pre></div><h2 id="usage">Usage <a class="anchor-link" href="#usage" aria-label="Link to this section: Usage"></a></h2>
 <p>Print a list of available installables</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner install 
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board
 </code></pre></div><div class="bd-callout bd-callout-info">
-<p>Currently, supported installables are:</p>
+<p>Currently, supported single-boards are:</p>
 <ul>
-<li>CLI applications</li>
-<li>K3s server/agent</li>
+<li>Raspberry Pi</li>
 </ul>
 
 </div>
 
-<h4 id="cli">CLI <a class="anchor-link" href="#cli" aria-label="Link to this section: CLI"></a></h4>
-<p>Install any supported CLI tool</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner install cli &lt;app-name&gt;
-</code></pre></div><h4 id="k3s">K3s <a class="anchor-link" href="#k3s" aria-label="Link to this section: K3s"></a></h4>
-<p>K3s is fully compliant lightweight Kubernetes distribution (<a href="https://k3s.io">https://k3s.io</a>).<br>
-Provisioner allows installing either the k3s server or agent.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner install k3s &lt;server/agent&gt;
-</code></pre></div><h2 id="remote-installation">Remote Installation <a class="anchor-link" href="#remote-installation" aria-label="Link to this section: Remote Installation"></a></h2>
-<p>When opting-in for a remote installation without an interactive flow, one should supply the required flags so the CLI command could run as a one-liner.</p>
-<div class="table-responsive"><table class="table">
-<thead>
-<tr>
-<th>Remote Flag</th>
-<th>Env Var</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--hostname</code></td>
-<td><code>PROV_HOSTNAME</code></td>
-<td>Remote node host name</td>
-</tr>
-<tr>
-<td><code>--ip-address</code></td>
-<td><code>PROV_IP_ADDRESS</code></td>
-<td>Remote node IP address</td>
-</tr>
-<tr>
-<td><code>--node-username</code></td>
-<td><code>PROV_NODE_USERNAME</code></td>
-<td>Remote node username</td>
-</tr>
-<tr>
-<td><code>--node-password</code></td>
-<td><code>PROV_NODE_PASSWORD</code></td>
-<td>(Optional) Remote node password</td>
-</tr>
-<tr>
-<td><code>--ssh-private-key-file-path</code></td>
-<td><code>PROV_SSH_PRIVATE_KEY_FILE_PATH</code></td>
-<td>(Recommended) Private SSH key local file path</td>
-</tr>
-</tbody>
-</table></div>
+<br>
+<h4 id="raspberry-pi">Raspberry Pi <a class="anchor-link" href="#raspberry-pi" aria-label="Link to this section: Raspberry Pi"></a></h4>
+<p>The RPi basic set of commands are aimed to solve the pain of setting up and configuring a fresh RPi computer remotely:</p>
+<ul>
+<li>
+<p>Burn a Raspbian OS image on SD-Card</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi os burn-image
+</code></pre></div></li>
+<li>
+<p>Configure Raspbian OS software and hardware settings for an optimal headless computer to be used as a Kubernetes cluster master/node</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node configure
+</code></pre></div></li>
+<li>
+<p>Auto scan local network to identify the RPi computer once connected to the home network, allows to define a static IP address and re-connect it to the network with the new address</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node network
+</code></pre></div></li>
+</ul>
 
-<p>Example:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner install <span class="se">\
-</span><span class="se"></span>  --environment Remote <span class="se">\
-</span><span class="se"></span>  --hostname rpi-01 <span class="se">\
-</span><span class="se"></span>  --ip-address 1.2.3.4 <span class="se">\
-</span><span class="se"></span>  --node-username pi <span class="se">\
-</span><span class="se"></span>  --ssh-private-key-file-path /path/to/pkey <span class="se">\
-</span><span class="se"></span>  cli helm
-</code></pre></div><p>or</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="nv">PROV_HOSTNAME</span><span class="o">=</span>rpi-01 <span class="se">\
-</span><span class="se"></span><span class="nv">PROV_IP_ADDRESS</span><span class="o">=</span>1.2.3.4 <span class="se">\
-</span><span class="se"></span><span class="nv">PROV_NODE_USERNAME</span><span class="o">=</span>pi <span class="se">\
-</span><span class="se"></span><span class="nv">PROV_SSH_PRIVATE_KEY_FILE_PATH</span><span class="o">=</span>/path/to/pkey <span class="se">\
-</span><span class="se"></span>provisioner install --environment Remote cli helm
-</code></pre></div>
       </div>
     </main>
   </div>

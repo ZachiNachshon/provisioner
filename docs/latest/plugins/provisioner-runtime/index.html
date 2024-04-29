@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="Single boards management as simple as it gets.">
+<meta name="description" content="Python powered CLI for dynamic plugins management.">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>Plugin: Single Board · Provisioner vlatest</title>
+<title>Provisioner Runtime · Provisioner vlatest</title>
 
-<link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/usage/plugin-single-board/">
+<link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/plugins/provisioner-runtime/">
 
 
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="Plugin: Single Board">
-<meta name="twitter:description" content="Single boards management as simple as it gets.">
+<meta name="twitter:title" content="Provisioner Runtime">
+<meta name="twitter:description" content="Python powered CLI for dynamic plugins management.">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
-<meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/usage/plugin-single-board/">
-<meta property="og:title" content="Plugin: Single Board">
-<meta property="og:description" content="Single boards management as simple as it gets.">
+<meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/plugins/provisioner-runtime/">
+<meta property="og:title" content="Provisioner Runtime">
+<meta property="og:description" content="Python powered CLI for dynamic plugins management.">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -279,14 +279,14 @@
       <li class="bd-links-group py-2">
         <strong class="bd-links-heading d-flex w-100 align-items-center fw-semibold">
             <svg class="bi me-2" style="color: var(--bs-pink);" aria-hidden="true"><use xlink:href="#git"></use></svg>
-          Usage
+          Plugins
         </strong>
 
         <ul class="list-unstyled fw-normal pb-2 small">
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/usage/provisioner-runtime/" class="bd-links-link d-inline-block rounded">Provisioner Runtime</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/usage/plugin-installers/" class="bd-links-link d-inline-block rounded">Plugin: Installers</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/usage/plugin-single-board/" class="bd-links-link d-inline-block rounded active" aria-current="page">Plugin: Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/usage/plugin-examples/" class="bd-links-link d-inline-block rounded">Plugin: Examples</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/provisioner-runtime/" class="bd-links-link d-inline-block rounded active" aria-current="page">Provisioner Runtime</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-installers/" class="bd-links-link d-inline-block rounded">Plugin: Installers</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-single-board/" class="bd-links-link d-inline-block rounded">Plugin: Single Board</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-examples/" class="bd-links-link d-inline-block rounded">Plugin: Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -310,12 +310,12 @@
     <main class="bd-main order-1">
       <div class="bd-intro pt-2 ps-lg-2">
         <div class="d-md-flex flex-md-row-reverse align-items-center justify-content-between">
-          <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/usage/plugin-single-board.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
+          <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/plugins/provisioner-runtime.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">Plugin: Single Board</h1>
+          <h1 class="bd-title mb-0" id="content">Provisioner Runtime</h1>
         </div>
-        <p class="bd-lead">Single boards management as simple as it gets.</p>
+        <p class="bd-lead">Python powered CLI for dynamic plugins management.</p>
         
       </div>
 
@@ -330,13 +330,13 @@
           <div class="collapse bd-toc-collapse" id="tocContents">
             <nav id="TableOfContents">
   <ul>
-    <li><a href="#overview">Overview</a></li>
     <li><a href="#quickstart">Quickstart</a></li>
-    <li><a href="#usage">Usage</a>
+    <li><a href="#runtime-engine">Runtime Engine</a></li>
+    <li><a href="#framework">Framework</a>
       <ul>
         <li>
           <ul>
-            <li><a href="#raspberry-pi">Raspberry Pi</a></li>
+            <li><a href="#poetry">Poetry</a></li>
           </ul>
         </li>
       </ul>
@@ -350,40 +350,57 @@
       <div class="bd-content ps-lg-2">
         
 
-        <h2 id="overview">Overview <a class="anchor-link" href="#overview" aria-label="Link to this section: Overview"></a></h2>
-<p>Manage small single-board computers such as Raspberry Pi using interactive commands.</p>
-<p>Make the provisioning on such machines safe, secure and remotely possible, starting from the initial OS/Network set-up and configuration towards on-going maintenance.</p>
-<h2 id="quickstart">Quickstart <a class="anchor-link" href="#quickstart" aria-label="Link to this section: Quickstart"></a></h2>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">pip install provisioner-single-board-plugin
-</code></pre></div><h2 id="usage">Usage <a class="anchor-link" href="#usage" aria-label="Link to this section: Usage"></a></h2>
-<p>Print a list of available installables</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board
-</code></pre></div><div class="bd-callout bd-callout-info">
-<p>Currently, supported single-boards are:</p>
+        <h2 id="quickstart">Quickstart <a class="anchor-link" href="#quickstart" aria-label="Link to this section: Quickstart"></a></h2>
+<p>Provisioner has a built-in <code>plugins</code> CLI command for plugins management. To get a list of available commands:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner plugins
+</code></pre></div><div class="table-responsive"><table class="table">
+<thead>
+<tr>
+<th>Task</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>install</code></td>
+<td>Search and install plugins from remote</td>
+</tr>
+<tr>
+<td><code>list</code></td>
+<td>List locally installed provisioner plugins</td>
+</tr>
+<tr>
+<td><code>uninstall</code></td>
+<td>Select local plugins to uninstall</td>
+</tr>
+</tbody>
+</table></div>
+
+<h2 id="runtime-engine">Runtime Engine <a class="anchor-link" href="#runtime-engine" aria-label="Link to this section: Runtime Engine"></a></h2>
+<p>The <code>provisioner-runtime</code> pip package is required to dynamically load plugins from local pip.</p>
+<p>Provisioner plugins are configured to hook into provisioner CLI menu, their commands become visibile once those are identified and loaded by provisioner at runtime.</p>
+<p>Removing such plugins from pip will remove their commands from <code>provisioner</code> CLI menu as well.</p>
+<h2 id="framework">Framework <a class="anchor-link" href="#framework" aria-label="Link to this section: Framework"></a></h2>
+<p>Provisioner is used as a framework for creating new plugins in a no-brainer manner, simple and quick.</p>
+<p>Is is a fully featured Python CLI framework supports a wide range of common utilities, interactive terminal and core capabilities such as config-management, flag modifiers (verbose, dry-run, auto-prompt) and much more&hellip;</p>
+<p>Partial list of available features:</p>
 <ul>
-<li>Raspberry Pi</li>
+<li>Configuration management (internal and custom user config)</li>
+<li>Collaborators utilities (<a href="https://github.com/ZachiNachshon/provisioner/blob/05d11dbadd18ac98f44b4b95f8b34e4dd2f00c90/provisioner/provisioner/shared/collaborators.py#L24">lightweight wrappers for common actions</a>)</li>
+<li>Ansible programmatic wrapper for running as-hoc commands or Ansible playbooks - simply and easily</li>
+<li>Flags modifiers out of the box (verbose, silent, dry-run, auto-prompt, non-interactive)</li>
+<li>CLI application lifecycle made easy, simply structured and extensible</li>
+<li>(Optional) <a href="https://github.com/ZachiNachshon/provisioner/blob/master/provisioner/provisioner/func/pyfn.py#L27">Functional library</a> for writing functional plugins (<a href="https://github.com/ZachiNachshon/provisioner-plugins/blob/master/provisioner_installers_plugin/provisioner_installers_plugin/installer/runner/installer_runner.py#L131">see installers plugin for example</a>)</li>
+<li><a href="https://github.com/ZachiNachshon/provisioner/blob/master/provisioner_features_lib/provisioner_features_lib/remote/remote_connector.py#L48">Remote connector</a> that encapsulates all remote SSH info collection from different sources (config, user, flags, env vars), acts as a single connection point to any remote machine</li>
+<li>And much more&hellip;</li>
 </ul>
-
-</div>
-
 <br>
-<h4 id="raspberry-pi">Raspberry Pi <a class="anchor-link" href="#raspberry-pi" aria-label="Link to this section: Raspberry Pi"></a></h4>
-<p>The RPi basic set of commands are aimed to solve the pain of setting up and configuring a fresh RPi computer remotely:</p>
-<ul>
-<li>
-<p>Burn a Raspbian OS image on SD-Card</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi os burn-image
-</code></pre></div></li>
-<li>
-<p>Configure Raspbian OS software and hardware settings for an optimal headless computer to be used as a Kubernetes cluster master/node</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node configure
-</code></pre></div></li>
-<li>
-<p>Auto scan local network to identify the RPi computer once connected to the home network, allows to define a static IP address and re-connect it to the network with the new address</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node network
-</code></pre></div></li>
-</ul>
-
+<h4 id="poetry">Poetry <a class="anchor-link" href="#poetry" aria-label="Link to this section: Poetry"></a></h4>
+<p>This section is relevant when using the <a href="https://python-poetry.org/">Poetry package manager</a> to pacakge your Python modules. To use <code>provisioner-runtime</code> as a Python dependency simply add it to the <code>pyproject.toml</code> file:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-toml" data-lang="toml"><span class="p">[</span><span class="nx">tool</span><span class="p">.</span><span class="nx">poetry</span><span class="p">.</span><span class="nx">dependencies</span><span class="p">]</span>
+<span class="nx">python</span> <span class="p">=</span> <span class="s2">&#34;^3.10&#34;</span>
+<span class="nx">provisioner-runtime</span> <span class="p">=</span> <span class="s2">&#34;^0.1.10&#34;</span>
+</code></pre></div>
       </div>
     </main>
   </div>
