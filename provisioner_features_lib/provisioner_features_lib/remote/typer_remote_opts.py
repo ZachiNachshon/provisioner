@@ -9,7 +9,7 @@ from provisioner.errors.cli_errors import MissingCliArgument
 from provisioner.infra.remote_context import RemoteContext
 from provisioner.runner.ansible.ansible_runner import AnsibleHost
 
-from provisioner_features_lib.remote.domain.config import Host, RemoteConfig, RunEnvironment
+from provisioner_features_lib.remote.domain.config import Auth, Host, RemoteConfig, RunEnvironment
 
 REMOTE_ONLY_HELP_TITLE = "Remote Only"
 
@@ -156,6 +156,7 @@ class TyperRemoteOpts:
                 silent=silent,
                 non_interactive=non_interactive,
             )
+
             self._cli_remote_opts = CliRemoteOpts(
                 environment=environment,
                 node_username=node_username,
@@ -243,19 +244,19 @@ class CliRemoteOpts:
             ]
         else:
             result: List[AnsibleHost] = []
-            for key, value in hosts.items():
-                # If user supplied remote options via CLI arguments - override all other sources
+            for _, value in hosts.items():
+                maybe_auth = value.auth if value.auth else Auth()
+                # SSH private key can be supplied via CLI arguments or user config
+                ssh_private_key_file_path = self.ssh_private_key_file_path if self.ssh_private_key_file_path else None
+                if ssh_private_key_file_path is None and hasattr(maybe_auth, "ssh_private_key_file_path"):
+                    ssh_private_key_file_path = maybe_auth.ssh_private_key_file_path
                 result.append(
                     AnsibleHost(
                         host=value.name,
                         ip_address=value.address,
-                        username=self.node_username if self.node_username else value.auth.username,
-                        password=self.node_password if self.node_password else value.auth.password,
-                        ssh_private_key_file_path=(
-                            self.ssh_private_key_file_path
-                            if self.ssh_private_key_file_path
-                            else value.auth.ssh_private_key_file_path
-                        ),
+                        username=self.node_username if self.node_username else maybe_auth.username,
+                        password=self.node_password if self.node_password else maybe_auth.password,
+                        ssh_private_key_file_path=ssh_private_key_file_path,
                     )
                 )
             return result

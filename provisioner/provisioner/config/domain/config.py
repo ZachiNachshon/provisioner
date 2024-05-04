@@ -5,12 +5,23 @@ from typing import Any
 from loguru import logger
 from provisioner.domain.serialize import SerializationBase
 
+"""
+Configuration structure -
+
+provisioner:
+    plugins_definitions: 
+    - name: "Installers Plugin",
+        description: "Install anything anywhere on any OS/Arch either on a local or remote machine.",
+        author: "Zachi Nachshon",
+        maintainer: "ZachiNachshon"
+"""    
+
 class PluginDefinition(SerializationBase):
-    name: str
-    description: str
-    author: str
-    maintainer: str
-    package_name: str
+    name: str = ""
+    description: str = ""
+    author: str = ""
+    maintainer: str = ""
+    package_name: str = ""
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)    
@@ -35,16 +46,8 @@ class PluginDefinition(SerializationBase):
         return self
         
 class ProvisionerConfig(SerializationBase):
-    """
-    Configuration structure -
-
-    provisioner:
-        plugins_definitions: 
-        - name: "Installers Plugin",
-            description: "Install anything anywhere on any OS/Arch either on a local or remote machine.",
-            author: "Zachi Nachshon",
-            maintainer: "ZachiNachshon"
-    """
+    plugins_definitions: dict[str, PluginDefinition] = {}
+    plugins: dict[str, Any] = {}
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
@@ -62,5 +65,3 @@ class ProvisionerConfig(SerializationBase):
         # Provisioner config is internal only and shouldn't get merged from user config
         return self
 
-    plugins_definitions: dict[str, PluginDefinition] = {}
-    plugins: dict[str, Any] = {}

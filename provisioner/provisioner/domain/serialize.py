@@ -4,6 +4,7 @@ import json
 from abc import abstractmethod
 from typing import Optional
 
+from loguru import logger
 from provisioner.errors.cli_errors import FailedToSerializeConfiguration
 
 
@@ -13,12 +14,13 @@ class SerializationBase:
 
     # TODO: make dict_obj optional with default {} value
     @abstractmethod
-    def __init__(self, dict_obj: Optional[dict]= {}) -> None:
+    def __init__(self, dict_obj: dict) -> None:
         self.dict_obj = dict_obj
         # print the actual class name
         try:
             # print(f"Creating {self.__class__.__name__} with dict_obj: {dict_obj}")
             if dict_obj is None:
+                logger.error(f"Python dict obj is empty. type: {type(self)}")
                 return
             self._try_parse_config(dict_obj)
         except Exception as ex:

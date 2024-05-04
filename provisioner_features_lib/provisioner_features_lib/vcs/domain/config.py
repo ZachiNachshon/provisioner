@@ -14,10 +14,10 @@ from provisioner.domain.serialize import SerializationBase
     """
 
 class GitHub(SerializationBase):
-    organization: str = None
-    repository: str = None
-    branch: str = None
-    git_access_token: str = None
+    organization: str = ""
+    repository: str = ""
+    branch: str = ""
+    git_access_token: str = ""
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
@@ -45,7 +45,7 @@ class GitHub(SerializationBase):
             self.git_access_token = dict_obj["git_access_token"]
 
 class VersionControlConfig(SerializationBase):
-    github: GitHub = None
+    github: GitHub = GitHub({})
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)

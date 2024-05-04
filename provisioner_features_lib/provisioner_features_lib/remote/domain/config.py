@@ -46,7 +46,7 @@ class RunEnvironment(str, Enum):
             raise NotImplementedError(f"RunEnvironment enum does not support label '{label}'")
 
 class LanScan(SerializationBase):
-    ip_discovery_range: str
+    ip_discovery_range: str = ""
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
@@ -61,11 +61,11 @@ class LanScan(SerializationBase):
             self.ip_discovery_range = dict_obj["ip_discovery_range"]
     
 class Auth(SerializationBase):
-    username: str
-    password: str
-    ssh_private_key_file_path: str
+    username: str = ""
+    password: str = ""
+    ssh_private_key_file_path: str = ""
 
-    def __init__(self, dict_obj: Optional[dict]= {}) -> None:
+    def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
 
     def merge(self, other: "Auth") -> SerializationBase:
@@ -86,16 +86,16 @@ class Auth(SerializationBase):
             self.ssh_private_key_file_path = dict_obj["ssh_private_key_file_path"]
 
 class Host(SerializationBase):
-    name: str
-    address: str
-    auth: Auth
+    name: str = ""
+    address: str = ""
+    auth: Auth = Auth({})
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
 
     def merge(self, other: "Host") -> SerializationBase:
         # Hosts aren't mergable, they are all or nothing
-        pass
+        return self
 
     def _try_parse_config(self, dict_obj: dict) -> None:
         if "name" in dict_obj:
@@ -106,8 +106,8 @@ class Host(SerializationBase):
             self.auth = Auth(dict_obj["auth"])
 
 class RemoteConfig(SerializationBase):
-    lan_scan: LanScan
-    hosts: List[Host]
+    lan_scan: LanScan = LanScan({})
+    hosts: List[Host] = []
     
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)

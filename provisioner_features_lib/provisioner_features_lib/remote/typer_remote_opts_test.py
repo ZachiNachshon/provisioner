@@ -52,11 +52,13 @@ class TyperRemoteOptsTestShould(unittest.TestCase):
                     ip_address=TEST_DATA_SSH_IP_ADDRESS_1,
                     username=TEST_DATA_REMOTE_NODE_USERNAME_1,
                     password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
+                    ssh_private_key_file_path="",
                 ),
                 AnsibleHost(
                     host=TEST_DATA_SSH_HOSTNAME_2,
                     ip_address=TEST_DATA_SSH_IP_ADDRESS_2,
                     username=TEST_DATA_REMOTE_NODE_USERNAME_2,
+                    password="",
                     ssh_private_key_file_path=TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_2,
                 ),
             ],
