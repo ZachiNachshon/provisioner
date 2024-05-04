@@ -1,28 +1,12 @@
 #!/usr/bin/env python3
 
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from loguru import logger
 from provisioner.domain.serialize import SerializationBase
 
-
-class RunEnvironment(str, Enum):
-    Local = "Local"
-    Remote = "Remote"
-
-    @staticmethod
-    def from_str(label):
-        if label in ("Local"):
-            return RunEnvironment.Local
-        elif label in ("Remote"):
-            return RunEnvironment.Remote
-        else:
-            raise NotImplementedError(f"RunEnvironment enum does not support label '{label}'")
-
-
-class RemoteConfig(SerializationBase):
-    """
+"""
     Configuration structure -
 
     remote:
@@ -48,94 +32,120 @@ class RemoteConfig(SerializationBase):
             ip_discovery_range: 192.168.1.1/24
     """
 
+class RunEnvironment(str, Enum):
+    Local = "Local"
+    Remote = "Remote"
+
+    @staticmethod
+    def from_str(label):
+        if label in ("Local"):
+            return RunEnvironment.Local
+        elif label in ("Remote"):
+            return RunEnvironment.Remote
+        else:
+            raise NotImplementedError(f"RunEnvironment enum does not support label '{label}'")
+
+class LanScan(SerializationBase):
+    ip_discovery_range: str
+
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
 
-    def _try_parse_config(self, dict_obj: dict):
-        if "remote" in dict_obj:
-            self._parse_remote_block(dict_obj["remote"])
+    def merge(self, other: "LanScan") -> SerializationBase:
+        if hasattr(other, "ip_discovery_range"):
+            self.ip_discovery_range = other.ip_discovery_range
+        return self
+
+    def _try_parse_config(self, dict_obj: dict) -> None:
+        if "ip_discovery_range" in dict_obj:
+            self.ip_discovery_range = dict_obj["ip_discovery_range"]
+    
+class Auth(SerializationBase):
+    username: str
+    password: str
+    ssh_private_key_file_path: str
+
+    def __init__(self, dict_obj: Optional[dict]= {}) -> None:
+        super().__init__(dict_obj)
+
+    def merge(self, other: "Auth") -> SerializationBase:
+        if hasattr(other, "username"):
+            self.username = other.username
+        if hasattr(other, "password"):
+            self.password = other.password
+        if hasattr(other, "ssh_private_key_file_path"):
+            self.ssh_private_key_file_path = other.ssh_private_key_file_path
+        return self
+    
+    def _try_parse_config(self, dict_obj: dict) -> None:
+        if "username" in dict_obj:
+            self.username = dict_obj["username"]
+        if "password" in dict_obj:
+            self.password = dict_obj["password"]
+        if "ssh_private_key_file_path" in dict_obj:
+            self.ssh_private_key_file_path = dict_obj["ssh_private_key_file_path"]
+
+class Host(SerializationBase):
+    name: str
+    address: str
+    auth: Auth
+
+    def __init__(self, dict_obj: dict) -> None:
+        super().__init__(dict_obj)
+
+    def merge(self, other: "Host") -> SerializationBase:
+        # Hosts aren't mergable, they are all or nothing
+        pass
+
+    def _try_parse_config(self, dict_obj: dict) -> None:
+        if "name" in dict_obj:
+            self.name = dict_obj["name"]
+        if "address" in dict_obj:
+            self.address = dict_obj["address"]
+        if "auth" in dict_obj:
+            self.auth = Auth(dict_obj["auth"])
+
+class RemoteConfig(SerializationBase):
+    lan_scan: LanScan
+    hosts: List[Host]
+    
+    def __init__(self, dict_obj: dict) -> None:
+        super().__init__(dict_obj)
 
     def merge(self, other: "RemoteConfig") -> SerializationBase:
         # Hosts config are all or nothing, if partial config is provided, user overrides won't apply
         if hasattr(other, "hosts"):
+            self.hosts = []
             for host in other.hosts:
-                if not hasattr(host, "name") and \
-                not hasattr(host, "address") and \
-                not hasattr(host, "auth"):
-                    logger.error(f"Partial hosts config identified, missing a name, address or auth, user overrides won't apply !")
-            self.hosts = other.hosts
+                if not hasattr(other, "name") and not hasattr(other, "address") and not hasattr(other, "auth"):
+                    logger.error(f"Partial host config identified, missing a name, address or auth, please check YAML file !")
+                else:
+                    new_host = Host()
+                    new_host.name = host.name
+                    new_host.address = host.address
+                    new_host.auth = host.auth if host.auth is not None else Auth()
+                    self.hosts.append(new_host)
 
         if hasattr(other, "lan_scan"):
-            if hasattr(other.lan_scan, "ip_discovery_range"):
-                self.lan_scan.ip_discovery_range = other.lan_scan.ip_discovery_range
+            self.lan_scan = self.lan_scan if self.lan_scan is not None else LanScan()
+            self.lan_scan.merge(other.lan_scan)
 
         return self
+    
+    def _try_parse_config(self, dict_obj: dict) -> None:
+        if "hosts" in dict_obj:
+            hosts_block = dict_obj["hosts"]
+            self.hosts = []
+            for host_block in hosts_block:
+                if "name" not in host_block or "address" not in host_block or "auth" not in host_block:
+                    logger.error(f"Partial host config identified, missing a name, address or auth, please check YAML file !")
+                else:
+                    new_host = Host(host_block)
+                    self.hosts.append(new_host)
 
-    def to_hosts_dict(self) -> dict[str, "RemoteConfig.Host"]:
+        if "lan_scan" in dict_obj:
+            self.lan_scan = LanScan(dict_obj["lan_scan"])
+
+    def to_hosts_dict(self) -> dict[str, "Host"]:
         return {host.name: host for host in self.hosts}
     
-    def _parse_remote_block(self, remote_block: dict):
-        if "hosts" in remote_block:
-            hosts_block = remote_block["hosts"]
-            self.hosts = []
-            for host in hosts_block:
-                if "name" in host and "address" in host:
-                    h = RemoteConfig.Host()
-                    h.parse(host)
-                    self.hosts.append(h)
-                else:
-                    print("Bad hosts configuration, please check YAML file")
-
-        if "lan_scan" in remote_block:
-            self.lan_scan = RemoteConfig.LanScan()
-            lan_scan_block = remote_block["lan_scan"]
-            if "ip_discovery_range" in lan_scan_block:
-                self.lan_scan.ip_discovery_range = lan_scan_block["ip_discovery_range"]
-
-    class Host:
-        class Auth:
-            username: str
-            password: str
-            ssh_private_key_file_path: str
-
-            def __init__(
-                self, username: str = None, password: str = None, ssh_private_key_file_path: str = None
-            ) -> None:
-                self.username = username
-                self.password = password
-                self.ssh_private_key_file_path = ssh_private_key_file_path
-
-            def parse(self, auth_block: dict) -> None:
-                if "username" in auth_block:
-                    self.username = auth_block["username"]
-                if "password" in auth_block:
-                    self.password = auth_block["password"]
-                if "ssh_private_key_file_path" in auth_block:
-                    self.ssh_private_key_file_path = auth_block["ssh_private_key_file_path"]
-
-        name: str
-        address: str
-        auth: Auth
-
-        def __init__(self, name: str = None, address: str = None, auth: Auth = Auth()) -> None:
-            self.name = name
-            self.address = address
-            self.auth = auth
-
-        def parse(self, host_block: dict) -> None:
-            if "name" in host_block:
-                self.name = host_block["name"]
-            if "address" in host_block:
-                self.address = host_block["address"]
-            if "auth" in host_block:
-                self.auth = RemoteConfig.Host.Auth()
-                self.auth.parse(host_block["auth"])
-
-    class LanScan:
-        ip_discovery_range: str
-
-        def __init__(self, ip_discovery_range: str = None) -> None:
-            self.ip_discovery_range = ip_discovery_range
-
-    lan_scan: LanScan
-    hosts: List[Host]

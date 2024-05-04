@@ -66,7 +66,14 @@ class YamlUtil:
 
     def _read_file(self, file_path: str, cls: SerializationBase) -> SerializationBase:
         json_data_str = self._read_file_as_json_dict(file_path=file_path)
-        return cls(json_data_str)
+        try:
+            res = cls(json_data_str)
+            return res
+        except Exception as ex:
+            msg = f"Failed to read file as JSON. path: {file_path}, ex: {str(ex)}"
+            print(msg)
+            logger.error(msg)
+        return None
 
     def _json_to_yaml(self, json_str: str) -> str:
         # Convert JSON string to dictionary

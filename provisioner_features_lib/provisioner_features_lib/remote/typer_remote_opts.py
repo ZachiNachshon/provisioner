@@ -9,7 +9,7 @@ from provisioner.errors.cli_errors import MissingCliArgument
 from provisioner.infra.remote_context import RemoteContext
 from provisioner.runner.ansible.ansible_runner import AnsibleHost
 
-from provisioner_features_lib.remote.domain.config import RemoteConfig, RunEnvironment
+from provisioner_features_lib.remote.domain.config import Host, RemoteConfig, RunEnvironment
 
 REMOTE_ONLY_HELP_TITLE = "Remote Only"
 
@@ -133,7 +133,7 @@ class TyperRemoteOpts:
 
     def as_typer_callback(self):
         from_cfg_ip_discovery_range = None
-        if self._remote_config is not None and self._remote_config.lan_scan is not None:
+        if self._remote_config is not None and hasattr(self._remote_config, "lan_scan"):
             from_cfg_ip_discovery_range = self._remote_config.lan_scan.ip_discovery_range
 
         def typer_callback(
@@ -200,7 +200,7 @@ class CliRemoteOpts:
         ip_discovery_range: Optional[str] = None,
         ip_address: Optional[str] = None,
         hostname: Optional[str] = None,
-        remote_hosts: Optional[dict[str, RemoteConfig.Host]] = None,
+        remote_hosts: Optional[dict[str, Host]] = None,
         remote_context: RemoteContext = None,
     ) -> None:
 
@@ -217,7 +217,7 @@ class CliRemoteOpts:
     def get_remote_context(self) -> RemoteContext:
         return self.remote_context
 
-    def _to_ansible_hosts(self, hosts: dict[str, RemoteConfig.Host]) -> List[AnsibleHost]:
+    def _to_ansible_hosts(self, hosts: dict[str, Host]) -> List[AnsibleHost]:
         if not hosts:
             return None
         # In case IP address supplied as a CLI argument - flag or Env Var,
