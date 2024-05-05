@@ -37,7 +37,7 @@ class ConfigReader:
             config = self._read_config(path, cls)
             return config
         except Exception as ex:
-            logger.debug(f"Failed reading config file. path {path}, ex: {ex}")
+            print(f"Failed reading config file. path {path}, ex: {ex}")
         return None
 
     read_config_as_json_dict_fn = _read_config_as_json_dict

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from typing import List
-from provisioner.colors import color
+from provisioner.colors import colors
 from provisioner.config.domain.config import ProvisionerConfig
 from provisioner.config.manager.config_manager import ConfigManager
 from provisioner.shared.collaborators import CoreCollaborators
@@ -69,7 +69,7 @@ def list_locally_installed_plugins() -> None:
         if pkg_name_escaped in prov_cfg.plugins_definitions.keys():
             plgn_def = prov_cfg.plugins_definitions.get(pkg_name_escaped, None)
             # TODO: Use Python string template engine in here
-            output += f"Name........: {color.color_text(plgn_def.name, color.LIGHT_CYAN)}\n"
+            output += f"Name........: {colors.color_text(plgn_def.name, colors.LIGHT_CYAN)}\n"
             output += f"Desc........: {plgn_def.description}\n"
             # output += f"Author......: {plgn_def.author}\n"
             output += f"Maintainer..: {plgn_def.maintainer}\n"
@@ -79,6 +79,10 @@ def list_locally_installed_plugins() -> None:
 
 def install_available_plugins() -> None:
     packages_from_pip = _try_get_pip_installed_packages()
+    if packages_from_pip is None or len(packages_from_pip) == 0:
+        collaboratos.printer().print_fn("No plugins found.")
+        return
+    
     packages_from_pip_escaped: List[str] = []
     # Adjust pip plugin name to config plugin name
     for package_name in packages_from_pip:
@@ -110,6 +114,9 @@ def install_available_plugins() -> None:
 
 def uninstall_local_plugins() -> None:
     packages_from_pip = _try_get_pip_installed_packages()
+    if packages_from_pip is None or len(packages_from_pip) == 0:
+        collaboratos.printer().print_fn("No installed plugins found.")
+        return
     packages_from_pip_escaped: List[str] = []
     # Adjust pip plugin name to config plugin name
     for package_name in packages_from_pip:

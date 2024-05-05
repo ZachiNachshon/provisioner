@@ -50,7 +50,11 @@ class IOUtils:
         if self._dry_run:
             return "DRY_RUN_RESPONSE"
 
-        path = dir_path if dir_path else tempfile.mkdtemp(prefix="python-lib-files-")
+        path = dir_path if dir_path else tempfile.mkdtemp(prefix="provisioner-files-")
+        # Create the directory path if it does not exist
+        if path and not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)
+
         path = "{}/{}".format(path, file_name)
         try:
             with open(path, "w+") as opened_file:

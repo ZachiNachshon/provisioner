@@ -3,6 +3,7 @@
 import io
 import json
 from os.path import expandvars
+from typing import Any
 
 import yaml
 from loguru import logger
@@ -65,8 +66,22 @@ class YamlUtil:
 
     def _read_file(self, file_path: str, cls: SerializationBase) -> SerializationBase:
         json_data_str = self._read_file_as_json_dict(file_path=file_path)
-        return cls(json_data_str)
+        try:
+            res = cls(json_data_str)
+            return res
+        except Exception as ex:
+            msg = f"Failed to read file as JSON. path: {file_path}, ex: {str(ex)}"
+            print(msg)
+            logger.error(msg)
+        return None
 
+    def _json_to_yaml(self, json_str: str) -> str:
+        # Convert JSON string to dictionary
+        dict_obj = json.loads(json_str)
+        # Convert dictionary to YAML string
+        return yaml.dump(dict_obj)
+    
     read_file_as_json_dict_fn = _read_file_as_json_dict
     read_file_fn = _read_file
     read_string_fn = _read_string
+    json_to_yaml_fn = _json_to_yaml

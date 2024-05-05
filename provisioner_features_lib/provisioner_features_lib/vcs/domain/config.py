@@ -2,9 +2,7 @@
 
 from provisioner.domain.serialize import SerializationBase
 
-
-class VersionControlConfig(SerializationBase):
-    """
+"""
     Configuration structure -
 
     vcs:
@@ -15,44 +13,49 @@ class VersionControlConfig(SerializationBase):
         git_access_token: SECRET
     """
 
+class GitHub(SerializationBase):
+    organization: str
+    repository: str
+    branch: str
+    git_access_token: str
+
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
 
-    def _try_parse_config(self, dict_obj: dict):
-        if "vcs" in dict_obj:
-            self._parse_github_block(dict_obj["vcs"])
-
-    def merge(self, other: "VersionControlConfig") -> SerializationBase:
-        if other.github:
-            self.github = other.github
+    def merge(self, other: "GitHub") -> SerializationBase:
+        if hasattr(other, "organization") and other.organization is not None:
+            self.organization = other.organization
+        if hasattr(other, "repository") and other.repository is not None:
+            self.repository = other.repository
+        if hasattr(other, "branch") and other.branch is not None:
+            self.branch = other.branch
+        if hasattr(other, "git_access_token") and other.git_access_token is not None:
+            self.git_access_token = other.git_access_token
 
         return self
+    
+    def _try_parse_config(self, dict_obj: dict) -> None:
+        if "organization" in dict_obj:
+            self.organization = dict_obj["organization"]
+        if "repository" in dict_obj:
+            self.repository = dict_obj["repository"]
+        if "branch" in dict_obj:
+            self.branch = dict_obj["branch"]
+        if "git_access_token" in dict_obj:
+            self.git_access_token = dict_obj["git_access_token"]
 
-    def _parse_github_block(self, vcs_block: dict):
-        if "github" in vcs_block:
-            self.github = VersionControlConfig.GitHub()
-            github_block = vcs_block["github"]
-            if "organization" in github_block:
-                self.github.organization = github_block["organization"]
-            if "repository" in github_block:
-                self.github.repository = github_block["repository"]
-            if "branch" in github_block:
-                self.github.branch = github_block["branch"]
-            if "git_access_token" in github_block:
-                self.github.git_access_token = github_block["git_access_token"]
+class VersionControlConfig(SerializationBase):
+    github: GitHub = GitHub({})
 
-    class GitHub:
-        organization: str = None
-        repository: str = None
-        branch: str = None
-        git_access_token: str = None
+    def __init__(self, dict_obj: dict) -> None:
+        super().__init__(dict_obj)
 
-        def __init__(
-            self, organization: str = None, repository: str = None, branch: str = None, git_access_token: str = None
-        ) -> None:
-            self.organization = organization
-            self.repository = repository
-            self.branch = branch
-            self.git_access_token = git_access_token
-
-    github: GitHub = None
+    def merge(self, other: "VersionControlConfig") -> SerializationBase:
+        if hasattr(other, "github") and other.github is not None:
+            self.github.merge(other.github)
+            
+        return self
+    
+    def _try_parse_config(self, dict_obj: dict) -> None:
+        if "github" in dict_obj:
+            self.github = GitHub(dict_obj["github"])

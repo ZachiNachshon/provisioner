@@ -22,26 +22,26 @@ TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1 = "test-ssh-private-key-1"
 TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_2 = "test-ssh-private-key-2"
 TEST_DATA_REMOTE_IP_DISCOVERY_RANGE = "1.1.1.1/32"
 
-TEST_REMOTE_HOSTS_DICT = {
-    TEST_DATA_SSH_HOSTNAME_1: RemoteConfig.Host(
-        name=TEST_DATA_SSH_HOSTNAME_1,
-        address=TEST_DATA_SSH_IP_ADDRESS_1,
-        auth=RemoteConfig.Host.Auth(
-            username=TEST_DATA_REMOTE_NODE_USERNAME_1,
-            # Mutually exclusive with ssh_private_key_file_path
-            password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
-        ),
-    ),
-    TEST_DATA_SSH_HOSTNAME_2: RemoteConfig.Host(
-        name=TEST_DATA_SSH_HOSTNAME_2,
-        address=TEST_DATA_SSH_IP_ADDRESS_2,
-        auth=RemoteConfig.Host.Auth(
-            username=TEST_DATA_REMOTE_NODE_USERNAME_2,
-            # Mutually exclusive with node_password
-            ssh_private_key_file_path=TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_2,
-        ),
-    ),
-}
+# TEST_REMOTE_HOSTS_DICT = {
+#     TEST_DATA_SSH_HOSTNAME_1: {
+#         'name': TEST_DATA_SSH_HOSTNAME_1,
+#         'address': TEST_DATA_SSH_IP_ADDRESS_1,
+#         'auth': {
+#             'username': TEST_DATA_REMOTE_NODE_USERNAME_1,
+#             # Mutually exclusive with ssh_private_key_file_path
+#             'password': TEST_DATA_REMOTE_NODE_PASSWORD_1,
+#         },
+#     },
+#     TEST_DATA_SSH_HOSTNAME_2: {
+#         'name': TEST_DATA_SSH_HOSTNAME_2,
+#         'address': TEST_DATA_SSH_IP_ADDRESS_2,
+#         'auth': {
+#             'username': TEST_DATA_REMOTE_NODE_USERNAME_2,
+#             # Mutually exclusive with node_password
+#             'ssh_private_key_file_path': TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_2,
+#         },
+#     },
+# }
 
 TEST_REMOTE_CFG_YAML_TEXT = f"""
 remote:
@@ -67,7 +67,7 @@ class TestDataRemoteOpts:
     @staticmethod
     def create_fake_remote_cfg() -> RemoteConfig:
         cfg_dict = yaml.safe_load(TEST_REMOTE_CFG_YAML_TEXT)
-        return RemoteConfig(cfg_dict)
+        return RemoteConfig(cfg_dict["remote"])
 
     @staticmethod
     def create_fake_remote_opts() -> TyperRemoteOpts:
@@ -83,6 +83,6 @@ class TestDataRemoteOpts:
             node_password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
             ssh_private_key_file_path=TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
             ip_discovery_range=TEST_DATA_REMOTE_IP_DISCOVERY_RANGE,
-            remote_hosts=TEST_REMOTE_HOSTS_DICT,
+            remote_hosts=TestDataRemoteOpts.create_fake_remote_cfg().to_hosts_dict(),
             remote_context=remote_context,
         )

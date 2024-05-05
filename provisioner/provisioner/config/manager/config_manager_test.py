@@ -19,7 +19,7 @@ ARG_CONFIG_USER_PATH = "/path/to/user/config"
 ARG_PLUGIN_CONFIG_INTERNAL_PATH = "/path/to/internal/plugin/config"
 ARG_PLUGIN_CONFIG_USER_PATH = "/path/to/user/plugin/config"
 
-TEST_PLUGIN_NAME = "test-plugin"
+TEST_PLUGIN_NAME = "test_plugin"
 
 
 # To run as a single test target:

@@ -6,8 +6,8 @@ from loguru import logger
 from rich.console import Console
 from rich.table import Table
 
-from provisioner.colors import color
-from provisioner.colors.color import *
+from provisioner.colors import colors
+from provisioner.colors.colors import *
 from provisioner.infra.context import Context
 
 FIXED_CONSOLE_WIDTH = 100
@@ -33,7 +33,7 @@ class Printer:
 
     def _print(self, message: str) -> "Printer":
         if self._dry_run and message:
-            message = f"{color.BOLD}{color.MAGENTA}[DRY-RUN]{color.NONE} {message}"
+            message = f"{colors.BOLD}{colors.MAGENTA}[DRY-RUN]{colors.NONE} {message}"
 
         print(message)
         return self
