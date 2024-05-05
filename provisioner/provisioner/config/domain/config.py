@@ -17,11 +17,11 @@ provisioner:
 """    
 
 class PluginDefinition(SerializationBase):
-    name: str = ""
-    description: str = ""
-    author: str = ""
-    maintainer: str = ""
-    package_name: str = ""
+    name: str
+    description: str
+    author: str
+    maintainer: str
+    package_name: str
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)    
@@ -53,8 +53,6 @@ class ProvisionerConfig(SerializationBase):
         super().__init__(dict_obj)
 
     def _try_parse_config(self, dict_obj: dict):
-        if not dict_obj:
-            return 
         if "plugins_definitions" in dict_obj:
             definitions = dict_obj["plugins_definitions"]
             for definition in definitions:

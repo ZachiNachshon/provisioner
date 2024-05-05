@@ -14,22 +14,22 @@ from provisioner.domain.serialize import SerializationBase
     """
 
 class GitHub(SerializationBase):
-    organization: str = ""
-    repository: str = ""
-    branch: str = ""
-    git_access_token: str = ""
+    organization: str
+    repository: str
+    branch: str
+    git_access_token: str
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
 
     def merge(self, other: "GitHub") -> SerializationBase:
-        if hasattr(other, "organization"):
+        if hasattr(other, "organization") and other.organization is not None:
             self.organization = other.organization
-        if hasattr(other, "repository"):
+        if hasattr(other, "repository") and other.repository is not None:
             self.repository = other.repository
-        if hasattr(other, "branch"):
+        if hasattr(other, "branch") and other.branch is not None:
             self.branch = other.branch
-        if hasattr(other, "git_access_token"):
+        if hasattr(other, "git_access_token") and other.git_access_token is not None:
             self.git_access_token = other.git_access_token
 
         return self
@@ -51,7 +51,7 @@ class VersionControlConfig(SerializationBase):
         super().__init__(dict_obj)
 
     def merge(self, other: "VersionControlConfig") -> SerializationBase:
-        if hasattr(other, "github"):
+        if hasattr(other, "github") and other.github is not None:
             self.github.merge(other.github)
             
         return self

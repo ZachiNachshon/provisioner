@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 
 from enum import Enum
-from typing import List, Optional
+from typing import List
+
+
+# TODO:
+# Tests are failing when not using default for class variables, need to investigate why
+# When using defaults, all tests pass - need to check the dot-notations and use hasattr()
 
 from loguru import logger
 from provisioner.domain.serialize import SerializationBase
@@ -52,7 +57,7 @@ class LanScan(SerializationBase):
         super().__init__(dict_obj)
 
     def merge(self, other: "LanScan") -> SerializationBase:
-        if hasattr(other, "ip_discovery_range"):
+        if hasattr(other, "ip_discovery_range") and len(other.ip_discovery_range) > 0:
             self.ip_discovery_range = other.ip_discovery_range
         return self
 
@@ -69,11 +74,11 @@ class Auth(SerializationBase):
         super().__init__(dict_obj)
 
     def merge(self, other: "Auth") -> SerializationBase:
-        if hasattr(other, "username"):
+        if hasattr(other, "username") and len(other.username) > 0:
             self.username = other.username
-        if hasattr(other, "password"):
+        if hasattr(other, "password") and len(other.password) > 0:
             self.password = other.password
-        if hasattr(other, "ssh_private_key_file_path"):
+        if hasattr(other, "ssh_private_key_file_path") and len(other.ssh_private_key_file_path) > 0:
             self.ssh_private_key_file_path = other.ssh_private_key_file_path
         return self
     
@@ -116,14 +121,16 @@ class RemoteConfig(SerializationBase):
         # Hosts config are all or nothing, if partial config is provided, user overrides won't apply
         if hasattr(other, "hosts"):
             self.hosts = []
-            for host in other.hosts:
-                if not hasattr(other, "name") and not hasattr(other, "address") and not hasattr(other, "auth"):
-                    logger.error(f"Partial host config identified, missing a name, address or auth, please check YAML file !")
+            for other_host in other.hosts:
+                if not hasattr(other_host, "name") and not hasattr(other_host, "address") and not hasattr(other_host, "auth"):
+                    msg = f"Partial host config identified, missing a name, address or auth, please check YAML file !"
+                    print(msg)
+                    logger.error(msg)
                 else:
-                    new_host = Host()
-                    new_host.name = host.name
-                    new_host.address = host.address
-                    new_host.auth = host.auth if host.auth is not None else Auth()
+                    new_host = Host({})
+                    new_host.name = other_host.name
+                    new_host.address = other_host.address
+                    new_host.auth = other_host.auth if other_host.auth is not None else Auth()
                     self.hosts.append(new_host)
 
         if hasattr(other, "lan_scan"):
@@ -138,7 +145,9 @@ class RemoteConfig(SerializationBase):
             self.hosts = []
             for host_block in hosts_block:
                 if "name" not in host_block or "address" not in host_block or "auth" not in host_block:
-                    logger.error(f"Partial host config identified, missing a name, address or auth, please check YAML file !")
+                    msg = f"Partial host config identified, missing a name, address or auth, please check YAML file !"
+                    print(msg)
+                    logger.error(msg)
                 else:
                     new_host = Host(host_block)
                     self.hosts.append(new_host)

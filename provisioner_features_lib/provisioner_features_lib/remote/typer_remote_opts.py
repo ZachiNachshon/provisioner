@@ -133,7 +133,7 @@ class TyperRemoteOpts:
 
     def as_typer_callback(self):
         from_cfg_ip_discovery_range = None
-        if self._remote_config is not None and hasattr(self._remote_config, "lan_scan"):
+        if self._remote_config is not None and hasattr(self._remote_config, "lan_scan") and hasattr(self._remote_config.lan_scan, "ip_discovery_range"):
             from_cfg_ip_discovery_range = self._remote_config.lan_scan.ip_discovery_range
 
         def typer_callback(
