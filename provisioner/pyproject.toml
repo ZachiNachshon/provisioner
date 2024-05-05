@@ -95,7 +95,7 @@ ansible-runner = "^2.3.2"
 # tenacity = "^8.0.1"    - General-purpose retrying library (https://github.com/jd/tenacity)
 
 [tool.poetry.dev-dependencies]
-black = "^24.3.0"
+black = "^24.4.2"
 pytest = "^8.1.1"
 mypy = "^1.9"
 coverage = "^7.4.4"
