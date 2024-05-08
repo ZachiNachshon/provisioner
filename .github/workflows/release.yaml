@@ -9,7 +9,7 @@ env:
   
 jobs:
   release_to_github:
-    name: Publish provisioner to PyPi
+    name: Create a GitHub release
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -30,7 +30,7 @@ jobs:
 
       # Tests should be run when the PR created after publish to PyPi was merged
 
-      - name: Create a GitHub releaes
+      - name: Create a GitHub release
         uses: ./.github/actions/release
         with:
           publishable: provisioner
