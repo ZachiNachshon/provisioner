@@ -308,35 +308,35 @@ delete_pip_package_from_local_pypi() {
 }
 
 delete_pip_package_from_remote_pypi() {
-  log_fatal "Deleting a remote pip pacakge release tag from PyPi is not yet supported"
+  log_fatal "Deleting a remote pip package release tag from PyPi is not yet supported"
 }
 
 delete_release_from_github() {
-  local tag="no-tag"
-  if is_delete_tag_exist; then
-    tag=$(get_delete_tag)
-  else
-    tag=$(prompt_user_input "Insert tag to delete")
-  fi
-  if [[ -n "${tag}" ]]; then
-    if github_is_release_tag_exist "${tag}"; then
-      log_info "GitHub release tag was found. tag: ${tag}"
-      new_line
-      if github_prompt_for_approval_before_delete "${tag}"; then
-        github_delete_release_tag "${tag}"
-      else
-        log_info "No GitHub release tag was deleted."
-      fi
-    else
-      log_warning "No GitHub release tag was found. tag: ${tag}"
-    fi
-  fi
+  log_fatal "Deleting a remote package release tag from GitHub is not yet supported"
+  # local tag="no-tag"
+  # if is_delete_tag_exist; then
+  #   tag=$(get_delete_tag)
+  # else
+  #   tag=$(prompt_user_input "Insert tag to delete")
+  # fi
+  # if [[ -n "${tag}" ]]; then
+  #   if github_is_release_tag_exist "${tag}"; then
+  #     log_info "GitHub release tag was found. tag: ${tag}"
+  #     new_line
+  #     if github_prompt_for_approval_before_delete "${tag}"; then
+  #       github_delete_release_tag "${tag}"
+  #     else
+  #       log_info "No GitHub release tag was deleted."
+  #     fi
+  #   else
+  #     log_warning "No GitHub release tag was found. tag: ${tag}"
+  #   fi
+  # fi
 }
 
 install_pip_package() {
   log_info "Installing pip package..."
-  # cmd_run "python3 -m pip install --upgrade --force-reinstall --no-deps ${BUILD_OUTPUT_FILE_PATH} --no-python-version-warning --disable-pip-version-check"
-  cmd_run "python3 -m pip install --upgrade ${BUILD_OUTPUT_FILE_PATH} --no-python-version-warning --disable-pip-version-check"
+  cmd_run "python3 -m pip install ${BUILD_OUTPUT_FILE_PATH} --no-python-version-warning --disable-pip-version-check"
 }
 
 maybe_force_install_deps() {
@@ -448,10 +448,20 @@ publish_asset_to_github_release() {
 }
 
 publish_pip_package_to_github() {
-  local tag=$(get_release_tag)
+  local tag="${POETRY_PACKAGE_VERSION}"
   log_info "Publishing pip package as a GitHub release (${tag})..."
   new_line
-  publish_asset_to_github_release "${tag}" "${BUILD_OUTPUT_FILE_PATH}"
+
+  local output_filename=$(basename "${BUILD_OUTPUT_FILE_PATH}")
+  local output_folder=$(dirname "${BUILD_OUTPUT_FILE_PATH}")
+  local cwd=$(pwd)
+  local release_filename="${POETRY_PACKAGE_NAME}-${tag}.tar.gz"
+
+  log_info "Creating a tarball archive from the pip package. path: ${output_folder}/${release_filename}"
+  cmd_run "cd ${output_folder}"
+  cmd_run "tar --no-xattrs -zcf ${release_filename} ${output_filename}"
+  cmd_run "cd ${cwd}"
+  publish_asset_to_github_release "${tag}" "${output_folder}/${release_filename}"
 }
 
 publish_to_pypi() {
@@ -489,6 +499,10 @@ poetry_resolve_project_name_version() {
   local name_ver_array=(${poetry_project_info})
   POETRY_PACKAGE_NAME=$(printf ${name_ver_array[0]})
   POETRY_PACKAGE_VERSION=$(printf ${name_ver_array[1]})
+
+  if [[ -z "${POETRY_PACKAGE_NAME}" || -z "${POETRY_PACKAGE_VERSION}" ]]; then
+    log_fatal "Poetry project name or version could not be resolved"
+  fi
   # fi
 }
 
@@ -690,11 +704,11 @@ check_publish_release_type_missing_tokens() {
   fi
 }
 
-check_publish_release_type_missing_tag() {
-  if is_publish && is_github_release_type && [[ -z "${CLI_VALUE_RELEASE_TAG}" ]]; then
-    log_fatal "Publish command is missing a GitHub release tag. flag: --release-tag"
-  fi
-}
+# check_publish_release_type_missing_tag() {
+#   if is_publish && is_github_release_type && [[ -z "${CLI_VALUE_RELEASE_TAG}" ]]; then
+#     log_fatal "Publish command is missing a GitHub release tag. flag: --release-tag"
+#   fi
+# }
 
 check_delete_missing_tag() {
   if is_delete; then
@@ -735,7 +749,7 @@ verify_program_arguments() {
     log_fatal "Command argument 'delete' is missing a mandatory flag value or has an invalid value. flag: --origin, options: pypi-local/pypi-remote/github"
   fi
   check_publish_release_type_missing_tokens
-  check_publish_release_type_missing_tag
+  # check_publish_release_type_missing_tag
   # check_delete_missing_tag
   check_no_dev_mode_for_publish
   # check_unsupported_actions

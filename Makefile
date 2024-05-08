@@ -35,11 +35,16 @@ set-dev-deps-all: ## Update dev dependencies and their config based on provision
 	done
 
 .PHONY: update-externals-all
-update-externals-all: ## Update external source dependents
+update-externals-all: ## Update external source dependencies
 	@echo "\n========= ROOT FOLDER ==============\n"
 	@git-deps-syncer sync shell_scripts_lib -y
 	@echo "\n========= PROJECT: provisioner ==============\n"
 	@cd provisioner; make update-externals; cd ..
+
+.PHONY: update-externals-local
+update-externals-local: ## Update local external source dependencies
+	@echo "\n========= ROOT FOLDER ==============\n"
+	@git-deps-syncer sync shell_scripts_lib --save-dev -y
 
 .PHONY: deps-all
 deps-all: ## Update and install pyproject.toml dependencies on all virtual environments

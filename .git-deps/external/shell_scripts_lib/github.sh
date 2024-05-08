@@ -24,7 +24,14 @@ github_prompt_for_approval_before_delete() {
 github_is_release_tag_exist() {
   local tag=$1
   log_info "Checking if release tag exist. tag: ${tag}"
-  cmd_run "gh release view ${tag} >/dev/null 2>&1"
+  if is_dry_run; then
+    return 1 # Tag does not exist
+  fi
+  if gh release view "${tag}" >/dev/null 2>&1; then
+    return 0 # Tag exists
+  else
+    return 1 # Tag does not exist
+  fi
 }
 
 github_is_draft_release_tag() {
