@@ -1,15 +1,14 @@
-name: Publish Provisioner to PyPi (auto version increment)
+name: Create a GitHub release
 
 on:
   workflow_dispatch:
 
 env:
-  PYPI_API_TOKEN: ${{ secrets.PROVISIONER_PYPI_API_TOKEN }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   POETRY_VERSION: "1.4.1"
   
 jobs:
-  publish_to_pypi:
+  release_to_github:
     name: Publish provisioner to PyPi
     runs-on: ubuntu-latest
     strategy:
@@ -29,16 +28,11 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python }}
           POETRY_VERSION: ${{ env.POETRY_VERSION }}
 
-      - name: Run Tests
-        uses: ./.github/actions/tests
-        with:
-          use_provisioner_from: source
-          module_to_test: all
+      # Tests should be run when the PR created after publish to PyPi was merged
 
-      - name: Publish to PyPi & GitHub
-        uses: ./.github/actions/publish
+      - name: Create a GitHub releaes
+        uses: ./.github/actions/release
         with:
           publishable: provisioner
           is_plugin: false
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-          PYPI_API_TOKEN: ${{ env.PYPI_API_TOKEN }}
