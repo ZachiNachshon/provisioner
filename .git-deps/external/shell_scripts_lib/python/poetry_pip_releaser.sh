@@ -450,6 +450,7 @@ publish_asset_to_github_release() {
 publish_pip_package_to_github() {
   local tag="${POETRY_PACKAGE_VERSION}"
   local tag_ver="v${tag}"
+  local release_filename="${POETRY_PACKAGE_NAME}-${tag_ver}.tar.gz"
 
   # Allow custom tagged releases e.g. hello-v1.0.0 or v1.0.0 for default without a prefix
   if is_release_tag_prefix_exist; then
@@ -463,7 +464,6 @@ publish_pip_package_to_github() {
   local output_filename=$(basename "${BUILD_OUTPUT_FILE_PATH}")
   local output_folder=$(dirname "${BUILD_OUTPUT_FILE_PATH}")
   local cwd=$(pwd)
-  local release_filename="${POETRY_PACKAGE_NAME}-${tag_ver}.tar.gz"
 
   log_info "Creating a tarball archive from the pip package. path: ${output_folder}/${release_filename}"
   cmd_run "cd ${output_folder}"
