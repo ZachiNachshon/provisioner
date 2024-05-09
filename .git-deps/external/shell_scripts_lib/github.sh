@@ -42,8 +42,12 @@ github_is_draft_release_tag() {
 
 github_create_release_tag() {
   local tag=$1
+  local title=$2
+  if [[ -z "${title}" ]]; then
+    title="${tag}"
+  fi
   log_info "Creating a new GitHub release. tag: ${tag}"
-  cmd_run "gh release create ${tag}"
+  cmd_run "gh release create ${tag} --title ${title}"
 }
 
 github_upload_release_asset() {
