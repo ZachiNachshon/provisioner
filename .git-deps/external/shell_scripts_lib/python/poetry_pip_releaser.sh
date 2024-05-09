@@ -449,19 +449,21 @@ publish_asset_to_github_release() {
 
 publish_pip_package_to_github() {
   local tag="${POETRY_PACKAGE_VERSION}"
-  log_info "Publishing pip package as a GitHub release (${tag})..."
+  local tag_ver="v${tag}"
+
+  log_info "Publishing pip package as a GitHub release (${tag_ver})..."
   new_line
 
   local output_filename=$(basename "${BUILD_OUTPUT_FILE_PATH}")
   local output_folder=$(dirname "${BUILD_OUTPUT_FILE_PATH}")
   local cwd=$(pwd)
-  local release_filename="${POETRY_PACKAGE_NAME}-${tag}.tar.gz"
+  local release_filename="${POETRY_PACKAGE_NAME}-${tag_ver}.tar.gz"
 
   log_info "Creating a tarball archive from the pip package. path: ${output_folder}/${release_filename}"
   cmd_run "cd ${output_folder}"
   cmd_run "tar --no-xattrs -zcf ${release_filename} ${output_filename}"
   cmd_run "cd ${cwd}"
-  publish_asset_to_github_release "${tag}" "${output_folder}/${release_filename}"
+  publish_asset_to_github_release "${tag_ver}" "${output_folder}/${release_filename}"
 }
 
 publish_to_pypi() {
