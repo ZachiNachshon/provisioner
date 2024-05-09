@@ -23,7 +23,7 @@ CLI_FLAG_IS_MULTI_PROJECT=""   # true/false if missing
 CLI_FLAG_FORCE_INSTALL_DEPS="" # true/false if missing
 
 CLI_FLAG_RELEASE_TYPE="" # options: pypi/github
-CLI_FLAG_RELEASE_TAG=""  # true/false if missing
+CLI_FLAG_RELEASE_TAG_PREFIX=""  # true/false if missing
 
 CLI_FLAG_DELETE_ORIGIN=""
 CLI_VALUE_DELETE_ORIGIN="" # options: pypi-local/pypi-remote/github
@@ -33,7 +33,7 @@ CLI_FLAG_DEV_MODE="" # true/false if missing
 
 CLI_VALUE_BUILD_TYPE=""
 CLI_VALUE_RELEASE_TYPE=""
-CLI_VALUE_RELEASE_TAG=""
+CLI_VALUE_RELEASE_TAG_PREFIX=""
 CLI_VALUE_DELETE_TAG=""
 
 POETRY_PACKAGE_NAME=""
@@ -83,12 +83,12 @@ get_release_type() {
   echo "${CLI_VALUE_RELEASE_TYPE}"
 }
 
-is_release_tag_exist() {
-  [[ -n "${CLI_FLAG_RELEASE_TAG}" ]]
+is_release_tag_prefix_exist() {
+  [[ -n "${CLI_FLAG_RELEASE_TAG_PREFIX}" ]]
 }
 
-get_release_tag() {
-  echo "${CLI_VALUE_RELEASE_TAG}"
+get_release_tag_prefix() {
+  echo "${CLI_VALUE_RELEASE_TAG_PREFIX}"
 }
 
 is_delete() {
@@ -320,7 +320,7 @@ delete_release_from_github() {
   #   tag=$(prompt_user_input "Insert tag to delete")
   # fi
   # if [[ -n "${tag}" ]]; then
-  #   if github_is_release_tag_exist "${tag}"; then
+  #   if github_is_release_tag_prefix_exist "${tag}"; then
   #     log_info "GitHub release tag was found. tag: ${tag}"
   #     new_line
   #     if github_prompt_for_approval_before_delete "${tag}"; then
@@ -434,7 +434,7 @@ publish_asset_to_github_release() {
 
   if github_prompt_for_approval_before_release "${tag}"; then
     new_line
-    if github_is_release_tag_exist "${tag}"; then
+    if github_is_release_tag_prefix_exist "${tag}"; then
       log_info "GitHub release tag was found. tag: ${tag}"
       github_upload_release_asset "${tag}" "${filepath}"
     else
@@ -450,6 +450,12 @@ publish_asset_to_github_release() {
 publish_pip_package_to_github() {
   local tag="${POETRY_PACKAGE_VERSION}"
   local tag_ver="v${tag}"
+
+  # Allow custom tagged releases e.g. hello-v1.0.0 or v1.0.0 for default without a prefix
+  if is_release_tag_prefix_exist; then
+    prefix=$(get_release_tag_prefix)
+    tag_ver="${prefix}-${tag_ver}"
+  fi
 
   log_info "Publishing pip package as a GitHub release (${tag_ver})..."
   new_line
@@ -554,34 +560,34 @@ print_help_menu_and_exit() {
   echo -e "  "${file_name}" [command] [option] [flag]"
   echo -e " "
   echo -e "${COLOR_WHITE}ARGUMENTS${COLOR_NONE}"
-  echo -e "  ${COLOR_LIGHT_CYAN}install${COLOR_NONE}                   Build and Install a local pip package"
-  echo -e "  ${COLOR_LIGHT_CYAN}publish${COLOR_NONE}                   Build and publish/release a pip package (always installes from local pip)"
-  echo -e "  ${COLOR_LIGHT_CYAN}delete${COLOR_NONE}                    Delete pip package from a local machine or from a remote release"
-  echo -e " "
-  echo -e "${COLOR_WHITE}BUILD FLAGS${COLOR_NONE}"
-  echo -e "  ${COLOR_LIGHT_CYAN}--build-type${COLOR_NONE} <option>     Type of the built pip package [${COLOR_GREEN}options: sdist/wheel${COLOR_NONE}]"
-  echo -e "  ${COLOR_LIGHT_CYAN}--multi-project${COLOR_NONE}           Build a multi-project with bundled dependencies (required Poetry plugin: ${COLOR_GREEN}build-project${COLOR_NONE})"
-  echo -e "  ${COLOR_LIGHT_CYAN}--force-install-deps${COLOR_NONE}      Force install all dependencies to local pip"
+  echo -e "  ${COLOR_LIGHT_CYAN}install${COLOR_NONE}                       Build and Install a local pip package"
+  echo -e "  ${COLOR_LIGHT_CYAN}publish${COLOR_NONE}                       Build and publish/release a pip package (always installes from local pip)"
+  echo -e "  ${COLOR_LIGHT_CYAN}delete${COLOR_NONE}                        Delete pip package from a local machine or from a remote release"
+  echo -e " "    
+  echo -e "${COLOR_WHITE}BUILD FLAGS${COLOR_NONE}"    
+  echo -e "  ${COLOR_LIGHT_CYAN}--build-type${COLOR_NONE} <option>         Type of the built pip package [${COLOR_GREEN}options: sdist/wheel${COLOR_NONE}]"
+  echo -e "  ${COLOR_LIGHT_CYAN}--multi-project${COLOR_NONE}               Build a multi-project with bundled dependencies (required Poetry plugin: ${COLOR_GREEN}build-project${COLOR_NONE})"
+  echo -e "  ${COLOR_LIGHT_CYAN}--force-install-deps${COLOR_NONE}          Force install all dependencies to local pip"
   echo -e " "
   echo -e "${COLOR_WHITE}PUBLISH FLAGS${COLOR_NONE}"
-  echo -e "  ${COLOR_LIGHT_CYAN}--release-type${COLOR_NONE} <option>   Publish pkg destination [${COLOR_GREEN}options: pypi/github${COLOR_NONE}]"
-  echo -e "  ${COLOR_LIGHT_CYAN}--release-tag${COLOR_NONE} <value>     Tag for GitHub release only"
+  echo -e "  ${COLOR_LIGHT_CYAN}--release-type${COLOR_NONE} <option>       Publish pkg destination [${COLOR_GREEN}options: pypi/github${COLOR_NONE}]"
+  echo -e "  ${COLOR_LIGHT_CYAN}--release-tag-prefix${COLOR_NONE} <value>  (GitHub Only) Prefix used for the GitHub release tag (${COLOR_GREEN}example: hello-v1.0.0${COLOR_NONE})"
   echo -e " "
   echo -e "${COLOR_WHITE}DELETE FLAGS${COLOR_NONE}"
-  echo -e "  ${COLOR_LIGHT_CYAN}--origin${COLOR_NONE} <option>         Origin of the pip package to delete from [${COLOR_GREEN}options: pypi-local/pypi-remote/github${COLOR_NONE}]"
-  echo -e "  ${COLOR_LIGHT_CYAN}--delete-tag${COLOR_NONE} <value>      Remote pip package tag to delete (pypi-remote/github only)"
-  echo -e " "
-  echo -e "${COLOR_WHITE}GENERAL FLAGS${COLOR_NONE}"
-  echo -e "  ${COLOR_LIGHT_CYAN}--dev-mode${COLOR_NONE}                Install/delete actions refer to a locally bundled Python package without pip (for development)"
-  echo -e "  ${COLOR_LIGHT_CYAN}-y${COLOR_NONE} (--auto-prompt)        Do not prompt for approval and accept everything"
-  echo -e "  ${COLOR_LIGHT_CYAN}-d${COLOR_NONE} (--dry-run)            Run all commands in dry-run mode without file system changes"
-  echo -e "  ${COLOR_LIGHT_CYAN}-v${COLOR_NONE} (--verbose)            Output debug logs for commands executions"
-  echo -e "  ${COLOR_LIGHT_CYAN}-s${COLOR_NONE} (--silent)             Do not output logs for commands executions"
-  echo -e "  ${COLOR_LIGHT_CYAN}-h${COLOR_NONE} (--help)               Show available actions and their description"
+  echo -e "  ${COLOR_LIGHT_CYAN}--origin${COLOR_NONE} <option>             Origin of the pip package to delete from [${COLOR_GREEN}options: pypi-local/pypi-remote/github${COLOR_NONE}]"
+  echo -e "  ${COLOR_LIGHT_CYAN}--delete-tag${COLOR_NONE} <value>          Remote pip package tag to delete (pypi-remote/github only)"
+  echo -e " "    
+  echo -e "${COLOR_WHITE}GENERAL FLAGS${COLOR_NONE}"    
+  echo -e "  ${COLOR_LIGHT_CYAN}--dev-mode${COLOR_NONE}                    Install/delete actions refer to a locally bundled Python package without pip (for development)"
+  echo -e "  ${COLOR_LIGHT_CYAN}-y${COLOR_NONE} (--auto-prompt)            Do not prompt for approval and accept everything"
+  echo -e "  ${COLOR_LIGHT_CYAN}-d${COLOR_NONE} (--dry-run)                Run all commands in dry-run mode without file system changes"
+  echo -e "  ${COLOR_LIGHT_CYAN}-v${COLOR_NONE} (--verbose)                Output debug logs for commands executions"
+  echo -e "  ${COLOR_LIGHT_CYAN}-s${COLOR_NONE} (--silent)                 Do not output logs for commands executions"
+  echo -e "  ${COLOR_LIGHT_CYAN}-h${COLOR_NONE} (--help)                   Show available actions and their description"
   echo -e " "
   echo -e "${COLOR_WHITE}GLOBALS${COLOR_NONE}"
-  echo -e "  ${COLOR_LIGHT_CYAN}GITHUB_TOKEN${COLOR_NONE}              Valid GitHub token with write access for publishing releases"
-  echo -e "  ${COLOR_LIGHT_CYAN}PYPI_API_TOKEN${COLOR_NONE}            Valid PyPI API token write access for publishing releases"
+  echo -e "  ${COLOR_LIGHT_CYAN}GITHUB_TOKEN${COLOR_NONE}                  Valid GitHub token with write access for publishing releases"
+  echo -e "  ${COLOR_LIGHT_CYAN}PYPI_API_TOKEN${COLOR_NONE}                Valid PyPI API token write access for publishing releases"
   echo -e " "
   exit 0
 }
@@ -625,10 +631,10 @@ parse_program_arguments() {
         CLI_VALUE_RELEASE_TYPE=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
         shift
         ;;
-      --release-tag)
-        CLI_FLAG_RELEASE_TAG="release-tag"
+      --release-tag-prefix)
+        CLI_FLAG_RELEASE_TAG_PREFIX="release-tag-prefix"
         shift
-        CLI_VALUE_RELEASE_TAG=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
+        CLI_VALUE_RELEASE_TAG_PREFIX=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
         shift
         ;;
       --origin)
@@ -707,7 +713,7 @@ check_publish_release_type_missing_tokens() {
 }
 
 # check_publish_release_type_missing_tag() {
-#   if is_publish && is_github_release_type && [[ -z "${CLI_VALUE_RELEASE_TAG}" ]]; then
+#   if is_publish && is_github_release_type && [[ -z "${CLI_VALUE_RELEASE_TAG_PREFIX}" ]]; then
 #     log_fatal "Publish command is missing a GitHub release tag. flag: --release-tag"
 #   fi
 # }
