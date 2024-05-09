@@ -99,7 +99,7 @@ runs:
         git commit -m "Bump ${publishable} released version to ${ver}"
         git checkout -b ${branch_name}
         git push --set-upstream origin ${branch_name}
-        gh pr create --title "Released ${publishable} version ${ver}" \
+        gh pr create --title "[skip ci] Released ${publishable} version ${ver}" \
             --body "Bump ${publishable} released version to ${ver}" \
             --base master --head ${branch_name} \
             --label "auto pr"
