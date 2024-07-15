@@ -62,6 +62,7 @@ params:
   domain_base:          "https://zachinachshon.com"
   repo:                 "https://github.com/ZachiNachshon/provisioner"
   twitter:              "zachinachshon"
+  linkedin:             "https://linkedin.com/in/zachi-nachshon-b4414718"
   slack:                "https://SLACK_URL"
   blog:                 "https://zachi-nachshon.medium.com/"
 
