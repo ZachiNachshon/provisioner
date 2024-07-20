@@ -54,7 +54,7 @@ For additional installation methods read here.
 
 **Maintainers / Contributors:**
 
-- [Contribute guides](https://add.contribute.guide.com)
+- [Contribute guides](https://zachinachshon.com/provisioner/docs/latest/getting-started/contribute/)
 
 <br>
 
@@ -76,7 +76,7 @@ For additional installation methods read here.
 
 <h3 id="documentation">📖 Documentation</h3>
 
-Please refer to the [documentation](http://to.be.continued.com) for detailed explanation on how to configure and use `provisioner`.
+Please refer to the [documentation](https://zachinachshon.com/provisioner/) for detailed explanation on how to configure and use `provisioner`.
 
 
 <br>
