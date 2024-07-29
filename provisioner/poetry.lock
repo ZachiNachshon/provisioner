@@ -918,13 +918,13 @@ test = ["coverage", "docutils", "testscenarios (>=0.4)", "testtools"]
 
 [[package]]
 name = "python-hosts"
-version = "1.0.6"
+version = "1.0.7"
 description = "A hosts file manager library written in python"
 optional = false
 python-versions = "*"
 files = [
-    {file = "python-hosts-1.0.6.tar.gz", hash = "sha256:2df59f07327753202b707c6b2140ec21af2922bd569148a47fa17abfe2152c6e"},
-    {file = "python_hosts-1.0.6-py3-none-any.whl", hash = "sha256:f902433664cad0f1bc50ef09be7906ac2a06df40945d0515c3e3f4ef39578762"},
+    {file = "python_hosts-1.0.7-py3-none-any.whl", hash = "sha256:7fb9c42e2f75d6e2c2ef7e11ffd7aa6a7d59a1fb54bcc5d0f0bba021aa8d5175"},
+    {file = "python_hosts-1.0.7.tar.gz", hash = "sha256:4c56991e22f6bffc28096833de787f92350e85b7cdd6086706725c55c4f04ab9"},
 ]
 
 [[package]]
@@ -1415,4 +1415,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "e22756a702cac607b5ab4fa5e6a5d32eb0b711be1a65bbbf5333f19d05903831"
+content-hash = "8fe688ead1d06231fbc45f204c93a902130cd2521392fe26cc5d2fd80e64f5f2"
