@@ -2,9 +2,9 @@
 
 import json
 from abc import abstractmethod
-from typing import Optional
 
 from loguru import logger
+
 from provisioner.errors.cli_errors import FailedToSerializeConfiguration
 
 

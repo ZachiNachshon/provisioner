@@ -19,5 +19,6 @@ ENDC = "\033[0m"
 BOLD = "\033[1m"
 UNDERLINE = "\033[4m"
 
+
 def color_text(text: str, color: str) -> str:
-	return f"{color}{text}{NONE}"
+    return f"{color}{text}{NONE}"

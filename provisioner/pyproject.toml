@@ -50,8 +50,8 @@ line-length = 120
 [tool.ruff]
 exclude = [".venv", "external", ".git-deps"]
 line-length = 120
-ignore = [ "E501", "E402", "F403", "F405" ]
-select = [
+lint.ignore = [ "E501", "E402", "F403", "F405" ]
+lint.select = [
     # Pyflakes
     "F",
     # Pycodestyle
@@ -96,9 +96,9 @@ ansible-runner = "^2.3.2"
 
 [tool.poetry.dev-dependencies]
 
-black = "^24.4.2"
+black = "^24.10.0"
 pytest = "^8.3.2"
-mypy = "^1.11"
+mypy = "^1.13"
 coverage = "^7.6.0"
 diagrams = "^0.23.4"
 ruff = "^0.7.1"
