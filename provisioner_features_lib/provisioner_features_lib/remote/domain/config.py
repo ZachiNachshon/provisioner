@@ -3,11 +3,9 @@
 from enum import Enum
 from typing import List
 
-
 # TODO:
 # Tests are failing when not using default for class variables, need to investigate why
 # When using defaults, all tests pass - need to check the dot-notations and use hasattr()
-
 from loguru import logger
 from provisioner.domain.serialize import SerializationBase
 
@@ -37,6 +35,7 @@ from provisioner.domain.serialize import SerializationBase
             ip_discovery_range: 192.168.1.1/24
     """
 
+
 class RunEnvironment(str, Enum):
     Local = "Local"
     Remote = "Remote"
@@ -49,6 +48,7 @@ class RunEnvironment(str, Enum):
             return RunEnvironment.Remote
         else:
             raise NotImplementedError(f"RunEnvironment enum does not support label '{label}'")
+
 
 class LanScan(SerializationBase):
     ip_discovery_range: str = ""
@@ -64,7 +64,8 @@ class LanScan(SerializationBase):
     def _try_parse_config(self, dict_obj: dict) -> None:
         if "ip_discovery_range" in dict_obj:
             self.ip_discovery_range = dict_obj["ip_discovery_range"]
-    
+
+
 class Auth(SerializationBase):
     username: str = ""
     password: str = ""
@@ -81,7 +82,7 @@ class Auth(SerializationBase):
         if hasattr(other, "ssh_private_key_file_path") and len(other.ssh_private_key_file_path) > 0:
             self.ssh_private_key_file_path = other.ssh_private_key_file_path
         return self
-    
+
     def _try_parse_config(self, dict_obj: dict) -> None:
         if "username" in dict_obj:
             self.username = dict_obj["username"]
@@ -89,6 +90,7 @@ class Auth(SerializationBase):
             self.password = dict_obj["password"]
         if "ssh_private_key_file_path" in dict_obj:
             self.ssh_private_key_file_path = dict_obj["ssh_private_key_file_path"]
+
 
 class Host(SerializationBase):
     name: str = ""
@@ -110,10 +112,11 @@ class Host(SerializationBase):
         if "auth" in dict_obj:
             self.auth = Auth(dict_obj["auth"])
 
+
 class RemoteConfig(SerializationBase):
     lan_scan: LanScan = LanScan({})
     hosts: List[Host] = []
-    
+
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
 
@@ -122,8 +125,12 @@ class RemoteConfig(SerializationBase):
         if hasattr(other, "hosts"):
             self.hosts = []
             for other_host in other.hosts:
-                if not hasattr(other_host, "name") and not hasattr(other_host, "address") and not hasattr(other_host, "auth"):
-                    msg = f"Partial host config identified, missing a name, address or auth, please check YAML file !"
+                if (
+                    not hasattr(other_host, "name")
+                    and not hasattr(other_host, "address")
+                    and not hasattr(other_host, "auth")
+                ):
+                    msg = "Partial host config identified, missing a name, address or auth, please check YAML file !"
                     print(msg)
                     logger.error(msg)
                 else:
@@ -138,14 +145,14 @@ class RemoteConfig(SerializationBase):
             self.lan_scan.merge(other.lan_scan)
 
         return self
-    
+
     def _try_parse_config(self, dict_obj: dict) -> None:
         if "hosts" in dict_obj:
             hosts_block = dict_obj["hosts"]
             self.hosts = []
             for host_block in hosts_block:
                 if "name" not in host_block or "address" not in host_block or "auth" not in host_block:
-                    msg = f"Partial host config identified, missing a name, address or auth, please check YAML file !"
+                    msg = "Partial host config identified, missing a name, address or auth, please check YAML file !"
                     print(msg)
                     logger.error(msg)
                 else:
@@ -157,4 +164,3 @@ class RemoteConfig(SerializationBase):
 
     def to_hosts_dict(self) -> dict[str, "Host"]:
         return {host.name: host for host in self.hosts}
-    

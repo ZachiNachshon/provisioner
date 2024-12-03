@@ -17,7 +17,6 @@
   tags: ['configure_rpi_network']
 
 - name: Configure RPi network settings
-  tags: ['configure_rpi_network']
   script: raspi_config_network.sh
   register: scriptOut
   async: 0

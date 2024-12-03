@@ -17,7 +17,6 @@
   tags: ['define_static_ip']
 
 - name: Configure RPi node network (static IP and hostname)
-  tags: ['define_static_ip']
   script: add_dhcp_entry.sh
   register: scriptOut
   async: 0

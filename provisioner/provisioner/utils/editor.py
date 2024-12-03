@@ -1,27 +1,28 @@
 #!/usr/bin/env python3
 
-# 
+#
 # This editor module implementation was inspired from:
 # https://github.com/fmoo/python-editor/tree/master
-# 
+#
 from __future__ import print_function
-from loguru import logger
-import sys
-import locale
+
 import os.path
 import subprocess
+import sys
 import tempfile
+
+from loguru import logger
 
 from provisioner.infra.context import Context
 
 __all__ = [
-    'edit',
-    'get_editor',
-    'EditorError',
+    "EditorError",
 ]
+
 
 class EditorError(RuntimeError):
     pass
+
 
 class Editor:
 
@@ -42,32 +43,30 @@ class Editor:
     def _get_default_editors(self):
         # TODO: Make platform-specific
         return [
-            'editor',
-            'vim',
-            'emacs',
-            'nano',
+            "editor",
+            "vim",
+            "emacs",
+            "nano",
         ]
 
-
     def _get_editor_args(self, editor):
-        if editor in ['vim', 'gvim', 'vim.basic', 'vim.tiny']:
-            return ['-f', '-o']
+        if editor in ["vim", "gvim", "vim.basic", "vim.tiny"]:
+            return ["-f", "-o"]
 
-        elif editor == 'emacs':
-            return ['-nw']
+        elif editor == "emacs":
+            return ["-nw"]
 
-        elif editor == 'gedit':
-            return ['-w', '--new-window']
+        elif editor == "gedit":
+            return ["-w", "--new-window"]
 
-        elif editor == 'nano':
-            return ['-R']
+        elif editor == "nano":
+            return ["-R"]
 
-        elif editor == 'code':
+        elif editor == "code":
             return ["-w", "-n"]
 
         else:
             return []
-
 
     def _get_editor(self):
         # The import from distutils needs to be here, at this low level to
@@ -85,7 +84,7 @@ class Editor:
             from shutil import which as find_executable
 
         # Get the editor from the environment.  Prefer VISUAL to EDITOR
-        editor = os.environ.get('VISUAL') or os.environ.get('EDITOR')
+        editor = os.environ.get("VISUAL") or os.environ.get("EDITOR")
         if editor:
             return editor
 
@@ -95,18 +94,17 @@ class Editor:
             if path is not None:
                 return path
 
-        raise EditorError("Unable to find a viable editor on this system."
-            "Please consider setting your $EDITOR variable")
-
+        raise EditorError(
+            "Unable to find a viable editor on this system." "Please consider setting your $EDITOR variable"
+        )
 
     def _get_tty_filename(self):
-        if sys.platform == 'win32':
-            return 'CON:'
-        return '/dev/tty'
-
+        if sys.platform == "win32":
+            return "CON:"
+        return "/dev/tty"
 
     # def _edit(self, filename=None, contents=None, use_tty=None, suffix=''):
-    def _edit(self, filename=None, use_tty=None, suffix=''):
+    def _edit(self, filename=None, use_tty=None, suffix=""):
         editor = self._get_editor()
         args = [editor] + self._get_editor_args(os.path.basename(os.path.realpath(editor)))
 
@@ -129,12 +127,12 @@ class Editor:
 
         stdout = None
         if use_tty:
-            stdout = open(self._get_tty_filename(), 'wb')
+            stdout = open(self._get_tty_filename(), "wb")
 
         proc = subprocess.Popen(args, close_fds=True, stdout=stdout)
         proc.communicate()
 
-        with open(filename, mode='rb') as f:
+        with open(filename, mode="rb") as f:
             return f.read()
 
     def _open_file_for_edit(self, filename: str) -> None:
@@ -142,5 +140,5 @@ class Editor:
             return
 
         self._edit(filename, use_tty=True)
-    
+
     open_file_for_edit_fn = _open_file_for_edit
