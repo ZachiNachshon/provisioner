@@ -70,7 +70,7 @@ class Assertion:
     @staticmethod
     def expect_outputs(testObj, expected: List[str], method_to_run) -> None:
         run_output = method_to_run()
-        if type(run_output) == Result:
+        if type(run_output) is Result:
             print(run_output)
             print(run_output.stdout)
             # print(run_output.stderr)

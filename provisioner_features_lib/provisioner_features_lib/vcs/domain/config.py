@@ -13,6 +13,7 @@ from provisioner.domain.serialize import SerializationBase
         git_access_token: SECRET
     """
 
+
 class GitHub(SerializationBase):
     organization: str
     repository: str
@@ -33,7 +34,7 @@ class GitHub(SerializationBase):
             self.git_access_token = other.git_access_token
 
         return self
-    
+
     def _try_parse_config(self, dict_obj: dict) -> None:
         if "organization" in dict_obj:
             self.organization = dict_obj["organization"]
@@ -44,6 +45,7 @@ class GitHub(SerializationBase):
         if "git_access_token" in dict_obj:
             self.git_access_token = dict_obj["git_access_token"]
 
+
 class VersionControlConfig(SerializationBase):
     github: GitHub = GitHub({})
 
@@ -53,9 +55,9 @@ class VersionControlConfig(SerializationBase):
     def merge(self, other: "VersionControlConfig") -> SerializationBase:
         if hasattr(other, "github") and other.github is not None:
             self.github.merge(other.github)
-            
+
         return self
-    
+
     def _try_parse_config(self, dict_obj: dict) -> None:
         if "github" in dict_obj:
             self.github = GitHub(dict_obj["github"])

@@ -5,15 +5,13 @@ import pathlib
 
 from loguru import logger
 
-from provisioner.cmd.config.cli import append_config_cmd_to_cli
-from provisioner.cmd.plugins.cli import append_plugins_cmd_to_cli
-from provisioner.infra.context import CliContextManager, Context
-from provisioner.shared.collaborators import CoreCollaborators
 from provisioner.cli.entrypoint import EntryPoint
+from provisioner.cmd.config.cli import CONFIG_USER_PATH, append_config_cmd_to_cli
+from provisioner.cmd.plugins.cli import append_plugins_cmd_to_cli
 from provisioner.config.domain.config import ProvisionerConfig
 from provisioner.config.manager.config_manager import ConfigManager
-from provisioner.utils.package_loader import PackageLoader
-from provisioner.cmd.config.cli import CONFIG_USER_PATH
+from provisioner.infra.context import Context
+from provisioner.shared.collaborators import CoreCollaborators
 
 CONFIG_INTERNAL_PATH = f"{pathlib.Path(__file__).parent}/resources/config.yaml"
 COMMON_COMMANDS_GROUP_NAME = "Common"
@@ -45,11 +43,7 @@ cols = CoreCollaborators(Context.createEmpty())
 cols.package_loader().load_modules_fn(
     filter_keyword="provisioner",
     import_path="main",
-    exclusions=[
-        "provisioner-runtime", 
-        "provisioner_runtime", 
-        "provisioner-features-lib",
-        "provisioner_features_lib"],
+    exclusions=["provisioner-runtime", "provisioner_runtime", "provisioner-features-lib", "provisioner_features_lib"],
     callback=lambda module: load_plugin(plugin_module=module),
     debug=debug_pre_init,
 )
