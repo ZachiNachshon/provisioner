@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 
 from typing import List
+
+import typer
+
 from provisioner.colors import colors
 from provisioner.config.domain.config import PluginDefinition, ProvisionerConfig
 from provisioner.config.manager.config_manager import ConfigManager
 from provisioner.shared.collaborators import CoreCollaborators
-import typer
 
 collaboratos: CoreCollaborators = None
+
 
 def append_plugins_cmd_to_cli(app: typer.Typer, cli_group_name: str, cols: CoreCollaborators):
     global collaboratos
@@ -53,6 +56,7 @@ def append_plugins_cmd_to_cli(app: typer.Typer, cli_group_name: str, cols: CoreC
         callback=uninstall_local_plugins,
         help="Select local plugins to uninstall",
     )
+
 
 def list_locally_installed_plugins() -> None:
     packages = _try_get_pip_installed_packages()
@@ -108,6 +112,7 @@ def install_available_plugins() -> None:
         collaboratos.package_loader().install_pip_package_fn(escaped_pkg_name)
         collaboratos.printer().print_fn(f"Plugin {plgn_def.name} installed successfully.")
 
+
 def uninstall_local_plugins() -> None:
     packages_from_pip = _try_get_pip_installed_packages()
     if packages_from_pip is None or len(packages_from_pip) == 0:
@@ -139,16 +144,17 @@ def uninstall_local_plugins() -> None:
         collaboratos.package_loader().uninstall_pip_package_fn(escaped_pkg_name)
         collaboratos.printer().print_fn(f"Plugin {plgn_def.name} uninstalled successfully.")
 
+
 def _try_get_pip_installed_packages():
     return collaboratos.package_loader().get_pip_installed_packages_fn(
         filter_keyword="provisioner",
         exclusions=[
-            "provisioner-dev-deps", 
-            "provisioner_dev_deps", 
-            "provisioner-runtime", 
-            "provisioner_runtime", 
+            "provisioner-dev-deps",
+            "provisioner_dev_deps",
+            "provisioner-runtime",
+            "provisioner_runtime",
             "provisioner-features-lib",
-            "provisioner_features_lib"
+            "provisioner_features_lib",
         ],
         debug=True,
     )

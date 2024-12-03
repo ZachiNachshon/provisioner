@@ -14,6 +14,7 @@ STATIC_RESOURCES_PACKAGE = "provisioner.resources"
 
 MODIFIERS_FLAGS_GROUP_NAME = "Modifiers"
 
+
 def main_runner(
     verbose: Optional[bool] = typer.Option(
         False,

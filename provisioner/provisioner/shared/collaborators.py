@@ -172,7 +172,7 @@ class CoreCollaborators:
             return self.__http_client
 
         return self._lock_and_get(callback=create_http_client)
-    
+
     def editor(self) -> Editor:
         def create_editor():
             if not self.__editor:
