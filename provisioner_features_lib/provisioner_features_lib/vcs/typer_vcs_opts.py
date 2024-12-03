@@ -55,7 +55,11 @@ class TyperVersionControl:
 
     def as_typer_callback(self):
         from_cfg_git_access_token = None
-        if self._vcs_config is not None and hasattr(self._vcs_config, "github") and hasattr(self._vcs_config.github, "git_access_token"):
+        if (
+            self._vcs_config is not None
+            and hasattr(self._vcs_config, "github")
+            and hasattr(self._vcs_config.github, "git_access_token")
+        ):
             from_cfg_git_access_token = self._vcs_config.github.git_access_token
 
         def typer_callback(

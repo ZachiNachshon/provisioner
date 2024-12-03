@@ -4,6 +4,7 @@ import threading
 from typing import Any, Callable
 
 from provisioner.infra.context import Context
+from provisioner.utils.package_loader import PackageLoader
 from provisioner.runner.ansible.ansible_fakes import FakeAnsibleRunnerLocal
 from provisioner.runner.ansible.ansible_runner import AnsibleRunnerLocal
 from provisioner.shared.collaborators import CoreCollaborators
@@ -234,5 +235,5 @@ class FakeCoreCollaborators(CoreCollaborators):
 
         return self._lock_and_get(callback=create_package_loader)
 
-    def override_editor(self, package_loader: FakePackageLoader) -> None:
+    def override_package_loader(self, package_loader: FakePackageLoader) -> None:
         self.__package_loader = package_loader
