@@ -1,0 +1,33 @@
+# It is important to keep the shared project as a standalone package, to avoid
+# from shared source dependencies to get deleted upon uninstalling a pip package, 
+# a plugin for example, that removed source dependencies of other plugins or the runtime itself.
+[tool.poetry]
+name = "provisioner_shared"
+# Version should be in line with the runtime version
+version = "0.1.11"
+description = "Shared package used by the provisioner runtime and plugins"
+authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
+
+packages = [
+    { include = "components", to = "provisioner_shared" },
+]
+
+# Add components as dependencies
+[tool.poetry.dependencies]
+python = "^3.11"
+
+typer = ">=0.6.1,<0.13.0"
+loguru = ">=0.6,<0.8"
+requests = "^2.28.1"
+rich = ">=12.5.1,<14.0.0"
+python3-nmap = "^1.5.4"
+python-libnmap = "^0.7.3"
+PyYAML = "^6.0"
+inquirer = ">=2.10,<4.0"
+python-hosts = "^1.0.3"
+ansible = ">=7.3,<11.0"
+ansible-runner = "^2.3.2"
+
+[build-system]
+requires = ["poetry-core>=1.4.0"]
+build-backend = "poetry.core.masonry.api"

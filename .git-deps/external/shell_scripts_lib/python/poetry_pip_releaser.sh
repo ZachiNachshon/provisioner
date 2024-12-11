@@ -781,11 +781,24 @@ get_script_name() {
   echo "${file_name%.*}"
 }
 
+print_poetry_version() {
+  local poetry_version=$(cmd_run "poetry --version")
+  log_info "Poetry version: ${poetry_version}"
+}
+
+print_poetry_venv_location() {
+  local venv_location=$(cmd_run "poetry env info --path")
+  log_info "Poetry venv location: ${venv_location}"
+}
+
 main() {
   parse_program_arguments "$@"
   verify_program_arguments
 
   prerequisites
+
+  print_poetry_version
+  print_poetry_venv_location
   poetry_resolve_project_name_version
 
   if is_install; then

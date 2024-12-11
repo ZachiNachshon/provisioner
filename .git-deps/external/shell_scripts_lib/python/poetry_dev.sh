@@ -25,6 +25,7 @@ CLI_ARGUMENT_TEST=""
 CLI_ARGUMENT_DOCS=""
 
 CLI_FLAG_IS_MULTI_PROJECT="" # true/false if missing
+CLI_FLAG_DEPS_IS_SHOW=""
 CLI_FLAG_FMT_CHECK_ONLY=""   # true/false if missing
 CLI_FLAG_TYPECHECK_PATH=""
 CLI_FLAG_TESTS_PATH=""
@@ -35,10 +36,17 @@ CLI_FLAG_DOCS_LAN=""           # true/false if missing
 
 CLI_VALUE_TESTS_PATH=""
 CLI_VALUE_TYPECHECK_PATH=""
+MYPY_CONFIG=""
+RUFF_CONFIG=""
+BLACK_CONFIG=""
 CLI_VALUE_TEST_COVERAGE_TYPE=""
 
 is_deps() {
   [[ -n "${CLI_ARGUMENT_DEPS}" ]]
+}
+
+is_show_deps() {
+  [[ -n "${CLI_FLAG_DEPS_IS_SHOW}" ]]
 }
 
 is_fmt() {
@@ -55,6 +63,18 @@ is_typecheck() {
 
 get_typecheck_path() {
   echo "${CLI_VALUE_TYPECHECK_PATH:-${DEFAULT_TYPE_CHECK_PATH}}"
+}
+
+get_mypy_config() {
+  echo "${MYPY_CONFIG}"
+}
+
+get_ruff_config() {
+  echo "${RUFF_CONFIG}"
+}
+
+get_black_config() {
+  echo "${BLACK_CONFIG}"
 }
 
 is_test() {
@@ -98,6 +118,7 @@ is_docs_lan() {
 }
 
 update_venv_dependencies() {
+  # dev and test are Poetry custom groups that I've added as standards
   local install_flags=""
   log_info "Updating latest changes in pyproject.toml lock file"
   new_line
@@ -121,40 +142,65 @@ update_venv_dependencies() {
 }
 
 check_for_static_type_errors() {
-  check_poetry_dev_dep "mypy"
+  # check_poetry_dev_dep "mypy"
   local typecheck_path=$(get_typecheck_path)
   local scan_path="$(get_project_name)/${typecheck_path}"
   log_info "Checking for Python static type errors. path: ${scan_path}"
   new_line
-  cmd_run "poetry run mypy ${scan_path}"
+  local maybe_cfg_path=""
+  if [[ -n "${MYPY_CONFIG}" ]]; then
+    maybe_cfg_path=$(get_mypy_config)
+    maybe_cfg_path="--config-file ${maybe_cfg_path}"
+  fi
+  cmd_run "poetry run mypy ${maybe_cfg_path} ${scan_path}"
 }
 
 report_on_format_errors() {
+  local maybe_black_cfg_path=""
+  if [[ -n "${BLACK_CONFIG}" ]]; then
+    maybe_black_cfg_path=$(get_black_config)
+    maybe_black_cfg_path="--config ${maybe_black_cfg_path}"
+  fi
   log_info "Checking that Python code complies with black requirements..."
   new_line
-  cmd_run "poetry run black ${DEFAULT_PROJECT_LOCATION} --check"
+  cmd_run "poetry run black ${DEFAULT_PROJECT_LOCATION} ${maybe_black_cfg_path} --check"
   new_line
 
+  local maybe_ruff_cfg_path=""
+  if [[ -n "${RUFF_CONFIG}" ]]; then
+    maybe_ruff_cfg_path=$(get_ruff_config)
+    maybe_ruff_cfg_path="--config ${maybe_ruff_cfg_path}"
+  fi
   log_info "Checking for unused & unordered import statements..."
   new_line
-  cmd_run "poetry run ruff check ${DEFAULT_UNUSED_IMPORTS_PATH} --show-fixes "
+  cmd_run "poetry run ruff check ${DEFAULT_UNUSED_IMPORTS_PATH} ${maybe_ruff_cfg_path} --show-fixes"
   new_line
 }
 
 format_python_sources() {
+  local maybe_black_cfg_path=""
+  if [[ -n "${BLACK_CONFIG}" ]]; then
+    maybe_black_cfg_path=$(get_black_config)
+    maybe_black_cfg_path="--config ${maybe_black_cfg_path}"
+  fi
   log_info "Formatting Python source code using Black style..."
   new_line
-  cmd_run "poetry run black ${DEFAULT_PROJECT_LOCATION}"
+  cmd_run "poetry run black ${DEFAULT_PROJECT_LOCATION} ${maybe_black_cfg_path}"
   new_line
 
+  local maybe_ruff_cfg_path=""
+  if [[ -n "${RUFF_CONFIG}" ]]; then
+    maybe_ruff_cfg_path=$(get_ruff_config)
+    maybe_ruff_cfg_path="--config ${maybe_ruff_cfg_path}"
+  fi
   log_info "Removing unused and ordering import statements..."
-  cmd_run "poetry run ruff check ${DEFAULT_UNUSED_IMPORTS_PATH} --show-fixes --fix"
+  cmd_run "poetry run ruff check ${DEFAULT_UNUSED_IMPORTS_PATH} ${maybe_ruff_cfg_path} --show-fixes --fix"
   new_line
 }
 
 maybe_format_python_sources() {
-  check_poetry_dev_dep "black"
-  check_poetry_dev_dep "ruff"
+  # check_poetry_dev_dep "black"
+  # check_poetry_dev_dep "ruff"
   if is_fmt_check_only; then
     report_on_format_errors
   else
@@ -165,7 +211,7 @@ maybe_format_python_sources() {
 run_tests_on_host() {
   local tests_path=$(get_test_path)
   log_info "Runing tests suite on: ${COLOR_YELLOW}HOST MACHINE${COLOR_NONE}"
-  check_poetry_dev_dep "coverage"
+  # check_poetry_dev_dep "coverage"
   cmd_run "poetry run coverage run -m pytest"
 
   if is_test_generate_coverage; then
@@ -253,12 +299,16 @@ print_help_menu_and_exit() {
   echo -e " "
   echo -e "${COLOR_WHITE}DEPS FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--multi-project${COLOR_NONE}           Install all extra dependencies for a multi-project with bundled dependencies"
+  echo -e "  ${COLOR_LIGHT_CYAN}--show${COLOR_NONE}                    Print the installed prod/dev/other dependencies tree"
   echo -e " "
   echo -e "${COLOR_WHITE}TYPES FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--typecheck-path${COLOR_NONE}          Type checks folder path (default: ${COLOR_GREEN}${DEFAULT_TYPE_CHECK_PATH}${COLOR_NONE})"
+  echo -e "  ${COLOR_LIGHT_CYAN}--mypy-config${COLOR_NONE}             MyPy config TOML file path"
   echo -e " "
   echo -e "${COLOR_WHITE}FORMAT FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--check-only${COLOR_NONE}              Only validate Python code format and imports"
+  echo -e "  ${COLOR_LIGHT_CYAN}--ruff-config${COLOR_NONE}             Ruff config TOML file path"
+  echo -e "  ${COLOR_LIGHT_CYAN}--black-config${COLOR_NONE}            Black config TOML file path"
   echo -e " "
   echo -e "${COLOR_WHITE}TEST FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--tests-path${COLOR_NONE} <path>       Tests folder path (default: ${COLOR_GREEN}${DEFAULT_PROJECT_LOCATION}${COLOR_NONE})"
@@ -309,10 +359,32 @@ parse_program_arguments() {
         CLI_FLAG_IS_MULTI_PROJECT="true"
         shift
         ;;
+      --show)
+        CLI_FLAG_DEPS_IS_SHOW="true"
+        shift
+        ;;
       --typecheck-path)
         CLI_FLAG_TYPECHECK_PATH="typecheck-path"
         shift
         CLI_VALUE_TYPECHECK_PATH=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
+        shift
+        ;;
+      --mypy-config)
+        CLI_FLAG_MYPY_CONFIG_PATH="mypy-config"
+        shift
+        MYPY_CONFIG=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
+        shift
+        ;;
+      --ruff-config)
+        CLI_FLAG_RUFF_CONFIG_PATH="ruff-config"
+        shift
+        RUFF_CONFIG=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
+        shift
+        ;;
+      --black-config)
+        CLI_FLAG_BLACK_CONFIG_PATH="black-config"
+        shift
+        BLACK_CONFIG=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
         shift
         ;;
       --check-only)
@@ -411,14 +483,31 @@ get_project_name() {
   basename "$(pwd)"
 }
 
+print_poetry_version() {
+  local poetry_version=$(cmd_run "poetry --version")
+  log_info "Poetry version: ${poetry_version}"
+}
+
+print_poetry_venv_location() {
+  local venv_location=$(cmd_run "poetry env info --path")
+  log_info "Poetry venv location: ${venv_location}"
+}
+
 main() {
   parse_program_arguments "$@"
   verify_program_arguments
 
   prerequisites
 
+  print_poetry_version
+  print_poetry_venv_location
+
   if is_deps; then
-    update_venv_dependencies
+    if is_show_deps; then
+      cmd_run "poetry show --tree"
+    else
+      update_venv_dependencies
+    fi
   fi
 
   if is_typecheck; then

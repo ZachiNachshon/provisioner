@@ -70,3 +70,17 @@ remove_symlink() {
   local link_path=$1
   cmd_run "unlink "${link_path}" 2>/dev/null"
 }
+
+find_parent_abs_folder_by_name() {
+  local name=$1
+  local current_dir=$(pwd)
+  while [[ "${current_dir}" != "/" ]]; do
+    local folder_name=$(basename "${current_dir}")
+    if [[ "${folder_name}" == "${name}" ]]; then
+      echo "${current_dir}"
+      return
+    fi
+    current_dir=$(dirname "${current_dir}")
+  done
+  log_fatal "Could not find a root parent folder. name: ${name}"
+}

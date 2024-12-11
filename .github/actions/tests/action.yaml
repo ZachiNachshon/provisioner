@@ -37,7 +37,7 @@ runs:
         echo "::group::Update dev dependency on all projects"
         pip install tomlkit
         pip install coverage
-        make set-dev-deps-all
+        make dev-mode-all
         echo "::endgroup::"
       shell: bash
 

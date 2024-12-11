@@ -1,9 +1,6 @@
 default: help
 POETRY_DEV=external/shell_scripts_lib/python/poetry_dev.sh
 POETRY_PIP_RELEASER=external/shell_scripts_lib/python/poetry_pip_releaser.sh
-
-PROJECTS=provisioner provisioner_features_lib
-PLUGINS=examples installers single_board
 PLUGINS_ROOT_FOLDER=plugins
 
 # Generate SSH key for GitHub action of a repository with required access to another repository:
@@ -20,183 +17,115 @@ PLUGINS_ROOT_FOLDER=plugins
 #  3. On the GitHub workflow use is as:
 #     - token: ${{ secrets.MY_REPO_ACCESS_TOKEN }}
 
-.PHONY: set-dev-deps-all
-set-dev-deps-all: ## Update dev dependencies and their config based on provisioner pyproject.toml
-	@for project in $(PROJECTS); do \
-		echo "\n========= PROJECT: $$project ==============\n"; \
-		if [ "$$project" != "provisioner" ]; then \
-			echo "\n========= PROJECT: $$project ==============\n"; \
-			cd $${project}; make set-dev-deps; cd ..; \
-		fi \
-	done
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make set-dev-deps; cd ../..; \
-	done
+.PHONY: prod-mode
+prod-mode: ## Enable production mode for packaging and distribution
+	@poetry self add poetry-multiproject-plugin
 
-.PHONY: update-externals-all
-update-externals-all: ## Update external source dependencies
-	@echo "\n========= ROOT FOLDER ==============\n"
-	@git-deps-syncer sync shell_scripts_lib -y
-	@echo "\n========= PROJECT: provisioner ==============\n"
-	@cd provisioner; make update-externals; cd ..
+.PHONY: dev-mode
+dev-mode: deps-install test ## Enable local development
 
-.PHONY: update-externals-local
-update-externals-local: ## Update local external source dependencies
-	@echo "\n========= ROOT FOLDER ==============\n"
+.PHONY: update-externals
+update-externals: ## Update external source dependencies
 	@git-deps-syncer sync shell_scripts_lib --save-dev -y
 
-.PHONY: deps-all
-deps-all: ## Update and install pyproject.toml dependencies on all virtual environments
-	@for project in $(PROJECTS); do \
-		echo "\n========= PROJECT: $$project ==============\n"; \
-		cd $${project}; make deps; cd ..; \
-	done
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make deps; cd ../..; \
-	done
+.PHONY: deps-install
+deps-install: ## Update and install pyproject.toml dependencies on all virtual environments
+	@poetry install --with dev --sync -v
+	
+.PHONY: typecheck
+typecheck: ## Check for Python static type errors
+	@poetry run mypy $(PWD)/*/**/*.py
 
-.PHONY: typecheck-all
-typecheck-all: ## Check for Python static type errors
-	@for project in $(PROJECTS); do \
-		echo "\n========= PROJECT: $$project ==============\n"; \
-		cd $${project}; make typecheck; cd ..; \
-	done
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make typecheck; cd ../..; \
-	done
+.PHONY: fmtcheck
+fmtcheck: ## Validate Python code format and sort imports
+	@poetry run black . --check
+	@poetry run ruff check . --show-fixes
 
-.PHONY: fmtcheck-all
-fmtcheck-all: ## Validate Python code format and sort imports
-	@for project in $(PROJECTS); do \
-		echo "\n========= PROJECT: $$project ==============\n"; \
-		cd $${project}; make fmtcheck; cd ..; \
-	done
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make fmtcheck; cd ../..; \
-	done
+.PHONY: fmt
+fmt: ## Format Python code using Black style and sort imports
+	@poetry run black . 
+	@poetry run ruff check . --show-fixes --fix
 
-.PHONY: fmt-all
-fmt-all: ## Format Python code using Black style and sort imports
-	@for project in $(PROJECTS); do \
-		echo "\n========= PROJECT: $$project ==============\n"; \
-		cd $${project}; make fmt; cd ..; \
-	done
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make fmt; cd ../..; \
-	done
+.PHONY: test
+test: ## Run tests suite on runtime and all plugins
+	@poetry run coverage run -m pytest; \
+	if [ $$? -ne 0 ]; then \
+		exit 1; \
+	fi;
 
-.PHONY: test-all
-test-all: ## Run tests suite
-	@for project in $(PROJECTS); do \
-		echo "\n========= PROJECT: $$project ==============\n"; \
-		cd $${project}; make test; cd ..; \
+.PHONY: test-coverage-html
+test-coverage-html: ## Run tests suite on runtime and all plugins
+	@poetry run coverage run -m pytest; \
+	if [ $$? -ne 0 ]; then \
+		exit 1; \
+	fi; \
 	done
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make test; cd ../..; \
-	done
-	@echo "\n\n========= COMBINING COVERAGE DATABASES ==============\n\n"
-	@coverage combine \
-		provisioner/.coverage \
-		provisioner_features_lib/.coverage \
-		${PLUGINS_ROOT_FOLDER}/provisioner_examples_plugin/.coverage \
-		${PLUGINS_ROOT_FOLDER}/provisioner_installers_plugin/.coverage \
-		${PLUGINS_ROOT_FOLDER}/provisioner_single_board_plugin/.coverage
 	@echo "\n\n========= COVERAGE FULL REPORT ======================\n\n"		
-	@coverage report
-	@coverage html
+	@poetry run coverage report
+	@poetry run coverage html
 	-@echo "\n====\n\nFull coverage report available on the following link:\n\n  • $(PWD)/htmlcov/index.html\n"
-
 
 # This is the command used by GitHub Actions to run the tests
 # It must fail the GitHub action step if any of the tests fail
 # This is the reason we're performing an exist code check since it
 # is a makefile that runs other makefiles within a for loop
-.PHONY: test-coverage-xml-all
-test-coverage-xml-all: ## Run Unit/E2E/IT tests
-	@for project in $(PROJECTS); do \
-		echo "\n========= PROJECT: $$project ==============\n"; \
-		cd $${project}; make test-coverage-xml; \
-		if [ $$? -ne 0 ]; then \
-			exit 1; \
-		fi; \
-		cd ..; \
+.PHONY: test-coverage-xml
+test-coverage-xml: ## Run Unit/E2E/IT tests
+	@poetry run coverage run -m pytest; \
+	if [ $$? -ne 0 ]; then \
+		exit 1; \
+	fi; \
 	done
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; \
-		make test-coverage-xml; \
-		if [ $$? -ne 0 ]; then \
-			exit 1; \
-		fi; \
-		cd ../..; \
-	done
+	@echo "\n\n========= COVERAGE FULL REPORT ======================\n\n"		
+	@poetry run coverage report
+	@poetry run coverage xml
+	-@echo "\n====\n\nFull coverage report available on the following link:\n\n  • $(PWD)/coverage.xml\n"
 
-.PHONY: use-provisioner-from-sources
-use-provisioner-from-sources: ## Use provisioner as a direct sources dependency to all Python modules (for testing in CI)
-	@for project in $(PROJECTS); do \
-		if [ "$$project" != "provisioner" ]; then \
-			echo "\n========= PROJECT: $$project ==============\n"; \
-			cd $${project}; make use-provisioner-from-sources; cd ..; \
-		fi \
-	done
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make use-provisioner-from-sources; cd ../..; \
-	done
-
-.PHONY: use-provisioner-from-pypi
-use-provisioner-from-pypi: ## Use provisioner as a PyPi package to all Python modules (for testing in CI)
-	@for project in $(PROJECTS); do \
-		if [ "$$project" != "provisioner" ]; then \
-			echo "\n========= PROJECT: $$project ==============\n"; \
-			cd $${project}; make use-provisioner-from-pypi; cd ..; \
-		fi \
-	done
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make use-provisioner-from-pypi; cd ../..; \
-	done
-
-.PHONY: pip-install
-pip-install: ## Install provisioner sdist to local pip
+.PHONY: pip-install-runtime
+pip-install-runtime: ## [LOCAL] Install provisioner runtime to local pip
 	@echo "\n========= PROJECT: provisioner ==============\n"
-	@cd provisioner; make pip-install; cd ..
+	@cd provisioner; poetry build-project -f sdist; cd ..
+	@pip3 install provisioner/dist/provisioner_*.tar.gz	
 
-.PHONY: pip-install-plugins
-pip-install-plugins: ## Install all plugins source distributions to local pip
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make pip-install; cd ../..; \
-	done
+# @cd provisioner; poetry build-project -f wheel; cd ..
+# @pip3 install provisioner/dist/provisioner_*.whl
 
-.PHONY: pip-uninstall
-pip-uninstall: ## Uninstall provisioner from local pip
+# @cd provisioner; poetry build-project -f sdist; cd ..
+# @pip3 install provisioner/dist/provisioner_*.tar.gz	
+
+.PHONY: pip-install-plugin
+pip-install-plugin: ## [LOCAL] Install any plugin to local pip (make pip-install-plugin example)
+	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
+		echo "Error: plugin name is required. Usage: make pip-install-plugin <plugin_name>"; \
+		exit 1; \
+	fi
+	@PLUGIN=$(word 2, $(MAKECMDGOALS)); \
+	echo "\n========= PLUGIN: $$PLUGIN ==============\n"; \
+	cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f sdist; cd ../..; \
+	pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.tar.gz;
+
+# cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f wheel; cd ../..; \
+# pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.whl;
+
+.PHONY: pip-uninstall-runtime
+pip-uninstall-runtime: ## [LOCAL] Uninstall provisioner from local pip
 	@echo "\n========= PROJECT: provisioner ==============\n"
 	@cd provisioner; make pip-uninstall; cd ..
 
-.PHONY: pip-uninstall-plugins
-pip-uninstall-plugins: ## Uninstall all plugins source distributions from local pip
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make pip-uninstall; cd ../..; \
-	done
+.PHONY: pip-uninstall-plugin
+pip-uninstall-plugin: ## [LOCAL] Uninstall any plugins source distributions from local pip (make pip-uninstall-plugin example)
+	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
+		echo "Error: plugin name is required. Usage: make pip-uninstall-plugin <plugin_name>"; \
+		exit 1; \
+	fi
+	@PLUGIN=$(word 2, $(MAKECMDGOALS)); \
+	echo "\n========= PLUGIN: $$PLUGIN ==============\n"; \
+	pip3 uninstall -y ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.whl;
 
-.PHONY: clear-virtual-env-all
-clear-virtual-env-all: ## Clear all Poetry virtual environments
-	@for project in $(PROJECTS); do \
-		echo "\n========= PROJECT: $$project ==============\n"; \
-		cd $${project}; make clear-virtual-env; cd ..; \
-	done
-	@for plugin in $(PLUGINS); do \
-		echo "\n========= PLUGIN: $$plugin ==============\n"; \
-		cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${plugin}_plugin; make clear-virtual-env; cd ../..; \
-	done
+.PHONY: clear-project
+clear-project: ## Clear Poetry virtual environments and clear Python cache
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
+	@poetry env remove --all
 
 # http://localhost:9001/provisioner/
 .PHONY: docs-site
@@ -208,13 +137,13 @@ docs-site: ## Run a local documentation site
 docs-site-lan: ## Run a local documentation site (LAN available)
 	@${POETRY_DEV} docs --lan
 
-.PHONY: pDev
-pDev: ## Interact with ./external/.../poetry_dev.sh            (Usage: make pDev 'fmt --check-only')
-	@${POETRY_DEV} $(filter-out $@,$(MAKECMDGOALS))
+# .PHONY: pDev
+# pDev: ## Interact with ./external/.../poetry_dev.sh            (Usage: make pDev 'fmt --check-only')
+# 	@${POETRY_DEV} $(filter-out $@,$(MAKECMDGOALS))
 
-.PHONY: pReleaser
-pReleaser: ## Interact with ./external/.../poetry_pip_releaser.sh   (Usage: make pReleaser 'install --build-type sdist --multi-project')
-	@${POETRY_PIP_RELEASER} $(filter-out $@,$(MAKECMDGOALS))
+# .PHONY: pReleaser
+# pReleaser: ## Interact with ./external/.../poetry_pip_releaser.sh   (Usage: make pReleaser 'install --build-type sdist --multi-project')
+# 	@${POETRY_PIP_RELEASER} $(filter-out $@,$(MAKECMDGOALS))
 
 # .PHONY: diagrams
 # diagrams: ## Format Python code using Black style (https://black.readthedocs.io)

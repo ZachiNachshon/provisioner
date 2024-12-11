@@ -1,0 +1,5 @@
+[virtualenvs]
+create = true
+path = ".venv"
+# Use the monorepo root virtual env
+in-project = true

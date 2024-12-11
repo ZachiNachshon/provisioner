@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
+
 import tomlkit
 
 # Set up command line argument parsing
-parser = argparse.ArgumentParser(description='Update dev-dependencies in pyproject.toml file.')
-parser.add_argument('source', type=str, help='Path to the source pyproject.toml file')
-parser.add_argument('target', type=str, help='Path to the target pyproject.toml file')
+parser = argparse.ArgumentParser(description="Update dev-dependencies in pyproject.toml file.")
+parser.add_argument("source", type=str, help="Path to the source pyproject.toml file")
+parser.add_argument("target", type=str, help="Path to the target pyproject.toml file")
 args = parser.parse_args()
 
 # Load the source pyproject.toml file

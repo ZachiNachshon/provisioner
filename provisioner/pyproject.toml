@@ -4,105 +4,47 @@ version = "0.1.11"
 description = "Provision Everything Anywhere"
 authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
 
-# Until multi-project is supported natively with Poetry, use a plugins that bundles
-# declared dependencies within the parent project. In this case we'll have to exclude
-# Poetry package related files from being part of the tar.gz
-# https://github.com/DavidVujic/poetry-multiproject-plugin
-exclude = [
-    "**/.venv",
-    "**/*_test*", 
-    # We cannot exclude fakes from the provisioner pip package, the plugins CI rely on
-    # testing with the latest provisioner package
-    # "**/*_fake*", 
-    "**/dist*", 
-    "**/htmlcov", 
-    "**/poetry.lock", 
-    "**/pytest", 
-    "**/Makefile", 
-    "**/runners", 
-    "**/.gitignore",
-    "**/.coverage",
-    "**/.coveragerc",
-    "**/.git-deps",
-    "**/.pytest_cache"]
-
+# Include relative directories using the poetry-mutiproject-plugin
 packages = [
-    { include = "provisioner" },
-    { include = "external/ansible_playbooks" },
+    { include = "main.py", to = "provisioner_runtime"},
+    { include = "src", to = "provisioner_runtime" },
+    { include = "resources", to = "provisioner_runtime"},
+    # { include = "components/runtime", from = "../", to = "provisioner_runtime" },
+    # { include = "components/external/ansible_playbooks", from = "../", to = "provisioner_runtime" }
 ]
 
 # A list of patterns that will be included in the final package.
 # If no format is specified, it will default to include both sdist and wheel
 # i.e. { path = "tests", format = ["sdist", "wheel"] }
-include = [
-    # Must be boundled for referencing Ansible playbooks
-    { path = "external/ansible_playbooks" },
-    { path = "provisioner/runner/ansible/resources/ansible.cfg" },
-]
+# include = [
+    # { path = "path/to/file", format = ["sdist", "wheel"] },
+# ]
 
 [tool.poetry.scripts]
-provisioner = "provisioner.main:main"
+provisioner = "provisioner_runtime.main:main"
 # rpi_diagrams = "rpi.os.diagrams.install_diag:main"
 
-[tool.black]
-line-length = 120
-
-[tool.ruff]
-exclude = [".venv", "external", ".git-deps"]
-line-length = 120
-lint.ignore = [ "E501", "E402", "F403", "F405" ]
-lint.select = [
-    # Pyflakes
-    "F",
-    # Pycodestyle
-    "E",
-    # isort
-    "I",
-    # Whitespaces
-    "W", 
-]
-
-[tool.mypy]
-exclude = ["external"]
-ignore_missing_imports = true
-check_untyped_defs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_untyped_decorators = true
-disallow_any_unimported = false # Generates an error if a component of a type becomes Any because mypy couldn’t resolve an import
-warn_return_any = false # Generates an error if you return a value with an Any type in a function that is annotated to return a non-Any value
-warn_unused_ignores = true
-no_implicit_optional = true
-show_error_codes = true
-
 [tool.poetry.dependencies]
-python = "^3.10"
-typer = ">=0.6.1,<0.13.0"
-loguru = ">=0.6,<0.8"
-requests = "^2.28.1"
-rich = ">=12.5.1,<14.0.0"
-python3-nmap = "^1.5.4"
-python-libnmap = "^0.7.3"
-PyYAML = "^6.0"
-inquirer = ">=2.10,<4.0"
-python-hosts = "^1.0.3"
-ansible = ">=7.3,<11.0"
-ansible-runner = "^2.3.2"
-# GitPython = "^3.1.18" # - GitPython provides object model access to your git repository (https://github.com/gitpython-developers/GitPython)
-# Jinja2 = "^3.0.3"      - Templating engine (https://github.com/pallets/jinja)
-# sh = "^1.14.2"         - Subprocess replacement for Python (https://github.com/amoffat/sh)
-# backoff = "^1.10.0"    - Function decoration for backoff and retry (https://github.com/litl/backoff)
-# tenacity = "^8.0.1"    - General-purpose retrying library (https://github.com/jd/tenacity)
+python = "^3.11"
 
-[tool.poetry.dev-dependencies]
+# For development
+provisioner-shared = { path = "/Users/zachin/codebase/github/provisioner/provisioner_shared", develop = true }
 
-black = "^24.10.0"
-pytest = "^8.3.2"
-mypy = "^1.11"
-coverage = "^7.6.0"
-diagrams = "^0.23.4"
-ruff = "^0.5.2"
+# For production and PyPi publishing
+# provisioner-shared = "^0.1.11"
+
+# typer = ">=0.6.1,<0.13.0"
+# loguru = ">=0.6,<0.8"
+# requests = "^2.28.1"
+# rich = ">=12.5.1,<14.0.0"
+# python3-nmap = "^1.5.4"
+# python-libnmap = "^0.7.3"
+# PyYAML = "^6.0"
+# inquirer = ">=2.10,<4.0"
+# python-hosts = "^1.0.3"
+# ansible = ">=7.3,<11.0"
+# ansible-runner = "^2.3.2"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.4.0"]
 build-backend = "poetry.core.masonry.api"
