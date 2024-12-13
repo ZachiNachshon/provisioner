@@ -132,8 +132,6 @@ runs:
         fi
 
         echo "::endgroup::" 
-      # env:
-      #   PYPI_API_TOKEN: ${{ inputs.PYPI_API_TOKEN }}
       shell: bash
 
     # Discard any potential changes to the git index which might
@@ -161,11 +159,16 @@ runs:
 
         # Is the publishable a plugin?
         if [ ${publishable} == "provisioner" ]; then
+
+          echo "Publishing provisioner runtime & shared packages"
         
           # 
           # Publish shared package
           # 
           cd provisioner_shared
+
+          ls -lah 
+          
           poetry version patch
           shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           echo -n $shared_ver > resources/version.txt
@@ -190,6 +193,8 @@ runs:
           cd ..
 
         else
+
+          echo "Publishing ${publishable} plugin"
 
           # 
           # Publish plugin package
