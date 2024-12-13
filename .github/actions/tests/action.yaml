@@ -41,7 +41,7 @@ runs:
       if: steps.cached-venv-provisioner-monorepo.outputs.cache-hit != 'true'
       run: |
         echo "::group::Installing provisioner monorepo dependecies"
-        deps-install
+        make deps-install
         echo "::endgroup::"
       shell: bash
     
