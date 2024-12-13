@@ -315,7 +315,7 @@ publish_to_pypi() {
 
   if prompt_for_approval_before_release "${tag}"; then
     log_info "Publishing pip package to PyPi (${tag})..."
-    twine upload --username ${username} --password ${password} ${BUILD_OUTPUT_FILE_PATH}
+    twine upload --username ${username} --password "${password}" "${BUILD_OUTPUT_FILE_PATH}"
   else
     log_info "Nothing was published."
   fi

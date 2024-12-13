@@ -1,6 +1,11 @@
 name: 'Publish Provisioner or Plugin to PyPi (auto version increment)'
 description: 'Auto increment takes place before publishing'
 
+# 
+# Upon publishign provisioner runtime, the provisioner_shared is also published
+# under the same version. This is because the provisioner_shared is a dependency
+# of the provisioner runtime and its plugins.
+# 
 inputs:
   PYPI_API_TOKEN:
     type: string
@@ -35,28 +40,53 @@ runs:
       run: |
         echo "::group::Publishing to PyPi"
         publishable=${{ inputs.project_to_publish }}
-        publisher_script_path=""
 
         # Is the publishable a plugin?
         if [ ${publishable} == "provisioner"]; then
+        
           publisher_script_path="../scripts/publish_to_pypi.sh"
-          cd ${publishable}
-        else
-          publisher_script_path="../../scripts/publish_to_pypi.sh"
-          cd plugins/${publishable}
-        fi
 
-        poetry version patch
-        ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-        echo -n $ver > ${publishable}/resources/version.txt
-
-        ./{publisher_script_path} publish --build-type wheel --release-type pypi -y
-
-        if [ ${publishable} == "provisioner"]; then
+          # 
+          # Publish shared package
+          # 
+          cd publisher_shared
+          poetry version patch
+          shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+          echo -n $shared_ver > resources/version.txt
+          {publisher_script_path} publish --build-type wheel --release-type pypi -y
           cd ..
+
+          # 
+          # Publish runtime package
+          # 
+          cd ${publishable}
+          poetry version patch
+          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+          echo -n $ver > resources/version.txt
+
+          # Update shared version in the runtime pyproject.toml
+          ../scripts/update_shared_version.py --file_path pyproject.toml --package_name provisioner-shared --new_version "^${shared_ver}"
+          
+          {publisher_script_path} publish --build-type wheel --release-type pypi -y
+          cd ..
+
+
         else
+
+          publisher_script_path="../../scripts/publish_to_pypi.sh"
+
+          # 
+          # Publish plugin package
+          # 
+          cd plugins/${publishable}
+          poetry version patch
+          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+          echo -n $ver > ${publishable}/resources/version.txt
+          {publisher_script_path} publish --build-type wheel --release-type pypi -y
           cd ../..
+          
         fi
+
         echo "::endgroup::" 
       env:
         PYPI_API_TOKEN: ${{ inputs.PYPI_API_TOKEN }}
@@ -85,19 +115,51 @@ runs:
         echo "::group::Opening a GitHub PR with released version"
         publishable=${{ inputs.publishable }}
 
+        # Is the publishable a plugin?
         if [ ${publishable} == "provisioner"]; then
+        
+          # 
+          # Publish shared package
+          # 
+          cd publisher_shared
+          poetry version patch
+          shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+          echo -n $shared_ver > resources/version.txt
+          git add resources/version.txt
+          git add pyproject.toml
+          cd ..
+
+          # 
+          # Publish runtime package
+          # 
           cd ${publishable}
+          poetry version patch
+          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+          echo -n $ver > resources/version.txt
+
+          # Update shared version in the runtime pyproject.toml
+          ../scripts/update_shared_version.py --file_path pyproject.toml --package_name provisioner-shared --new_version "^${shared_ver}"
+
+          git add resources/version.txt
+          git add pyproject.toml
+          cd ..
+
         else
+
+          # 
+          # Publish plugin package
+          # 
           cd plugins/${publishable}
+          poetry version patch
+          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+          echo -n $ver > ${publishable}/resources/version.txt
+          git add resources/version.txt
+          git add pyproject.toml
+          cd ../..
+          
         fi
 
-        poetry version patch
-        ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-        echo -n $ver > ${publishable}/resources/version.txt
-
         branch_name=released-${publishable}-ver-${ver}
-        git add ${publishable}/resources/version.txt
-        git add pyproject.toml
         git commit -m "Bump ${publishable} released version to ${ver}"
         git checkout -b ${branch_name}
         git push --set-upstream origin ${branch_name}
@@ -106,10 +168,5 @@ runs:
             --base master --head ${branch_name} \
             --label "auto pr"
             
-        if [ ${publishable} == "provisioner"]; then
-          cd ..
-        else
-          cd ../..
-        fi
         echo "::endgroup::"
       shell: bash
