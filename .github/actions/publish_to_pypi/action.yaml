@@ -155,7 +155,7 @@ runs:
     - name: Open a GitHub PR with released version
       run: |
         echo "::group::Opening a GitHub PR with released version"
-        publishable=${{ inputs.publishable }}
+        publishable=${{ inputs.project_to_publish }}
 
         # Is the publishable a plugin?
         if [ ${publishable} == "provisioner" ]; then
@@ -166,9 +166,6 @@ runs:
           # Publish shared package
           # 
           cd provisioner_shared
-
-          ls -lah 
-          
           poetry version patch
           shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           echo -n $shared_ver > resources/version.txt
