@@ -34,8 +34,8 @@ runs:
       id: cached-venv-provisioner-monorepo
       uses: actions/cache@v3
       with:
-        path: ./provisioner/.venv
-        key: provisioner-monorepo-venv-${{ runner.os }}-${{ hashFiles('./provisioner/poetry.lock') }}-${{ hashFiles('./provisioner/pyproject.toml') }}
+        path: ./.venv
+        key: provisioner-monorepo-venv-${{ runner.os }}-${{ hashFiles('./poetry.lock') }}-${{ hashFiles('./pyproject.toml') }}
 
     - name: (Install) provisioner monorepo
       if: steps.cached-venv-provisioner-monorepo.outputs.cache-hit != 'true'

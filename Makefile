@@ -21,11 +21,13 @@ PLUGINS_ROOT_FOLDER=plugins
 prod-mode: ## Enable production mode for packaging and distribution
 	@poetry self add poetry-multiproject-plugin
 	@./scripts/switch_mode.py prod
+	@poetry lock
 
 .PHONY: dev-mode
 dev-mode: ## Enable local development
 	@pip3 install tomlkit --disable-pip-version-check --no-python-version-warning
 	@./scripts/switch_mode.py dev
+	@poetry lock
 
 .PHONY: deps-install
 deps-install: ## Update and install pyproject.toml dependencies on all virtual environments
