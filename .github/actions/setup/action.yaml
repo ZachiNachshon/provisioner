@@ -9,12 +9,15 @@ runs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: (Cache) Try Load - Poetry Installation
-      id: cached-poetry
-      uses: actions/cache@v3
-      with:
-        path: ~/.local                         # Path depends on the OS
-        key: poetry-${{ env.POETRY_VERSION }}  # Change to reset cache
+    # 
+    # Temporary disable caching since the upload time takes longer than the actual action time
+    # 
+    # - name: (Cache) Try Load - Poetry Installation
+    #   id: cached-poetry
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: ~/.local                         # Path depends on the OS
+    #     key: poetry-${{ env.POETRY_VERSION }}  # Change to reset cache
 
     - name: (Install) Poetry
       if: steps.cached-poetry.outputs.cache-hit != 'true'
@@ -32,12 +35,15 @@ runs:
         poetry config virtualenvs.path "${{ github.workspace }}/.venv"
       shell: bash
 
-    - name: (Cache) Try Load - gh
-      id: cache-gh
-      uses: actions/cache@v3
-      with:
-        path: /usr/local/bin/gh
-        key: provisioner-cache-gh-client-${{ runner.os }}
+    # 
+    # Temporary disable caching since the upload time takes longer than the actual action time
+    # 
+    # - name: (Cache) Try Load - gh
+    #   id: cache-gh
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: /usr/local/bin/gh
+    #     key: provisioner-cache-gh-client-${{ runner.os }}
 
     - name: (Install) gh
       if: steps.cache-gh.outputs.cache-hit != 'true'

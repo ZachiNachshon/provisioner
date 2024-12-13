@@ -30,12 +30,15 @@ runs:
         echo "::endgroup::"
       shell: bash
 
-    - name: (Cache) Try Load - provisioner monorepo
-      id: cached-venv-provisioner-monorepo
-      uses: actions/cache@v3
-      with:
-        path: ./.venv
-        key: provisioner-monorepo-venv-${{ runner.os }}-${{ hashFiles('./poetry.lock') }}-${{ hashFiles('./pyproject.toml') }}
+    # 
+    # Temporary disable caching since the upload time takes longer than the actual action time
+    # 
+    # - name: (Cache) Try Load - provisioner monorepo
+    #   id: cached-venv-provisioner-monorepo
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: ./.venv
+    #     key: provisioner-monorepo-venv-${{ runner.os }}-${{ hashFiles('./poetry.lock') }}-${{ hashFiles('./pyproject.toml') }}
 
     - name: (Install) provisioner monorepo
       if: steps.cached-venv-provisioner-monorepo.outputs.cache-hit != 'true'
