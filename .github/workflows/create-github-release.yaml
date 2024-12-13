@@ -44,5 +44,5 @@ jobs:
       - name: Create a GitHub release
         uses: ./.github/actions/create_github_release
         with:
-          publishable: ${{ github.event.inputs.project_to_release }}
+          project_to_release: ${{ github.event.inputs.project_to_release }}
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}

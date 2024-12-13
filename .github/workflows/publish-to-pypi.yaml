@@ -51,6 +51,6 @@ jobs:
       - name: Publish to PyPi & GitHub
         uses: ./.github/actions/publish_to_pypi
         with:
-          publishable: ${{ github.event.inputs.publishable_project }}
+          project_to_publish: ${{ github.event.inputs.publishable_project }}
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
           PYPI_API_TOKEN: ${{ env.PYPI_API_TOKEN }}
