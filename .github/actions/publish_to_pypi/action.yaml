@@ -55,27 +55,27 @@ runs:
     - name: Map PyPI API token to project
       id: map_token
       run: |
-        case "${{ github.event.inputs.project_to_publish }}" in
+        case "${{ inputs.project_to_publish }}" in
           provisioner)
-            echo "PYPI_API_TOKEN=${{ github.event.inputs.PYPI_API_TOKEN_PROVISIONER_RUNTIME }}" >> $GITHUB_ENV
-            echo "PYPI_API_TOKEN_SHARED=${{ github.event.inputs.PYPI_API_TOKEN_PROVISIONER_SHARED }}" >> $GITHUB_ENV
+            echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_RUNTIME }}" >> $GITHUB_ENV
+            echo "PYPI_API_TOKEN_SHARED=${{ inputs.PYPI_API_TOKEN_PROVISIONER_SHARED }}" >> $GITHUB_ENV
             ;;
           provisioner_examples_plugin)
-            echo "PYPI_API_TOKEN=${{ github.event.inputs.PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN }}" >> $GITHUB_ENV
+            echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN }}" >> $GITHUB_ENV
             ;;
           provisioner_installers_plugin)
-            echo "PYPI_API_TOKEN=${{ github.event.inputs.PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN }}" >> $GITHUB_ENV
+            echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN }}" >> $GITHUB_ENV
             ;;
           provisioner_single_board_plugin)
-            echo "PYPI_API_TOKEN=${{ github.event.inputs.PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN }}" >> $GITHUB_ENV
+            echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN }}" >> $GITHUB_ENV
             ;;
           *)
-            echo "Unknown project_to_publish: ${{ github.event.inputs.project_to_publish }}"
+            echo "Unknown project_to_publish: ${{ inputs.project_to_publish }}"
             exit 1
             ;;
         esac
       shell: bash
-      
+
     - name: Publish to PyPi
       run: |
         echo "::group::Publishing to PyPi"
