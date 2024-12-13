@@ -42,7 +42,7 @@ runs:
         publishable=${{ inputs.project_to_publish }}
 
         # Is the publishable a plugin?
-        if [ ${publishable} == "provisioner"]; then
+        if [ ${publishable} == "provisioner" ]; then
         
           publisher_script_path="../scripts/publish_to_pypi.sh"
 
@@ -81,7 +81,7 @@ runs:
           cd plugins/${publishable}
           poetry version patch
           ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-          echo -n $ver > ${publishable}/resources/version.txt
+          echo -n $ver > resources/version.txt
           {publisher_script_path} publish --build-type wheel --release-type pypi -y
           cd ../..
           
@@ -116,7 +116,7 @@ runs:
         publishable=${{ inputs.publishable }}
 
         # Is the publishable a plugin?
-        if [ ${publishable} == "provisioner"]; then
+        if [ ${publishable} == "provisioner" ]; then
         
           # 
           # Publish shared package
@@ -125,6 +125,7 @@ runs:
           poetry version patch
           shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           echo -n $shared_ver > resources/version.txt
+
           git add resources/version.txt
           git add pyproject.toml
           cd ..
@@ -152,7 +153,8 @@ runs:
           cd plugins/${publishable}
           poetry version patch
           ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-          echo -n $ver > ${publishable}/resources/version.txt
+          echo -n $ver > resources/version.txt
+
           git add resources/version.txt
           git add pyproject.toml
           cd ../..
