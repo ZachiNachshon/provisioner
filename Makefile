@@ -59,7 +59,7 @@ test-coverage-html: ## Run tests suite on runtime and all plugins
 	@poetry run coverage run -m pytest; \
 	if [ $$? -ne 0 ]; then \
 		exit 1; \
-	fi; \
+	fi;
 	@echo "\n\n========= COVERAGE FULL REPORT ======================\n\n"		
 	@poetry run coverage report
 	@poetry run coverage html

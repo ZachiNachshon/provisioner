@@ -9,9 +9,8 @@
 # exclude = external
 
 source = 
-    components
-    framework
-    provisioner/src
+    provisioner_shared
+    provisioner
     plugins
     
 
