@@ -53,7 +53,7 @@ runs:
           poetry version patch
           shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           echo -n $shared_ver > resources/version.txt
-          {publisher_script_path} publish --build-type wheel --release-type pypi -y
+          ${publisher_script_path} publish --build-type wheel --release-type pypi -y
           cd ..
 
           # 
@@ -67,7 +67,7 @@ runs:
           # Update shared version in the runtime pyproject.toml
           ../scripts/update_shared_version.py --file_path pyproject.toml --package_name provisioner-shared --new_version "^${shared_ver}"
           
-          {publisher_script_path} publish --build-type wheel --release-type pypi -y
+          ${publisher_script_path} publish --build-type wheel --release-type pypi -y
           cd ..
 
 
@@ -82,7 +82,7 @@ runs:
           poetry version patch
           ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           echo -n $ver > resources/version.txt
-          {publisher_script_path} publish --build-type wheel --release-type pypi -y
+          ${publisher_script_path} publish --build-type wheel --release-type pypi -y
           cd ../..
           
         fi
