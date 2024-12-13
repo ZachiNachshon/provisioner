@@ -49,7 +49,7 @@ runs:
           # 
           # Publish shared package
           # 
-          cd publisher_shared
+          cd provisioner_shared
           poetry version patch
           shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           echo -n $shared_ver > resources/version.txt
@@ -121,7 +121,7 @@ runs:
           # 
           # Publish shared package
           # 
-          cd publisher_shared
+          cd provisioner_shared
           poetry version patch
           shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           echo -n $shared_ver > resources/version.txt
