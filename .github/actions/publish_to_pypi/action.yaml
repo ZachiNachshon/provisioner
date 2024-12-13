@@ -3,14 +3,30 @@ description: 'Auto increment takes place before publishing'
 
 # 
 # Upon publishign provisioner runtime, the provisioner_shared is also published
-# under the same version. This is because the provisioner_shared is a dependency
+# under the same version. This is because the provisioner_shared is a shared dependency
 # of the provisioner runtime and its plugins.
 # 
 inputs:
-  PYPI_API_TOKEN:
+  PYPI_API_TOKEN_PROVISIONER_RUNTIME:
     type: string
-    description: 'PyPi API token'
-    required: true
+    description: 'PyPi provisioner runtime API token'
+    required: false
+  PYPI_API_TOKEN_PROVISIONER_SHARED:
+    type: string
+    description: 'PyPi provisioner shared API token'
+    required: false
+  PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN:
+    type: string
+    description: 'PyPi example plugin API token'
+    required: false
+  PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN:
+    type: string
+    description: 'PyPi installers plugin API token'
+    required: false
+  PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN:
+    type: string
+    description: 'PyPi single-board plugin API token'
+    required: false
   project_to_publish:
     type: choice
     description: 'Select project to publish to PyPi'
@@ -36,6 +52,29 @@ runs:
         pip install coverage twine
       shell: bash    
 
+    - name: Map PyPI API token to project
+      id: map_token
+      run: |
+        case "${{ github.event.inputs.project_to_publish }}" in
+          provisioner)
+            echo "PYPI_API_TOKEN=${{ github.event.inputs.PYPI_API_TOKEN_PROVISIONER_RUNTIME }}" >> $GITHUB_ENV
+            echo "PYPI_API_TOKEN_SHARED=${{ github.event.inputs.PYPI_API_TOKEN_PROVISIONER_SHARED }}" >> $GITHUB_ENV
+            ;;
+          provisioner_examples_plugin)
+            echo "PYPI_API_TOKEN=${{ github.event.inputs.PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN }}" >> $GITHUB_ENV
+            ;;
+          provisioner_installers_plugin)
+            echo "PYPI_API_TOKEN=${{ github.event.inputs.PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN }}" >> $GITHUB_ENV
+            ;;
+          provisioner_single_board_plugin)
+            echo "PYPI_API_TOKEN=${{ github.event.inputs.PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN }}" >> $GITHUB_ENV
+            ;;
+          *)
+            echo "Unknown project_to_publish: ${{ github.event.inputs.project_to_publish }}"
+            exit 1
+            ;;
+        esac
+
     - name: Publish to PyPi
       run: |
         echo "::group::Publishing to PyPi"
@@ -53,7 +92,9 @@ runs:
           poetry version patch
           shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           echo -n $shared_ver > resources/version.txt
-          ${publisher_script_path} publish --build-type wheel --release-type pypi -y
+          
+          PYPI_API_TOKEN=${PYPI_API_TOKEN_SHARED} \
+            ${publisher_script_path} publish --build-type wheel --release-type pypi -y
           cd ..
 
           # 
@@ -67,9 +108,9 @@ runs:
           # Update shared version in the runtime pyproject.toml
           ../scripts/update_shared_version.py --file_path pyproject.toml --package_name provisioner-shared --new_version "^${shared_ver}"
           
-          ${publisher_script_path} publish --build-type wheel --release-type pypi -y
+          PYPI_API_TOKEN=${PYPI_API_TOKEN} \
+            ${publisher_script_path} publish --build-type wheel --release-type pypi -y
           cd ..
-
 
         else
 
@@ -82,14 +123,16 @@ runs:
           poetry version patch
           ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           echo -n $ver > resources/version.txt
-          ${publisher_script_path} publish --build-type wheel --release-type pypi -y
+
+          PYPI_API_TOKEN=${PYPI_API_TOKEN} \
+            ${publisher_script_path} publish --build-type wheel --release-type pypi -y
           cd ../..
           
         fi
 
         echo "::endgroup::" 
-      env:
-        PYPI_API_TOKEN: ${{ inputs.PYPI_API_TOKEN }}
+      # env:
+      #   PYPI_API_TOKEN: ${{ inputs.PYPI_API_TOKEN }}
       shell: bash
 
     # Discard any potential changes to the git index which might
