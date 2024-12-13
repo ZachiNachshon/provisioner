@@ -1,0 +1,83 @@
+[tool.poetry]
+name = "provisioner_monorepo"
+version = "0.1.11"
+description = "Provision Everything Anywhere"
+authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
+
+# The root package is meant only for dependency management for a developing environment
+# but not for packaging and distribution
+package-mode = false
+
+# Until multi-project is supported natively with Poetry, use a plugins that bundles
+# declared dependencies within the parent project. In this case we'll have to exclude
+# Poetry package related files from being part of the tar.gz
+# https://github.com/DavidVujic/poetry-multiproject-plugin
+exclude = [
+    "**/.venv",
+    "**/*_test*", 
+    # We cannot exclude fakes from the provisioner pip package, the plugins CI rely on
+    # testing with the latest provisioner package
+    # "**/*_fake*", 
+    "**/dist*", 
+    "**/htmlcov", 
+    "**/poetry.lock", 
+    "**/pytest", 
+    "**/Makefile", 
+    "**/runners", 
+    "**/.gitignore",
+    "**/.coverage",
+    "**/.coveragerc",
+    "**/.git-deps",
+    "**/.pytest_cache"]
+
+# packages = [
+    # {include = "framework" },
+    # {include = "provisioner_shared"},
+    # {include = "development"},
+# ]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.10.0"
+pytest = "^8.3.2"
+mypy = "^1.11"
+coverage = "^7.6.0"
+diagrams = "^0.23.4"
+ruff = "^0.5.2"
+
+[build-system]
+requires = ["poetry-core>=1.4.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+
+[tool.mypy]
+exclude = ["external"]
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+disallow_any_unimported = false # Generates an error if a component of a type becomes Any because mypy couldn’t resolve an import
+warn_return_any = false # Generates an error if you return a value with an Any type in a function that is annotated to return a non-Any value
+warn_unused_ignores = true
+no_implicit_optional = true
+show_error_codes = true
+
+[tool.ruff]
+exclude = [".venv", "external", ".git-deps"]
+line-length = 120
+lint.ignore = [ "E501", "E402", "F403", "F405" ]
+lint.select = [
+    # Pyflakes
+    "F",
+    # Pycodestyle
+    "E",
+    # isort
+    "I",
+    # Whitespaces
+    "W", 
+]

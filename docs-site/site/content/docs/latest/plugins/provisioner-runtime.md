@@ -57,7 +57,7 @@ This section is relevant when using the [Poetry package manager](https://python-
 
 ```toml
 [tool.poetry.dependencies]
-python = "^3.10"
-provisioner-runtime = "^0.1.10"
+python = "^3.11"
+provisioner-shared = "^0.1.10"
 ```
 

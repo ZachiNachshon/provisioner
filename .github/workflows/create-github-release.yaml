@@ -1,0 +1,48 @@
+name: Create a GitHub release
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_to_release:
+        type: choice
+        description: 'Select project to release to GitHub'
+        options: 
+          - 'provisioner'
+          - 'provisioner_examples_plugin'
+          - 'provisioner_installers_plugin'
+          - 'provisioner_single_board_plugin'
+        required: true
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_ACTION_PPROJECT_TO_RELEASE: ${{ github.event.inputs.project_to_release }}
+  POETRY_VERSION: "1.8.4"
+  
+jobs:
+  release_to_github:
+    name: Create a GitHub release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: [ '3.11' ]
+
+    steps:
+      - name: Checkout repository code (with submodules)
+        uses: actions/checkout@v3
+        with:
+          submodules: true  # Fetch Git submodules
+          token: ${{ secrets.PROVISIONER_PLUGINS_REPO_ACCESS_TOKEN }}
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+          POETRY_VERSION: ${{ env.POETRY_VERSION }}
+
+      # Tests should be run when the PR created after publish to PyPi was merged
+
+      - name: Create a GitHub release
+        uses: ./.github/actions/create_github_release
+        with:
+          publishable: ${{ github.event.inputs.project_to_release }}
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}

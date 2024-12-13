@@ -465,14 +465,14 @@
 }
 
 :root {
-  --bd-theme: #A26CEB;
+  --bd-theme: #9161D3;
   --bd-purple: #4c0bce;
   --bd-violet: #712cf9;
   --bd-accent: #ffe484;
   --bd-red: #ffe6e6;
   --bd-green: #e6ffe6;
   --bd-blue: #e6e6ff;
-  --bd-theme-rgb: 162, 108, 235;
+  --bd-theme-rgb: 145, 97, 211;
   --bd-purple-rgb: 76, 11, 206;
   --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
   --bd-accent-rgb: 255, 228, 132;
@@ -793,7 +793,7 @@
 }
 
 .bd-bg-violet {
-  background-color: #A26CEB;
+  background-color: #9161D3;
 }
 
 .bi {
@@ -829,7 +829,7 @@
 }
 
 .skippy {
-  background-color: #A26CEB;
+  background-color: #9161D3;
 }
 
 .skippy a {
@@ -1171,8 +1171,8 @@
 }
 
 .bd-example-flex div {
-  background-color: rgba(162, 108, 235, 0.15);
-  border: 1px solid rgba(162, 108, 235, 0.15);
+  background-color: rgba(145, 97, 211, 0.15);
+  border: 1px solid rgba(145, 97, 211, 0.15);
 }
 
 .example-container {
@@ -1421,12 +1421,12 @@
   --bs-btn-border-color: var(--bd-theme);
   --bs-btn-border-radius: .5rem;
   --bs-btn-hover-color: var(--bs-white);
-  --bs-btn-hover-bg: #9261d4;
-  --bs-btn-hover-border-color: #9261d4;
+  --bs-btn-hover-bg: #8357be;
+  --bs-btn-hover-border-color: #8357be;
   --bs-btn-focus-shadow-rgb: var(--bd-theme-rgb);
   --bs-btn-active-color: var(--bs-btn-hover-color);
-  --bs-btn-active-bg: #8256bc;
-  --bs-btn-active-border-color: #8256bc;
+  --bs-btn-active-bg: #744ea9;
+  --bs-btn-active-border-color: #744ea9;
 }
 
 .btn-bd-accent {
@@ -1494,12 +1494,12 @@
 }
 
 .bd-brand-logos {
-  color: #A26CEB;
+  color: #9161D3;
 }
 
 .bd-brand-logos .inverse {
   color: #fff;
-  background-color: #A26CEB;
+  background-color: #9161D3;
 }
 
 .bd-brand-item + .bd-brand-item {
@@ -1518,7 +1518,7 @@
 }
 
 .color-swatches .bd-theme {
-  background-color: #A26CEB;
+  background-color: #9161D3;
 }
 
 .color-swatches .bd-theme-light {

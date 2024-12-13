@@ -23,10 +23,24 @@ logs/
 .*.sw[a-z]
 *.un~
 
-# Tests
-htmlcov/
-
 # Python
 *__pycache__*
 .coverage
-coverage-combined.xml
+coverage.xml
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Poetry
+cache/
+dist/
+.venv/
+
+# Tests
+htmlcov/
+
+# Ansible
+.secrets
+hosts
+utils/ansible/hosts
+ansible_hosts

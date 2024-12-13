@@ -30,7 +30,7 @@ It comes with built-in CLI capabilities, such as:
 <h2 id="requirements">🏴‍☠️ Requirements</h2>
 
 - A Unix-like operating system: macOS, Linux
-- Python `v3.10` and above
+- Python `v3.11` and above
 
 <br>
 

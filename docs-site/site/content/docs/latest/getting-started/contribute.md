@@ -9,7 +9,7 @@ aliases: "/docs/latest/getting-started/contribute/"
 
 ## Tooling setup
 
-- [Python](https://www.python.org/) `v3.10` is required for packaging and tests
+- [Python](https://www.python.org/) `v3.11` is required for packaging and tests
 - [Node.js](https://nodejs.org/en/download/) is optional for managing the documentation site
 
 {{< callout info >}}
@@ -38,7 +38,7 @@ The `makefile` within this repository contains numerous tasks used for project d
 {{< bs-table >}}
 | Task | Description |
 | --- | --- |
-| `set-dev-deps-all` | Update dev dependencies and their config based on provisioner pyproject.toml |
+| `dev-mode-all` | Update dev dependencies and their config based on provisioner pyproject.toml |
 | `update-externals-all` | Update external source dependents |
 | `deps-all` | Update and install pyproject.toml dependencies on all virtual environments |
 | `fmtcheck-all` | Validate Python code format and imports |
