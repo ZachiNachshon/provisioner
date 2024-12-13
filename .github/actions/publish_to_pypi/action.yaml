@@ -52,6 +52,17 @@ runs:
         pip install coverage twine
       shell: bash    
 
+    # Discard any potential changes to the git index which might
+    # contain dependencies section in the pyproject.toml file
+    # and other non version-bump from previous steps/actions
+    - name: Discard previous changes to git index
+      run: |
+        git reset --hard
+        cd plugins 
+        git reset --hard
+        cd ..
+      shell: bash    
+
     - name: Map PyPI API token to project
       id: map_token
       run: |
@@ -134,18 +145,6 @@ runs:
         echo "::endgroup::" 
       shell: bash
 
-    # Discard any potential changes to the git index which might
-    # contain dependencies section in the pyproject.toml file
-    # and other non version-bump from previous steps/actions
-  
-    - name: Discard previous changes to git index
-      run: |
-        git reset --hard
-        cd plugins 
-        git reset --hard
-        cd ..
-      shell: bash    
-
     - name: Prepare git for commit
       run: |
         git config --global user.email "zachi.nachshon@gmail.com"
@@ -166,10 +165,6 @@ runs:
           # Publish shared package
           # 
           cd provisioner_shared
-          poetry version patch
-          shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-          echo -n $shared_ver > resources/version.txt
-
           git add resources/version.txt
           git add pyproject.toml
           cd ..
@@ -178,13 +173,6 @@ runs:
           # Publish runtime package
           # 
           cd ${publishable}
-          poetry version patch
-          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-          echo -n $ver > resources/version.txt
-
-          # Update shared version in the runtime pyproject.toml
-          ../scripts/update_shared_version.py --file_path pyproject.toml --package_name provisioner-shared --new_version "^${shared_ver}"
-
           git add resources/version.txt
           git add pyproject.toml
           cd ..
@@ -197,10 +185,6 @@ runs:
           # Publish plugin package
           # 
           cd plugins/${publishable}
-          poetry version patch
-          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-          echo -n $ver > resources/version.txt
-
           git add resources/version.txt
           git add pyproject.toml
           cd ../..
