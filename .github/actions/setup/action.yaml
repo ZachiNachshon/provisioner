@@ -37,7 +37,7 @@ runs:
       uses: actions/cache@v3
       with:
         path: /usr/local/bin/gh
-        key: provisioner-venv-${{ runner.os }}
+        key: provisioner-cache-gh-client-${{ runner.os }}
 
     - name: (Install) gh
       if: steps.cache-gh.outputs.cache-hit != 'true'
