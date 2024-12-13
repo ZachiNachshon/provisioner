@@ -21,7 +21,6 @@ PLUGINS_ROOT_FOLDER=plugins
 prod-mode: ## Enable production mode for packaging and distribution
 	@poetry self add poetry-multiproject-plugin
 	@./scripts/switch_mode.py prod
-	deps-install
 
 .PHONY: dev-mode
 dev-mode: ## Enable local development
