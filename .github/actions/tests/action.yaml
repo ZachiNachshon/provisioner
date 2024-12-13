@@ -2,17 +2,9 @@ name: 'Tests Suite'
 description: 'Run Tests Suite'
 
 inputs:
-  use_provisioner_from:
-    description: 'Provisioner origin code to run tests with'
-    required: true
-    options: 
-      - 'source'
-      - 'pypi'
-    default: 'source'
-    type: string
   module_to_test:
     description: 'Modules to run tests on'
-    required: true
+    required: false
     options: 
       - 'provisioner_examples_plugin'
       - 'provisioner_installers_plugin'
@@ -27,207 +19,35 @@ runs:
     - name: Print Action Arguments
       run: |
         echo "::group::Print test action arguments"
-        echo "use_provisioner_from: ${{ inputs.use_provisioner_from }}"
-        echo "module_to_test: ${{ inputs.module_to_test }}"
+        echo "No action arguments"
         echo "::endgroup::"
       shell: bash
 
-    - name: Update pyproject.toml with developement dependencies on all projects
+    - name: Switch to DEV mode on all projects
       run: |
-        echo "::group::Update dev dependency on all projects"
-        pip install tomlkit
-        pip install coverage
-        make dev-mode-all
+        echo "::group::Switching to DEV mode on all projects"
+        make dev-mode
         echo "::endgroup::"
       shell: bash
 
-    - name: Enable provisioner as a direct sources dependency in all modules (for testing)
-      if: ${{ inputs.use_provisioner_from == 'source' }}
-      run: |
-        echo "::group::Setting provisioner as direct dependency on all projects"
-        make use-provisioner-from-sources
-        echo "::endgroup::"
-      shell: bash
-
-    - name: Enable provisioner as a PyPi package in all modules (for testing)
-      if: ${{ inputs.use_provisioner_from == 'pypi' }}
-      run: |
-        echo "::group::Setting provisioner as remote PyPi dependency on all projects"
-        make use-provisioner-from-pypi
-        echo "::endgroup::"
-      shell: bash
-
-    - name: (Cache) Try Load - provisioner
-      id: cached-venv-provisioner
+    - name: (Cache) Try Load - provisioner monorepo
+      id: cached-venv-provisioner-monorepo
       uses: actions/cache@v3
       with:
         path: ./provisioner/.venv
-        key: provisioner-venv-${{ runner.os }}-${{ hashFiles('./provisioner/poetry.lock') }}-${{ hashFiles('./provisioner/pyproject.toml') }}
+        key: provisioner-monorepo-venv-${{ runner.os }}-${{ hashFiles('./provisioner/poetry.lock') }}-${{ hashFiles('./provisioner/pyproject.toml') }}
 
-    - name: (Install) provisioner
-      if: steps.cached-venv-provisioner.outputs.cache-hit != 'true'
+    - name: (Install) provisioner monorepo
+      if: steps.cached-venv-provisioner-monorepo.outputs.cache-hit != 'true'
       run: |
-        echo "::group::Installing provisioner dependecies"
-        cd provisioner
-        poetry install --all-extras
-        cd ..
+        echo "::group::Installing provisioner monorepo dependecies"
+        deps-install
         echo "::endgroup::"
       shell: bash
     
-    - name: (Cache) Try Load - provisioner_features_lib
-      id: cached-venv-provisioner-features-lib
-      uses: actions/cache@v3
-      with:
-        path: ./provisioner_features_lib/.venv
-        key: provisioner_features_lib-venv-${{ runner.os }}-${{ hashFiles('./provisioner_features_lib/poetry.lock') }}-${{ hashFiles('./provisioner_features_lib/pyproject.toml') }}
-
-    - name: (Install) provisioner_features_lib
-      if: steps.cached-venv-provisioner-features-lib.outputs.cache-hit != 'true'
+    - name: (Test) provisioner monorepo
       run: |
-        echo "::group::Installing provisioner_features_lib dependecies"
-        cd provisioner_features_lib
-        poetry install
-        cd ..
-        echo "::endgroup::"
-      shell: bash
-
-    - name: (Cache) Try Load - provisioner_examples_plugin
-      if: >- 
-        ${{ 
-          inputs.module_to_test == 'provisioner_examples_plugin' || 
-          inputs.module_to_test == 'all' 
-        }}
-      id: cached-venv-provisioner-examples-plugin
-      uses: actions/cache@v3
-      with:
-        path: ./plugins/provisioner_examples_plugin/.venv
-        key: provisioner_examples_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_examples_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_examples_plugin/pyproject.toml') }}
-
-    - name: (Install) provisioner_examples_plugin
-      if: >- 
-        ${{ 
-          (inputs.module_to_test == 'provisioner_examples_plugin' || 
-          inputs.module_to_test == 'all') && 
-          steps.cached-venv-provisioner-examples-plugin.outputs.cache-hit != 'true' 
-        }}
-      run: |
-        echo "::group::Installing provisioner_examples_plugin dependecies"
-        cd plugins/provisioner_examples_plugin
-        poetry install
-        cd ..
-        echo "::endgroup::"
-      shell: bash
-
-    - name: (Cache) Try Load - provisioner_installers_plugin
-      if: >- 
-        ${{ 
-          inputs.module_to_test == 'provisioner_installers_plugin' || 
-          inputs.module_to_test == 'all' 
-        }}
-      id: cached-venv-provisioner-installers-plugin
-      uses: actions/cache@v3
-      with:
-        path: ./plugins/provisioner_installers_plugin/.venv
-        key: provisioner_installers_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_installers_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_installers_plugin/pyproject.toml') }}
-
-    - name: (Install) provisioner_installers_plugin
-      if: >- 
-        ${{ 
-          (inputs.module_to_test == 'provisioner_installers_plugin' || 
-          inputs.module_to_test == 'all') && 
-          steps.cached-venv-provisioner-installers-plugin.outputs.cache-hit != 'true'
-        }}
-      run: |
-        echo "::group::Installing provisioner_installers_plugin dependecies"
-        cd plugins/provisioner_installers_plugin
-        poetry install
-        cd ..
-        echo "::endgroup::"
-      shell: bash
-
-    - name: (Cache) Try Load - provisioner_single_board_plugin
-      if: >- 
-        ${{ 
-          inputs.module_to_test == 'provisioner_single_board_plugin' || 
-          inputs.module_to_test == 'all' 
-        }}
-      id: cached-venv-provisioner-single-board-plugin
-      uses: actions/cache@v3
-      with:
-        path: ./plugins/provisioner_single_board_plugin/.venv
-        key: provisioner_single_board_plugin-venv-${{ runner.os }}-${{ hashFiles('./plugins/provisioner_single_board_plugin/poetry.lock') }}-${{ hashFiles('./provisioner_single_board_plugin/pyproject.toml') }}
-
-    - name: (Install) provisioner_single_board_plugin
-      if: >- 
-        ${{ 
-          (inputs.module_to_test == 'provisioner_single_board_plugin' || 
-          inputs.module_to_test == 'all') && 
-          steps.cached-venv-provisioner-single-board-plugin.outputs.cache-hit != 'true'
-        }}
-      run: |
-        echo "::group::Installing provisioner_single_board_plugin dependecies"
-        cd plugins/provisioner_single_board_plugin
-        poetry install
-        cd ..
-        echo "::endgroup::"
-      shell: bash
-
-    - name: (Test) provisioner
-      run: |
-        echo "::group::Running tests on provisioner module"
-        cd provisioner
+        echo "::group::Running tests on provisioner monorepo"
         make test-coverage-xml
-        cd ..
-        echo "::endgroup::"
-      shell: bash    
-
-    - name: (Test) provisioner_features_lib
-      run: |
-        echo "::group::Running tests on provisioner_features_lib module"
-        cd provisioner_features_lib
-        make test-coverage-xml
-        cd ..
-        echo "::endgroup::"
-      shell: bash    
-
-    - name: (Test) provisioner_examples_plugin
-      if: >- 
-        ${{ 
-          inputs.module_to_test == 'provisioner_examples_plugin' || 
-          inputs.module_to_test == 'all'
-        }}
-      run: |
-        echo "::group::Running tests on provisioner_examples_plugin module"
-        cd plugins/provisioner_examples_plugin
-        make test-coverage-xml
-        cd ..
-        echo "::endgroup::"
-      shell: bash    
-    
-    - name: (Test) provisioner_installers_plugin
-      if: >- 
-        ${{ 
-          inputs.module_to_test == 'provisioner_installers_plugin' || 
-          inputs.module_to_test == 'all'
-        }}
-      run: |
-        echo "::group::Running tests on provisioner_installers_plugin module"
-        cd plugins/provisioner_installers_plugin
-        make test-coverage-xml
-        cd ..
-        echo "::endgroup::"
-      shell: bash    
-
-    - name: (Test) provisioner_single_board_plugin
-      if: >- 
-        ${{ 
-          inputs.module_to_test == 'provisioner_single_board_plugin' || 
-          inputs.module_to_test == 'all'
-        }}
-      run: |
-        echo "::group::Running tests on provisioner_single_board_plugin module"
-        cd plugins/provisioner_single_board_plugin
-        make test-coverage-xml
-        cd ..
         echo "::endgroup::"
       shell: bash    

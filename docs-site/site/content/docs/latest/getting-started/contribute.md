@@ -9,7 +9,7 @@ aliases: "/docs/latest/getting-started/contribute/"
 
 ## Tooling setup
 
-- [Python](https://www.python.org/) `v3.10` is required for packaging and tests
+- [Python](https://www.python.org/) `v3.11` is required for packaging and tests
 - [Node.js](https://nodejs.org/en/download/) is optional for managing the documentation site
 
 {{< callout info >}}

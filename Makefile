@@ -25,9 +25,8 @@ prod-mode: ## Enable production mode for packaging and distribution
 
 .PHONY: dev-mode
 dev-mode: ## Enable local development
-	@pip3 install tomlkit --disable-pip-version-check
+	@pip3 install tomlkit --disable-pip-version-check --no-python-version-warning
 	@./scripts/switch_mode.py dev
-	deps-install
 
 .PHONY: deps-install
 deps-install: ## Update and install pyproject.toml dependencies on all virtual environments
@@ -60,7 +59,6 @@ test-coverage-html: ## Run tests suite on runtime and all plugins
 	if [ $$? -ne 0 ]; then \
 		exit 1; \
 	fi; \
-	done
 	@echo "\n\n========= COVERAGE FULL REPORT ======================\n\n"		
 	@poetry run coverage report
 	@poetry run coverage html
@@ -75,8 +73,7 @@ test-coverage-xml: ## Run Unit/E2E/IT tests
 	@poetry run coverage run -m pytest; \
 	if [ $$? -ne 0 ]; then \
 		exit 1; \
-	fi; \
-	done
+	fi; 
 	@echo "\n\n========= COVERAGE FULL REPORT ======================\n\n"		
 	@poetry run coverage report
 	@poetry run coverage xml

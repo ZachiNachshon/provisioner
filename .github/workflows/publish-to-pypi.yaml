@@ -2,11 +2,22 @@ name: Publish Provisioner to PyPi (auto version increment)
 
 on:
   workflow_dispatch:
+    inputs:
+      publishable_project:
+        type: choice
+        description: 'Select a PyPi publishable'
+        options: 
+          - 'provisioner'
+          - 'provisioner_examples_plugin'
+          - 'provisioner_installers_plugin'
+          - 'provisioner_single_board_plugin'
+        required: true
 
 env:
   PYPI_API_TOKEN: ${{ secrets.PROVISIONER_PYPI_API_TOKEN }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  POETRY_VERSION: "1.4.1"
+  GH_ACTION_PROJECT_TO_PUBLISH: ${{ github.event.inputs.publishable_project }}
+  POETRY_VERSION: "1.8.4"
   
 jobs:
   publish_to_pypi:
@@ -14,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [ '3.10' ]
+        python: [ '3.11' ]
 
     steps:
       - name: Checkout repository code (with submodules)
@@ -31,14 +42,10 @@ jobs:
 
       - name: Run Tests
         uses: ./.github/actions/tests
-        with:
-          use_provisioner_from: source
-          module_to_test: all
 
       - name: Publish to PyPi & GitHub
-        uses: ./.github/actions/publish
+        uses: ./.github/actions/publish_to_pypi
         with:
-          publishable: provisioner
-          is_plugin: false
+          publishable: ${{ github.event.inputs.publishable_project }}
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
           PYPI_API_TOKEN: ${{ env.PYPI_API_TOKEN }}

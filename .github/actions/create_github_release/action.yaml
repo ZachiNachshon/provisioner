@@ -1,12 +1,12 @@
 name: 'Create a GitHub release version'
-description: 'Does the publishable is of type plugin?'
+description: 'Releasing to GitHub a previously PyPi published projects'
 
 inputs:
   GITHUB_TOKEN:
     type: string
     description: 'GitHub API token'
     required: true
-  publishable:
+  project_to_release:
     type: choice
     description: 'Select project to add as GitHub release'
     options: 
@@ -15,10 +15,6 @@ inputs:
       - 'provisioner_installers_plugin'
       - 'provisioner_single_board_plugin'
     required: true
-  is_plugin:
-    type: bool
-    description: 'Does the publishable is of type plugin?'
-    required: true
 
 runs:
   using: 'composite'  
@@ -26,8 +22,7 @@ runs:
     - name: Print Action Arguments
       run: |
         echo "::group::Print GitHub release arguments"
-        echo "publishable: ${{ inputs.publishable }}"
-        echo "is_plugin: ${{ inputs.is_plugin }}"
+        echo "project_to_release: ${{ inputs.project_to_release }}"
         echo "::endgroup::"
       shell: bash
 
@@ -45,18 +40,23 @@ runs:
     - name: Create a GitHub release
       run: |
         echo "::group::Creating a GitHub release"
-        publishable=${{ inputs.publishable }}
-        if [ ${{ inputs.is_plugin }} == true ]; then
-          cd plugins/${publishable}
-        else
-          cd ${publishable}
-        fi
-        make pip-publish-github
+        project_to_release=${{ inputs.project_to_release }}
+        publisher_script_path=""
 
-        if [ ${{ inputs.is_plugin }} == true ]; then
-          cd ../..
+        if [ ${project_to_release} == "provisioner"]; then
+          publisher_script_path="../scripts/publish_to_pypi.sh"
+          cd ${project_to_release}
         else
+          publisher_script_path="../../scripts/publish_to_pypi.sh"
+          cd plugins/${project_to_release}
+        fi
+
+        ./{publisher_script_path} publish --build-type wheel --release-type github -y
+
+        if [ ${project_to_release} == "provisioner"]; then
           cd ..
+        else
+          cd ../..
         fi
         echo "::endgroup::" 
       env:

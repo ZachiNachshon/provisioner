@@ -1,12 +1,12 @@
 name: 'Publish Provisioner or Plugin to PyPi (auto version increment)'
-description: 'Does the publishable is of type plugin?'
+description: 'Auto increment takes place before publishing'
 
 inputs:
   PYPI_API_TOKEN:
     type: string
     description: 'PyPi API token'
     required: true
-  publishable:
+  project_to_publish:
     type: choice
     description: 'Select project to publish to PyPi'
     options: 
@@ -15,10 +15,6 @@ inputs:
       - 'provisioner_installers_plugin'
       - 'provisioner_single_board_plugin'
     required: true
-  is_plugin:
-    type: bool
-    description: 'Does the publishable is of type plugin?'
-    required: true
 
 runs:
   using: 'composite'  
@@ -26,8 +22,7 @@ runs:
     - name: Print Action Arguments
       run: |
         echo "::group::Print publish action arguments"
-        echo "publishable: ${{ inputs.publishable }}"
-        echo "is_plugin: ${{ inputs.is_plugin }}"
+        echo "project_to_publish: ${{ inputs.project_to_publish }}"
         echo "::endgroup::"
       shell: bash
 
@@ -39,22 +34,28 @@ runs:
     - name: Publish to PyPi
       run: |
         echo "::group::Publishing to PyPi"
-        publishable=${{ inputs.publishable }}
-        if [ ${{ inputs.is_plugin }} == true ]; then
-          cd plugins/${publishable}
-        else
+        publishable=${{ inputs.project_to_publish }}
+        publisher_script_path=""
+
+        # Is the publishable a plugin?
+        if [ ${publishable} == "provisioner"]; then
+          publisher_script_path="../scripts/publish_to_pypi.sh"
           cd ${publishable}
+        else
+          publisher_script_path="../../scripts/publish_to_pypi.sh"
+          cd plugins/${publishable}
         fi
+
         poetry version patch
         ver=$(poetry version | awk '{print $2}' | tr -d '\n')
         echo -n $ver > ${publishable}/resources/version.txt
 
-        make pip-publish-pypi
+        ./{publisher_script_path} publish --build-type wheel --release-type pypi -y
 
-        if [ ${{ inputs.is_plugin }} == true ]; then
-          cd ../..
-        else
+        if [ ${publishable} == "provisioner"]; then
           cd ..
+        else
+          cd ../..
         fi
         echo "::endgroup::" 
       env:
@@ -83,10 +84,11 @@ runs:
       run: |
         echo "::group::Opening a GitHub PR with released version"
         publishable=${{ inputs.publishable }}
-        if [ ${{ inputs.is_plugin }} == true ]; then
-          cd plugins/${publishable}
-        else
+
+        if [ ${publishable} == "provisioner"]; then
           cd ${publishable}
+        else
+          cd plugins/${publishable}
         fi
 
         poetry version patch
@@ -104,10 +106,10 @@ runs:
             --base master --head ${branch_name} \
             --label "auto pr"
             
-        if [ ${{ inputs.is_plugin }} == true ]; then
-          cd ../..
-        else
+        if [ ${publishable} == "provisioner"]; then
           cd ..
+        else
+          cd ../..
         fi
         echo "::endgroup::"
       shell: bash
