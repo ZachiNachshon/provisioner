@@ -29,10 +29,6 @@ dev-mode: ## Enable local development
 	@./scripts/switch_mode.py dev
 	deps-install
 
-.PHONY: update-externals
-update-externals: ## Update external source dependencies
-	@git-deps-syncer sync shell_scripts_lib --save-dev -y
-
 .PHONY: deps-install
 deps-install: ## Update and install pyproject.toml dependencies on all virtual environments
 	@poetry install --with dev --sync -v
@@ -135,24 +131,12 @@ clear-project: ## Clear Poetry virtual environments and clear Python cache
 # http://localhost:9001/provisioner/
 .PHONY: docs-site
 docs-site: ## Run a local documentation site (required: npm, hugo)
-	@npm run docs-serve-lan
+	@cd docs-site; npm run docs-serve; cd-
 
 # http://192.168.x.xx:9001/
 .PHONY: docs-site-lan
 docs-site-lan: ## Run a local documentation site with LAN available (required: npm, hugo)
-	@npm run docs-serve
-
-# .PHONY: pDev
-# pDev: ## Interact with ./external/.../poetry_dev.sh            (Usage: make pDev 'fmt --check-only')
-# 	@${POETRY_DEV} $(filter-out $@,$(MAKECMDGOALS))
-
-# .PHONY: pReleaser
-# pReleaser: ## Interact with ./external/.../poetry_pip_releaser.sh   (Usage: make pReleaser 'install --build-type sdist --multi-project')
-# 	@${POETRY_PIP_RELEASER} $(filter-out $@,$(MAKECMDGOALS))
-
-# .PHONY: diagrams
-# diagrams: ## Format Python code using Black style (https://black.readthedocs.io)
-# 	@${POETRY_WRAPPER_DEV} run diagrams ${PROJECT_LOCATION}/rpi/os/diagrams/install_diag.py
+	@cd docs-site; npm run docs-serve-lan; cd-
 
 # 
 # To add a submodule for the first time to an existing repository:
