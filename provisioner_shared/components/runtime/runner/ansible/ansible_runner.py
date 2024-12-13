@@ -22,13 +22,13 @@ ProvisionerAnsibleProjectPath = os.path.expanduser("~/.config/provisioner/ansibl
 
 ANSIBLE_HOSTS_FILE_NAME = "hosts"
 
-ANSIBLE_CFG_PYTHON_PACKAGE = "components.runtime.runner.ansible.resources"
+ANSIBLE_CFG_PYTHON_PACKAGE = "provisioner_shared.components.runtime.runner.ansible.resources"
 ANSIBLE_CFG_FILE_NAME = "ansible.cfg"
 
-ANSIBLE_CALLBACK_PLUGINS_PYTHON_PACKAGE = "components.runtime.runner.ansible.resources.callback_plugins"
+ANSIBLE_CALLBACK_PLUGINS_PYTHON_PACKAGE = "provisioner_shared.components.runtime.runner.ansible.resources.callback_plugins"
 ANSIBLE_CALLBACK_PLUGINS_DIR_NAME = "callback_plugins"
 
-ANSIBLE_PLAYBOOKS_PYTHON_PACKAGE = "components.external.ansible_playbooks.playbooks"
+ANSIBLE_PLAYBOOKS_PYTHON_PACKAGE = "provisioner_shared.components.external.ansible_playbooks.playbooks"
 ANSIBLE_PLAYBOOKS_DIR_NAME = "playbooks"
 
 ANSIBLE_STDOUT_PLUGIN_NAME = "custom_yaml"

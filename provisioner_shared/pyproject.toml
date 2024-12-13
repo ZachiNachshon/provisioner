@@ -1,6 +1,9 @@
-# It is important to keep the shared project as a standalone package, to avoid
+# IMPORTANT !
+# It is important to keep the shared dependencies as a standalone package, to avoid
 # from shared source dependencies to get deleted upon uninstalling a pip package, 
-# a plugin for example, that removed source dependencies of other plugins or the runtime itself.
+# for example, when deleting a provisioner plugin will remove source dependencies 
+# used by other plugins or the runtime itself.
+# =================================================================================
 [tool.poetry]
 name = "provisioner_shared"
 # Version should be in line with the runtime version
@@ -8,6 +11,7 @@ version = "0.1.11"
 description = "Shared package used by the provisioner runtime and plugins"
 authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
 
+# Include relative directories using the poetry-mutiproject-plugin
 packages = [
     { include = "components", to = "provisioner_shared" },
 ]
@@ -15,7 +19,6 @@ packages = [
 # Add components as dependencies
 [tool.poetry.dependencies]
 python = "^3.11"
-
 typer = ">=0.6.1,<0.13.0"
 loguru = ">=0.6,<0.8"
 requests = "^2.28.1"
@@ -27,6 +30,12 @@ inquirer = ">=2.10,<4.0"
 python-hosts = "^1.0.3"
 ansible = ">=7.3,<11.0"
 ansible-runner = "^2.3.2"
+
+# GitPython = "^3.1.18" # - GitPython provides object model access to your git repository (https://github.com/gitpython-developers/GitPython)
+# Jinja2 = "^3.0.3"      - Templating engine (https://github.com/pallets/jinja)
+# sh = "^1.14.2"         - Subprocess replacement for Python (https://github.com/amoffat/sh)
+# backoff = "^1.10.0"    - Function decoration for backoff and retry (https://github.com/litl/backoff)
+# tenacity = "^8.0.1"    - General-purpose retrying library (https://github.com/jd/tenacity)
 
 [build-system]
 requires = ["poetry-core>=1.4.0"]

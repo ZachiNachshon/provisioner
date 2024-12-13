@@ -20,7 +20,7 @@ from provisioner_shared.components.runtime.utils.paths import Paths
 # NOTE: THOES ARE E2E TESTS - THEY'LL CREATE FILES & FOLDERS IN THE FILE SYSTEM
 #
 # To run these directly from the terminal use:
-#  poetry run coverage run -m pytest components/runtime/runner/ansible/ansible_test.py
+#  poetry run coverage run -m pytest provisioner_shared/components/runtime/runner/ansible/ansible_test.py
 #
 ANSIBLE_PLAYBOOK_TEST_PATH = "/ansible/playbook/path"
 

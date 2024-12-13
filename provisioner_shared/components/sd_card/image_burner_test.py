@@ -47,7 +47,7 @@ BLOCK_DEVICES_OUTPUT = """
    6:                APFS Volume VM                      3.2 GB     diskBsF
 """
 
-SD_CARD_IMAGE_BURNER_RUNNER_PATH = "components.sd_card.image_burner.ImageBurnerCmdRunner"
+SD_CARD_IMAGE_BURNER_RUNNER_PATH = "provisioner_shared.components.sd_card.image_burner.ImageBurnerCmdRunner"
 
 
 class ImageBurnerTestShould(unittest.TestCase):

@@ -4,8 +4,8 @@ from typing import List
 
 from provisioner_shared.components.runtime.domain.serialize import SerializationBase
 
-INTERNAL_CONFIG_TEST_DATA_FILE_PATH = "components/runtime/test_data/internal_config.yaml"
-USER_CONFIG_TEST_DATA_FILE_PATH = "components/runtime/test_data/user_config.yaml"
+INTERNAL_CONFIG_TEST_DATA_FILE_PATH = "provisioner_shared/components/runtime/test_data/internal_config.yaml"
+USER_CONFIG_TEST_DATA_FILE_PATH = "provisioner_shared/components/runtime/test_data/user_config.yaml"
 
 
 class FakeConfigObj(SerializationBase):

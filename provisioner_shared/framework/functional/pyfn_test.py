@@ -6,9 +6,9 @@ from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
 from provisioner_shared.components.runtime.shared.collaborators_fakes import FakeCoreCollaborators
 from provisioner_shared.components.runtime.utils.os import MAC_OS, OsArch
-from framework.functional.either import ERR, VAL
-from framework.functional.environment import PyFnEnvBase
-from framework.functional.pyfn import PyFn, PyFnEvaluator
+from provisioner_shared.framework.functional.either import ERR, VAL
+from provisioner_shared.framework.functional.environment import PyFnEnvBase
+from provisioner_shared.framework.functional.pyfn import PyFn, PyFnEvaluator
 
 
 # To run as a single test target:

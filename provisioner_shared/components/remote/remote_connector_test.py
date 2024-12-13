@@ -28,7 +28,7 @@ from provisioner_shared.components.runtime.test_lib.test_env import TestEnv
 from provisioner_shared.components.runtime.utils.prompter import PromptLevel
 
 # To run as a single test target:
-#  poetry run coverage run -m pytest provisioner_features_lib/remote/remote_connector_test.py
+#  poetry run coverage run -m pytest provisioner_shared/components/remote/remote_connector_test.py
 #
 ARG_IP_DISCOVERY_RANGE = "1.1.1.1/24"
 DRY_RUN_RESPONSE = "DRY_RUN_RESPONSE"
@@ -56,7 +56,7 @@ HOST_SELECTION_OPTIONS_DICT = {
     },
 }
 
-REMOTE_MACHINE_CONNECTOR_PATH = "components.remote.remote_connector.RemoteMachineConnector"
+REMOTE_MACHINE_CONNECTOR_PATH = "provisioner_shared.components.remote.remote_connector.RemoteMachineConnector"
 
 
 class RemoteMachineConnectorTestShould(unittest.TestCase):

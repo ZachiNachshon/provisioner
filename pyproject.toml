@@ -38,27 +38,7 @@ exclude = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-
-# For development
-provisioner-shared = { path = "/Users/zachin/codebase/github/provisioner/provisioner_shared", develop = true }
-# provisioner-shared = { path = "provisioner_shared", develop = true }
-
-# typer = ">=0.6.1,<0.13.0"
-# loguru = ">=0.6,<0.8"
-# requests = "^2.28.1"
-# rich = ">=12.5.1,<14.0.0"
-# python3-nmap = "^1.5.4"
-# python-libnmap = "^0.7.3"
-# PyYAML = "^6.0"
-# inquirer = ">=2.10,<4.0"
-# python-hosts = "^1.0.3"
-# ansible = ">=7.3,<11.0"
-# ansible-runner = "^2.3.2"
-# GitPython = "^3.1.18" # - GitPython provides object model access to your git repository (https://github.com/gitpython-developers/GitPython)
-# Jinja2 = "^3.0.3"      - Templating engine (https://github.com/pallets/jinja)
-# sh = "^1.14.2"         - Subprocess replacement for Python (https://github.com/amoffat/sh)
-# backoff = "^1.10.0"    - Function decoration for backoff and retry (https://github.com/litl/backoff)
-# tenacity = "^8.0.1"    - General-purpose retrying library (https://github.com/jd/tenacity)
+provisioner-shared = {path = "/Users/zachin/codebase/github/provisioner/provisioner_shared", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"

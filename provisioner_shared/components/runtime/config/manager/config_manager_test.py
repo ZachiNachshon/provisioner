@@ -22,9 +22,12 @@ ARG_PLUGIN_CONFIG_USER_PATH = "/path/to/user/plugin/config"
 
 TEST_PLUGIN_NAME = "test_plugin"
 
+CONFIG_READER_PKG_PATH = "provisioner_shared.components.runtime.config.reader.config_reader"
+CONFIG_MANAGER_PKG_PATH = "provisioner_shared.components.runtime.config.manager.config_manager"
+
 
 # To run as a single test target:
-#  poetry run coverage run -m pytest components/runtime/config/manager/config_manager_test.py
+#  poetry run coverage run -m pytest provisioner_shared/components/runtime/config/manager/config_manager_test.py
 #
 class FakeBasicConfigObj(SerializationBase):
 
@@ -106,7 +109,7 @@ class ConfigResolverTestShould(unittest.TestCase):
         )
 
     @mock.patch(
-        "components.runtime.config.reader.config_reader.ConfigReader.read_config_safe_fn",
+        f"{CONFIG_READER_PKG_PATH}.ConfigReader.read_config_safe_fn",
         side_effect=[create_fake_config_obj()],
     )
     def test_load_provisioner_config_from_internal_only(self, run_call: mock.MagicMock) -> None:
@@ -116,11 +119,11 @@ class ConfigResolverTestShould(unittest.TestCase):
         Assertion.expect_equal_objects(self, resolved_config.int_value, 123)
 
     @mock.patch(
-        "components.runtime.config.reader.config_reader.ConfigReader.read_config_as_json_dict_safe_fn",
+        f"{CONFIG_READER_PKG_PATH}.ConfigReader.read_config_as_json_dict_safe_fn",
         side_effect=[create_fake_config_dict()],
     )
     @mock.patch(
-        "components.runtime.config.reader.config_reader.ConfigReader.read_config_safe_fn",
+        f"{CONFIG_READER_PKG_PATH}.ConfigReader.read_config_safe_fn",
         side_effect=[create_fake_config_obj()],
     )
     def test_load_provisioner_config_from_internal_and_user(
@@ -151,14 +154,14 @@ class ConfigResolverTestShould(unittest.TestCase):
         self.assertEqual(output.supported_os_arch.darwin["arm"], False)
 
     @mock.patch(
-        "components.runtime.config.manager.config_manager.ConfigManager._merge_user_config_with_internal", return_value=None
+        f"{CONFIG_MANAGER_PKG_PATH}.ConfigManager._merge_user_config_with_internal", return_value=None
     )
     @mock.patch(
-        "components.runtime.config.reader.config_reader.ConfigReader.read_config_as_json_dict_safe_fn",
+        f"{CONFIG_READER_PKG_PATH}.ConfigReader.read_config_as_json_dict_safe_fn",
         side_effect=[create_fake_config_dict()],
     )
     @mock.patch(
-        "components.runtime.config.reader.config_reader.ConfigReader.read_config_safe_fn",
+        f"{CONFIG_READER_PKG_PATH}.ConfigReader.read_config_safe_fn",
         side_effect=[create_fake_config_obj()],
     )
     def test_fail_to_merge_user_config(
@@ -171,7 +174,7 @@ class ConfigResolverTestShould(unittest.TestCase):
             )
 
     @mock.patch(
-        "components.runtime.config.reader.config_reader.ConfigReader.read_config_safe_fn",
+        f"{CONFIG_READER_PKG_PATH}.ConfigReader.read_config_safe_fn",
         side_effect=[create_fake_config_obj()],
     )
     def test_no_user_plugin_config(self, read_cfg_call: mock.MagicMock) -> None:
@@ -185,7 +188,7 @@ class ConfigResolverTestShould(unittest.TestCase):
         self.assertEqual(output.dict_obj["plugins"][TEST_PLUGIN_NAME].dict_obj["int_value"], 123)
 
     @mock.patch(
-        "components.runtime.config.reader.config_reader.ConfigReader.read_config_safe_fn",
+        f"{CONFIG_READER_PKG_PATH}.ConfigReader.read_config_safe_fn",
         side_effect=[create_plugins_fake_config_obj()],
     )
     def test_empty_user_plugin_config(self, read_cfg_call: mock.MagicMock) -> None:
@@ -201,7 +204,7 @@ class ConfigResolverTestShould(unittest.TestCase):
         self.assertEqual(output.dict_obj["plugins"][TEST_PLUGIN_NAME].int_value, 123)
 
     @mock.patch(
-        "components.runtime.config.reader.config_reader.ConfigReader.read_config_safe_fn",
+        f"{CONFIG_READER_PKG_PATH}.ConfigReader.read_config_safe_fn",
         side_effect=[create_plugins_fake_config_obj()],
     )
     def test_merge_plugin_config_success(self, read_cfg_call: mock.MagicMock) -> None:

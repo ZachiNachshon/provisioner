@@ -85,7 +85,7 @@ class HttpClientTestShould(unittest.TestCase):
         self.assertTrue(response.error.is_timeout)
 
     @mock.patch(
-        "components.runtime.utils.httpclient.HttpClient._base_request",
+        "provisioner_shared.components.runtime.utils.httpclient.HttpClient._base_request",
         side_effect=[HttpResponse(raw=None, content="test content")],
     )
     def test_get_arguments(self, base_req_call: mock.MagicMock):
@@ -100,7 +100,7 @@ class HttpClientTestShould(unittest.TestCase):
         self.assertEqual({"key": "value"}, get_call_kwargs["headers"])
 
     @mock.patch(
-        "components.runtime.utils.httpclient.HttpClient._base_request",
+        "provisioner_shared.components.runtime.utils.httpclient.HttpClient._base_request",
         side_effect=[HttpResponse(raw=None, content="test content")],
     )
     def test_post_arguments(self, base_req_call: mock.MagicMock):

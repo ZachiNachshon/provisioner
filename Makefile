@@ -20,9 +20,14 @@ PLUGINS_ROOT_FOLDER=plugins
 .PHONY: prod-mode
 prod-mode: ## Enable production mode for packaging and distribution
 	@poetry self add poetry-multiproject-plugin
+	@./scripts/switch_mode.py prod
+	deps-install
 
 .PHONY: dev-mode
-dev-mode: deps-install test ## Enable local development
+dev-mode: ## Enable local development
+	@pip3 install tomlkit --disable-pip-version-check
+	@./scripts/switch_mode.py dev
+	deps-install
 
 .PHONY: update-externals
 update-externals: ## Update external source dependencies
@@ -129,13 +134,13 @@ clear-project: ## Clear Poetry virtual environments and clear Python cache
 
 # http://localhost:9001/provisioner/
 .PHONY: docs-site
-docs-site: ## Run a local documentation site
-	@${POETRY_DEV} docs
+docs-site: ## Run a local documentation site (required: npm, hugo)
+	@npm run docs-serve-lan
 
 # http://192.168.x.xx:9001/
 .PHONY: docs-site-lan
-docs-site-lan: ## Run a local documentation site (LAN available)
-	@${POETRY_DEV} docs --lan
+docs-site-lan: ## Run a local documentation site with LAN available (required: npm, hugo)
+	@npm run docs-serve
 
 # .PHONY: pDev
 # pDev: ## Interact with ./external/.../poetry_dev.sh            (Usage: make pDev 'fmt --check-only')

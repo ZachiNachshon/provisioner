@@ -4,13 +4,10 @@ version = "0.1.11"
 description = "Provision Everything Anywhere"
 authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
 
-# Include relative directories using the poetry-mutiproject-plugin
 packages = [
     { include = "main.py", to = "provisioner_runtime"},
     { include = "src", to = "provisioner_runtime" },
     { include = "resources", to = "provisioner_runtime"},
-    # { include = "components/runtime", from = "../", to = "provisioner_runtime" },
-    # { include = "components/external/ansible_playbooks", from = "../", to = "provisioner_runtime" }
 ]
 
 # A list of patterns that will be included in the final package.
@@ -22,28 +19,10 @@ packages = [
 
 [tool.poetry.scripts]
 provisioner = "provisioner_runtime.main:main"
-# rpi_diagrams = "rpi.os.diagrams.install_diag:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-
-# For development
-provisioner-shared = { path = "/Users/zachin/codebase/github/provisioner/provisioner_shared", develop = true }
-
-# For production and PyPi publishing
-# provisioner-shared = "^0.1.11"
-
-# typer = ">=0.6.1,<0.13.0"
-# loguru = ">=0.6,<0.8"
-# requests = "^2.28.1"
-# rich = ">=12.5.1,<14.0.0"
-# python3-nmap = "^1.5.4"
-# python-libnmap = "^0.7.3"
-# PyYAML = "^6.0"
-# inquirer = ">=2.10,<4.0"
-# python-hosts = "^1.0.3"
-# ansible = ">=7.3,<11.0"
-# ansible-runner = "^2.3.2"
+provisioner-shared = {path = "/Users/zachin/codebase/github/provisioner/provisioner_shared", develop = true}  # provisioner-shared = "^0.1.11"
 
 [build-system]
 requires = ["poetry-core>=1.4.0"]

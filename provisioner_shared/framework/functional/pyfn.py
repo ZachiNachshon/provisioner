@@ -5,8 +5,8 @@ from typing import Callable, Generic, List, NoReturn, Type, TypeVar, Union
 
 from loguru import logger
 
-from framework.functional.either import Either, Left, Right, raise_exception
-from framework.functional.environment import PyFnEnvBase
+from provisioner_shared.framework.functional.either import Either, Left, Right, raise_exception
+from provisioner_shared.framework.functional.environment import PyFnEnvBase
 
 # PyFn Types
 ENV = TypeVar("ENV", bound=PyFnEnvBase)  # Environment
