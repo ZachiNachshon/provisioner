@@ -94,6 +94,8 @@ runs:
 
         # Is the publishable a plugin?
         if [ ${publishable} == "provisioner" ]; then
+
+          echo "Publishing provisioner runtime & shared packages"
         
           publisher_script_path="../scripts/publish_to_pypi.sh"
 
@@ -125,6 +127,8 @@ runs:
           cd ..
 
         else
+
+          echo "Publishing ${publishable} plugin"
 
           publisher_script_path="../../scripts/publish_to_pypi.sh"
 
@@ -159,10 +163,10 @@ runs:
         # Is the publishable a plugin?
         if [ ${publishable} == "provisioner" ]; then
 
-          echo "Publishing provisioner runtime & shared packages"
-        
+          echo "Opening a GitHub PR on runtime & shared version bump"
+
           # 
-          # Publish shared package
+          # Open a GitHub PR with runtime & shared version bumps
           # 
           cd provisioner_shared
           git add resources/version.txt
@@ -177,28 +181,38 @@ runs:
           git add pyproject.toml
           cd ..
 
+          branch_name=released-${publishable}-ver-${ver}
+          git commit -m "Bump ${publishable} released version to ${ver}"
+          git checkout -b ${branch_name}
+          git push --set-upstream origin ${branch_name}
+          gh pr create --title "[skip ci] Released ${publishable} version ${ver}" \
+              --body "Bump ${publishable} released version to ${ver}" \
+              --base master --head ${branch_name} \
+              --label "auto pr"
+
         else
 
-          echo "Publishing ${publishable} plugin"
+          echo "Opening a GitHub PR on plugin version bump (separate repository !)"
 
           # 
-          # Publish plugin package
+          # Open a GitHub PR on the plugins repository with plugin version bump
           # 
-          cd plugins/${publishable}
-          git add resources/version.txt
-          git add pyproject.toml
-          cd ../..
+          cd plugins
+          git add ${publishable}/resources/version.txt
+          git add ${publishable}/pyproject.toml
+
+          branch_name=released-${publishable}-ver-${ver}
+          git commit -m "Bump ${publishable} released version to ${ver}"
+          git checkout -b ${branch_name}
+          git push --set-upstream origin ${branch_name}
+          gh pr create --title "[skip ci] Released ${publishable} version ${ver}" \
+              --body "Bump ${publishable} released version to ${ver}" \
+              --base master --head ${branch_name} \
+              --label "auto pr"
+
+          cd ..
           
         fi
-
-        branch_name=released-${publishable}-ver-${ver}
-        git commit -m "Bump ${publishable} released version to ${ver}"
-        git checkout -b ${branch_name}
-        git push --set-upstream origin ${branch_name}
-        gh pr create --title "[skip ci] Released ${publishable} version ${ver}" \
-            --body "Bump ${publishable} released version to ${ver}" \
-            --base master --head ${branch_name} \
-            --label "auto pr"
             
         echo "::endgroup::"
       shell: bash
