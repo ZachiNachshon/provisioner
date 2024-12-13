@@ -74,7 +74,8 @@ runs:
             exit 1
             ;;
         esac
-
+      shell: bash
+      
     - name: Publish to PyPi
       run: |
         echo "::group::Publishing to PyPi"
@@ -92,7 +93,7 @@ runs:
           poetry version patch
           shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           echo -n $shared_ver > resources/version.txt
-          
+
           PYPI_API_TOKEN=${PYPI_API_TOKEN_SHARED} \
             ${publisher_script_path} publish --build-type wheel --release-type pypi -y
           cd ..
