@@ -291,7 +291,7 @@ publish_asset_to_github_release() {
   fi
 }
 
-github_is_release_tag_exist() {
+github_is_release_tag_prefix_exist() {
   local tag=$1
   log_info "Checking if release tag exist. tag: ${tag}"
   if is_dry_run; then
