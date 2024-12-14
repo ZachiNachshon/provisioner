@@ -74,18 +74,23 @@ runs:
           provisioner)
             echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_RUNTIME }}" >> $GITHUB_ENV
             echo "PYPI_API_TOKEN_SHARED=${{ inputs.PYPI_API_TOKEN_PROVISIONER_SHARED }}" >> $GITHUB_ENV
+            # Used by GitHub CLI client
+            echo "GH_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
             ;;
           provisioner_examples_plugin)
             echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN }}" >> $GITHUB_ENV
-            echo "GITHUB_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
+            # Used by GitHub CLI client
+            echo "GH_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
             ;;
           provisioner_installers_plugin)
             echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN }}" >> $GITHUB_ENV
-            echo "GITHUB_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
+            # Used by GitHub CLI client
+            echo "GH_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
             ;;
           provisioner_single_board_plugin)
             echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN }}" >> $GITHUB_ENV
-            echo "GITHUB_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
+            # Used by GitHub CLI client
+            echo "GH_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
             ;;
           *)
             echo "Unknown project_to_publish: ${{ inputs.project_to_publish }}"

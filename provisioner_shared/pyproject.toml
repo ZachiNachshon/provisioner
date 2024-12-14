@@ -14,6 +14,8 @@ authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
 # Include relative directories using the poetry-mutiproject-plugin
 packages = [
     { include = "components", to = "provisioner_shared" },
+    { include = "framework", to = "provisioner_shared" },
+    { include = "resources", to = "provisioner_shared" },
 ]
 
 # Add components as dependencies
