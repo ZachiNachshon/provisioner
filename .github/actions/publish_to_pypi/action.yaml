@@ -66,6 +66,9 @@ runs:
       shell: bash
 
     - name: Publish to PyPi
+      env:
+        PYPI_API_TOKEN: ${{ env.PYPI_API_TOKEN }}
+        PYPI_API_TOKEN_SHARED: ${{ env.PYPI_API_TOKEN_SHARED }}
       run: |
         echo "::group::Publishing to PyPi"
         publishable=${{ inputs.project_to_publish }}
@@ -110,6 +113,8 @@ runs:
       shell: bash
 
     - name: Open a GitHub PR with released version
+      env:
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
       run: |
         echo "::group::Opening a GitHub PR with released version"
         publishable=${{ inputs.project_to_publish }}

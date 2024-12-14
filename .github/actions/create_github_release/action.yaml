@@ -38,6 +38,8 @@ runs:
       shell: bash    
 
     - name: Create a GitHub release
+      env:
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
       run: |
         echo "::group::Creating a GitHub release"
         project_to_release=${{ inputs.project_to_release }}
