@@ -5,13 +5,12 @@ from unittest import mock
 
 from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
 from provisioner_shared.components.runtime.domain.serialize import SerializationBase
+from provisioner_shared.components.runtime.errors.cli_errors import FailedToMergeConfiguration
 from provisioner_shared.components.runtime.test_data.domain import (
     INTERNAL_CONFIG_TEST_DATA_FILE_PATH,
     USER_CONFIG_TEST_DATA_FILE_PATH,
     FakeConfigObj,
 )
-
-from provisioner_shared.components.runtime.errors.cli_errors import FailedToMergeConfiguration
 from provisioner_shared.components.runtime.test_lib.assertions import Assertion
 
 ARG_CONFIG_INTERNAL_PATH = "/path/to/internal/config"
@@ -153,9 +152,7 @@ class ConfigResolverTestShould(unittest.TestCase):
         self.assertEqual(output.supported_os_arch.linux["amd64"], False)
         self.assertEqual(output.supported_os_arch.darwin["arm"], False)
 
-    @mock.patch(
-        f"{CONFIG_MANAGER_PKG_PATH}.ConfigManager._merge_user_config_with_internal", return_value=None
-    )
+    @mock.patch(f"{CONFIG_MANAGER_PKG_PATH}.ConfigManager._merge_user_config_with_internal", return_value=None)
     @mock.patch(
         f"{CONFIG_READER_PKG_PATH}.ConfigReader.read_config_as_json_dict_safe_fn",
         side_effect=[create_fake_config_dict()],

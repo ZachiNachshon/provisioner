@@ -4,7 +4,6 @@ import os
 import unittest
 
 from provisioner_shared.components.runtime.config.domain.config import ProvisionerConfig
-
 from provisioner_shared.components.runtime.errors.cli_errors import FailedToSerializeConfiguration
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils

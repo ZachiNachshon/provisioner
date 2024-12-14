@@ -3,10 +3,10 @@
 from typing import List
 
 import typer
+
 from provisioner_shared.components.runtime.colors import colors
 from provisioner_shared.components.runtime.config.domain.config import PluginDefinition, ProvisionerConfig
 from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
-
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
 
 collaboratos: CoreCollaborators = None

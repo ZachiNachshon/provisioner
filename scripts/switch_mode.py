@@ -2,8 +2,9 @@
 import argparse
 import os
 import re
+
 import tomlkit
-from tomlkit import inline_table, item
+
 
 def resolve_repo_path():
     """Resolve the absolute path of the repository."""
@@ -13,6 +14,7 @@ def resolve_repo_path():
             return current_dir
         current_dir = os.path.dirname(current_dir)
     raise RuntimeError("Repository root not found.")
+
 
 def update_root_pyproject_toml(pyproject_path, mode):
     """Switch between development and production mode in pyproject.toml."""
@@ -39,7 +41,7 @@ def update_root_pyproject_toml(pyproject_path, mode):
             dev_dependency["develop"] = True
             dependencies[prod_dependency_key] = dev_dependency
             print(f"Switched {project_name} to development mode.")
-    
+
     elif mode == "prod":
         if prod_dependency_key in dependencies:
             # Remove the development dependency
@@ -54,6 +56,7 @@ def update_root_pyproject_toml(pyproject_path, mode):
 
     with open(pyproject_path, "w") as file:
         file.write(tomlkit.dumps(toml_content))
+
 
 def update_pyproject_toml(pyproject_path, mode):
     """Switch between development and production mode in pyproject.toml."""
@@ -74,8 +77,12 @@ def update_pyproject_toml(pyproject_path, mode):
     if mode == "dev":
         # Comment out the production dependency if it exists
         for key, value in dependencies.items():
-            if key == prod_dependency_key and isinstance(value, str) and re.match(prod_dependency_pattern, f"{key} = \"{value}\""):
-                dependencies[key] = tomlkit.comment(f"{key} = \"{value}\"")
+            if (
+                key == prod_dependency_key
+                and isinstance(value, str)
+                and re.match(prod_dependency_pattern, f'{key} = "{value}"')
+            ):
+                dependencies[key] = tomlkit.comment(f'{key} = "{value}"')
 
                 # Add the development dependency as an inline table
                 dev_dependency = tomlkit.inline_table()
@@ -124,6 +131,7 @@ def replace_line(content, old_line_start, new_line):
             break
     return "\n".join(lines)
 
+
 def process_plugins(mode):
     """Iterate through plugins and update their pyproject.toml files."""
     repo_path = resolve_repo_path()
@@ -159,13 +167,17 @@ def process_plugins(mode):
             pyproject_path = os.path.join(folder_path, "pyproject.toml")
             update_pyproject_toml(pyproject_path, mode)
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Switch between development and production modes in pyproject.toml for plugins.")
+    parser = argparse.ArgumentParser(
+        description="Switch between development and production modes in pyproject.toml for plugins."
+    )
     parser.add_argument("mode", choices=["dev", "prod"], help="Mode to switch to: 'dev' or 'prod'.")
     args = parser.parse_args()
 
     process_plugins(args.mode)
     print()
+
 
 if __name__ == "__main__":
     main()

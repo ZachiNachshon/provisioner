@@ -6,8 +6,8 @@ from os.path import expandvars
 from typing import Any
 
 from loguru import logger
-from provisioner_shared.components.runtime.domain.serialize import SerializationBase
 
+from provisioner_shared.components.runtime.domain.serialize import SerializationBase
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
 
