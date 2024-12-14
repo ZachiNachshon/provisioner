@@ -1,14 +1,14 @@
 version: 2
 updates:
   - package-ecosystem: pip
-    directory: "/provisioner"
+    directory: "/"
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
     assignees:
       - ZachiNachshon
   - package-ecosystem: pip
-    directory: "/provisioner_features_lib"
+    directory: "/provisioner_shared"
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
