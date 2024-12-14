@@ -11,9 +11,6 @@ inputs:
     description: 'Select project to add as GitHub release'
     options: 
       - 'provisioner'
-      - 'provisioner_examples_plugin'
-      - 'provisioner_installers_plugin'
-      - 'provisioner_single_board_plugin'
     required: true
 
 runs:
@@ -44,15 +41,9 @@ runs:
         echo "::group::Creating a GitHub release"
         project_to_release=${{ inputs.project_to_release }}
 
-        if [ ${project_to_release} == "provisioner"]; then
-          cd ${project_to_release}
-          ../scripts/publish_to_pypi.sh publish --build-type wheel --release-type github -y
-          cd ..
-        else
-          cd plugins/${project_to_release}
-          ../../scripts/publish_to_pypi.sh publish --build-type wheel --release-type github -y
-          cd ../..
-        fi
+        cd ${project_to_release}
+        ../scripts/publish_to_pypi.sh publish --build-type wheel --release-type github -y
+        cd ..
 
         echo "::endgroup::" 
       env:
