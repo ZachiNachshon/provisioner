@@ -70,7 +70,7 @@ test-coverage-html: ## Run tests suite on runtime and all plugins
 # This is the reason we're performing an exist code check since it
 # is a makefile that runs other makefiles within a for loop
 .PHONY: test-coverage-xml
-test-coverage-xml: ## Run Unit/E2E/IT tests
+test-coverage-xml: ## Run tests suite on runtime and all plugins
 	@poetry run coverage run -m pytest; \
 	if [ $$? -ne 0 ]; then \
 		exit 1; \

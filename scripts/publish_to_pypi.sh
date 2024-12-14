@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# # Exit immediately if a command exits with a non-zero status
+set -e
+
 PROMPTER_SKIP_PROMPT=""
 
 SCRIPT_MENU_TITLE="Poetry pip Releaser"

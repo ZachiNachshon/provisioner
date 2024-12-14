@@ -20,8 +20,8 @@ from rich.progress import (
     TimeRemainingColumn,
     TransferSpeedColumn,
 )
-from provisioner_shared.components.runtime.colors.colors import *
 
+from provisioner_shared.components.runtime.colors.colors import *
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
 

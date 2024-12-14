@@ -4,7 +4,6 @@ import unittest
 from typing import List
 
 from provisioner_shared.components.runtime.domain.serialize import SerializationBase
-
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
 from provisioner_shared.components.runtime.utils.yaml_util import YamlUtil

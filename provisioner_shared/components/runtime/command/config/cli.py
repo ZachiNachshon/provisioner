@@ -7,9 +7,9 @@ from typing import Any, Optional
 
 import typer
 from loguru import logger
+
 from provisioner_shared.components.runtime.colors import colors
 from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
-
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
 
 CONFIG_USER_PATH = os.path.expanduser("~/.config/provisioner/config.yaml")

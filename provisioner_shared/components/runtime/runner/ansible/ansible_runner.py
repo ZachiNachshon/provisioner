@@ -2,7 +2,6 @@
 
 import os
 import re
-import sys
 from typing import List, Optional
 
 import ansible_runner
@@ -25,7 +24,9 @@ ANSIBLE_HOSTS_FILE_NAME = "hosts"
 ANSIBLE_CFG_PYTHON_PACKAGE = "provisioner_shared.components.runtime.runner.ansible.resources"
 ANSIBLE_CFG_FILE_NAME = "ansible.cfg"
 
-ANSIBLE_CALLBACK_PLUGINS_PYTHON_PACKAGE = "provisioner_shared.components.runtime.runner.ansible.resources.callback_plugins"
+ANSIBLE_CALLBACK_PLUGINS_PYTHON_PACKAGE = (
+    "provisioner_shared.components.runtime.runner.ansible.resources.callback_plugins"
+)
 ANSIBLE_CALLBACK_PLUGINS_DIR_NAME = "callback_plugins"
 
 ANSIBLE_PLAYBOOKS_PYTHON_PACKAGE = "provisioner_shared.components.external.ansible_playbooks.playbooks"
@@ -356,7 +357,6 @@ class AnsibleRunnerLocal:
 
         if self._dry_run:
             return f"name: {playbook.get_name()}\ncontent:\n{playbook_content_escaped}\ncommand:\nansible-playbook {' '.join(map(str, ansible_playbook_args_reducted))}"
-
 
         # Run ansible/generic commands in interactive mode locally
         out, err, rc = ansible_runner.run_command(

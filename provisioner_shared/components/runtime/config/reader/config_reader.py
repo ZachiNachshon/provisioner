@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from loguru import logger
-from provisioner_shared.components.runtime.domain.serialize import SerializationBase
 
+from provisioner_shared.components.runtime.domain.serialize import SerializationBase
 from provisioner_shared.components.runtime.utils.yaml_util import YamlUtil
 
 

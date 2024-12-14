@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
-import tomlkit
 import argparse
+
+import tomlkit
+
 
 def update_dependency_version(file_path, package_name, new_version):
     """
@@ -15,7 +17,7 @@ def update_dependency_version(file_path, package_name, new_version):
         # Read the pyproject.toml file
         with open(file_path, "r") as file:
             pyproject_content = tomlkit.parse(file.read())
-        
+
         # Access the dependencies section
         dependencies = pyproject_content["tool"]["poetry"]["dependencies"]
 
@@ -32,6 +34,7 @@ def update_dependency_version(file_path, package_name, new_version):
 
     except Exception as e:
         print(f"An error occurred: {e}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Update a dependency version in pyproject.toml.")
