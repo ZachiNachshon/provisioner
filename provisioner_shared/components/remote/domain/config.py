@@ -7,6 +7,7 @@ from typing import List
 # Tests are failing when not using default for class variables, need to investigate why
 # When using defaults, all tests pass - need to check the dot-notations and use hasattr()
 from loguru import logger
+
 from provisioner_shared.components.runtime.domain.serialize import SerializationBase
 
 """

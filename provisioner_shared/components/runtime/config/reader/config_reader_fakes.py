@@ -2,7 +2,6 @@
 
 from provisioner_shared.components.runtime.config.reader.config_reader import ConfigReader
 from provisioner_shared.components.runtime.domain.serialize import SerializationBase
-
 from provisioner_shared.components.runtime.utils.yaml_util import YamlUtil
 
 

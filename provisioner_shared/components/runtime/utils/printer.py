@@ -5,9 +5,9 @@ from typing import Optional
 from loguru import logger
 from rich.console import Console
 from rich.table import Table
+
 from provisioner_shared.components.runtime.colors import colors
 from provisioner_shared.components.runtime.colors.colors import *
-
 from provisioner_shared.components.runtime.infra.context import Context
 
 FIXED_CONSOLE_WIDTH = 100
