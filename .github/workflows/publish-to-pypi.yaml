@@ -13,19 +13,12 @@ on:
         description: 'Select a PyPi publishable'
         options: 
           - 'provisioner'
-          - 'provisioner_examples_plugin'
-          - 'provisioner_installers_plugin'
-          - 'provisioner_single_board_plugin'
         required: true
 
 env:
   PYPI_API_TOKEN_PROVISIONER_RUNTIME: ${{ secrets.PROVISIONER_PYPI_API_TOKEN }}
   PYPI_API_TOKEN_PROVISIONER_SHARED: ${{ secrets.PYPI_API_TOKEN_PROVISIONER_SHARED }}
-  PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN: ${{ secrets.PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN }}
-  PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN: ${{ secrets.PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN }}
-  PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN: ${{ secrets.PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  GH_ACTION_PROJECT_TO_PUBLISH: ${{ github.event.inputs.publishable_project }}
   POETRY_VERSION: "1.8.4"
   
 jobs:
@@ -56,12 +49,7 @@ jobs:
         uses: ./.github/actions/publish_to_pypi
         with:
           project_to_publish: ${{ github.event.inputs.publishable_project }}
-          # GitHub access tokens
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-          PLUGINS_GITHUB_TOKEN: ${{ env.PROVISIONER_PLUGINS_REPO_ACCESS_TOKEN }}
           # PyPi access tokens
           PYPI_API_TOKEN_PROVISIONER_RUNTIME: ${{ env.PYPI_API_TOKEN_PROVISIONER_RUNTIME }}
           PYPI_API_TOKEN_PROVISIONER_SHARED: ${{ env.PYPI_API_TOKEN_PROVISIONER_SHARED }}
-          PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN: ${{ env.PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN }}
-          PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN: ${{ env.PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN }}
-          PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN: ${{ env.PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN }}

@@ -15,30 +15,11 @@ inputs:
     type: string
     description: 'PyPi provisioner shared API token'
     required: false
-  PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN:
-    type: string
-    description: 'PyPi example plugin API token'
-    required: false
-  PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN:
-    type: string
-    description: 'PyPi installers plugin API token'
-    required: false
-  PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN:
-    type: string
-    description: 'PyPi single-board plugin API token'
-    required: false
-  PLUGINS_GITHUB_TOKEN:
-    type: string
-    description: 'GitHub plugins repository access token'
-    required: false
   project_to_publish:
     type: choice
     description: 'Select project to publish to PyPi'
     options: 
       - 'provisioner'
-      - 'provisioner_examples_plugin'
-      - 'provisioner_installers_plugin'
-      - 'provisioner_single_board_plugin'
     required: true
 
 runs:
@@ -77,21 +58,6 @@ runs:
             # Used by GitHub CLI client
             echo "GH_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
             ;;
-          provisioner_examples_plugin)
-            echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN }}" >> $GITHUB_ENV
-            # Used by GitHub CLI client
-            echo "GH_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
-            ;;
-          provisioner_installers_plugin)
-            echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN }}" >> $GITHUB_ENV
-            # Used by GitHub CLI client
-            echo "GH_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
-            ;;
-          provisioner_single_board_plugin)
-            echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN }}" >> $GITHUB_ENV
-            # Used by GitHub CLI client
-            echo "GH_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
-            ;;
           *)
             echo "Unknown project_to_publish: ${{ inputs.project_to_publish }}"
             exit 1
@@ -104,59 +70,35 @@ runs:
         echo "::group::Publishing to PyPi"
         publishable=${{ inputs.project_to_publish }}
 
-        # Is the publishable a plugin?
-        if [ ${publishable} == "provisioner" ]; then
+        echo "Publishing provisioner runtime & shared packages"
+        publisher_script_path="../scripts/publish_to_pypi.sh"
 
-          echo "Publishing provisioner runtime & shared packages"
+        # 
+        # Publish shared package
+        # 
+        cd provisioner_shared
+        poetry version patch
+        shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+        echo -n $shared_ver > resources/version.txt
+
+        PYPI_API_TOKEN=${PYPI_API_TOKEN_SHARED} \
+          ${publisher_script_path} publish --build-type wheel --release-type pypi -y
+        cd ..
+
+        # 
+        # Publish runtime package
+        # 
+        cd ${publishable}
+        poetry version patch
+        ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+        echo -n $ver > resources/version.txt
+
+        # Update shared version in the runtime pyproject.toml
+        ../scripts/update_shared_version.py --file_path pyproject.toml --package_name provisioner-shared --new_version "^${shared_ver}"
         
-          publisher_script_path="../scripts/publish_to_pypi.sh"
-
-          # 
-          # Publish shared package
-          # 
-          cd provisioner_shared
-          poetry version patch
-          shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-          echo -n $shared_ver > resources/version.txt
-
-          PYPI_API_TOKEN=${PYPI_API_TOKEN_SHARED} \
-            ${publisher_script_path} publish --build-type wheel --release-type pypi -y
-          cd ..
-
-          # 
-          # Publish runtime package
-          # 
-          cd ${publishable}
-          poetry version patch
-          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-          echo -n $ver > resources/version.txt
-
-          # Update shared version in the runtime pyproject.toml
-          ../scripts/update_shared_version.py --file_path pyproject.toml --package_name provisioner-shared --new_version "^${shared_ver}"
-          
-          PYPI_API_TOKEN=${PYPI_API_TOKEN} \
-            ${publisher_script_path} publish --build-type wheel --release-type pypi -y
-          cd ..
-
-        else
-
-          echo "Publishing ${publishable} plugin"
-
-          publisher_script_path="../../scripts/publish_to_pypi.sh"
-
-          # 
-          # Publish plugin package
-          # 
-          cd plugins/${publishable}
-          poetry version patch
-          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-          echo -n $ver > resources/version.txt
-
-          PYPI_API_TOKEN=${PYPI_API_TOKEN} \
-            ${publisher_script_path} publish --build-type wheel --release-type pypi -y
-          cd ../..
-          
-        fi
+        PYPI_API_TOKEN=${PYPI_API_TOKEN} \
+          ${publisher_script_path} publish --build-type wheel --release-type pypi -y
+        cd ..
 
         echo "::endgroup::" 
       shell: bash
@@ -171,71 +113,34 @@ runs:
       run: |
         echo "::group::Opening a GitHub PR with released version"
         publishable=${{ inputs.project_to_publish }}
+        
+        echo "Opening a GitHub PR on runtime & shared version bump"
 
-        # Is the publishable a plugin?
-        if [ ${publishable} == "provisioner" ]; then
+        # 
+        # Open a GitHub PR with runtime & shared version bumps
+        # 
+        cd provisioner_shared
+        git add resources/version.txt
+        git add pyproject.toml
+        cd ..
 
-          echo "Opening a GitHub PR on runtime & shared version bump"
+        # 
+        # Publish runtime package
+        # 
+        cd ${publishable}
+        ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+        git add resources/version.txt
+        git add pyproject.toml
+        cd ..
 
-          # 
-          # Open a GitHub PR with runtime & shared version bumps
-          # 
-          cd provisioner_shared
-          git add resources/version.txt
-          git add pyproject.toml
-          cd ..
-
-          # 
-          # Publish runtime package
-          # 
-          cd ${publishable}
-          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-          git add resources/version.txt
-          git add pyproject.toml
-          cd ..
-
-          branch_name=released-${publishable}-ver-${ver}
-          git commit -m "Bump ${publishable} released version to ${ver}"
-          git checkout -b ${branch_name}
-          git push --set-upstream origin ${branch_name}
-          gh pr create --title "[skip ci] Released ${publishable} version ${ver}" \
-              --body "Bump ${publishable} released version to ${ver}" \
-              --base master --head ${branch_name} \
-              --label "auto pr"
-
-        else
-
-          echo "Opening a GitHub PR on plugin version bump (separate repository !)"
-
-          # 
-          # Open a GitHub PR on the plugins repository with plugin version bump
-          # 
-          cd plugins/${publishable}
-          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-          git add resources/version.txt
-          git add pyproject.toml
-
-          # Fetch the latest changes from the remote repository
-          git fetch origin master
-          git checkout master
-          git pull origin master
-
-          branch_name=released-${publishable}-ver-${ver}
-          git commit -m "Bump ${publishable} released version to ${ver}"
-          git checkout -b ${branch_name}
-
-          # Rebase your branch on top of the remote branch
-          # git rebase origin/master
-
-          git push --set-upstream origin ${branch_name}
-          gh pr create --title "[skip ci] Released ${publishable} version ${ver}" \
-              --body "Bump ${publishable} released version to ${ver}" \
-              --base master --head ${branch_name} \
-              --label "auto pr"
-
-          cd ../..
-          
-        fi
+        branch_name=released-${publishable}-ver-${ver}
+        git commit -m "Bump ${publishable} released version to ${ver}"
+        git checkout -b ${branch_name}
+        git push --set-upstream origin ${branch_name}
+        gh pr create --title "[skip ci] Released ${publishable} version ${ver}" \
+            --body "Bump ${publishable} released version to ${ver}" \
+            --base master --head ${branch_name} \
+            --label "auto pr"
             
         echo "::endgroup::"
       shell: bash
