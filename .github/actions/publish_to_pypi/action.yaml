@@ -27,6 +27,10 @@ inputs:
     type: string
     description: 'PyPi single-board plugin API token'
     required: false
+  PLUGINS_GITHUB_TOKEN:
+    type: string
+    description: 'GitHub plugins repository access token'
+    required: false
   project_to_publish:
     type: choice
     description: 'Select project to publish to PyPi'
@@ -73,12 +77,15 @@ runs:
             ;;
           provisioner_examples_plugin)
             echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_EXAMPLES_PLUGIN }}" >> $GITHUB_ENV
+            echo "GITHUB_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
             ;;
           provisioner_installers_plugin)
             echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_INSTALLERS_PLUGIN }}" >> $GITHUB_ENV
+            echo "GITHUB_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
             ;;
           provisioner_single_board_plugin)
             echo "PYPI_API_TOKEN=${{ inputs.PYPI_API_TOKEN_PROVISIONER_SINGLE_BOARD_PLUGIN }}" >> $GITHUB_ENV
+            echo "GITHUB_TOKEN=${{ inputs.PLUGINS_GITHUB_TOKEN }}" >> $GITHUB_ENV
             ;;
           *)
             echo "Unknown project_to_publish: ${{ inputs.project_to_publish }}"
