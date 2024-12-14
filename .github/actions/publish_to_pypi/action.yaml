@@ -215,9 +215,16 @@ runs:
           git add resources/version.txt
           git add pyproject.toml
 
+          # Fetch the latest changes from the remote repository
+          git fetch origin
+
           branch_name=released-${publishable}-ver-${ver}
           git commit -m "Bump ${publishable} released version to ${ver}"
           git checkout -b ${branch_name}
+
+          # Rebase your branch on top of the remote branch
+          git rebase origin/${branch_name}
+
           git push --set-upstream origin ${branch_name}
           gh pr create --title "[skip ci] Released ${publishable} version ${ver}" \
               --body "Bump ${publishable} released version to ${ver}" \
