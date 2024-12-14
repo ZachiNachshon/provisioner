@@ -123,6 +123,14 @@ log_fatal() {
   exit_on_error 1 "${message}"
 }
 
+exit_on_error() {
+  exit_code=$1
+  message=$2
+  if [ $exit_code -ne 0 ]; then
+    exit $exit_code
+  fi
+}
+
 new_line() {
   echo -e "" >&1
 }
