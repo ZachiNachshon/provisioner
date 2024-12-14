@@ -46,6 +46,4 @@ runs:
         cd ..
 
         echo "::endgroup::" 
-      env:
-        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       shell: bash
