@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "provisioner_runtime"
-version = "0.1.13"
+version = "0.1.14"
 description = "Provision Everything Anywhere"
 authors = ["Zachi Nachshon <zachi.nachshon@gmail.com>"]
 
@@ -22,7 +22,7 @@ provisioner = "provisioner_runtime.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-provisioner-shared = "^0.1.13"
+provisioner-shared = "^0.1.14"
 
 [build-system]
 requires = ["poetry-core>=1.4.0"]
