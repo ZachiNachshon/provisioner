@@ -4,14 +4,14 @@ import os
 import pathlib
 
 from loguru import logger
-from provisioner_shared.components.runtime.config.domain.config import ProvisionerConfig
-from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
 
 from provisioner_shared.components.runtime.cli.entrypoint import EntryPoint
-from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
 from provisioner_shared.components.runtime.command.config.cli import CONFIG_USER_PATH, append_config_cmd_to_cli
 from provisioner_shared.components.runtime.command.plugins.cli import append_plugins_cmd_to_cli
+from provisioner_shared.components.runtime.config.domain.config import ProvisionerConfig
+from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
+from provisioner_shared.components.runtime.infra.context import Context
+from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
 from provisioner_shared.components.runtime.shared.globals import COMMON_COMMANDS_GROUP_NAME
 
 CONFIG_INTERNAL_PATH = f"{pathlib.Path(__file__).parent}/resources/config.yaml"

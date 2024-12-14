@@ -6,8 +6,8 @@ from typing import Any, List, Optional
 import inquirer
 from inquirer.themes import GreenPassion
 from loguru import logger
-from provisioner_shared.components.runtime.colors import colors
 
+from provisioner_shared.components.runtime.colors import colors
 from provisioner_shared.components.runtime.infra.context import Context
 
 GO_UP_ONE_LINE = "\033[1A"
