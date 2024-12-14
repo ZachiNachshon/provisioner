@@ -291,6 +291,36 @@ publish_asset_to_github_release() {
   fi
 }
 
+github_is_release_tag_exist() {
+  local tag=$1
+  log_info "Checking if release tag exist. tag: ${tag}"
+  if is_dry_run; then
+    return 1 # Tag does not exist
+  fi
+  if gh release view "${tag}" >/dev/null 2>&1; then
+    return 0 # Tag exists
+  else
+    return 1 # Tag does not exist
+  fi
+}
+
+github_upload_release_asset() {
+  local tag=$1
+  local filepath=$2
+  log_info "Uploading file. tag: ${tag}, path: ${filepath}"
+  cmd_run "gh release upload ${tag} ${filepath}"
+}
+
+github_create_release_tag() {
+  local tag=$1
+  local title=$2
+  if [[ -z "${title}" ]]; then
+    title="${tag}"
+  fi
+  log_info "Creating a new GitHub release. tag: ${tag}"
+  cmd_run "gh release create ${tag} --title ${title}"
+}
+
 publish_pip_package_to_github() {
   local tag="${POETRY_PACKAGE_VERSION}"
   local tag_ver="v${tag}"
@@ -311,7 +341,7 @@ publish_pip_package_to_github() {
 
   log_info "Creating a tarball archive from the pip package. path: ${output_folder}/${release_filename}"
   cd "${output_folder}" || exit
-  tar --no-xattrs -zcf ${release_filename} ${output_filename}
+  tar --no-xattrs -zcf "${release_filename}" "${output_filename}"
   cd "${cwd}" || exit
   publish_asset_to_github_release "${tag_ver}" "${output_folder}/${release_filename}"
 }
