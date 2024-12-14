@@ -184,6 +184,7 @@ runs:
           # Publish runtime package
           # 
           cd ${publishable}
+          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
           git add resources/version.txt
           git add pyproject.toml
           cd ..
@@ -204,9 +205,10 @@ runs:
           # 
           # Open a GitHub PR on the plugins repository with plugin version bump
           # 
-          cd plugins
-          git add ${publishable}/resources/version.txt
-          git add ${publishable}/pyproject.toml
+          cd plugins/${publishable}
+          ver=$(poetry version | awk '{print $2}' | tr -d '\n')
+          git add resources/version.txt
+          git add pyproject.toml
 
           branch_name=released-${publishable}-ver-${ver}
           git commit -m "Bump ${publishable} released version to ${ver}"
@@ -217,7 +219,7 @@ runs:
               --base master --head ${branch_name} \
               --label "auto pr"
 
-          cd ..
+          cd ../..
           
         fi
             
