@@ -294,9 +294,6 @@ publish_asset_to_github_release() {
 github_is_release_tag_prefix_exist() {
   local tag=$1
   log_info "Checking if release tag exist. tag: ${tag}"
-  if is_dry_run; then
-    return 1 # Tag does not exist
-  fi
   if gh release view "${tag}" >/dev/null 2>&1; then
     return 0 # Tag exists
   else
@@ -308,7 +305,7 @@ github_upload_release_asset() {
   local tag=$1
   local filepath=$2
   log_info "Uploading file. tag: ${tag}, path: ${filepath}"
-  cmd_run "gh release upload ${tag} ${filepath}"
+  gh release upload "${tag}" "${filepath}"
 }
 
 github_create_release_tag() {
@@ -318,7 +315,7 @@ github_create_release_tag() {
     title="${tag}"
   fi
   log_info "Creating a new GitHub release. tag: ${tag}"
-  cmd_run "gh release create ${tag} --title ${title}"
+  gh release create "${tag}" --title "${title}"
 }
 
 publish_pip_package_to_github() {
