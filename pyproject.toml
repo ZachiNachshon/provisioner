@@ -30,11 +30,14 @@ exclude = [
     "**/.git-deps",
     "**/.pytest_cache"]
 
-# packages = [
-    # {include = "framework" },
-    # {include = "provisioner_shared"},
-    # {include = "development"},
-# ]
+packages = [
+    { include = "provisioner" },
+    { include = "plugins" }
+]
+
+[tool.poetry.scripts]
+provisioner = "provisioner.main:main"
+plugin = "provisioner.main_dev:main"   # PLUGIN_NAME="provisioner_examples_plugin" poetry run plugin
 
 [tool.poetry.dependencies]
 python = "^3.11"

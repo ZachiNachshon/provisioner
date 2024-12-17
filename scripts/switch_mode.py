@@ -31,6 +31,10 @@ def update_root_pyproject_toml(pyproject_path, mode):
     dependencies = toml_content["tool"]["poetry"]["dependencies"]
     prod_dependency_key = "provisioner-shared"
 
+    plugins_path = os.path.join(repo_path, "plugins")
+    if not os.path.exists(plugins_path):
+        print(f"Error: Plugins directory '{plugins_path}' does not exist.")
+    
     if mode == "dev":
         if prod_dependency_key in dependencies:
             print(f"{project_name} is already in dev mode.")
@@ -42,6 +46,17 @@ def update_root_pyproject_toml(pyproject_path, mode):
             dependencies[prod_dependency_key] = dev_dependency
             print(f"Switched {project_name} to development mode.")
 
+        # Add or update all plugins as development dependencies
+        for plugin_folder in os.listdir(plugins_path):
+            plugin_path = os.path.join(plugins_path, plugin_folder)
+            if os.path.isdir(plugin_path) and plugin_folder.endswith("_plugin"):
+                plugin_key = plugin_folder.replace("-", "_")
+                dev_dependency = tomlkit.inline_table()
+                dev_dependency["path"] = plugin_path
+                dev_dependency["develop"] = True
+                dependencies[plugin_key] = dev_dependency
+                print(f"  Added or updated plugin {plugin_key} in development mode.")
+
     elif mode == "prod":
         if prod_dependency_key in dependencies:
             # Remove the development dependency
@@ -50,6 +65,14 @@ def update_root_pyproject_toml(pyproject_path, mode):
         else:
             print(f"{project_name} is already in prod mode.")
 
+        # Remove all plugin dependencies
+        for plugin_folder in os.listdir(plugins_path):
+            plugin_path = os.path.join(plugins_path, plugin_folder)
+            if os.path.isdir(plugin_path) and plugin_folder.endswith("_plugin"):
+                plugin_key = plugin_folder.replace("-", "_")
+                if plugin_key in dependencies:
+                    del dependencies[plugin_key]
+                    print(f"  Removed plugin {plugin_key} from dependencies.")
     else:
         print("Invalid mode. Use 'dev' or 'prod'.")
         return
