@@ -39,23 +39,28 @@ def load_plugin(plugin_module):
     plugin_module.append_to_cli(app)
 
 
-cols = CoreCollaborators(Context.createEmpty())
-cols.package_loader().load_modules_fn(
-    filter_keyword="provisioner",
-    import_path="main",
-    exclusions=["provisioner-runtime", "provisioner_runtime", "provisioner_shared", "provisioner-shared"],
-    callback=lambda module: load_plugin(plugin_module=module),
-    debug=debug_pre_init,
-)
-
-append_config_cmd_to_cli(app, cli_group_name=COMMON_COMMANDS_GROUP_NAME, cols=cols)
-append_plugins_cmd_to_cli(app, cli_group_name=COMMON_COMMANDS_GROUP_NAME, cols=cols)
-
-
 # ==============
 # ENTRY POINT
 # To run from source:
-#   - poetry run provisioner ...
+#   - PLUGIN_NAME="provisioner_examples_plugin" poetry run plugin
 # ==============
 def main():
+    # print(f"sys.path: {sys.path}")
+
+    plugin_name = os.getenv("PLUGIN_NAME")
+    if not plugin_name:
+        raise ValueError("PLUGIN_NAME environment variable is required.")
+
+    logger.debug(f"Loading plugin: {plugin_name}")
+
+    cols = CoreCollaborators(Context.createEmpty())
+    cols.package_loader().import_modules_fn(
+        packages=[f"plugins.{plugin_name}.{plugin_name}"],
+        import_path="main",
+        callback=lambda module: load_plugin(plugin_module=module),
+    )
+
+    append_config_cmd_to_cli(app, cli_group_name=COMMON_COMMANDS_GROUP_NAME, cols=cols)
+    append_plugins_cmd_to_cli(app, cli_group_name=COMMON_COMMANDS_GROUP_NAME, cols=cols)
+
     app()

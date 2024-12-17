@@ -29,8 +29,13 @@ dev-mode: ## Enable local development
 	@./scripts/switch_mode.py dev
 	@poetry lock
 
+.PHONY: run
+run: ## Run provisioner CLI from sources (Usage: make run 'config view')
+	@poetry run provisioner $(filter-out $@,$(MAKECMDGOALS))
+
 .PHONY: deps-install
 deps-install: ## Update and install pyproject.toml dependencies on all virtual environments
+	@poetry lock
 	@poetry install --with dev --sync -v
 	
 .PHONY: typecheck
@@ -109,7 +114,7 @@ pip-install-plugin: ## [LOCAL] Install any plugin to local pip (make pip-install
 .PHONY: pip-uninstall-runtime
 pip-uninstall-runtime: ## [LOCAL] Uninstall provisioner from local pip
 	@echo "\n========= PROJECT: provisioner ==============\n"
-	@cd provisioner; make pip-uninstall; cd ..
+	@cd provisioner; pip3 uninstall -y provisioner_shared provisioner_runtime; cd ..
 
 .PHONY: pip-uninstall-plugin
 pip-uninstall-plugin: ## [LOCAL] Uninstall any plugins source distributions from local pip (make pip-uninstall-plugin example)

@@ -167,6 +167,7 @@ class PackageLoader:
             raise ex
 
     load_modules_fn = _load_modules
+    import_modules_fn = _import_modules
     is_module_loaded_fn = _is_module_loaded
     create_instance_fn = _create_instance
     get_pip_installed_packages_fn = _get_pip_installed_packages

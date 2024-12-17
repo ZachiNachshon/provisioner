@@ -31,7 +31,8 @@ class SerializationBase:
         pass
 
     def to_json(self) -> str:
-        return json.dumps(self, default=lambda o: o.__dict__, indent=4)
+        # return json.dumps(self, default=lambda o: o.__dict__, indent=4)
+        return json.dumps(self, default=lambda o: {k: v for k, v in o.__dict__.items() if k != "dict_obj"}, indent=4)
 
     @abstractmethod
     def merge(self, other: "SerializationBase") -> "SerializationBase":
