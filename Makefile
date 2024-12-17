@@ -124,7 +124,7 @@ pip-uninstall-plugin: ## [LOCAL] Uninstall any plugins source distributions from
 	fi
 	@PLUGIN=$(word 2, $(MAKECMDGOALS)); \
 	echo "\n========= PLUGIN: $$PLUGIN ==============\n"; \
-	pip3 uninstall -y ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.whl;
+	pip3 uninstall -y provisioner_$${PLUGIN}_plugin;
 
 .PHONY: clear-project
 clear-project: ## Clear Poetry virtual environments and clear Python cache
