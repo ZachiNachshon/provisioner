@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import List
+from typing import List, Optional
 
 import typer
 
@@ -53,7 +53,7 @@ def append_plugins_cmd_to_cli(app: typer.Typer, cli_group_name: str, cols: CoreC
         name="uninstall",
         invoke_without_command=True,
         no_args_is_help=False,
-        callback=uninstall_local_plugins,
+        callback=uninstall_plugins,
         help="Select local plugins to uninstall",
     )
 
@@ -81,7 +81,26 @@ def list_locally_installed_plugins() -> None:
     collaboratos.printer().print_fn(output)
 
 
-def install_available_plugins() -> None:
+def install_available_plugins(
+    name: Optional[str] = typer.Option(
+        None, show_default=True, help="Name of the plugin to install", envvar="PROV_PLUGIN_INSTALL_NAME"
+    )
+) -> None:
+    
+    if name is None:
+        install_available_plugins_from_prompt()
+    else:
+        install_available_plugins_from_args(name)
+
+def install_available_plugins_from_args(plgn_name: str) -> None:
+    if "provisioner" not in plgn_name:
+        raise ValueError("Plugin name must have the 'provisioner_xxx_plugin' format.")
+    
+    escaped_pkg_name = plgn_name.replace("_", "-")
+    collaboratos.package_loader().install_pip_package_fn(escaped_pkg_name)
+    collaboratos.printer().print_fn(f"Plugin {plgn_name} installed successfully.")
+
+def install_available_plugins_from_prompt() -> None:
     packages_from_pip = _try_get_pip_installed_packages()
     packages_from_pip_escaped: List[str] = []
     # Adjust pip plugin name to config plugin name
@@ -112,8 +131,26 @@ def install_available_plugins() -> None:
         collaboratos.package_loader().install_pip_package_fn(escaped_pkg_name)
         collaboratos.printer().print_fn(f"Plugin {plgn_def.name} installed successfully.")
 
+def uninstall_plugins(
+    name: Optional[str] = typer.Option(
+        None, show_default=True, help="Name of the plugin to uninstall", envvar="PROV_PLUGIN_UNINSTALL_NAME"
+    )
+) -> None:
+    
+    if name is None:
+        uninstall_local_plugins_from_prompt()
+    else:
+        uninstall_local_plugins_from_args(name)
 
-def uninstall_local_plugins() -> None:
+def uninstall_local_plugins_from_args(plgn_name: str) -> None:
+    if "provisioner" not in plgn_name:
+        raise ValueError("Plugin name must have the 'provisioner_xxx_plugin' format.")
+    
+    escaped_pkg_name = plgn_name.replace("_", "-")
+    collaboratos.package_loader().uninstall_pip_package_fn(escaped_pkg_name)
+    collaboratos.printer().print_fn(f"Plugin {plgn_name} uninstalled successfully.")
+
+def uninstall_local_plugins_from_prompt() -> None:
     packages_from_pip = _try_get_pip_installed_packages()
     if packages_from_pip is None or len(packages_from_pip) == 0:
         collaboratos.printer().print_fn("No installed plugins found.")
@@ -149,8 +186,8 @@ def _try_get_pip_installed_packages():
     return collaboratos.package_loader().get_pip_installed_packages_fn(
         filter_keyword="provisioner",
         exclusions=[
-            "provisioner-dev-deps",
-            "provisioner_dev_deps",
+            "provisioner-shared",
+            "provisioner_shared",
             "provisioner-runtime",
             "provisioner_runtime",
         ],
