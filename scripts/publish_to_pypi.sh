@@ -210,7 +210,7 @@ set_built_output_file_path() {
 
   new_line
   log_info "Copy build output. path: ${pip_package_folder_path}"
-  mv "dist/${bundle_filename}" "${pip_package_folder_path}"
+  mv "../dist/${bundle_filename}" "${pip_package_folder_path}"
   BUILD_OUTPUT_FILE_PATH="${pip_package_folder_path}/${bundle_filename}"
 }
 
@@ -384,6 +384,8 @@ poetry_resolve_project_name_version() {
   if [[ -z "${POETRY_PACKAGE_NAME}" || -z "${POETRY_PACKAGE_VERSION}" ]]; then
     log_fatal "Poetry project name or version could not be resolved"
   fi
+
+  log_info "Identified Poetry project name and version. name: ${POETRY_PACKAGE_NAME}, version: ${POETRY_PACKAGE_VERSION}"
 }
 
 pip_get_package_version() {
