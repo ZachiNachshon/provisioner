@@ -4,29 +4,24 @@
 import click
 from loguru import logger
 
-from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
-from provisioner_shared.components.runtime.utils.paths import Paths
-
-STATIC_RESOURCES_PACKAGE = "provisioner.resources"
+# RUNTIME_RESOURCES_PACKAGE = "provisioner.resources"
 
 
-def append_version_cmd_to_cli(root_menu: click.Group, cols: CoreCollaborators):
-
-    @root_menu.command()
+def append_version_cmd_to_cli(root_menu: click.Group, root_package: str, description: str = "Print runtime version"):
+    @root_menu.command(help=description)
     @click.pass_context
     def version(ctx):
-        """Print client version"""
-        print(try_read_version())
+        print(try_read_version(root_package))
         ctx.exit(0)
 
 
-def try_read_version() -> str:
+def try_read_version(root_package: str) -> str:
     content = "no version"
     try:
-        file_path = Paths.create(Context.create()).get_file_path_from_python_package(
-            STATIC_RESOURCES_PACKAGE, "version.txt"
-        )
+        # file_path = Paths.create(Context.create()).get_file_path_from_python_package(
+        #     root_package, "version.txt"
+        # )
+        file_path = f"{root_package }/resources/version.txt"
         with open(file_path, "r+") as opened_file:
             content = opened_file.read()
             opened_file.close()

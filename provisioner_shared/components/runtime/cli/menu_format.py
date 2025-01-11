@@ -130,7 +130,7 @@ class CustomGroup(click.Group):
             command = self.get_command(ctx, cmd)
             if command is None:
                 continue
-            cmd_name = click.style(cmd, fg="green" if cmd not in ["plugins", "config"] else "yellow")
+            cmd_name = click.style(cmd, fg="green" if cmd not in ["plugins", "config", "version"] else "yellow")
             commands.append((cmd_name, command.get_short_help_str()))
 
         if commands:

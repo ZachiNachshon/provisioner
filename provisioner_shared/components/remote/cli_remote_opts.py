@@ -12,9 +12,9 @@ from provisioner_shared.components.runtime.cli.click_callbacks import mutually_e
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
 
 REMOTE_GENERAL_OPTS_GROUP_NAME = "General"
-REMOTE_CON_OPTS_GROUP_NAME = "Connection Options"
-REMOTE_DISCOVERY_OPTS_GROUP_NAME = "Discovery Options"
-REMOTE_EXECUTION_OPTS_GROUP_NAME = "Execution Options"
+REMOTE_CON_OPTS_GROUP_NAME = "Connection"
+REMOTE_DISCOVERY_OPTS_GROUP_NAME = "Discovery"
+REMOTE_EXECUTION_OPTS_GROUP_NAME = "Execution"
 
 REMOTE_OPT_ENV = "environment"
 REMOTE_OPT_NODE_USERNAME = "node-username"

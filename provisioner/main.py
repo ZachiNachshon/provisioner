@@ -8,7 +8,6 @@ from components.runtime.cli.cli_modifiers import cli_modifiers
 from components.runtime.cli.menu_format import CustomGroup
 from loguru import logger
 
-from provisioner_shared.components.runtime.cli.entrypoint import EntryPoint
 from provisioner_shared.components.runtime.cli.version import append_version_cmd_to_cli
 from provisioner_shared.components.runtime.command.config.cli import CONFIG_USER_PATH, append_config_cmd_to_cli
 from provisioner_shared.components.runtime.command.plugins.cli import append_plugins_cmd_to_cli
@@ -17,7 +16,8 @@ from provisioner_shared.components.runtime.config.manager.config_manager import 
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
 
-CONFIG_INTERNAL_PATH = f"{pathlib.Path(__file__).parent}/resources/config.yaml"
+RUNTIME_ROOT_PATH = str(pathlib.Path(__file__).parent)
+CONFIG_INTERNAL_PATH = f"{RUNTIME_ROOT_PATH}/resources/config.yaml"
 
 """
 The --dry-run and --verbose flags aren't available on the pre-init phase
@@ -40,9 +40,7 @@ def root_menu(ctx):
         click.echo(ctx.get_help())
 
 
-EntryPoint.create_cli_menu(
-    config_resolver_fn=lambda: ConfigManager.instance().load(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig),
-)
+ConfigManager.instance().load(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig),
 
 
 def load_plugin(plugin_module):
@@ -59,7 +57,7 @@ cols.package_loader().load_modules_fn(
     debug=debug_pre_init,
 )
 
-append_version_cmd_to_cli(root_menu, cols=cols)
+append_version_cmd_to_cli(root_menu, root_package=RUNTIME_ROOT_PATH)
 append_config_cmd_to_cli(root_menu, cols=cols)
 append_plugins_cmd_to_cli(root_menu, cols=cols)
 
