@@ -6,6 +6,7 @@ DEFAULT_CONTEXT_SETTINGS = {"max_content_width": 200}
 def normalize_cli_item(item: str) -> str:
     return item.replace("-", "_")
 
+
 def get_nested_value(obj: object, path: str, default=None):
     """
     Retrieve a nested value from an object given a dot-separated path.
@@ -21,6 +22,7 @@ def get_nested_value(obj: object, path: str, default=None):
         if obj is None or obj == "":
             return default
     return obj
+
 
 class GroupedOption(click.Option):
     def __init__(self, *args, group=None, **kwargs):
@@ -68,7 +70,7 @@ class CustomCommand(click.Command):
             # Separate grouped options
             group_name = getattr(param, "group", "General")
             option_str = ", ".join(param.opts)
-            
+
             if param.type and param.type.name != "boolean":
                 option_str += f" {param.type.name.upper()}"
             if param.metavar:

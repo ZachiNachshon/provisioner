@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 from enum import Enum
+import inspect
+from threading import Lock
 from typing import List, Optional
 
+import click
 from loguru import logger
 
 from provisioner_shared.components.remote.domain.config import Auth, Host, RunEnvironment
@@ -27,10 +30,9 @@ class RemoteVerbosity(Enum):
         else:
             raise NotImplementedError(f"RemoteVerbosity enum does not support label '{label}'")
 
+REMOTE_CLICK_CTX_NAME = "cli_remote_opts"
 
 class CliRemoteOpts:
-
-    options: "CliRemoteOpts" = None
 
     def __init__(
         self,
@@ -59,37 +61,12 @@ class CliRemoteOpts:
 
         # Modifiers
         self.remote_context = remote_context
-
+        
     @staticmethod
-    def create(
-        environment: Optional[RunEnvironment] = None,
-        node_username: Optional[str] = None,
-        node_password: Optional[str] = None,
-        ssh_private_key_file_path: Optional[str] = None,
-        ip_discovery_range: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        hostname: Optional[str] = None,
-        remote_hosts: Optional[dict[str, Host]] = None,
-        remote_context: RemoteContext = None,
-    ) -> None:
-
-        try:
-            CliRemoteOpts.options = CliRemoteOpts(
-                environment,
-                node_username,
-                node_password,
-                ssh_private_key_file_path,
-                ip_discovery_range,
-                ip_address,
-                hostname,
-                remote_hosts,
-                remote_context,
-            )
-
-        except Exception as e:
-            e_name = e.__class__.__name__
-            logger.critical("Failed to create CLI remote global opts object. ex: {}, message: {}", e_name, str(e))
-
+    def from_click_ctx(ctx: click.Context) -> Optional["CliRemoteOpts"]:
+        """Returns the current singleton instance, if any."""
+        return ctx.obj.get(REMOTE_CLICK_CTX_NAME, None) if ctx.obj else None
+    
     def get_remote_context(self) -> RemoteContext:
         return self.remote_context
 

@@ -45,6 +45,7 @@ class GitHub(SerializationBase):
         if "git_access_token" in dict_obj:
             self.git_access_token = dict_obj["git_access_token"]
 
+
 class VersionControlConfig(SerializationBase):
     github: GitHub = GitHub({})
 

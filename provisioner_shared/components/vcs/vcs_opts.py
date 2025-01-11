@@ -2,12 +2,12 @@
 
 from typing import Optional
 
+import click
 from loguru import logger
 
+VCS_CLICK_CTX_NAME = "cli_vcs_opts"
 
 class CliVersionControlOpts:
-
-    options: "CliVersionControlOpts" = None
 
     def __init__(
         self,
@@ -23,22 +23,9 @@ class CliVersionControlOpts:
         self.git_access_token = git_access_token
 
     @staticmethod
-    def create(
-        github_organization: Optional[str] = None,
-        repository_name: Optional[str] = None,
-        branch_name: Optional[str] = None,
-        git_access_token: Optional[str] = None,
-    ) -> None:
-        try:
-            CliVersionControlOpts.options = CliVersionControlOpts(
-                github_organization=github_organization,
-                repository_name=repository_name,
-                branch_name=branch_name,
-                git_access_token=git_access_token,
-            )
-        except Exception as e:
-            e_name = e.__class__.__name__
-            logger.critical("Failed to create CLI vcs opts object. ex: {}, message: {}", e_name, str(e))
+    def from_click_ctx(ctx: click.Context) -> Optional["CliVersionControlOpts"]:
+        """Returns the current singleton instance, if any."""
+        return ctx.obj.get(VCS_CLICK_CTX_NAME, None) if ctx.obj else None
 
     def print(self) -> None:
         logger.debug(

@@ -5,6 +5,7 @@ import pathlib
 
 import click
 from components.runtime.cli.cli_modifiers import cli_modifiers
+from components.runtime.cli.entrypoint import EntryPoint
 from components.runtime.cli.menu_format import CustomGroup
 from loguru import logger
 
@@ -32,13 +33,7 @@ if not debug_pre_init:
     logger.remove()
 
 
-@click.group(invoke_without_command=True, no_args_is_help=True, cls=CustomGroup)
-@cli_modifiers
-@click.pass_context
-def root_menu(ctx):
-    if ctx.invoked_subcommand is None:
-        click.echo(ctx.get_help())
-
+root_menu = EntryPoint.create_cli_menu()
 
 ConfigManager.instance().load(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig),
 

@@ -15,7 +15,7 @@ from provisioner_shared.components.remote.remote_connector_fakes import (
     TestDataRemoteConnector,
 )
 from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
-from provisioner_shared.components.remote.typer_remote_opts_fakes import (
+from components.remote.remote_opts_fakes import (
     TEST_DATA_REMOTE_NODE_PASSWORD_1,
     TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
     TestDataRemoteOpts,

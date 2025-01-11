@@ -3,10 +3,7 @@
 import yaml
 
 from provisioner_shared.components.remote.domain.config import RemoteConfig, RunEnvironment
-from provisioner_shared.components.remote.remote_opts import (
-    CliRemoteOpts,
-    TyperRemoteOpts,
-)
+from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
 
 TEST_DATA_ENVIRONMENT: RunEnvironment = RunEnvironment.Local
@@ -68,10 +65,6 @@ class TestDataRemoteOpts:
     def create_fake_remote_cfg() -> RemoteConfig:
         cfg_dict = yaml.safe_load(TEST_REMOTE_CFG_YAML_TEXT)
         return RemoteConfig(cfg_dict["remote"])
-
-    @staticmethod
-    def create_fake_remote_opts() -> TyperRemoteOpts:
-        return TyperRemoteOpts(TestDataRemoteOpts.create_fake_remote_cfg())
 
     @staticmethod
     def create_fake_cli_remote_opts(

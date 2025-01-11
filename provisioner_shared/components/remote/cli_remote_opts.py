@@ -5,7 +5,7 @@ from typing import Any, Callable, Optional
 
 import click
 
-from components.remote.remote_opts import CliRemoteOpts, RemoteVerbosity
+from components.remote.remote_opts import REMOTE_CLICK_CTX_NAME, CliRemoteOpts, RemoteVerbosity
 from components.runtime.cli.menu_format import GroupedOption, get_nested_value, normalize_cli_item
 from provisioner_shared.components.remote.domain.config import RemoteConfig, RunEnvironment
 from provisioner_shared.components.runtime.cli.click_callbacks import mutually_exclusive_callback
@@ -127,7 +127,8 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             group=REMOTE_EXECUTION_OPTS_GROUP_NAME,
         )
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+        @click.pass_context  # Decorator to pass context to the function
+        def wrapper(ctx, *args: Any, **kwargs: Any) -> Any:
             verbosity = kwargs.pop(normalize_cli_item(REMOTE_OPT_VERBOSITY))
             remote_verbosity = RemoteVerbosity.from_str(verbosity)
 
@@ -153,8 +154,12 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
 
             remote_hosts = remote_config.to_hosts_dict()
 
-            CliRemoteOpts.create(
-                run_env,
+            # Add it to the context object
+            if ctx.obj is None:
+                ctx.obj = {}
+
+            ctx.obj[REMOTE_CLICK_CTX_NAME] = CliRemoteOpts(
+                environment,
                 node_username,
                 node_password,
                 ssh_private_key_file_path,

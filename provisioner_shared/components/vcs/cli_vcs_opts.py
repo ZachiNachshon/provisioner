@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 import click
 
 from components.runtime.cli.menu_format import GroupedOption, get_nested_value, normalize_cli_item
-from components.vcs.vcs_opts import CliVersionControlOpts
+from components.vcs.vcs_opts import VCS_CLICK_CTX_NAME, CliVersionControlOpts
 from provisioner_shared.components.vcs.domain.config import VersionControlConfig
 
 VCS_GROUP_NAME = "Version Control"
@@ -63,18 +63,24 @@ def cli_vcs_opts(vcs_config: Optional[VersionControlConfig] = None) -> Callable:
             group=VCS_GROUP_NAME,
         )
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+        @click.pass_context
+        def wrapper(ctx, *args: Any, **kwargs: Any) -> Any:
             github_org = kwargs.get(normalize_cli_item(VCS_OPT_ORGANIZATION), None)
             github_repo_name = kwargs.get(normalize_cli_item(VCS_OPT_REPOSITORY), None)
             github_branch_name = kwargs.get(normalize_cli_item(VCS_OPT_BRANCH), None)
             git_access_token = kwargs.get(normalize_cli_item(VCS_OPT_GIT_ACCESS_TOKEN), None)
+            
+            # Add it to the context object
+            if ctx.obj is None:
+                ctx.obj = {}
 
-            CliVersionControlOpts.create(
+            ctx.obj[VCS_CLICK_CTX_NAME] = CliVersionControlOpts(
                 github_organization=github_org,
                 repository_name=github_repo_name,
                 branch_name=github_branch_name,
                 git_access_token=git_access_token,
             )
+
             return func(*args, **kwargs)
 
         return wrapper
