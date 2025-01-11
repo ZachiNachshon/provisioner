@@ -18,10 +18,10 @@ VCS_OPT_GIT_ACCESS_TOKEN = "git-access-token"
 
 
 def cli_vcs_opts(vcs_config: Optional[VersionControlConfig] = None) -> Callable:
-    from_cfg_git_access_token = get_nested_value(vcs_config, path="github.git_access_token", default=None)
     from_cfg_organization = get_nested_value(vcs_config, path="github.organization", default=None)
     from_cfg_repository = get_nested_value(vcs_config, path="github.repository", default=None)
     from_cfg_branch = get_nested_value(vcs_config, path="github.branch", default=None)
+    from_cfg_git_access_token = get_nested_value(vcs_config, path="github.git_access_token", default=None)
 
     # Important !
     # This is the actual click decorator, the signature is critical for click to work
@@ -65,19 +65,19 @@ def cli_vcs_opts(vcs_config: Optional[VersionControlConfig] = None) -> Callable:
         @wraps(func)
         @click.pass_context
         def wrapper(ctx, *args: Any, **kwargs: Any) -> Any:
-            github_org = kwargs.get(normalize_cli_item(VCS_OPT_ORGANIZATION), None)
-            github_repo_name = kwargs.get(normalize_cli_item(VCS_OPT_REPOSITORY), None)
-            github_branch_name = kwargs.get(normalize_cli_item(VCS_OPT_BRANCH), None)
-            git_access_token = kwargs.get(normalize_cli_item(VCS_OPT_GIT_ACCESS_TOKEN), None)
-            
+            github_org = kwargs.pop(normalize_cli_item(VCS_OPT_ORGANIZATION), None)
+            github_repo_name = kwargs.pop(normalize_cli_item(VCS_OPT_REPOSITORY), None)
+            github_branch_name = kwargs.pop(normalize_cli_item(VCS_OPT_BRANCH), None)
+            git_access_token = kwargs.pop(normalize_cli_item(VCS_OPT_GIT_ACCESS_TOKEN), None)
+
             # Add it to the context object
             if ctx.obj is None:
                 ctx.obj = {}
 
             ctx.obj[VCS_CLICK_CTX_NAME] = CliVersionControlOpts(
-                github_organization=github_org,
-                repository_name=github_repo_name,
-                branch_name=github_branch_name,
+                organization=github_org,
+                repository=github_repo_name,
+                branch=github_branch_name,
                 git_access_token=git_access_token,
             )
 

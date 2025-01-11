@@ -3,7 +3,6 @@
 import unittest
 
 import click
-from click.testing import CliRunner
 from components.remote.cli_remote_opts import cli_remote_opts
 from components.runtime.cli.cli_modifiers import cli_modifiers
 from components.runtime.cli.entrypoint import EntryPoint
@@ -11,6 +10,7 @@ from components.runtime.cli.entrypoint import EntryPoint
 from components.remote.remote_opts_fakes import *
 from components.runtime.runner.ansible.ansible_runner import AnsibleHost
 from components.runtime.test_lib.assertions import Assertion
+from components.runtime.test_lib.test_cli_runner import TestCliRunner
 
 ARG_CLI_OVERRIDE_ENVIRONMENT = "test-environment"
 ARG_CLI_OVERRIDE_NODE_USERNAME = "test-node-username"
@@ -58,15 +58,7 @@ class TyperRemoteOptsTestShould(unittest.TestCase):
             if ctx.invoked_subcommand is None:
                 click.echo(ctx.get_help())
         
-        assert CliRunner().invoke(dummy).exit_code == 0
-
-        # Check the exit code to see if there was an issue
-        # result = CliRunner().invoke(dummy)
-        # if result.exit_code != 0:
-        #     print(f"Command failed with exit code {result.exit_code}")
-        #     print(f"Error output: {result.output}")
-        # else:
-        #     print(f"Command succeeded: {result.output}")
+        TestCliRunner.run(dummy)
 
 
     def test_override_click_remote_opts_from_cli_arguments(self) -> None:
@@ -87,7 +79,4 @@ class TyperRemoteOptsTestShould(unittest.TestCase):
             if ctx.invoked_subcommand is None:
                 click.echo(ctx.get_help())
         
-        assert CliRunner().invoke(dummy).exit_code == 0
-        
-        
-        
+        TestCliRunner.run(dummy)

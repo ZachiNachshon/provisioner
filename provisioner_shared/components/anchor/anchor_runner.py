@@ -88,9 +88,9 @@ class AnchorCmdRunner:
                     ansible_vars=[
                         "anchor_command=Run",
                         f"\"anchor_args='{args.anchor_run_command}'\"",
-                        f"anchor_github_organization={args.vcs_opts.github_organization}",
-                        f"anchor_github_repository={args.vcs_opts.repository_name}",
-                        f"anchor_github_repo_branch={args.vcs_opts.branch_name}",
+                        f"anchor_github_organization={args.vcs_opts.organization}",
+                        f"anchor_github_repository={args.vcs_opts.repository}",
+                        f"anchor_github_repo_branch={args.vcs_opts.branch}",
                         f"git_access_token={args.vcs_opts.git_access_token}",
                     ],
                     ansible_tags=["anchor_run"],

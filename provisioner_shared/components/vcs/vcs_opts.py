@@ -11,15 +11,15 @@ class CliVersionControlOpts:
 
     def __init__(
         self,
-        github_organization: Optional[str] = None,
-        repository_name: Optional[str] = None,
-        branch_name: Optional[str] = None,
+        organization: Optional[str] = None,
+        repository: Optional[str] = None,
+        branch: Optional[str] = None,
         git_access_token: Optional[str] = None,
     ) -> None:
 
-        self.github_organization = github_organization
-        self.repository_name = repository_name
-        self.branch_name = branch_name
+        self.organization = organization
+        self.repository = repository
+        self.branch = branch
         self.git_access_token = git_access_token
 
     @staticmethod
@@ -30,8 +30,8 @@ class CliVersionControlOpts:
     def print(self) -> None:
         logger.debug(
             "CliVersionControlOpts: \n"
-            + f"  github_organization: {self.github_organization}\n"
-            + f"  repository_name: {self.repository_name}\n"
-            + f"  branch_name: {self.branch_name}\n"
+            + f"  organization: {self.organization}\n"
+            + f"  repository: {self.repository}\n"
+            + f"  branch: {self.branch}\n"
             + "  git_access_token: REDACTED\n"
         )
