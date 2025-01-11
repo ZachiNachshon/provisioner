@@ -42,13 +42,15 @@ class NetworkUtil:
         return False
 
     def _try_read_hostname(self, ip_scan_result: dict) -> str:
-        if "hostname" in ip_scan_result and len(ip_scan_result["hostname"]) > 0:
+        # if "hostname" in ip_scan_result and len(ip_scan_result["hostname"]) > 0:
+        # Remote hosts can be "up" but due to "conn-refused" does not return a hostname
+        if "hostname" in ip_scan_result:
             hostname_dict = ip_scan_result["hostname"]
             # Always take the 1st item, if found
             for name in hostname_dict:
                 if name["name"]:
                     return name["name"]
-        return None
+        return "unknown"
 
     def _generate_scanned_item_desc(self, ip_addr: str, hostname: str, status: str) -> dict:
         return {"ip_address": ip_addr, "hostname": hostname, "status": status}
@@ -58,9 +60,9 @@ class NetworkUtil:
         for ip_addr in scanned_dict:
             ip_scan_result = scanned_dict[ip_addr]
             if len(ip_scan_result) > 0:
-                hostname = self._try_read_hostname(ip_scan_result)
-                if hostname:
-                    status = "Up" if self._is_host_state_up(ip_scan_result) else "Unknown"
+                status = "up" if self._is_host_state_up(ip_scan_result) else "unknown"
+                if status == "up":
+                    hostname = self._try_read_hostname(ip_scan_result)
                     response[ip_addr] = self._generate_scanned_item_desc(ip_addr, hostname, status)
         return response
 

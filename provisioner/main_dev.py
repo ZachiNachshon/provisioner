@@ -28,7 +28,7 @@ debug_pre_init = os.getenv(key=ENV_VAR_ENABLE_PRE_INIT_DEBUG, default=False)
 if not debug_pre_init:
     logger.remove()
 
-app = EntryPoint.create_typer(
+app = EntryPoint.create_cli_menu(
     title="Provision Everything Anywhere (install plugins from https://zachinachshon.com/provisioner)",
     config_resolver_fn=lambda: ConfigManager.instance().load(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig),
 )
@@ -53,7 +53,7 @@ def main():
 
     logger.debug(f"Loading plugin: {plugin_name}")
 
-    cols = CoreCollaborators(Context.createEmpty())
+    cols = CoreCollaborators(Context.create_empty())
     cols.package_loader().import_modules_fn(
         packages=[f"plugins.{plugin_name}.{plugin_name}"],
         import_path="main",

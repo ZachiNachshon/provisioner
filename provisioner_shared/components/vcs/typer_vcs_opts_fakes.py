@@ -3,7 +3,7 @@
 import yaml
 
 from provisioner_shared.components.vcs.domain.config import VersionControlConfig
-from provisioner_shared.components.vcs.typer_vcs_opts import (
+from components.vcs.vcs_opts import (
     CliVersionControlOpts,
     TyperVersionControl,
 )

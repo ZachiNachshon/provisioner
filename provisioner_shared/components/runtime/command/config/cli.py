@@ -5,9 +5,12 @@ import json
 import os
 from typing import Any, Optional
 
-import typer
+import click
+
 from loguru import logger
 
+from components.runtime.cli.cli_modifiers import cli_modifiers
+from components.runtime.cli.menu_format import CustomGroup
 from provisioner_shared.components.runtime.colors import colors
 from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
@@ -16,61 +19,50 @@ CONFIG_USER_PATH = os.path.expanduser("~/.config/provisioner/config.yaml")
 
 collaboratos: CoreCollaborators = None
 
-
-def append_config_cmd_to_cli(app: typer.Typer, cli_group_name: str, cols: CoreCollaborators):
+def append_config_cmd_to_cli(root_menu: click.Group, cols: CoreCollaborators):
     global collaboratos
     collaboratos = cols
 
-    # Create the CLI structure
-    config_cli_app = typer.Typer()
-    app.add_typer(
-        config_cli_app,
-        name="config",
-        invoke_without_command=True,
-        no_args_is_help=True,
-        # rich_help_panel=cli_group_name,
-        help="Configuration management",
-    )
+    @root_menu.group(
+        invoke_without_command=True, 
+        no_args_is_help=True, 
+        cls=CustomGroup)
+    @cli_modifiers
+    @click.pass_context
+    def config(ctx):
+        """Configuration management"""
+        if ctx.invoked_subcommand is None:
+            click.echo(ctx.get_help())
 
-    clear_config_cli_app = typer.Typer()
-    config_cli_app.add_typer(
-        clear_config_cli_app,
-        name="clear",
-        invoke_without_command=True,
-        no_args_is_help=False,
-        callback=clear_config,
-        help="Clear local config file, rely on internal configuration only",
-    )
+    @config.command()
+    def clear():
+        """Clear local config file, rely on internal configuration only"""
+        clear_config()
 
-    edit_config_cli_app = typer.Typer()
-    config_cli_app.add_typer(
-        edit_config_cli_app,
-        name="edit",
-        invoke_without_command=True,
-        no_args_is_help=False,
-        callback=edit_config,
-        help="Edit user configuration file",
-    )
+    @config.command()
+    @cli_modifiers
+    def edit():
+        """Edit user configuration file"""
+        edit_config()
 
-    flush_config_cli_app = typer.Typer()
-    config_cli_app.add_typer(
-        flush_config_cli_app,
-        name="flush",
-        invoke_without_command=True,
-        no_args_is_help=False,
-        callback=flush_config,
-        help="Flush internal configuration to a user config file",
+    @config.command()
+    @cli_modifiers
+    @click.option(
+        "--force",
+        is_flag=True,
+        help="Force flush and delete config file if exist",
+        envvar="PROV_FORCE_FLUSH_CONFIG",
     )
+    @cli_modifiers
+    def flush():
+        """Flush internal configuration to a user config file"""
+        flush_config()
 
-    view_config_cli_app = typer.Typer()
-    config_cli_app.add_typer(
-        view_config_cli_app,
-        name="view",
-        invoke_without_command=True,
-        no_args_is_help=False,
-        callback=view_config,
-        help="Print configuration to stdout",
-    )
+    @config.command()
+    @cli_modifiers
+    def view():
+        """Print configuration to stdout"""
+        view_config()
 
 
 def clear_config() -> None:
@@ -87,12 +79,7 @@ def edit_config() -> None:
         logger.info(f"No local user configuration file. path: {CONFIG_USER_PATH}")
 
 
-def flush_config(
-    force: Optional[bool] = typer.Option(
-        None, show_default=True, help="Force flush and delete config file if exist", envvar="PROV_FORCE_FLUSH_CONFIG"
-    )
-) -> None:
-
+def flush_config(force: Optional[bool]) -> None:
     if collaboratos.io_utils().file_exists_fn(CONFIG_USER_PATH) and not force:
         collaboratos.printer().print_fn("User configuration file already exists. Use --force to overwrite.")
         return

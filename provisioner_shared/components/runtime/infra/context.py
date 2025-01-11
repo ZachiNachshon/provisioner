@@ -19,7 +19,7 @@ class Context:
     _non_interactive: bool = None
 
     @staticmethod
-    def createEmpty() -> "Context":
+    def create_empty() -> "Context":
         ctx = Context()
         ctx.os_arch = OsArch()
         ctx._dry_run = False

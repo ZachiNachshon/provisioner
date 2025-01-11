@@ -5,7 +5,7 @@ import unittest
 import typer
 from typer.testing import CliRunner
 
-from provisioner_shared.components.remote.typer_remote_opts import (
+from provisioner_shared.components.remote.remote_opts import (
     TyperRemoteOpts,
 )
 from provisioner_shared.components.remote.typer_remote_opts_fakes import *

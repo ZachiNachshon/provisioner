@@ -29,14 +29,14 @@ dev-mode: ## Enable local development
 	@./scripts/switch_mode.py dev
 	@poetry lock
 
-.PHONY: run
-run: ## Run provisioner CLI from sources (Usage: make run 'config view')
-	@poetry run provisioner $(filter-out $@,$(MAKECMDGOALS))
-
 .PHONY: deps-install
 deps-install: ## Update and install pyproject.toml dependencies on all virtual environments
 	@poetry lock
 	@poetry install --with dev --sync -v
+	
+.PHONY: run
+run: ## Run provisioner CLI from sources (Usage: make run 'config view')
+	@poetry run provisioner $(filter-out $@,$(MAKECMDGOALS))
 	
 .PHONY: typecheck
 typecheck: ## Check for Python static type errors
@@ -53,14 +53,14 @@ fmt: ## Format Python code using Black style and sort imports
 	@poetry run ruff check . --show-fixes --fix
 
 .PHONY: test
-test: ## Run tests suite on runtime and all plugins
+test: ## Run tests suite on runtime and all plugins (output: None)
 	@poetry run coverage run -m pytest; \
 	if [ $$? -ne 0 ]; then \
 		exit 1; \
 	fi;
 
 .PHONY: test-coverage-html
-test-coverage-html: ## Run tests suite on runtime and all plugins
+test-coverage-html: ## Run tests suite on runtime and all plugins (output: HTML report)
 	@poetry run coverage run -m pytest; \
 	if [ $$? -ne 0 ]; then \
 		exit 1; \
@@ -75,7 +75,7 @@ test-coverage-html: ## Run tests suite on runtime and all plugins
 # This is the reason we're performing an exist code check since it
 # is a makefile that runs other makefiles within a for loop
 .PHONY: test-coverage-xml
-test-coverage-xml: ## Run tests suite on runtime and all plugins
+test-coverage-xml: ## Run tests suite on runtime and all plugins (output: XML report)
 	@poetry run coverage run -m pytest; \
 	if [ $$? -ne 0 ]; then \
 		exit 1; \

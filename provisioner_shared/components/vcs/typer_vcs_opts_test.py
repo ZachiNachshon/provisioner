@@ -5,7 +5,7 @@ import unittest
 import typer
 from typer.testing import CliRunner
 
-from provisioner_shared.components.vcs.typer_vcs_opts import TyperVersionControl
+from components.vcs.vcs_opts import TyperVersionControl
 from provisioner_shared.components.vcs.typer_vcs_opts_fakes import TestDataVersionControlOpts
 
 CONFIG_CLI_OVERRIDE_GITHUB_ACCESS_TOKEN = "config-test-override-git-access-token"

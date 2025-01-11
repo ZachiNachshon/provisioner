@@ -26,15 +26,17 @@
       </p>
       <!-- {{ highlight (printf ("npm install bootstrap@%s") .Site.Params.current_version) "sh" "" }} -->
       <p>
-        For additional information <a href="/docs/{{ .Site.Params.docs_version }}/getting-started/download/">check the download section</a>.
+        For additional information <a href="/docs/{{ .Site.Params.docs_version }}/getting-started/introduction/">check the introducion section</a>.
       </p>
     </div>
     <div class="col-lg-6 py-lg-4 ps-lg-5 border-lg-start">
       <svg class="bi mb-2 fs-2 text-muted"><use xlink:href="#github"></use></svg>
       <h3 class="fw-semibold">Browse through available plugins</h3>
       <p class="lead fw-normal">
-        Browsing through the available plugins is as simple as running the following command:
+        Browsing interactively through the available plugins is as simple as running the following command:
         {{ highlight (printf (`provisioner plugins install`)) "sh" "" }}
+        Single command installation is also avaialble via:
+        {{ highlight (printf (`provisioner plugins install --name provisioner-examples-plugin`)) "sh" "" }}
       </p>
       <p>
         For the full list of available plugins <a href="/docs/{{ .Site.Params.docs_version }}/plugins/provisioner-runtime/#quickstart">check the following section</a>.

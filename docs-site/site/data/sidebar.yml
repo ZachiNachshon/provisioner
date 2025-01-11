@@ -7,25 +7,49 @@
   pages:
     - title: Introduction
     - title: Overview
-    - title: Download
+    - title: Development
+    - title: Repository Structure
     - title: Playground
     - title: Contribute
 
-- title: Configuration
+- title: Framework
   icon: gear
   icon_color: blue
   pages:
-    - title: Overview
+    - title: Core
+    - title: Configuration
+    - title: Collaborators
+    - title: Runtime
+    - title: Functional Framework
+    - title: CLI Commands
+    - title: Ansible
+    - title: Remote Connector
+    - title: OS Image Burner
     - title: Auto-Completion
-    
-- title: Plugins
-  icon: git
+
+- title: Testing
+  icon: shield-check
+  icon_color: blue
+  pages:
+    - title: Overview
+    - title: Utilities
+    - title: Assertions
+
+- title: Bootstrap
+  icon: wrench
   icon_color: pink
   pages:
-    - title: Provisioner Runtime
-    - title: "Plugin: Installers"
-    - title: "Plugin: Single Board"
-    - title: "Plugin: Examples"
+    - title: Start Here
+    - title: Create a New Plugin
+    - title: Application Lifecycle
+
+- title: Plugins
+  icon: window-stack
+  icon_color: pink
+  pages:
+    - title: Installers
+    - title: Single Board
+    - title: Examples
 
 - title: About
   icon: globe2

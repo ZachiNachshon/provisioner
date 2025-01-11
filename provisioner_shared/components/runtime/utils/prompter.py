@@ -144,7 +144,7 @@ class Prompter:
         #   - Cancel line
         lines_number = len(inq_opts) + 2
         self._clear_previous_line(lines_number)
-        self._overwrite_previous_line(color_in_use=colors.GREEN, message=f"Selected :: {result}", icon=CHECKMARK_ICON)
+        self._overwrite_previous_line(color_in_use=colors.GREEN, message=f"Selected {result}", icon=CHECKMARK_ICON)
 
         return result
 
@@ -170,10 +170,7 @@ class Prompter:
         #   - Selectable lines
         lines_number = len(options) + 2
         self._clear_previous_line(lines_number)
-        message = "Selected :: [\n"
-        for item in result:
-            message += f"  {item}\n"
-        message += "]"
+        message = f"Selected values {', '.join([item for item in result])}"
         self._overwrite_previous_line(color_in_use=colors.GREEN, message=message, icon=CHECKMARK_ICON)
         return result
 

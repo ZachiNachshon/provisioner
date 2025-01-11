@@ -8,14 +8,8 @@ from provisioner_shared.components.runtime.errors.cli_errors import CliGlobalArg
 
 
 class CliGlobalArgs:
-    verbose: bool
-    dry_run: bool
-    auto_prompt: bool
-    non_interactive: bool
-    os_arch: str
 
     def __init__(self, verbose: bool, dry_run: bool, auto_prompt: bool, non_interactive: bool, os_arch: str) -> None:
-
         self.verbose = verbose
         self.dry_run = dry_run
         self.auto_prompt = auto_prompt

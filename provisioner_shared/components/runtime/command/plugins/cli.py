@@ -2,8 +2,10 @@
 
 from typing import List, Optional
 
-import typer
+import click
 
+from components.runtime.cli.menu_format import CustomGroup
+from components.runtime.cli.cli_modifiers import cli_modifiers
 from provisioner_shared.components.runtime.colors import colors
 from provisioner_shared.components.runtime.config.domain.config import PluginDefinition, ProvisionerConfig
 from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
@@ -12,50 +14,46 @@ from provisioner_shared.components.runtime.shared.collaborators import CoreColla
 collaboratos: CoreCollaborators = None
 
 
-def append_plugins_cmd_to_cli(app: typer.Typer, cli_group_name: str, cols: CoreCollaborators):
+def append_plugins_cmd_to_cli(root_menu: click.Group, cols: CoreCollaborators):
     global collaboratos
     collaboratos = cols
 
-    # Create the CLI structure
-    plugins_cli_app = typer.Typer()
-    app.add_typer(
-        plugins_cli_app,
-        name="plugins",
-        invoke_without_command=True,
-        no_args_is_help=True,
-        # rich_help_panel=cli_group_name,
-        help="Plugins management",
-    )
+    @root_menu.group(cls=CustomGroup)
+    def plugins():
+        """Plugins management"""
+        pass
 
-    list_plugins_cli_app = typer.Typer()
-    plugins_cli_app.add_typer(
-        list_plugins_cli_app,
-        name="list",
-        invoke_without_command=True,
-        no_args_is_help=False,
-        callback=list_locally_installed_plugins,
-        help="List locally installed provisioner plugins",
-    )
+    @plugins.command()
+    @cli_modifiers
+    def list():
+        """List locally installed provisioner plugins"""
+        list_locally_installed_plugins()
 
-    install_plugins_cli_app = typer.Typer()
-    plugins_cli_app.add_typer(
-        install_plugins_cli_app,
-        name="install",
-        invoke_without_command=True,
-        no_args_is_help=False,
-        callback=install_available_plugins,
-        help="Search and install plugins from remote",
+    @plugins.command()
+    @cli_modifiers
+    @click.option(
+        '--name', 
+        default=None, 
+        help="Name of the plugin to install",
+        envvar="PROV_PLUGIN_INSTALL_NAME",
+        show_default=True
     )
+    def install(name: Optional[str]):
+        """Search and install plugins from remote"""
+        install_available_plugins(name)
 
-    uninstall_plugins_cli_app = typer.Typer()
-    plugins_cli_app.add_typer(
-        uninstall_plugins_cli_app,
-        name="uninstall",
-        invoke_without_command=True,
-        no_args_is_help=False,
-        callback=uninstall_plugins,
-        help="Select local plugins to uninstall",
+    @plugins.command()
+    @cli_modifiers
+    @click.option(
+        '--name', 
+        default=None, 
+        help="Name of the plugin to uninstall",
+        envvar="PROV_PLUGIN_UNINSTALL_NAME",
+        show_default=True
     )
+    def uninstall(name: Optional[str]):
+        """Select local plugins to uninstall"""
+        uninstall_plugins(name)
 
 
 def list_locally_installed_plugins() -> None:
@@ -81,24 +79,21 @@ def list_locally_installed_plugins() -> None:
     collaboratos.printer().print_fn(output)
 
 
-def install_available_plugins(
-    name: Optional[str] = typer.Option(
-        None, show_default=True, help="Name of the plugin to install", envvar="PROV_PLUGIN_INSTALL_NAME"
-    )
-) -> None:
-    
+def install_available_plugins(name: Optional[str]) -> None:
     if name is None:
         install_available_plugins_from_prompt()
     else:
         install_available_plugins_from_args(name)
 
+
 def install_available_plugins_from_args(plgn_name: str) -> None:
     if "provisioner" not in plgn_name:
         raise ValueError("Plugin name must have the 'provisioner_xxx_plugin' format.")
-    
+
     escaped_pkg_name = plgn_name.replace("_", "-")
     collaboratos.package_loader().install_pip_package_fn(escaped_pkg_name)
     collaboratos.printer().print_fn(f"Plugin {plgn_name} installed successfully.")
+
 
 def install_available_plugins_from_prompt() -> None:
     packages_from_pip = _try_get_pip_installed_packages()
@@ -131,24 +126,22 @@ def install_available_plugins_from_prompt() -> None:
         collaboratos.package_loader().install_pip_package_fn(escaped_pkg_name)
         collaboratos.printer().print_fn(f"Plugin {plgn_def.name} installed successfully.")
 
-def uninstall_plugins(
-    name: Optional[str] = typer.Option(
-        None, show_default=True, help="Name of the plugin to uninstall", envvar="PROV_PLUGIN_UNINSTALL_NAME"
-    )
-) -> None:
-    
+
+def uninstall_plugins(name: Optional[str]) -> None:
     if name is None:
         uninstall_local_plugins_from_prompt()
     else:
         uninstall_local_plugins_from_args(name)
 
+
 def uninstall_local_plugins_from_args(plgn_name: str) -> None:
     if "provisioner" not in plgn_name:
         raise ValueError("Plugin name must have the 'provisioner_xxx_plugin' format.")
-    
+
     escaped_pkg_name = plgn_name.replace("_", "-")
     collaboratos.package_loader().uninstall_pip_package_fn(escaped_pkg_name)
     collaboratos.printer().print_fn(f"Plugin {plgn_name} uninstalled successfully.")
+
 
 def uninstall_local_plugins_from_prompt() -> None:
     packages_from_pip = _try_get_pip_installed_packages()

@@ -14,23 +14,20 @@ Remove the hassle of going through multiple READMEs and/or documentation sites j
 
 {{< callout info >}}
 **Important !** <br>
-Installation can run either locally on the host machine or on a remote machine.<br>
+Installation can be performed either locally on the host machine or on a remote machine.
 
-When opting for remote machine, upon installation, an interactive flow will start using TUI (Terminal UI).<br>
-
-To install on a remote machine without starting an interactive flow, `Remote-Only` flags should be used to supply the remote machine info (ENV VARs are also supported).
+For local installations, an interactive flow will be initiated using a TUI (Terminal UI).
+To install on a remote machine without triggering the interactive flow, use the Remote-Only flags to provide the remote machine details. Environment variables (ENV VARs) are also supported for this purpose.
 {{< /callout >}}
 
 ## Quickstart
 
-```bash
-pip install provisioner-installers-plugin
-```
+```text
+# Interactive mode
+$ provisioner plugins install
 
-or, interactive plugin installation via:
-
-```bash 
-provisioner plugins install
+# Non interactive mode
+$ pip install provisioner-installers-plugin
 ```
 
 ## Usage
@@ -42,7 +39,7 @@ provisioner install
 ```
 
 {{< callout info >}}
-Currently, supported installables are:
+Currently, the following installables are supported:
 * CLI applications
 * K3s server/agent
 {{< /callout >}}
@@ -51,8 +48,12 @@ Currently, supported installables are:
 
 Install any supported CLI tool
 
-```bash
-provisioner install cli <app-name>
+```text
+# List avaialble CLI installables 
+$ provisioner install cli
+
+# Install a specific installable
+$ provisioner install cli <app-name>
 ```
 
 #### K3s
@@ -60,13 +61,17 @@ provisioner install cli <app-name>
 K3s is fully compliant lightweight Kubernetes distribution (https://k3s.io).<br>
 Provisioner allows installing either the k3s server or agent.
 
-```bash
-provisioner install k3s <server/agent>
+```text
+# List avaialble k3s installables 
+$ provisioner install k3s
+
+# List avaialble CLI installables 
+$ provisioner install k3s <server/agent>
 ```
 
 ## Remote Installation
 
-When opting-in for a remote installation without an interactive flow, one should supply the required flags so the CLI command could run as a one-liner.
+When choosing a remote installation without an interactive flow, the necessary flags should be provided to allow the CLI command to run as a single-line command.
 
 {{< bs-table >}}
 | Remote Flag | Env Var | Description |
@@ -80,7 +85,8 @@ When opting-in for a remote installation without an interactive flow, one should
 
 Example:
 
-```bash
+```text
+# Using CLI flags
 provisioner install \
   --environment Remote \
   --hostname rpi-01 \
@@ -88,11 +94,8 @@ provisioner install \
   --node-username pi \
   --ssh-private-key-file-path /path/to/pkey \
   cli helm
-```
 
-or
-
-```bash
+# Using Env Vars 
 PROV_HOSTNAME=rpi-01 \
 PROV_IP_ADDRESS=1.2.3.4 \
 PROV_NODE_USERNAME=pi \

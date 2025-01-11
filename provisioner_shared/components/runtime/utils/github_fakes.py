@@ -40,9 +40,6 @@ class FakeGitHub(Checks):
     def _register_get_latest_version(self, owner: str, repo: str) -> str:
         key = self._create_get_latest_version_key(owner, repo)
         if key in self.__mocked_get_latest_version:
-            print("===============")
-            print("===============")
-            print("===============")
             print(self.__mocked_get_latest_version[key])
             print(self.__mocked_get_latest_version[key])
             print(self.__mocked_get_latest_version[key])

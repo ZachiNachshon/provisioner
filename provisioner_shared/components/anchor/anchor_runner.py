@@ -6,14 +6,14 @@ from loguru import logger
 
 from provisioner_shared.components.remote.domain.config import RunEnvironment
 from provisioner_shared.components.remote.remote_connector import RemoteMachineConnector
-from provisioner_shared.components.remote.typer_remote_opts import CliRemoteOpts
+from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
 from provisioner_shared.components.runtime.errors.cli_errors import MissingCliArgument
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.evaluator import Evaluator
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost, AnsiblePlaybook
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
 from provisioner_shared.components.runtime.utils.checks import Checks
-from provisioner_shared.components.vcs.typer_vcs_opts import CliVersionControlOpts
+from components.vcs.vcs_opts import CliVersionControlOpts
 
 ANSIBLE_PLAYBOOK_ANCHOR_RUN = """
 ---

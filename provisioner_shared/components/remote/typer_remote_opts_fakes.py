@@ -3,7 +3,7 @@
 import yaml
 
 from provisioner_shared.components.remote.domain.config import RemoteConfig, RunEnvironment
-from provisioner_shared.components.remote.typer_remote_opts import (
+from provisioner_shared.components.remote.remote_opts import (
     CliRemoteOpts,
     TyperRemoteOpts,
 )
