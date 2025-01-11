@@ -31,7 +31,7 @@ REMOTE_OPT_REMOTE_NON_INTERACTIVE = "remote-non-interactive"
 # Define modifiers globally
 def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
     from_cfg_ip_discovery_range = get_nested_value(remote_config, path="lan_scan.ip_discovery_range", default=None)
-    
+
     # Important !
     # This is the actual click decorator, the signature is critical for click to work
     def decorator_without_params(func: Callable) -> Callable:

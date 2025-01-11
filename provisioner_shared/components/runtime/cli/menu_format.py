@@ -18,7 +18,7 @@ def get_nested_value(obj: object, path: str, default=None):
     attributes = path.split(".")
     for attr in attributes:
         obj = getattr(obj, attr, None)
-        if obj is None:
+        if obj is None or obj == "":
             return default
     return obj
 
@@ -68,6 +68,7 @@ class CustomCommand(click.Command):
             # Separate grouped options
             group_name = getattr(param, "group", "General")
             option_str = ", ".join(param.opts)
+            
             if param.type and param.type.name != "boolean":
                 option_str += f" {param.type.name.upper()}"
             if param.metavar:
@@ -78,7 +79,12 @@ class CustomCommand(click.Command):
                 str_value = "" if isinstance(param, click.Argument) else param.help or ""
                 modifiers.append((option_str, str_value))
             else:
-                str_value = "" if isinstance(param, click.Argument) else param.help or ""
+                help_record = param.get_help_record(ctx)
+                if help_record:
+                    option_str, help_text = help_record
+                    str_value = help_text
+                else:
+                    str_value = "" if isinstance(param, click.Argument) else param.help or ""
                 opts.append((option_str, str_value))
 
         # Format OPTIONS (non-grouped options or "General" group)
