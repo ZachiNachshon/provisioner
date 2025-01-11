@@ -6,6 +6,21 @@ DEFAULT_CONTEXT_SETTINGS = {"max_content_width": 200}
 def normalize_cli_item(item: str) -> str:
     return item.replace("-", "_")
 
+def get_nested_value(obj: object, path: str, default=None):
+    """
+    Retrieve a nested value from an object given a dot-separated path.
+
+    :param obj: The object to retrieve the value from.
+    :param path: The dot-separated path to the attribute (e.g., "lan_scan.ip_discovery_range").
+    :param default: The default value to return if the path does not exist (defaults to None).
+    :return: The value at the specified path or the default value if not found.
+    """
+    attributes = path.split(".")
+    for attr in attributes:
+        obj = getattr(obj, attr, None)
+        if obj is None:
+            return default
+    return obj
 
 class GroupedOption(click.Option):
     def __init__(self, *args, group=None, **kwargs):

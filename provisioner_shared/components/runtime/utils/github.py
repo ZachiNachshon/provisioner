@@ -8,8 +8,8 @@ from provisioner_shared.components.runtime.utils.httpclient import HttpClient
 GitHubUrl = "https://github.com"
 GitHubApiUrl = "https://api.github.com"
 
-GitHubApiLatestReleaseUrl = "{git_hub_api_url}/repos/{owner}/{repo}/releases/latest"
-GitHubDownloadBinaryUrl = "{git_hub_url}/{owner}/{repo}/releases/download/{version}/{binary_name}"
+GitHubApiLatestReleaseUrl = "{github_api_url}/repos/{owner}/{repo}/releases/latest"
+GitHubDownloadBinaryUrl = "{github_url}/{owner}/{repo}/releases/download/{version}/{binary_name}"
 
 
 class GitHub:
@@ -36,7 +36,7 @@ class GitHub:
 
         version = None
         named_params = {
-            "git_hub_api_url": GitHubApiUrl,
+            "github_api_url": GitHubApiUrl,
             "owner": owner,
             "repo": repo,
         }
@@ -53,7 +53,7 @@ class GitHub:
         self, owner: str, repo: str, version: str, binary_name: str, binary_folder_path: str
     ) -> str:
         named_params = {
-            "git_hub_url": GitHubUrl,
+            "github_url": GitHubUrl,
             "owner": owner,
             "repo": repo,
             "version": version,

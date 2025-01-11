@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 import click
 
 from components.remote.remote_opts import CliRemoteOpts, RemoteVerbosity
-from components.runtime.cli.menu_format import GroupedOption, normalize_cli_item
+from components.runtime.cli.menu_format import GroupedOption, get_nested_value, normalize_cli_item
 from provisioner_shared.components.remote.domain.config import RemoteConfig, RunEnvironment
 from provisioner_shared.components.runtime.cli.click_callbacks import mutually_exclusive_callback
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
@@ -30,14 +30,8 @@ REMOTE_OPT_REMOTE_NON_INTERACTIVE = "remote-non-interactive"
 
 # Define modifiers globally
 def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
-    from_cfg_ip_discovery_range = None
-    if (
-        remote_config is not None
-        and hasattr(remote_config, "lan_scan")
-        and hasattr(remote_config.lan_scan, "ip_discovery_range")
-    ):
-        from_cfg_ip_discovery_range = remote_config.lan_scan.ip_discovery_range
-
+    from_cfg_ip_discovery_range = get_nested_value(remote_config, path="lan_scan.ip_discovery_range", default=None)
+    
     # Important !
     # This is the actual click decorator, the signature is critical for click to work
     def decorator_without_params(func: Callable) -> Callable:
@@ -96,6 +90,7 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
         @click.option(
             f"--{REMOTE_OPT_IP_DISCOVERY_RANGE}",
             default=from_cfg_ip_discovery_range,
+            show_default=True,
             help="LAN network IP discovery scan range",
             envvar="PROV_IP_DISCOVERY_RANGE",
             cls=GroupedOption,
