@@ -3,6 +3,10 @@ import click
 DEFAULT_CONTEXT_SETTINGS = {"max_content_width": 200}
 
 
+def normalize_cli_item(item: str) -> str:
+    return item.replace("-", "_")
+
+
 class GroupedOption(click.Option):
     def __init__(self, *args, group=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -20,7 +24,7 @@ class CustomCommand(click.Command):
         if help_option is None:
             return None
         # return click.Option(
-        return GroupedOption( 
+        return GroupedOption(
             ["--help", "-h"],
             is_flag=True,
             expose_value=False,
@@ -47,8 +51,8 @@ class CustomCommand(click.Command):
         max_option_length = 0
         for param in self.get_params(ctx):
             # Separate grouped options
-            group_name = getattr(param, 'group', 'General')
-            option_str = ', '.join(param.opts)
+            group_name = getattr(param, "group", "General")
+            option_str = ", ".join(param.opts)
             if param.type and param.type.name != "boolean":
                 option_str += f" {param.type.name.upper()}"
             if param.metavar:
@@ -56,9 +60,11 @@ class CustomCommand(click.Command):
 
             max_option_length = max(max_option_length, len(option_str))
             if group_name == "Modifiers":
-                modifiers.append((option_str, param.help or ''))
+                str_value = "" if isinstance(param, click.Argument) else param.help or ""
+                modifiers.append((option_str, str_value))
             else:
-                opts.append((option_str, param.help or ''))
+                str_value = "" if isinstance(param, click.Argument) else param.help or ""
+                opts.append((option_str, str_value))
 
         # Format OPTIONS (non-grouped options or "General" group)
         if opts:
@@ -73,9 +79,7 @@ class CustomCommand(click.Command):
                 formatter.write_text(f"  {option.ljust(max_option_length)}  {help_text}")
 
         formatter.write_paragraph()
-        formatter.write_text(
-            f'Use "{ctx.command_path} [command] --help" for more information about a command.'
-        )
+        formatter.write_text(f'Use "{ctx.command_path} [command] --help" for more information about a command.')
 
 
 class CustomGroup(click.Group):
@@ -93,7 +97,7 @@ class CustomGroup(click.Group):
         if help_option is None:
             return None
         # return click.Option(
-        return GroupedOption( 
+        return GroupedOption(
             ["--help", "-h"],
             is_flag=True,
             expose_value=False,
@@ -102,14 +106,16 @@ class CustomGroup(click.Group):
             callback=help_option.callback,
             group="Modifiers",
         )
-    
+
     def format_help(self, ctx, formatter):
         # Add empty line at the top
         formatter.write_paragraph()
 
         # Write title
         formatter.write_text("")
-        formatter.write_text("Provision Everything Anywhere (install plugins from https://zachinachshon.com/provisioner)")
+        formatter.write_text(
+            "Provision Everything Anywhere (install plugins from https://zachinachshon.com/provisioner)"
+        )
         formatter.write_paragraph()
 
         # Write usage without colon
@@ -139,10 +145,10 @@ class CustomGroup(click.Group):
         max_option_length = 0
         for param in self.get_params(ctx):
             # Separate grouped options
-            group_name = getattr(param, 'group', 'General')
+            group_name = getattr(param, "group", "General")
             # Used for later formatting of group vs. non-grouped options
             grouped_options.setdefault(group_name, []).append(param)
-            option_str = ', '.join(param.opts)
+            option_str = ", ".join(param.opts)
             if isinstance(param.type, click.Choice):
                 option_str += f" [{('|'.join(param.type.choices))}]"
             elif param.type is not None and param.type.name != "boolean":
@@ -152,9 +158,9 @@ class CustomGroup(click.Group):
             all_options.append(option_str)
 
             if group_name == "Modifiers":
-                modifiers.append((option_str, param.help or ''))
+                modifiers.append((option_str, param.help or ""))
             else:
-                opts.append((option_str, param.help or ''))
+                opts.append((option_str, param.help or ""))
 
             # Calculate the maximum option length for alignment
             max_option_length = max(len(opt) for opt in all_options)
@@ -163,11 +169,11 @@ class CustomGroup(click.Group):
         is_grouped = grouped_options.keys() != {"Modifiers"}
 
         # Skip the OPTIONS section if there are no options
-        if len(opts )> 0:
+        if len(opts) > 0:
             # Write OPTIONS header
             formatter.write_paragraph()
             formatter.write_text(click.style("OPTIONS", fg="cyan"))
-        
+
         # === Grouped Options ===
         if is_grouped:
             # We don't need the modifiers, we'll have those in a separate section

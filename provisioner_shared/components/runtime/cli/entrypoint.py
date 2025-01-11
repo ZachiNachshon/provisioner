@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 from typing import Any, Callable, Optional
+
 from provisioner_shared.components.runtime.cli.version import STATIC_RESOURCES_PACKAGE
+
 
 class EntryPoint:
     @staticmethod

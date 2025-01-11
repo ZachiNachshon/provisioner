@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from typing import List, Optional
 
 import click
+
 
 def mutually_exclusive_group():
     """
@@ -19,11 +19,10 @@ def mutually_exclusive_group():
             if not group:
                 group.add(param.name)
             elif param.name not in group:
-                raise click.BadParameter(
-                    f"{param.name} is mutually exclusive with {group.pop()}"
-                )
+                raise click.BadParameter(f"{param.name} is mutually exclusive with {group.pop()}")
         return value
 
     return callback
+
 
 mutually_exclusive_callback = mutually_exclusive_group()

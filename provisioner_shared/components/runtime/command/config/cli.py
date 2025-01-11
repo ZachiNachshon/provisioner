@@ -6,7 +6,6 @@ import os
 from typing import Any, Optional
 
 import click
-
 from loguru import logger
 
 from components.runtime.cli.cli_modifiers import cli_modifiers
@@ -19,14 +18,12 @@ CONFIG_USER_PATH = os.path.expanduser("~/.config/provisioner/config.yaml")
 
 collaboratos: CoreCollaborators = None
 
+
 def append_config_cmd_to_cli(root_menu: click.Group, cols: CoreCollaborators):
     global collaboratos
     collaboratos = cols
 
-    @root_menu.group(
-        invoke_without_command=True, 
-        no_args_is_help=True, 
-        cls=CustomGroup)
+    @root_menu.group(invoke_without_command=True, no_args_is_help=True, cls=CustomGroup)
     @cli_modifiers
     @click.pass_context
     def config(ctx):

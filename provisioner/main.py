@@ -4,11 +4,11 @@ import os
 import pathlib
 
 import click
+from components.runtime.cli.cli_modifiers import cli_modifiers
+from components.runtime.cli.menu_format import CustomGroup
 from loguru import logger
 
 from provisioner_shared.components.runtime.cli.entrypoint import EntryPoint
-from components.runtime.cli.menu_format import CustomGroup
-from components.runtime.cli.cli_modifiers import cli_modifiers
 from provisioner_shared.components.runtime.cli.version import append_version_cmd_to_cli
 from provisioner_shared.components.runtime.command.config.cli import CONFIG_USER_PATH, append_config_cmd_to_cli
 from provisioner_shared.components.runtime.command.plugins.cli import append_plugins_cmd_to_cli
@@ -31,19 +31,19 @@ debug_pre_init = os.getenv(key=ENV_VAR_ENABLE_PRE_INIT_DEBUG, default=False)
 if not debug_pre_init:
     logger.remove()
 
-@click.group(
-    invoke_without_command=True, 
-    no_args_is_help=True, 
-    cls=CustomGroup) 
+
+@click.group(invoke_without_command=True, no_args_is_help=True, cls=CustomGroup)
 @cli_modifiers
 @click.pass_context
 def root_menu(ctx):
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
 
+
 EntryPoint.create_cli_menu(
     config_resolver_fn=lambda: ConfigManager.instance().load(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig),
 )
+
 
 def load_plugin(plugin_module):
     plugin_module.load_config()

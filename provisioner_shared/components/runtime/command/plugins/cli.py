@@ -4,8 +4,8 @@ from typing import List, Optional
 
 import click
 
-from components.runtime.cli.menu_format import CustomGroup
 from components.runtime.cli.cli_modifiers import cli_modifiers
+from components.runtime.cli.menu_format import CustomGroup
 from provisioner_shared.components.runtime.colors import colors
 from provisioner_shared.components.runtime.config.domain.config import PluginDefinition, ProvisionerConfig
 from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
@@ -32,11 +32,11 @@ def append_plugins_cmd_to_cli(root_menu: click.Group, cols: CoreCollaborators):
     @plugins.command()
     @cli_modifiers
     @click.option(
-        '--name', 
-        default=None, 
+        "--name",
+        default=None,
         help="Name of the plugin to install",
         envvar="PROV_PLUGIN_INSTALL_NAME",
-        show_default=True
+        show_default=True,
     )
     def install(name: Optional[str]):
         """Search and install plugins from remote"""
@@ -45,11 +45,11 @@ def append_plugins_cmd_to_cli(root_menu: click.Group, cols: CoreCollaborators):
     @plugins.command()
     @cli_modifiers
     @click.option(
-        '--name', 
-        default=None, 
+        "--name",
+        default=None,
         help="Name of the plugin to uninstall",
         envvar="PROV_PLUGIN_UNINSTALL_NAME",
-        show_default=True
+        show_default=True,
     )
     def uninstall(name: Optional[str]):
         """Select local plugins to uninstall"""

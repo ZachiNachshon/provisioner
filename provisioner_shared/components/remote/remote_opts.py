@@ -5,14 +5,11 @@ from typing import List, Optional
 
 from loguru import logger
 
-from provisioner_shared.components.remote.domain.config import (Auth, Host,
-                                                                RunEnvironment)
-from provisioner_shared.components.runtime.errors.cli_errors import \
-    MissingCliArgument
-from provisioner_shared.components.runtime.infra.remote_context import \
-    RemoteContext
-from provisioner_shared.components.runtime.runner.ansible.ansible_runner import \
-    AnsibleHost
+from provisioner_shared.components.remote.domain.config import Auth, Host, RunEnvironment
+from provisioner_shared.components.runtime.errors.cli_errors import MissingCliArgument
+from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
+from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
+
 
 class RemoteVerbosity(Enum):
     Normal = "Normal"
@@ -48,7 +45,7 @@ class CliRemoteOpts:
         remote_hosts: Optional[dict[str, Host]] = None,
         remote_context: RemoteContext = None,
     ) -> None:
-    
+
         self.environment = environment
         self.node_username = node_username
         self.node_password = node_password
@@ -75,19 +72,20 @@ class CliRemoteOpts:
         remote_hosts: Optional[dict[str, Host]] = None,
         remote_context: RemoteContext = None,
     ) -> None:
-    
+
         try:
             CliRemoteOpts.options = CliRemoteOpts(
-                environment, 
-                node_username, 
-                node_password, 
-                ssh_private_key_file_path, 
-                ip_discovery_range, 
-                ip_address, 
-                hostname, 
-                remote_hosts, 
-                remote_context)
-            
+                environment,
+                node_username,
+                node_password,
+                ssh_private_key_file_path,
+                ip_discovery_range,
+                ip_address,
+                hostname,
+                remote_hosts,
+                remote_context,
+            )
+
         except Exception as e:
             e_name = e.__class__.__name__
             logger.critical("Failed to create CLI remote global opts object. ex: {}, message: {}", e_name, str(e))

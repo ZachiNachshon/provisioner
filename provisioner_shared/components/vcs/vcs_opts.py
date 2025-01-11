@@ -4,6 +4,7 @@ from typing import Optional
 
 from loguru import logger
 
+
 class CliVersionControlOpts:
 
     options: "CliVersionControlOpts" = None
@@ -45,5 +46,5 @@ class CliVersionControlOpts:
             + f"  github_organization: {self.github_organization}\n"
             + f"  repository_name: {self.repository_name}\n"
             + f"  branch_name: {self.branch_name}\n"
-            + f"  git_access_token: REDACTED\n"
+            + "  git_access_token: REDACTED\n"
         )
