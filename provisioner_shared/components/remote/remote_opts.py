@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 from enum import Enum
-import inspect
-from threading import Lock
 from typing import List, Optional
 
 import click
@@ -30,7 +28,9 @@ class RemoteVerbosity(Enum):
         else:
             raise NotImplementedError(f"RemoteVerbosity enum does not support label '{label}'")
 
+
 REMOTE_CLICK_CTX_NAME = "cli_remote_opts"
+
 
 class CliRemoteOpts:
 
@@ -61,12 +61,12 @@ class CliRemoteOpts:
 
         # Modifiers
         self.remote_context = remote_context
-        
+
     @staticmethod
     def from_click_ctx(ctx: click.Context) -> Optional["CliRemoteOpts"]:
         """Returns the current singleton instance, if any."""
         return ctx.obj.get(REMOTE_CLICK_CTX_NAME, None) if ctx.obj else None
-    
+
     def get_remote_context(self) -> RemoteContext:
         return self.remote_context
 

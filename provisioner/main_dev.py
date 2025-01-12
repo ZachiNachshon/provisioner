@@ -12,7 +12,6 @@ from provisioner_shared.components.runtime.config.domain.config import Provision
 from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
-from provisioner_shared.components.runtime.shared.globals import COMMON_COMMANDS_GROUP_NAME
 
 CONFIG_INTERNAL_PATH = f"{pathlib.Path(__file__).parent}/resources/config.yaml"
 
@@ -28,15 +27,14 @@ debug_pre_init = os.getenv(key=ENV_VAR_ENABLE_PRE_INIT_DEBUG, default=False)
 if not debug_pre_init:
     logger.remove()
 
-app = EntryPoint.create_cli_menu(
-    title="Provision Everything Anywhere (install plugins from https://zachinachshon.com/provisioner)",
-    config_resolver_fn=lambda: ConfigManager.instance().load(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig),
-)
+ConfigManager.instance().load(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig)
+
+root_menu = EntryPoint.create_cli_menu()
 
 
 def load_plugin(plugin_module):
     plugin_module.load_config()
-    plugin_module.append_to_cli(app)
+    plugin_module.append_to_cli(root_menu)
 
 
 # ==============
@@ -60,7 +58,7 @@ def main():
         callback=lambda module: load_plugin(plugin_module=module),
     )
 
-    append_config_cmd_to_cli(app, cli_group_name=COMMON_COMMANDS_GROUP_NAME, cols=cols)
-    append_plugins_cmd_to_cli(app, cli_group_name=COMMON_COMMANDS_GROUP_NAME, cols=cols)
+    append_config_cmd_to_cli(root_menu=root_menu, collaborators=cols)
+    append_plugins_cmd_to_cli(root_menu=root_menu, collaborators=cols)
 
-    app()
+    root_menu()

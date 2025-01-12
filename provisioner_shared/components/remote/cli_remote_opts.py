@@ -4,6 +4,7 @@ from functools import wraps
 from typing import Any, Callable, Optional
 
 import click
+from loguru import logger
 
 from components.remote.remote_opts import REMOTE_CLICK_CTX_NAME, CliRemoteOpts, RemoteVerbosity
 from components.runtime.cli.menu_format import GroupedOption, get_nested_value, normalize_cli_item
@@ -158,17 +159,56 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             if ctx.obj is None:
                 ctx.obj = {}
 
-            ctx.obj[REMOTE_CLICK_CTX_NAME] = CliRemoteOpts(
-                environment,
-                node_username,
-                node_password,
-                ssh_private_key_file_path,
-                ip_discovery_range,
-                ip_address,
-                hostname,
-                remote_hosts,
-                remote_context,
-            )
+            if REMOTE_CLICK_CTX_NAME not in ctx.obj:
+                # First-time initialization
+                ctx.obj[REMOTE_CLICK_CTX_NAME] = CliRemoteOpts(
+                    environment,
+                    node_username,
+                    node_password,
+                    ssh_private_key_file_path,
+                    ip_discovery_range,
+                    ip_address,
+                    hostname,
+                    remote_hosts,
+                    remote_context,
+                )
+                logger.debug("Initialized CliRemoteOpts for the first time.")
+            else:
+                # Update only the relevant fields if they change
+                remote_opts = ctx.obj[REMOTE_CLICK_CTX_NAME]
+
+                if verbosity and not remote_opts.verbosity:
+                    remote_opts.verbosity = True
+
+                if dry_run and not remote_opts.dry_run:
+                    remote_opts.dry_run = True
+
+                if non_interactive and not remote_opts.non_interactive:
+                    remote_opts.non_interactive = True
+
+                if remote_context and remote_opts.remote_context != remote_context:
+                    remote_opts.remote_context = remote_context
+
+                if run_env and remote_opts.environment != run_env:
+                    remote_opts.environment = run_env
+
+                if node_username and remote_opts.node_username != node_username:
+                    remote_opts.node_username = node_username
+
+                if node_password and remote_opts.node_password != node_password:
+                    remote_opts.node_password = node_password
+
+                if ssh_private_key_file_path and remote_opts.ssh_private_key_file_path != ssh_private_key_file_path:
+                    remote_opts.ssh_private_key_file_path = ssh_private_key_file_path
+
+                if ip_discovery_range and remote_opts.ip_discovery_range != ip_discovery_range:
+                    remote_opts.ip_discovery_range = ip_discovery_range
+
+                if ip_address and remote_opts.ip_address != ip_address:
+                    remote_opts.ip_address = ip_address
+
+                if hostname and remote_opts.hostname != hostname:
+                    remote_opts.hostname = hostname
 
             return func(*args, **kwargs)
 

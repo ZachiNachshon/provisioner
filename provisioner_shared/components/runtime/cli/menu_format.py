@@ -57,10 +57,6 @@ class CustomCommand(click.Command):
         # Write USAGE
         formatter.write_text(click.style("USAGE", fg="cyan"))
         formatter.write_text(f"  {ctx.command_path} [OPTIONS] [ARGS]...")
-        formatter.write_paragraph()
-
-        # Write OPTIONS header
-        formatter.write_text(click.style("OPTIONS", fg="cyan"))
 
         # Collect options
         opts = []
@@ -91,6 +87,10 @@ class CustomCommand(click.Command):
 
         # Format OPTIONS (non-grouped options or "General" group)
         if opts:
+            # Write OPTIONS header
+            formatter.write_paragraph()
+            formatter.write_text(click.style("OPTIONS", fg="cyan"))
+
             for option, help_text in opts:
                 formatter.write_text(f"  {option.ljust(max_option_length)}  {help_text}")
 

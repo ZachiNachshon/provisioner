@@ -45,6 +45,7 @@ class Assertion:
     @staticmethod
     def expect_raised_failure(testObj, ex_type: Type, method_to_run) -> None:
         failed = False
+        output = None
         try:
             output = method_to_run()
             if output and output.exit_code != 0:
@@ -55,6 +56,7 @@ class Assertion:
             failed = True
             testObj.assertIsInstance(ex, ex_type)
 
+        print(output.output)
         testObj.assertTrue(failed)
 
     @staticmethod

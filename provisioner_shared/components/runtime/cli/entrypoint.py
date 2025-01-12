@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import click
+
 from components.runtime.cli.cli_modifiers import cli_modifiers
 from components.runtime.cli.menu_format import CustomGroup
 

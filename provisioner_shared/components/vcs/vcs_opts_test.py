@@ -3,8 +3,7 @@
 import unittest
 
 import click
-from components.remote.cli_remote_opts import cli_remote_opts
-from components.remote.remote_opts_fakes import TestDataRemoteOpts
+
 from components.runtime.cli.cli_modifiers import cli_modifiers
 from components.runtime.cli.entrypoint import EntryPoint
 from components.runtime.test_lib.test_cli_runner import TestCliRunner
@@ -37,5 +36,5 @@ class TyperVersionControlOptsTestShould(unittest.TestCase):
             self.assertEqual(vcs_opts.git_access_token, ARG_CLI_OVERRIDE_GITHUB_ACCESS_TOKEN)
             if ctx.invoked_subcommand is None:
                 click.echo(ctx.get_help())
-        
+
         TestCliRunner.run(dummy)

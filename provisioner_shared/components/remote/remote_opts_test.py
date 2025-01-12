@@ -3,11 +3,11 @@
 import unittest
 
 import click
+
 from components.remote.cli_remote_opts import cli_remote_opts
+from components.remote.remote_opts_fakes import *
 from components.runtime.cli.cli_modifiers import cli_modifiers
 from components.runtime.cli.entrypoint import EntryPoint
-
-from components.remote.remote_opts_fakes import *
 from components.runtime.runner.ansible.ansible_runner import AnsibleHost
 from components.runtime.test_lib.assertions import Assertion
 from components.runtime.test_lib.test_cli_runner import TestCliRunner
@@ -17,6 +17,7 @@ ARG_CLI_OVERRIDE_NODE_USERNAME = "test-node-username"
 ARG_CLI_OVERRIDE_NODE_PASSWORD = "test-node-password"
 ARG_CLI_OVERRIDE_SSH_PRIVATE_KEY_FILE_PATH = "test-ssh-private-key-file-path"
 ARG_CLI_OVERRIDE_IP_DISCOVERY_RANGE = "arg-test-ip-discovery-range"
+
 
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner_shared/components/remote/remote_opts_test.py
@@ -39,27 +40,26 @@ class TyperRemoteOptsTestShould(unittest.TestCase):
                 self,
                 obj1=remote_opts.ansible_hosts,
                 obj2=[
-                        AnsibleHost(
-                            host=TEST_DATA_SSH_HOSTNAME_1,
-                            ip_address=TEST_DATA_SSH_IP_ADDRESS_1,
-                            username=TEST_DATA_REMOTE_NODE_USERNAME_1,
-                            password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
-                            ssh_private_key_file_path="",
-                        ),
-                        AnsibleHost(
-                            host=TEST_DATA_SSH_HOSTNAME_2,
-                            ip_address=TEST_DATA_SSH_IP_ADDRESS_2,
-                            username=TEST_DATA_REMOTE_NODE_USERNAME_2,
-                            password="",
-                            ssh_private_key_file_path=TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_2,
-                        ),
-                    ],
-                )
+                    AnsibleHost(
+                        host=TEST_DATA_SSH_HOSTNAME_1,
+                        ip_address=TEST_DATA_SSH_IP_ADDRESS_1,
+                        username=TEST_DATA_REMOTE_NODE_USERNAME_1,
+                        password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
+                        ssh_private_key_file_path="",
+                    ),
+                    AnsibleHost(
+                        host=TEST_DATA_SSH_HOSTNAME_2,
+                        ip_address=TEST_DATA_SSH_IP_ADDRESS_2,
+                        username=TEST_DATA_REMOTE_NODE_USERNAME_2,
+                        password="",
+                        ssh_private_key_file_path=TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_2,
+                    ),
+                ],
+            )
             if ctx.invoked_subcommand is None:
                 click.echo(ctx.get_help())
-        
-        TestCliRunner.run(dummy)
 
+        TestCliRunner.run(dummy)
 
     def test_override_click_remote_opts_from_cli_arguments(self) -> None:
         remote_cfg = TestDataRemoteOpts.create_fake_remote_cfg()
@@ -78,5 +78,5 @@ class TyperRemoteOptsTestShould(unittest.TestCase):
             self.assertEqual(remote_opts.ip_discovery_range, ARG_CLI_OVERRIDE_IP_DISCOVERY_RANGE)
             if ctx.invoked_subcommand is None:
                 click.echo(ctx.get_help())
-        
+
         TestCliRunner.run(dummy)

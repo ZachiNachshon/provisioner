@@ -5,6 +5,11 @@ import unittest
 from typing import List
 from unittest import mock
 
+from components.remote.remote_opts_fakes import (
+    TEST_DATA_REMOTE_NODE_PASSWORD_1,
+    TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
+    TestDataRemoteOpts,
+)
 from provisioner_shared.components.remote.remote_connector import (
     DHCPCDConfigurationInfo,
     NetworkDeviceAuthenticationMethod,
@@ -15,11 +20,6 @@ from provisioner_shared.components.remote.remote_connector_fakes import (
     TestDataRemoteConnector,
 )
 from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
-from components.remote.remote_opts_fakes import (
-    TEST_DATA_REMOTE_NODE_PASSWORD_1,
-    TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
-    TestDataRemoteOpts,
-)
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
 from provisioner_shared.components.runtime.test_lib import faker
 from provisioner_shared.components.runtime.test_lib.assertions import Assertion

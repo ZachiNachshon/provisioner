@@ -7,6 +7,7 @@ from loguru import logger
 
 VCS_CLICK_CTX_NAME = "cli_vcs_opts"
 
+
 class CliVersionControlOpts:
 
     def __init__(

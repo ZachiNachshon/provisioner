@@ -4,6 +4,7 @@ from functools import wraps
 from typing import Any, Callable, Optional
 
 import click
+from loguru import logger
 
 from components.runtime.cli.menu_format import GroupedOption, get_nested_value, normalize_cli_item
 from components.vcs.vcs_opts import VCS_CLICK_CTX_NAME, CliVersionControlOpts
@@ -65,21 +66,39 @@ def cli_vcs_opts(vcs_config: Optional[VersionControlConfig] = None) -> Callable:
         @wraps(func)
         @click.pass_context
         def wrapper(ctx, *args: Any, **kwargs: Any) -> Any:
-            github_org = kwargs.pop(normalize_cli_item(VCS_OPT_ORGANIZATION), None)
-            github_repo_name = kwargs.pop(normalize_cli_item(VCS_OPT_REPOSITORY), None)
-            github_branch_name = kwargs.pop(normalize_cli_item(VCS_OPT_BRANCH), None)
+            organization = kwargs.pop(normalize_cli_item(VCS_OPT_ORGANIZATION), None)
+            repository = kwargs.pop(normalize_cli_item(VCS_OPT_REPOSITORY), None)
+            branch = kwargs.pop(normalize_cli_item(VCS_OPT_BRANCH), None)
             git_access_token = kwargs.pop(normalize_cli_item(VCS_OPT_GIT_ACCESS_TOKEN), None)
 
             # Add it to the context object
             if ctx.obj is None:
                 ctx.obj = {}
 
-            ctx.obj[VCS_CLICK_CTX_NAME] = CliVersionControlOpts(
-                organization=github_org,
-                repository=github_repo_name,
-                branch=github_branch_name,
-                git_access_token=git_access_token,
-            )
+            if VCS_CLICK_CTX_NAME not in ctx.obj:
+                # First-time initialization
+                ctx.obj[VCS_CLICK_CTX_NAME] = CliVersionControlOpts(
+                    organization=organization,
+                    repository=repository,
+                    branch=branch,
+                    git_access_token=git_access_token,
+                )
+                logger.debug("Initialized CliVersionControlOpts for the first time.")
+            else:
+                # Update only the relevant fields if they change
+                cvs_opts = ctx.obj[VCS_CLICK_CTX_NAME]
+
+                if organization and not cvs_opts.organization:
+                    cvs_opts.organization = True
+
+                if repository and not cvs_opts.repository:
+                    cvs_opts.repository = True
+
+                if branch and not cvs_opts.branch:
+                    cvs_opts.branch = True
+
+                if git_access_token and not cvs_opts.git_access_token:
+                    cvs_opts.git_access_token = True
 
             return func(*args, **kwargs)
 

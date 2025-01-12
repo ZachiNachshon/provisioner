@@ -3,10 +3,7 @@
 import os
 import pathlib
 
-import click
-from components.runtime.cli.cli_modifiers import cli_modifiers
 from components.runtime.cli.entrypoint import EntryPoint
-from components.runtime.cli.menu_format import CustomGroup
 from loguru import logger
 
 from provisioner_shared.components.runtime.cli.version import append_version_cmd_to_cli
@@ -53,8 +50,8 @@ cols.package_loader().load_modules_fn(
 )
 
 append_version_cmd_to_cli(root_menu, root_package=RUNTIME_ROOT_PATH)
-append_config_cmd_to_cli(root_menu, cols=cols)
-append_plugins_cmd_to_cli(root_menu, cols=cols)
+append_config_cmd_to_cli(root_menu, collaborators=cols)
+append_plugins_cmd_to_cli(root_menu, collaborators=cols)
 
 
 # ==============

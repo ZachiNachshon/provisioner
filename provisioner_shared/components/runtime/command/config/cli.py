@@ -16,12 +16,8 @@ from provisioner_shared.components.runtime.shared.collaborators import CoreColla
 
 CONFIG_USER_PATH = os.path.expanduser("~/.config/provisioner/config.yaml")
 
-collaboratos: CoreCollaborators = None
 
-
-def append_config_cmd_to_cli(root_menu: click.Group, cols: CoreCollaborators):
-    global collaboratos
-    collaboratos = cols
+def append_config_cmd_to_cli(root_menu: click.Group, collaborators: CoreCollaborators):
 
     @root_menu.group(invoke_without_command=True, no_args_is_help=True, cls=CustomGroup)
     @cli_modifiers
@@ -34,13 +30,13 @@ def append_config_cmd_to_cli(root_menu: click.Group, cols: CoreCollaborators):
     @config.command()
     def clear():
         """Clear local config file, rely on internal configuration only"""
-        clear_config()
+        clear_config(collaborators)
 
     @config.command()
     @cli_modifiers
     def edit():
         """Edit user configuration file"""
-        edit_config()
+        edit_config(collaborators)
 
     @config.command()
     @cli_modifiers
@@ -51,37 +47,38 @@ def append_config_cmd_to_cli(root_menu: click.Group, cols: CoreCollaborators):
         envvar="PROV_FORCE_FLUSH_CONFIG",
     )
     @cli_modifiers
-    def flush():
+    def flush(force: bool):
         """Flush internal configuration to a user config file"""
-        flush_config()
+        flush_config(force, collaborators)
 
     @config.command()
     @cli_modifiers
     def view():
         """Print configuration to stdout"""
-        view_config()
+        view_config(collaborators)
 
 
-def clear_config() -> None:
+def clear_config(collaboratos: CoreCollaborators) -> None:
     if collaboratos.io_utils().file_exists_fn(CONFIG_USER_PATH):
         collaboratos.io_utils().delete_file_fn(CONFIG_USER_PATH)
+        logger.info(f"Local configuration cleared successfully. path: {CONFIG_USER_PATH}")
     else:
         logger.info(f"No local user configuration file, nothing to remove. path: {CONFIG_USER_PATH}")
 
 
-def edit_config() -> None:
+def edit_config(collaboratos: CoreCollaborators) -> None:
     if collaboratos.io_utils().file_exists_fn(CONFIG_USER_PATH):
         collaboratos.editor().open_file_for_edit_fn(CONFIG_USER_PATH)
     else:
         logger.info(f"No local user configuration file. path: {CONFIG_USER_PATH}")
 
 
-def flush_config(force: Optional[bool]) -> None:
+def flush_config(force: Optional[bool], collaboratos: CoreCollaborators) -> None:
     if collaboratos.io_utils().file_exists_fn(CONFIG_USER_PATH) and not force:
         collaboratos.printer().print_fn("User configuration file already exists. Use --force to overwrite.")
         return
 
-    cfg_yaml = _get_user_facing_config_yaml()
+    cfg_yaml = _get_user_facing_config_yaml(collaboratos)
     collaboratos.io_utils().write_file_fn(
         content=cfg_yaml, file_name=os.path.basename(CONFIG_USER_PATH), dir_path=os.path.dirname(CONFIG_USER_PATH)
     )
@@ -92,8 +89,8 @@ def flush_config(force: Optional[bool]) -> None:
     collaboratos.printer().print_with_rich_table_fn(cfg_yaml)
 
 
-def view_config() -> None:
-    cfg_yaml = _get_user_facing_config_yaml()
+def view_config(collaboratos: CoreCollaborators) -> None:
+    cfg_yaml = _get_user_facing_config_yaml(collaboratos)
     collaboratos.printer().print_with_rich_table_fn(cfg_yaml)
     if collaboratos.io_utils().file_exists_fn(CONFIG_USER_PATH):
         collaboratos.printer().print_fn(
@@ -101,7 +98,7 @@ def view_config() -> None:
         )
 
 
-def _get_user_facing_config_yaml() -> str:
+def _get_user_facing_config_yaml(collaboratos: CoreCollaborators) -> str:
     cfg_dict_obj = ConfigManager.instance().get_config().dict_obj
     # Create a deep copy of the dictionary, not to tamper with the original object
     copied_cfg_dict_obj = copy.deepcopy(cfg_dict_obj)
