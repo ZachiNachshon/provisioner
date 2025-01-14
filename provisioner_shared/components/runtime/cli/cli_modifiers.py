@@ -6,8 +6,8 @@ from typing import Any, Callable
 import click
 from loguru import logger
 
-from components.runtime.cli.menu_format import GroupedOption, normalize_cli_item
-from components.runtime.cli.modifiers import MODIFIERS_CLICK_CTX_NAME, CliModifiers
+from provisioner_shared.components.runtime.cli.menu_format import GroupedOption, normalize_cli_item
+from provisioner_shared.components.runtime.cli.modifiers import MODIFIERS_CLICK_CTX_NAME, CliModifiers
 from provisioner_shared.components.runtime.infra.log import LoggerManager
 
 MODIFIERS_GROUP_NAME = "Modifiers"

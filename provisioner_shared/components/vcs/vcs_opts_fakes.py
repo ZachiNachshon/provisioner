@@ -2,8 +2,8 @@
 
 import yaml
 
-from components.vcs.vcs_opts import CliVersionControlOpts
 from provisioner_shared.components.vcs.domain.config import VersionControlConfig
+from provisioner_shared.components.vcs.vcs_opts import CliVersionControlOpts
 
 TEST_DATA_GITHUB_ORGANIZATION = "test-organization"
 TEST_DATA_GITHUB_REPOSITORY = "test-repository"

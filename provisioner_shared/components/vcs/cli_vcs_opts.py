@@ -6,9 +6,9 @@ from typing import Any, Callable, Optional
 import click
 from loguru import logger
 
-from components.runtime.cli.menu_format import GroupedOption, get_nested_value, normalize_cli_item
-from components.vcs.vcs_opts import VCS_CLICK_CTX_NAME, CliVersionControlOpts
+from provisioner_shared.components.runtime.cli.menu_format import GroupedOption, get_nested_value, normalize_cli_item
 from provisioner_shared.components.vcs.domain.config import VersionControlConfig
+from provisioner_shared.components.vcs.vcs_opts import VCS_CLICK_CTX_NAME, CliVersionControlOpts
 
 VCS_GROUP_NAME = "Version Control"
 

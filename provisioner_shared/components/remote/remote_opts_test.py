@@ -4,13 +4,13 @@ import unittest
 
 import click
 
-from components.remote.cli_remote_opts import cli_remote_opts
-from components.remote.remote_opts_fakes import *
-from components.runtime.cli.cli_modifiers import cli_modifiers
-from components.runtime.cli.entrypoint import EntryPoint
-from components.runtime.runner.ansible.ansible_runner import AnsibleHost
-from components.runtime.test_lib.assertions import Assertion
-from components.runtime.test_lib.test_cli_runner import TestCliRunner
+from provisioner_shared.components.remote.cli_remote_opts import cli_remote_opts
+from provisioner_shared.components.remote.remote_opts_fakes import *
+from provisioner_shared.components.runtime.cli.cli_modifiers import cli_modifiers
+from provisioner_shared.components.runtime.cli.entrypoint import EntryPoint
+from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
+from provisioner_shared.components.runtime.test_lib.assertions import Assertion
+from provisioner_shared.components.runtime.test_lib.test_cli_runner import TestCliRunner
 
 ARG_CLI_OVERRIDE_ENVIRONMENT = "test-environment"
 ARG_CLI_OVERRIDE_NODE_USERNAME = "test-node-username"
@@ -22,7 +22,7 @@ ARG_CLI_OVERRIDE_IP_DISCOVERY_RANGE = "arg-test-ip-discovery-range"
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner_shared/components/remote/remote_opts_test.py
 #
-class TyperRemoteOptsTestShould(unittest.TestCase):
+class RemoteOptsTestShould(unittest.TestCase):
     def test_set_remote_opts_defaults_from_config_values(self) -> None:
         remote_cfg = TestDataRemoteOpts.create_fake_remote_cfg()
         root_menu = EntryPoint.create_cli_menu()

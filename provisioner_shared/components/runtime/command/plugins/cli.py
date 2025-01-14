@@ -4,8 +4,8 @@ from typing import List, Optional
 
 import click
 
-from components.runtime.cli.cli_modifiers import cli_modifiers
-from components.runtime.cli.menu_format import CustomGroup
+from provisioner_shared.components.runtime.cli.cli_modifiers import cli_modifiers
+from provisioner_shared.components.runtime.cli.menu_format import CustomGroup
 from provisioner_shared.components.runtime.colors import colors
 from provisioner_shared.components.runtime.config.domain.config import PluginDefinition, ProvisionerConfig
 from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager

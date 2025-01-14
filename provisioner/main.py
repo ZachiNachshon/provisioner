@@ -3,9 +3,9 @@
 import os
 import pathlib
 
-from components.runtime.cli.entrypoint import EntryPoint
 from loguru import logger
 
+from provisioner_shared.components.runtime.cli.entrypoint import EntryPoint
 from provisioner_shared.components.runtime.cli.version import append_version_cmd_to_cli
 from provisioner_shared.components.runtime.command.config.cli import CONFIG_USER_PATH, append_config_cmd_to_cli
 from provisioner_shared.components.runtime.command.plugins.cli import append_plugins_cmd_to_cli

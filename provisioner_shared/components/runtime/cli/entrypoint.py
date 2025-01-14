@@ -2,8 +2,8 @@
 
 import click
 
-from components.runtime.cli.cli_modifiers import cli_modifiers
-from components.runtime.cli.menu_format import CustomGroup
+from provisioner_shared.components.runtime.cli.cli_modifiers import cli_modifiers
+from provisioner_shared.components.runtime.cli.menu_format import CustomGroup
 
 
 class EntryPoint:

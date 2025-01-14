@@ -4,12 +4,12 @@ import unittest
 
 import click
 
-from components.runtime.cli.cli_modifiers import cli_modifiers
-from components.runtime.cli.entrypoint import EntryPoint
-from components.runtime.test_lib.test_cli_runner import TestCliRunner
-from components.vcs.cli_vcs_opts import cli_vcs_opts
-from components.vcs.vcs_opts import CliVersionControlOpts
-from components.vcs.vcs_opts_fakes import TestDataVersionControlOpts
+from provisioner_shared.components.runtime.cli.cli_modifiers import cli_modifiers
+from provisioner_shared.components.runtime.cli.entrypoint import EntryPoint
+from provisioner_shared.components.runtime.test_lib.test_cli_runner import TestCliRunner
+from provisioner_shared.components.vcs.cli_vcs_opts import cli_vcs_opts
+from provisioner_shared.components.vcs.vcs_opts import CliVersionControlOpts
+from provisioner_shared.components.vcs.vcs_opts_fakes import TestDataVersionControlOpts
 
 ARG_CLI_OVERRIDE_GITHUB_ACCESS_TOKEN = "arg-test-override-git-access-token"
 

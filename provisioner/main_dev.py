@@ -17,8 +17,8 @@ CONFIG_INTERNAL_PATH = f"{pathlib.Path(__file__).parent}/resources/config.yaml"
 
 """
 The --dry-run and --verbose flags aren't available on the pre-init phase
-since logger is being set-up after Typer is initialized.
-I've added pre Typer run env var to control the visiblity of components debug logs
+since logger is being set-up after Click is initialized.
+I've added pre Click run env var to control the visiblity of components debug logs
 such as config-loader, package-loader etc..
 """
 ENV_VAR_ENABLE_PRE_INIT_DEBUG = "PROVISIONER_PRE_INIT_DEBUG"

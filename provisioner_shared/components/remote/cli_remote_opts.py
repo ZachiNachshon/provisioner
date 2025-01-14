@@ -6,10 +6,10 @@ from typing import Any, Callable, Optional
 import click
 from loguru import logger
 
-from components.remote.remote_opts import REMOTE_CLICK_CTX_NAME, CliRemoteOpts, RemoteVerbosity
-from components.runtime.cli.menu_format import GroupedOption, get_nested_value, normalize_cli_item
 from provisioner_shared.components.remote.domain.config import RemoteConfig, RunEnvironment
+from provisioner_shared.components.remote.remote_opts import REMOTE_CLICK_CTX_NAME, CliRemoteOpts, RemoteVerbosity
 from provisioner_shared.components.runtime.cli.click_callbacks import mutually_exclusive_callback
+from provisioner_shared.components.runtime.cli.menu_format import GroupedOption, get_nested_value, normalize_cli_item
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
 
 REMOTE_GENERAL_OPTS_GROUP_NAME = "General"

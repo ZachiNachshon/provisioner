@@ -8,8 +8,8 @@ from typing import Any, Optional
 import click
 from loguru import logger
 
-from components.runtime.cli.cli_modifiers import cli_modifiers
-from components.runtime.cli.menu_format import CustomGroup
+from provisioner_shared.components.runtime.cli.cli_modifiers import cli_modifiers
+from provisioner_shared.components.runtime.cli.menu_format import CustomGroup
 from provisioner_shared.components.runtime.colors import colors
 from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators

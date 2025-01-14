@@ -4,7 +4,7 @@ from typing import Optional
 
 from loguru import logger
 
-from components.runtime.cli.modifiers import CliModifiers
+from provisioner_shared.components.runtime.cli.modifiers import CliModifiers
 from provisioner_shared.components.runtime.utils.os import OsArch
 
 
