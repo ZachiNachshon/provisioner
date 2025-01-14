@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="Contribute to the development of provisioner using the documentation, build scripts and tests.">
+<meta name="description" content="Contribution guidelines">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
@@ -31,13 +31,13 @@
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
 <meta name="twitter:title" content="Contribute">
-<meta name="twitter:description" content="Contribute to the development of provisioner using the documentation, build scripts and tests.">
+<meta name="twitter:description" content="Contribution guidelines">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
 <meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/getting-started/contribute/">
 <meta property="og:title" content="Contribute">
-<meta property="og:description" content="Contribute to the development of provisioner using the documentation, build scripts and tests.">
+<meta property="og:description" content="Contribution guidelines">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -175,6 +175,17 @@
   <symbol id="terminal" viewBox="0 0 16 16">
     <path d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm9.5 5.5h-3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1m-6.354-.354a.5.5 0 1 0 .708.708l2-2a.5.5 0 0 0 0-.708l-2-2a.5.5 0 1 0-.708.708L4.793 6.5z"/>
   </symbol>
+  <symbol id="window-stack" viewBox="0 0 16 16">
+    <path d="M4.5 6a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1M6 6a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1m2-.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
+    <path d="M12 1a2 2 0 0 1 2 2 2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2 2 2 0 0 1-2-2V3a2 2 0 0 1 2-2zM2 12V5a2 2 0 0 1 2-2h9a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1m1-4v5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8zm12-1V5a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v2z"/>
+  </symbol>
+  <symbol id="wrench" viewBox="0 0 16 16">
+    <path d="M.102 2.223A3.004 3.004 0 0 0 3.78 5.897l6.341 6.252A3.003 3.003 0 0 0 13 16a3 3 0 1 0-.851-5.878L5.897 3.781A3.004 3.004 0 0 0 2.223.1l2.141 2.142L4 4l-1.757.364zm13.37 9.019.528.026.287.445.445.287.026.529L15 13l-.242.471-.026.529-.445.287-.287.445-.529.026L13 15l-.471-.242-.529-.026-.287-.445-.445-.287-.026-.529L11 13l.242-.471.026-.529.445-.287.287-.445.529-.026L13 11z"/>
+  </symbol>
+  <symbol id="shield-check" viewBox="0 0 16 16">
+    <path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533q.18.085.293.118a1 1 0 0 0 .101.025 1 1 0 0 0 .1-.025q.114-.034.294-.118c.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56"/>
+    <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+  </symbol>
 </svg>
 
     <header class="navbar navbar-expand-lg navbar-dark bd-navbar sticky-top">
@@ -268,7 +279,8 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/introduction/" class="bd-links-link d-inline-block rounded">Introduction</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/overview/" class="bd-links-link d-inline-block rounded">Overview</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/download/" class="bd-links-link d-inline-block rounded">Download</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/development/" class="bd-links-link d-inline-block rounded">Development</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/repository-structure/" class="bd-links-link d-inline-block rounded">Repository Structure</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/playground/" class="bd-links-link d-inline-block rounded">Playground</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/contribute/" class="bd-links-link d-inline-block rounded active" aria-current="page">Contribute</a></li>
         </ul>
@@ -276,25 +288,56 @@
       <li class="bd-links-group py-2">
         <strong class="bd-links-heading d-flex w-100 align-items-center fw-semibold">
             <svg class="bi me-2" style="color: var(--bs-blue);" aria-hidden="true"><use xlink:href="#gear"></use></svg>
-          Configuration
+          Framework
         </strong>
 
         <ul class="list-unstyled fw-normal pb-2 small">
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/configuration/overview/" class="bd-links-link d-inline-block rounded">Overview</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/configuration/auto-completion/" class="bd-links-link d-inline-block rounded">Auto-Completion</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/core/" class="bd-links-link d-inline-block rounded">Core</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/configuration/" class="bd-links-link d-inline-block rounded">Configuration</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/collaborators/" class="bd-links-link d-inline-block rounded">Collaborators</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/runtime/" class="bd-links-link d-inline-block rounded">Runtime</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/functional-framework/" class="bd-links-link d-inline-block rounded">Functional Framework</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/cli-commands/" class="bd-links-link d-inline-block rounded">CLI Commands</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/ansible/" class="bd-links-link d-inline-block rounded">Ansible</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/remote-connector/" class="bd-links-link d-inline-block rounded">Remote Connector</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/os-image-burner/" class="bd-links-link d-inline-block rounded">OS Image Burner</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/auto-completion/" class="bd-links-link d-inline-block rounded">Auto-Completion</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
         <strong class="bd-links-heading d-flex w-100 align-items-center fw-semibold">
-            <svg class="bi me-2" style="color: var(--bs-pink);" aria-hidden="true"><use xlink:href="#git"></use></svg>
+            <svg class="bi me-2" style="color: var(--bs-blue);" aria-hidden="true"><use xlink:href="#shield-check"></use></svg>
+          Testing
+        </strong>
+
+        <ul class="list-unstyled fw-normal pb-2 small">
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/testing/overview/" class="bd-links-link d-inline-block rounded">Overview</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/testing/utilities/" class="bd-links-link d-inline-block rounded">Utilities</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/testing/assertions/" class="bd-links-link d-inline-block rounded">Assertions</a></li>
+        </ul>
+      </li>
+      <li class="bd-links-group py-2">
+        <strong class="bd-links-heading d-flex w-100 align-items-center fw-semibold">
+            <svg class="bi me-2" style="color: var(--bs-pink);" aria-hidden="true"><use xlink:href="#wrench"></use></svg>
+          Bootstrap
+        </strong>
+
+        <ul class="list-unstyled fw-normal pb-2 small">
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/start-here/" class="bd-links-link d-inline-block rounded">Start Here</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/create-a-new-plugin/" class="bd-links-link d-inline-block rounded">Create a New Plugin</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/application-lifecycle/" class="bd-links-link d-inline-block rounded">Application Lifecycle</a></li>
+        </ul>
+      </li>
+      <li class="bd-links-group py-2">
+        <strong class="bd-links-heading d-flex w-100 align-items-center fw-semibold">
+            <svg class="bi me-2" style="color: var(--bs-pink);" aria-hidden="true"><use xlink:href="#window-stack"></use></svg>
           Plugins
         </strong>
 
         <ul class="list-unstyled fw-normal pb-2 small">
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/provisioner-runtime/" class="bd-links-link d-inline-block rounded">Provisioner Runtime</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-installers/" class="bd-links-link d-inline-block rounded">Plugin: Installers</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-single-board/" class="bd-links-link d-inline-block rounded">Plugin: Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-examples/" class="bd-links-link d-inline-block rounded">Plugin: Examples</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -323,7 +366,7 @@
           </a>
           <h1 class="bd-title mb-0" id="content">Contribute</h1>
         </div>
-        <p class="bd-lead">Contribute to the development of <code>provisioner</code> using the documentation, build scripts and tests.</p>
+        <p class="bd-lead">Contribution guidelines</p>
         
       </div>
 
@@ -338,14 +381,8 @@
           <div class="collapse bd-toc-collapse" id="tocContents">
             <nav id="TableOfContents">
   <ul>
-    <li><a href="#tooling-setup">Tooling setup</a></li>
     <li><a href="#guidelines">Guidelines</a></li>
     <li><a href="#how-to-contribute">How to Contribute?</a></li>
-    <li><a href="#development-scripts">Development Scripts</a></li>
-    <li><a href="#testing-locally">Testing Locally</a></li>
-    <li><a href="#documentation-scripts">Documentation Scripts</a></li>
-    <li><a href="#local-documentation">Local documentation</a></li>
-    <li><a href="#troubleshooting">Troubleshooting</a></li>
   </ul>
 </nav>
           </div>
@@ -355,16 +392,7 @@
       <div class="bd-content ps-lg-2">
         
 
-        <h2 id="tooling-setup">Tooling setup <a class="anchor-link" href="#tooling-setup" aria-label="Link to this section: Tooling setup"></a></h2>
-<ul>
-<li><a href="https://www.python.org/">Python</a> <code>v3.11</code> is required for packaging and tests</li>
-<li><a href="https://nodejs.org/en/download/">Node.js</a> is optional for managing the documentation site</li>
-</ul>
-<div class="bd-callout bd-callout-info">
-Docs site is using npm scripts to build the documentation and compile source files. The <code>package.json</code> houses these scripts which used for various docs development actions.
-</div>
-
-<h2 id="guidelines">Guidelines <a class="anchor-link" href="#guidelines" aria-label="Link to this section: Guidelines"></a></h2>
+        <h2 id="guidelines">Guidelines <a class="anchor-link" href="#guidelines" aria-label="Link to this section: Guidelines"></a></h2>
 <ul>
 <li>PRs need to have a clear description of the problem they are solving</li>
 <li>PRs should be small</li>
@@ -379,148 +407,6 @@ Docs site is using npm scripts to build the documentation and compile source fil
 <li>Create a PR on the forked repository</li>
 <li>Send a pull request to the upstream repository</li>
 </ol>
-<h2 id="development-scripts">Development Scripts <a class="anchor-link" href="#development-scripts" aria-label="Link to this section: Development Scripts"></a></h2>
-<p>The <code>makefile</code> within this repository contains numerous tasks used for project development. Run <code>make</code> to see all the available scripts in your terminal.</p>
-<div class="table-responsive"><table class="table">
-<thead>
-<tr>
-<th>Task</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>dev-mode-all</code></td>
-<td>Update dev dependencies and their config based on provisioner pyproject.toml</td>
-</tr>
-<tr>
-<td><code>update-externals-all</code></td>
-<td>Update external source dependents</td>
-</tr>
-<tr>
-<td><code>deps-all</code></td>
-<td>Update and install pyproject.toml dependencies on all virtual environments</td>
-</tr>
-<tr>
-<td><code>fmtcheck-all</code></td>
-<td>Validate Python code format and imports</td>
-</tr>
-<tr>
-<td><code>fmt-all</code></td>
-<td>Format Python code using Black style and sort imports</td>
-</tr>
-<tr>
-<td><code>test-all</code></td>
-<td>Run Unit/E2E/IT tests suite</td>
-</tr>
-<tr>
-<td><code>test-coverage-xml-all</code></td>
-<td>Run Unit/E2E/IT tests with coverage reports</td>
-</tr>
-<tr>
-<td><code>use-provisioner-from-sources</code></td>
-<td>Use provisioner as a direct sources dependency to all Python modules (for testing in CI)</td>
-</tr>
-<tr>
-<td><code>use-provisioner-from-pypi</code></td>
-<td>Use provisioner as a PyPi package to all Python modules (for testing in CI)</td>
-</tr>
-<tr>
-<td><code>pip-install</code></td>
-<td>Install provisioner sdist to local pip</td>
-</tr>
-<tr>
-<td><code>pip-install-plugins</code></td>
-<td>Install all plugins source distributions to local pip</td>
-</tr>
-<tr>
-<td><code>pip-uninstall</code></td>
-<td>Uninstall provisioner from local pip</td>
-</tr>
-<tr>
-<td><code>pip-uninstall-plugins</code></td>
-<td>Uninstall all plugins source distributions from local pip</td>
-</tr>
-<tr>
-<td><code>clear-virtual-env-all</code></td>
-<td>Clear all Poetry virtual environments</td>
-</tr>
-<tr>
-<td><code>docs-site</code></td>
-<td>Run a local documentation site</td>
-</tr>
-<tr>
-<td><code>docs-site-lan</code></td>
-<td>Run a local documentation site (LAN available)</td>
-</tr>
-<tr>
-<td><code>pDev</code></td>
-<td>Interact with <code>./external/.../poetry_dev.sh</code> (Usage: <code>make pDev 'fmt --check-only'</code>)</td>
-</tr>
-<tr>
-<td><code>pReleaser</code></td>
-<td>Interact with <code>./external/.../poetry_pip_releaser.sh</code> (Usage: <code>make pReleaser 'install --build-type sdist --multi-project'</code>)</td>
-</tr>
-<tr>
-<td><code>plugins-init</code></td>
-<td>Initialize Provisioner Plugins git-submodule (only on fresh clone)</td>
-</tr>
-<tr>
-<td><code>plugins-status</code></td>
-<td>Show plugins submodule status (commit-hash)</td>
-</tr>
-<tr>
-<td><code>plugins-fetch</code></td>
-<td>Prompt for Provisioner Plugins commit-hash to update the sub-module</td>
-</tr>
-</tbody>
-</table></div>
-
-<h2 id="testing-locally">Testing Locally <a class="anchor-link" href="#testing-locally" aria-label="Link to this section: Testing Locally"></a></h2>
-<p>This repository had been developed using the TDD methodology (Test Driven Development). Tests allow you to make sure your changes work as expected, don&rsquo;t break existing code and keeping code coverage high.</p>
-<p>Running tests locally allows you to have short validation cycles instead of waiting for the PR status to complete.</p>
-<p><strong>How to run a test suite?</strong></p>
-<ol>
-<li>Clone the <code>provisioner</code> repository</li>
-<li>Run <code>make tests-all</code> to use the locally installed Python interpreter</li>
-<li>Alternatively, run <code>make test-coverage-xml-all</code> if you are interested in coverage reports</li>
-</ol>
-<h2 id="documentation-scripts">Documentation Scripts <a class="anchor-link" href="#documentation-scripts" aria-label="Link to this section: Documentation Scripts"></a></h2>
-<p>The <code>/docs-site/package.json</code> includes numerous tasks for developing the documentation site. Run <code>npm run</code> to see all the available npm scripts in your terminal. Primary tasks include:</p>
-<div class="table-responsive"><table class="table">
-<thead>
-<tr>
-<th>Task</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>npm run docs-build</code></td>
-<td>Cleans the Hugo destination directory for a fresh serve</td>
-</tr>
-<tr>
-<td><code>npm run docs-serve</code></td>
-<td>Builds and runs the documentation locally</td>
-</tr>
-</tbody>
-</table></div>
-
-<h2 id="local-documentation">Local documentation <a class="anchor-link" href="#local-documentation" aria-label="Link to this section: Local documentation"></a></h2>
-<p>Running the documentation locally requires the use of Hugo, which gets installed via the <code>hugo-bin</code> npm package. Hugo is a blazingly fast and quite extensible static site generator. Here’s how to get it started:</p>
-<ul>
-<li>Run through the <a href="#tooling-setup">tooling setup</a> above to install all dependencies</li>
-<li>Navigate to <code>/docs-site</code> directory and run <code>npm install</code> to install local dependencies listed in <code>package.json</code></li>
-<li>From <code>/docs-site</code> directory, run <code>npm run docs-serve</code> in the command line</li>
-<li>Open <a href="http://localhost:9001/">http://localhost:9001/</a> in your browser</li>
-</ul>
-<p>Learn more about using Hugo by reading its <a href="https://gohugo.io/documentation/">documentation</a>.</p>
-<div class="bd-callout bd-callout-info">
-Makefile contains a <code>make docs-site</code> command that does all of the above for you, it allows a quick start of the documentation site.
-</div>
-
-<h2 id="troubleshooting">Troubleshooting <a class="anchor-link" href="#troubleshooting" aria-label="Link to this section: Troubleshooting"></a></h2>
-<p>In case you encounter problems with missing dependencies, run <code>make clear-virtual-env-all</code> and start over.</p>
 
       </div>
     </main>
@@ -543,7 +429,7 @@ Makefile contains a <code>make docs-site</code> command that does all of the abo
         <ul class="list-unstyled small text-muted">
           <li class="mb-2">Designed and built by <a href="https://github.com/ZachiNachshon" target="_blank" >Zachi Nachshon</a>, Code licensed <a href="https://github.com/ZachiNachshon/provisioner/blob/master/LICENSE" target="_blank" rel="license noopener">MIT</a>.</li>
           <li class="mb-2">Site and docs were influenced from <a href="https://getbootstrap.com/" target="_blank">getbootstrap.com</a>, see license <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="license noopener">CC BY 3.0</a>.</li>
-          <li class="mb-2">Currently v0.1.9.</li>
+          <li class="mb-2">Currently v0.1.15.</li>
         </ul>
       </div>
       <div class="col-6 col-lg-2 offset-lg-1 mb-3">

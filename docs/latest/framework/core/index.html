@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="Install anything anywhere on any OS/Arch either on a local or remote machine.">
+<meta name="description" content="Core components declared within the provisioner framework">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>Plugin: Installers · Provisioner vlatest</title>
+<title>Core components · Provisioner vlatest</title>
 
-<link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-installers/">
+<link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/framework/core/">
 
 
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="Plugin: Installers">
-<meta name="twitter:description" content="Install anything anywhere on any OS/Arch either on a local or remote machine.">
+<meta name="twitter:title" content="Core components">
+<meta name="twitter:description" content="Core components declared within the provisioner framework">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
-<meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-installers/">
-<meta property="og:title" content="Plugin: Installers">
-<meta property="og:description" content="Install anything anywhere on any OS/Arch either on a local or remote machine.">
+<meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/framework/core/">
+<meta property="og:title" content="Core components">
+<meta property="og:description" content="Core components declared within the provisioner framework">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -175,6 +175,17 @@
   <symbol id="terminal" viewBox="0 0 16 16">
     <path d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm9.5 5.5h-3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1m-6.354-.354a.5.5 0 1 0 .708.708l2-2a.5.5 0 0 0 0-.708l-2-2a.5.5 0 1 0-.708.708L4.793 6.5z"/>
   </symbol>
+  <symbol id="window-stack" viewBox="0 0 16 16">
+    <path d="M4.5 6a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1M6 6a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1m2-.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
+    <path d="M12 1a2 2 0 0 1 2 2 2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2 2 2 0 0 1-2-2V3a2 2 0 0 1 2-2zM2 12V5a2 2 0 0 1 2-2h9a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1m1-4v5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8zm12-1V5a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v2z"/>
+  </symbol>
+  <symbol id="wrench" viewBox="0 0 16 16">
+    <path d="M.102 2.223A3.004 3.004 0 0 0 3.78 5.897l6.341 6.252A3.003 3.003 0 0 0 13 16a3 3 0 1 0-.851-5.878L5.897 3.781A3.004 3.004 0 0 0 2.223.1l2.141 2.142L4 4l-1.757.364zm13.37 9.019.528.026.287.445.445.287.026.529L15 13l-.242.471-.026.529-.445.287-.287.445-.529.026L13 15l-.471-.242-.529-.026-.287-.445-.445-.287-.026-.529L11 13l.242-.471.026-.529.445-.287.287-.445.529-.026L13 11z"/>
+  </symbol>
+  <symbol id="shield-check" viewBox="0 0 16 16">
+    <path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533q.18.085.293.118a1 1 0 0 0 .101.025 1 1 0 0 0 .1-.025q.114-.034.294-.118c.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56"/>
+    <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+  </symbol>
 </svg>
 
     <header class="navbar navbar-expand-lg navbar-dark bd-navbar sticky-top">
@@ -268,7 +279,8 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/introduction/" class="bd-links-link d-inline-block rounded">Introduction</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/overview/" class="bd-links-link d-inline-block rounded">Overview</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/download/" class="bd-links-link d-inline-block rounded">Download</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/development/" class="bd-links-link d-inline-block rounded">Development</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/repository-structure/" class="bd-links-link d-inline-block rounded">Repository Structure</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/playground/" class="bd-links-link d-inline-block rounded">Playground</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/getting-started/contribute/" class="bd-links-link d-inline-block rounded">Contribute</a></li>
         </ul>
@@ -276,25 +288,56 @@
       <li class="bd-links-group py-2">
         <strong class="bd-links-heading d-flex w-100 align-items-center fw-semibold">
             <svg class="bi me-2" style="color: var(--bs-blue);" aria-hidden="true"><use xlink:href="#gear"></use></svg>
-          Configuration
+          Framework
         </strong>
 
         <ul class="list-unstyled fw-normal pb-2 small">
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/configuration/overview/" class="bd-links-link d-inline-block rounded">Overview</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/configuration/auto-completion/" class="bd-links-link d-inline-block rounded">Auto-Completion</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/core/" class="bd-links-link d-inline-block rounded">Core</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/configuration/" class="bd-links-link d-inline-block rounded">Configuration</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/collaborators/" class="bd-links-link d-inline-block rounded">Collaborators</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/runtime/" class="bd-links-link d-inline-block rounded">Runtime</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/functional-framework/" class="bd-links-link d-inline-block rounded">Functional Framework</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/cli-commands/" class="bd-links-link d-inline-block rounded">CLI Commands</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/ansible/" class="bd-links-link d-inline-block rounded">Ansible</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/remote-connector/" class="bd-links-link d-inline-block rounded">Remote Connector</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/os-image-burner/" class="bd-links-link d-inline-block rounded">OS Image Burner</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/framework/auto-completion/" class="bd-links-link d-inline-block rounded">Auto-Completion</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
         <strong class="bd-links-heading d-flex w-100 align-items-center fw-semibold">
-            <svg class="bi me-2" style="color: var(--bs-pink);" aria-hidden="true"><use xlink:href="#git"></use></svg>
+            <svg class="bi me-2" style="color: var(--bs-blue);" aria-hidden="true"><use xlink:href="#shield-check"></use></svg>
+          Testing
+        </strong>
+
+        <ul class="list-unstyled fw-normal pb-2 small">
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/testing/overview/" class="bd-links-link d-inline-block rounded">Overview</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/testing/utilities/" class="bd-links-link d-inline-block rounded">Utilities</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/testing/assertions/" class="bd-links-link d-inline-block rounded">Assertions</a></li>
+        </ul>
+      </li>
+      <li class="bd-links-group py-2">
+        <strong class="bd-links-heading d-flex w-100 align-items-center fw-semibold">
+            <svg class="bi me-2" style="color: var(--bs-pink);" aria-hidden="true"><use xlink:href="#wrench"></use></svg>
+          Bootstrap
+        </strong>
+
+        <ul class="list-unstyled fw-normal pb-2 small">
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/start-here/" class="bd-links-link d-inline-block rounded">Start Here</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/create-a-new-plugin/" class="bd-links-link d-inline-block rounded">Create a New Plugin</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/application-lifecycle/" class="bd-links-link d-inline-block rounded">Application Lifecycle</a></li>
+        </ul>
+      </li>
+      <li class="bd-links-group py-2">
+        <strong class="bd-links-heading d-flex w-100 align-items-center fw-semibold">
+            <svg class="bi me-2" style="color: var(--bs-pink);" aria-hidden="true"><use xlink:href="#window-stack"></use></svg>
           Plugins
         </strong>
 
         <ul class="list-unstyled fw-normal pb-2 small">
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/provisioner-runtime/" class="bd-links-link d-inline-block rounded">Provisioner Runtime</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-installers/" class="bd-links-link d-inline-block rounded active" aria-current="page">Plugin: Installers</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-single-board/" class="bd-links-link d-inline-block rounded">Plugin: Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-examples/" class="bd-links-link d-inline-block rounded">Plugin: Examples</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -318,136 +361,45 @@
     <main class="bd-main order-1">
       <div class="bd-intro pt-2 ps-lg-2">
         <div class="d-md-flex flex-md-row-reverse align-items-center justify-content-between">
-          <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/plugins/plugin-installers.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
+          <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/framework/core.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">Plugin: Installers</h1>
+          <h1 class="bd-title mb-0" id="content">Core components</h1>
         </div>
-        <p class="bd-lead">Install anything anywhere on any OS/Arch either on a local or remote machine.</p>
+        <p class="bd-lead">Core components declared within the provisioner framework</p>
         
       </div>
 
-      
-        <div class="bd-toc mt-3 mb-5 my-lg-0 ps-xl-3 mb-lg-5 text-muted">
-          <button class="btn btn-link link-dark p-md-0 mb-2 mb-md-0 text-decoration-none bd-toc-toggle d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#tocContents" aria-expanded="false" aria-controls="tocContents">
-            On this page
-            <svg class="bi d-md-none ms-2" aria-hidden="true"><use xlink:href="#chevron-expand"></use></svg>
-          </button>
-          <strong class="d-none d-md-block h6 my-2">On this page</strong>
-          <hr class="d-none d-md-block my-2">
-          <div class="collapse bd-toc-collapse" id="tocContents">
-            <nav id="TableOfContents">
-  <ul>
-    <li><a href="#overview">Overview</a></li>
-    <li><a href="#quickstart">Quickstart</a></li>
-    <li><a href="#usage">Usage</a>
-      <ul>
-        <li>
-          <ul>
-            <li><a href="#cli">CLI</a></li>
-            <li><a href="#k3s">K3s</a></li>
-          </ul>
-        </li>
-      </ul>
-    </li>
-    <li><a href="#remote-installation">Remote Installation</a></li>
-  </ul>
-</nav>
-          </div>
-        </div>
       
 
       <div class="bd-content ps-lg-2">
         
 
-        <h2 id="overview">Overview <a class="anchor-link" href="#overview" aria-label="Link to this section: Overview"></a></h2>
-<p>The installers plugin is designed to install any type of software, package, or application quickly and easily in a one-liner command.</p>
-<p>Remove the hassle of going through multiple READMEs and/or documentation sites just to get the software installed.</p>
-<div class="bd-callout bd-callout-info">
-<p><strong>Important !</strong> <br>
-Installation can run either locally on the host machine or on a remote machine.<br></p>
-<p>When opting for remote machine, upon installation, an interactive flow will start using TUI (Terminal UI).<br></p>
-<p>To install on a remote machine without starting an interactive flow, <code>Remote-Only</code> flags should be used to supply the remote machine info (ENV VARs are also supported).</p>
-
-</div>
-
-<h2 id="quickstart">Quickstart <a class="anchor-link" href="#quickstart" aria-label="Link to this section: Quickstart"></a></h2>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">pip install provisioner-installers-plugin
-</code></pre></div><p>or, interactive plugin installation via:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner plugins install
-</code></pre></div><h2 id="usage">Usage <a class="anchor-link" href="#usage" aria-label="Link to this section: Usage"></a></h2>
-<p>Print a list of available installables</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner install 
-</code></pre></div><div class="bd-callout bd-callout-info">
-<p>Currently, supported installables are:</p>
+        <h2 id="framework">Framework <a class="anchor-link" href="#framework" aria-label="Link to this section: Framework"></a></h2>
+<p>Provisioner is used as a framework for creating new plugins in a no-brainer manner, simple and quick.</p>
+<p>It is a fully featured Python CLI framework supports a wide range of common utilities, interactive terminal and core capabilities such as config-management, flag modifiers (verbose, dry-run, auto-prompt) and much more&hellip;</p>
+<p>Partial List of Available Features:</p>
 <ul>
-<li>CLI applications</li>
-<li>K3s server/agent</li>
+<li>Configuration management (internal and custom user configurations)</li>
+<li>Collaborator utilities (<a href="https://github.com/ZachiNachshon/provisioner/blob/master/provisioner_shared/components/runtime/shared/collaborators.py">lightweight wrappers for common actions</a>)</li>
+<li>Programmatic Ansible wrapper for running ad-hoc commands or Ansible playbooks—simple and easy to use</li>
+<li>Built-in flag modifiers, including verbose, silent, dry-run, auto-prompt, and non-interactive modes</li>
+<li>Simplified CLI application lifecycle—structured, extensible, and easy to manage</li>
+<li>(Optional) <a href="https://github.com/ZachiNachshon/provisioner/blob/master/provisioner_shared/framework/functional/pyfn.py">Functional library</a> for creating functional plugins (e.g., the <a href="https://github.com/ZachiNachshon/provisioner-plugins/blob/master/provisioner_installers_plugin/provisioner_installers_plugin/src/installer/runner/installer_runner.py">installers plugin</a>)</li>
+<li><a href="https://github.com/ZachiNachshon/provisioner/blob/master/provisioner_shared/components/remote/remote_connector.py#L48">Remote connector</a> that encapsulates all remote SSH information collection from various sources (e.g., config, user inputs, flags, and environment variables), providing a single connection point to any remote machine</li>
+<li>And much more&hellip;</li>
+</ul>
+<br>
+<p><strong>Table of contents</strong></p>
+<ul>
+<li><a href="#environment">Environment</a></li>
+<li><a href="#context">Context</a></li>
+<li><a href="#serialization">Serialization</a></li>
+<li><a href="#time">Time</a></li>
+<li><a href="#utilities">General Utilities</a></li>
+<li><a href="#errors">Errors</a></li>
 </ul>
 
-</div>
-
-<h4 id="cli">CLI <a class="anchor-link" href="#cli" aria-label="Link to this section: CLI"></a></h4>
-<p>Install any supported CLI tool</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner install cli &lt;app-name&gt;
-</code></pre></div><h4 id="k3s">K3s <a class="anchor-link" href="#k3s" aria-label="Link to this section: K3s"></a></h4>
-<p>K3s is fully compliant lightweight Kubernetes distribution (<a href="https://k3s.io">https://k3s.io</a>).<br>
-Provisioner allows installing either the k3s server or agent.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner install k3s &lt;server/agent&gt;
-</code></pre></div><h2 id="remote-installation">Remote Installation <a class="anchor-link" href="#remote-installation" aria-label="Link to this section: Remote Installation"></a></h2>
-<p>When opting-in for a remote installation without an interactive flow, one should supply the required flags so the CLI command could run as a one-liner.</p>
-<div class="table-responsive"><table class="table">
-<thead>
-<tr>
-<th>Remote Flag</th>
-<th>Env Var</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--hostname</code></td>
-<td><code>PROV_HOSTNAME</code></td>
-<td>Remote node host name</td>
-</tr>
-<tr>
-<td><code>--ip-address</code></td>
-<td><code>PROV_IP_ADDRESS</code></td>
-<td>Remote node IP address</td>
-</tr>
-<tr>
-<td><code>--node-username</code></td>
-<td><code>PROV_NODE_USERNAME</code></td>
-<td>Remote node username</td>
-</tr>
-<tr>
-<td><code>--node-password</code></td>
-<td><code>PROV_NODE_PASSWORD</code></td>
-<td>(Optional) Remote node password</td>
-</tr>
-<tr>
-<td><code>--ssh-private-key-file-path</code></td>
-<td><code>PROV_SSH_PRIVATE_KEY_FILE_PATH</code></td>
-<td>(Recommended) Private SSH key local file path</td>
-</tr>
-</tbody>
-</table></div>
-
-<p>Example:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner install <span class="se">\
-</span><span class="se"></span>  --environment Remote <span class="se">\
-</span><span class="se"></span>  --hostname rpi-01 <span class="se">\
-</span><span class="se"></span>  --ip-address 1.2.3.4 <span class="se">\
-</span><span class="se"></span>  --node-username pi <span class="se">\
-</span><span class="se"></span>  --ssh-private-key-file-path /path/to/pkey <span class="se">\
-</span><span class="se"></span>  cli helm
-</code></pre></div><p>or</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="nv">PROV_HOSTNAME</span><span class="o">=</span>rpi-01 <span class="se">\
-</span><span class="se"></span><span class="nv">PROV_IP_ADDRESS</span><span class="o">=</span>1.2.3.4 <span class="se">\
-</span><span class="se"></span><span class="nv">PROV_NODE_USERNAME</span><span class="o">=</span>pi <span class="se">\
-</span><span class="se"></span><span class="nv">PROV_SSH_PRIVATE_KEY_FILE_PATH</span><span class="o">=</span>/path/to/pkey <span class="se">\
-</span><span class="se"></span>provisioner install --environment Remote cli helm
-</code></pre></div>
       </div>
     </main>
   </div>
@@ -469,7 +421,7 @@ Provisioner allows installing either the k3s server or agent.</p>
         <ul class="list-unstyled small text-muted">
           <li class="mb-2">Designed and built by <a href="https://github.com/ZachiNachshon" target="_blank" >Zachi Nachshon</a>, Code licensed <a href="https://github.com/ZachiNachshon/provisioner/blob/master/LICENSE" target="_blank" rel="license noopener">MIT</a>.</li>
           <li class="mb-2">Site and docs were influenced from <a href="https://getbootstrap.com/" target="_blank">getbootstrap.com</a>, see license <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="license noopener">CC BY 3.0</a>.</li>
-          <li class="mb-2">Currently v0.1.9.</li>
+          <li class="mb-2">Currently v0.1.15.</li>
         </ul>
       </div>
       <div class="col-6 col-lg-2 offset-lg-1 mb-3">

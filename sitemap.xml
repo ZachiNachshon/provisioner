@@ -4,43 +4,85 @@
     <loc>https://zachinachshon.com/provisioner/docs/latest/about/support/</loc>
   </url>
   <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/configuration/auto-completion/</loc>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/framework/collaborators/</loc>
   </url>
   <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/configuration/overview/</loc>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/framework/auto-completion/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/testing/assertions/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/framework/cli-commands/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/framework/ansible/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/framework/configuration/</loc>
   </url>
   <url>
     <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/contribute/</loc>
   </url>
   <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/download/</loc>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/framework/core/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/bootstrap/create-a-new-plugin/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/development/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/framework/functional-framework/</loc>
   </url>
   <url>
     <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/introduction/</loc>
   </url>
   <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/bootstrap/application-lifecycle/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/bootstrap/start-here/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/testing/overview/</loc>
+  </url>
+  <url>
     <loc>https://zachinachshon.com/provisioner/docs/latest/about/license/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/framework/os-image-burner/</loc>
   </url>
   <url>
     <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/overview/</loc>
   </url>
   <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/repository-structure/</loc>
+  </url>
+  <url>
     <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/playground/</loc>
   </url>
   <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-examples/</loc>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/plugins/examples/</loc>
   </url>
   <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-installers/</loc>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/plugins/installers/</loc>
   </url>
   <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/plugins/plugin-single-board/</loc>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/</loc>
   </url>
   <url>
     <loc>https://zachinachshon.com/provisioner/</loc>
   </url>
   <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/plugins/provisioner-runtime/</loc>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/framework/runtime/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/framework/remote-connector/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/testing/utilities/</loc>
   </url>
   <url>
     <loc>https://zachinachshon.com/provisioner/docs/versions/</loc>
