@@ -43,13 +43,7 @@ class Evaluator:
             print(str(sef))
         except Exception as e:
             logger.critical(f"{error_message}. name: {name}, ex: {e.__class__.__name__}, message: {str(e)}")
-            print("==================================")
-            print("verbose: ", verbose)
-            print("exception: ", e)
-            print("e class: ", e.__class__)
-            print("==================================")
             if verbose:
-                print("throwing CliApplicationException")
                 raise CliApplicationException(e)
 
     @staticmethod

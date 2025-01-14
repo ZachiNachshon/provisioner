@@ -48,24 +48,15 @@ class Assertion:
         output = None
         try:
             output = method_to_run()
-            print("------------------------------------------")
-            print("output: ", output)
-            print("------------------------------------------")
             if output and output.exit_code != 0:
                 failed = True
                 exception_class = output.exc_info[0]
-                print("Exception class: ", exception_class)
-                print("ex_type: ", ex_type)
                 testObj.assertEqual(exception_class, ex_type)
         except Exception as ex:
-            print("+++++++++++++++++++++++++++++++++++++++++")
-            print("ex: ", ex.__cause__)
-            print("ex_type: ", ex_type)
-            print("+++++++++++++++++++++++++++++++++++++++++")
             failed = True
             testObj.assertIsInstance(ex, ex_type)
 
-        print(output.output)
+        # print(output.output)
         testObj.assertTrue(failed)
 
     @staticmethod
