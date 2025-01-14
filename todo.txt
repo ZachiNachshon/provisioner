@@ -1,0 +1,3 @@
+Add GitHub tags to the README
+Add terraform atlantis setup to provisioner install plugin (https://www.runatlantis.io/guide)
+Charts creation via https://github.com/chartdb/chartdb

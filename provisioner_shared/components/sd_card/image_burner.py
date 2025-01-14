@@ -119,7 +119,7 @@ class ImageBurnerCmdRunner:
         collaborators.printer().new_line_fn()
         return collaborators.prompter().prompt_user_input_fn(
             message="Type block device name",
-            post_user_input_message="Selected block device :: ",
+            post_user_input_message="Selected block device ",
         )
 
     def _download_image(

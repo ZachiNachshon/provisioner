@@ -4,11 +4,8 @@ from typing import Optional
 
 from loguru import logger
 
-from provisioner_shared.components.runtime.cli.state import CliGlobalArgs
-from provisioner_shared.components.runtime.errors.cli_errors import NotInitialized
+from components.runtime.cli.modifiers import CliModifiers
 from provisioner_shared.components.runtime.utils.os import OsArch
-
-cli_context = None
 
 
 class Context:
@@ -19,7 +16,7 @@ class Context:
     _non_interactive: bool = None
 
     @staticmethod
-    def createEmpty() -> "Context":
+    def create_empty() -> "Context":
         ctx = Context()
         ctx.os_arch = OsArch()
         ctx._dry_run = False
@@ -50,36 +47,29 @@ class Context:
             logger.critical("Failed to create context object. ex: {}, message: {}", e_name, str(e))
 
     def is_verbose(self) -> bool:
-        if self._verbose is None:
-            raise NotInitialized("context mandatory variable is not initialized. name: verbose")
         return self._verbose
 
     def is_dry_run(self) -> bool:
-        if self._dry_run is None:
-            raise NotInitialized("context mandatory variable is not initialized. name: dry_run")
         return self._dry_run
 
     def is_auto_prompt(self) -> bool:
-        if self._auto_prompt is None:
-            raise NotInitialized("context mandatory variable is not initialized. name: auto_prompt")
         return self._auto_prompt
 
     def is_non_interactive(self) -> bool:
-        if self._non_interactive is None:
-            raise NotInitialized("context mandatory variable is not initialized. name: non_interactive")
         return self._non_interactive
 
 
 class CliContextManager:
+
     @staticmethod
-    def create():
-        os_arch_str = CliGlobalArgs.maybe_get_os_arch_flag_value()
+    def create(modifiers: CliModifiers) -> Context:
+        os_arch_str = modifiers.maybe_get_os_arch_flag_value()
         os_arch = OsArch.from_string(os_arch_str) if os_arch_str else None
 
         return Context.create(
-            dry_run=CliGlobalArgs.is_dry_run(),
-            verbose=CliGlobalArgs.is_verbose(),
-            auto_prompt=CliGlobalArgs.is_auto_prompt(),
-            non_interactive=CliGlobalArgs.is_non_interactive(),
+            dry_run=modifiers.is_dry_run(),
+            verbose=modifiers.is_verbose(),
+            auto_prompt=modifiers.is_auto_prompt(),
+            non_interactive=modifiers.is_non_interactive(),
             os_arch=os_arch,
         )

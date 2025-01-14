@@ -66,10 +66,17 @@ class AbbreviationFormatter(logging.Formatter):
 
 
 class LoggerManager:
+    is_initialized = False
+
     def initialize(self, verbose: bool = False, dry_run: bool = False):
+        if LoggerManager.is_initialized and not verbose:
+            return
+
         try:
             level_filter = LevelFilter("DEBUG") if verbose else LevelFilter("INFO")
             _set_log_level_names_format(level_filter, dry_run)
+            LoggerManager.is_initialized = True
+            logger.debug(f"Logger was initialized successfully. level: {level_filter.level}")
 
             # logger.debug("This is a debug message")
             # logger.info("This is a info message")

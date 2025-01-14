@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from loguru import logger
 
-from provisioner_shared.components.remote.typer_remote_opts import CliRemoteOpts
+from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.evaluator import Evaluator
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
@@ -135,7 +135,7 @@ class RemoteMachineConnector:
             call=lambda: self.collaborators.prompter().prompt_user_input_fn(
                 message="Enter a desired remote static IP address (example: 192.168.1.2XX)",
                 default=static_ip_address,
-                post_user_input_message="Selected remote static IP address       :: ",
+                post_user_input_message="Selected remote static IP address ",
             ),
             ctx=ctx,
             err_msg="Failed to read static IP address",
@@ -145,7 +145,7 @@ class RemoteMachineConnector:
             call=lambda: self.collaborators.prompter().prompt_user_input_fn(
                 message="Enter the gateway address",
                 default=gw_ip_address,
-                post_user_input_message="Selected gateway address                :: ",
+                post_user_input_message="Selected gateway address ",
             ),
             ctx=ctx,
             err_msg="Failed to read gateway IP address",
@@ -155,7 +155,7 @@ class RemoteMachineConnector:
             call=lambda: self.collaborators.prompter().prompt_user_input_fn(
                 message="Enter the DNS resolver address",
                 default=dns_ip_address,
-                post_user_input_message="Selected remote DNS resolver IP address :: ",
+                post_user_input_message="Selected remote DNS resolver IP address ",
             ),
             ctx=ctx,
             err_msg="Failed to read DNS resolver IP address",
@@ -204,7 +204,7 @@ class RemoteMachineConnector:
         ip_address = Evaluator.eval_step_return_value_throw_on_failure(
             call=lambda: self.collaborators.prompter().prompt_user_input_fn(
                 message="Enter remote node IP address",
-                post_user_input_message="Selected IP address :: ",
+                post_user_input_message="Selected IP address ",
             ),
             ctx=ctx,
             err_msg="Failed to read node IP address",
@@ -213,7 +213,7 @@ class RemoteMachineConnector:
         hostname = Evaluator.eval_step_return_value_throw_on_failure(
             call=lambda: self.collaborators.prompter().prompt_user_input_fn(
                 message="Enter remote node host name",
-                post_user_input_message="Selected remote hostname :: ",
+                post_user_input_message="Selected remote hostname ",
             ),
             ctx=ctx,
             err_msg="Failed to read node host name",
@@ -237,7 +237,7 @@ class RemoteMachineConnector:
                 call=lambda: self.collaborators.prompter().prompt_user_input_fn(
                     message="Enter remote node user name",
                     default=remote_opts.node_username,
-                    post_user_input_message="Selected remote user :: ",
+                    post_user_input_message="Selected remote user ",
                 ),
                 ctx=ctx,
                 err_msg="Failed to read username",
@@ -261,7 +261,7 @@ class RemoteMachineConnector:
             password = Evaluator.eval_step_return_value_throw_on_failure(
                 call=lambda: self.collaborators.prompter().prompt_user_input_fn(
                     message="Enter remote node password",
-                    post_user_input_message="Set remote password :: ",
+                    post_user_input_message="Set remote password ",
                     redact_value=True,
                 ),
                 ctx=ctx,
@@ -279,7 +279,7 @@ class RemoteMachineConnector:
                 call=lambda: self.collaborators.prompter().prompt_user_input_fn(
                     message="Enter SSH private key path",
                     default=remote_opts.node_password,
-                    post_user_input_message="Set private key path :: ",
+                    post_user_input_message="Set private key path ",
                     redact_value=True,
                 ),
                 ctx=ctx,

@@ -34,7 +34,7 @@ def update_root_pyproject_toml(pyproject_path, mode):
     plugins_path = os.path.join(repo_path, "plugins")
     if not os.path.exists(plugins_path):
         print(f"Error: Plugins directory '{plugins_path}' does not exist.")
-    
+
     if mode == "dev":
         if prod_dependency_key in dependencies:
             print(f"{project_name} is already in dev mode.")

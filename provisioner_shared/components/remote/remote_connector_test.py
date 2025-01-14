@@ -5,6 +5,11 @@ import unittest
 from typing import List
 from unittest import mock
 
+from components.remote.remote_opts_fakes import (
+    TEST_DATA_REMOTE_NODE_PASSWORD_1,
+    TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
+    TestDataRemoteOpts,
+)
 from provisioner_shared.components.remote.remote_connector import (
     DHCPCDConfigurationInfo,
     NetworkDeviceAuthenticationMethod,
@@ -14,12 +19,7 @@ from provisioner_shared.components.remote.remote_connector import (
 from provisioner_shared.components.remote.remote_connector_fakes import (
     TestDataRemoteConnector,
 )
-from provisioner_shared.components.remote.typer_remote_opts import CliRemoteOpts
-from provisioner_shared.components.remote.typer_remote_opts_fakes import (
-    TEST_DATA_REMOTE_NODE_PASSWORD_1,
-    TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
-    TestDataRemoteOpts,
-)
+from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
 from provisioner_shared.components.runtime.test_lib import faker
 from provisioner_shared.components.runtime.test_lib.assertions import Assertion
@@ -168,7 +168,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
                 message,
                 "Enter a desired remote static IP address (example: 192.168.1.2XX)",
             )
-            self.assertEqual(post_user_input_message, "Selected remote static IP address       :: ")
+            self.assertEqual(post_user_input_message, "Selected remote static IP address ")
             return TestDataRemoteConnector.TEST_DATA_DHCP_STATIC_IP_ADDRESS
 
         env.get_collaborators().prompter().on(
@@ -183,7 +183,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             post_user_input_message: str,
         ):
             self.assertEqual(message, "Enter the gateway address")
-            self.assertEqual(post_user_input_message, "Selected gateway address                :: ")
+            self.assertEqual(post_user_input_message, "Selected gateway address ")
             return TestDataRemoteConnector.TEST_DATA_DHCP_GW_IP_ADDRESS
 
         env.get_collaborators().prompter().on(
@@ -198,7 +198,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             post_user_input_message: str,
         ):
             self.assertEqual(message, "Enter the DNS resolver address")
-            self.assertEqual(post_user_input_message, "Selected remote DNS resolver IP address :: ")
+            self.assertEqual(post_user_input_message, "Selected remote DNS resolver IP address ")
             return TestDataRemoteConnector.TEST_DATA_DHCP_DNS_IP_ADDRESS
 
         env.get_collaborators().prompter().on(
@@ -244,7 +244,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             post_user_input_message: str,
         ):
             self.assertEqual(message, "Enter remote node user name")
-            self.assertEqual(post_user_input_message, "Selected remote user :: ")
+            self.assertEqual(post_user_input_message, "Selected remote user ")
             return COLLECT_AUTH_CUSTOM_USERNAME
 
         env.get_collaborators().prompter().on(
@@ -291,7 +291,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             post_user_input_message: str,
         ):
             self.assertEqual(message, "Enter remote node user name")
-            self.assertEqual(post_user_input_message, "Selected remote user :: ")
+            self.assertEqual(post_user_input_message, "Selected remote user ")
             return COLLECT_AUTH_CUSTOM_USERNAME
 
         env.get_collaborators().prompter().on(
@@ -406,7 +406,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             post_user_input_message: str,
         ):
             self.assertEqual(message, "Enter remote node IP address")
-            self.assertEqual(post_user_input_message, "Selected IP address :: ")
+            self.assertEqual(post_user_input_message, "Selected IP address ")
             return TestDataRemoteConnector.TEST_DATA_SSH_IP_ADDRESS_1
 
         env.get_collaborators().prompter().on(
@@ -421,7 +421,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             post_user_input_message: str,
         ):
             self.assertEqual(message, "Enter remote node host name")
-            self.assertEqual(post_user_input_message, "Selected remote hostname :: ")
+            self.assertEqual(post_user_input_message, "Selected remote hostname ")
             return TestDataRemoteConnector.TEST_DATA_SSH_HOSTNAME_1
 
         env.get_collaborators().prompter().on(
@@ -462,7 +462,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             post_user_input_message: str,
         ):
             self.assertEqual(message, "Enter remote node password")
-            self.assertEqual(post_user_input_message, "Set remote password :: ")
+            self.assertEqual(post_user_input_message, "Set remote password ")
             return TestDataRemoteConnector.TEST_DATA_SSH_PASSWORD_1
 
         env.get_collaborators().prompter().on(
@@ -495,7 +495,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             post_user_input_message: str,
         ):
             self.assertEqual(message, "Enter SSH private key path")
-            self.assertEqual(post_user_input_message, "Set private key path :: ")
+            self.assertEqual(post_user_input_message, "Set private key path ")
             return TestDataRemoteConnector.TEST_DATA_SSH_PRIVATE_KEY_FILE_PATH_1
 
         env.get_collaborators().prompter().on(

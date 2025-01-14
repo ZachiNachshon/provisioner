@@ -4,16 +4,16 @@ from typing import List, Optional
 
 from loguru import logger
 
+from components.vcs.vcs_opts import CliVersionControlOpts
 from provisioner_shared.components.remote.domain.config import RunEnvironment
 from provisioner_shared.components.remote.remote_connector import RemoteMachineConnector
-from provisioner_shared.components.remote.typer_remote_opts import CliRemoteOpts
+from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
 from provisioner_shared.components.runtime.errors.cli_errors import MissingCliArgument
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.evaluator import Evaluator
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost, AnsiblePlaybook
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
 from provisioner_shared.components.runtime.utils.checks import Checks
-from provisioner_shared.components.vcs.typer_vcs_opts import CliVersionControlOpts
 
 ANSIBLE_PLAYBOOK_ANCHOR_RUN = """
 ---
@@ -88,9 +88,9 @@ class AnchorCmdRunner:
                     ansible_vars=[
                         "anchor_command=Run",
                         f"\"anchor_args='{args.anchor_run_command}'\"",
-                        f"anchor_github_organization={args.vcs_opts.github_organization}",
-                        f"anchor_github_repository={args.vcs_opts.repository_name}",
-                        f"anchor_github_repo_branch={args.vcs_opts.branch_name}",
+                        f"anchor_github_organization={args.vcs_opts.organization}",
+                        f"anchor_github_repository={args.vcs_opts.repository}",
+                        f"anchor_github_repo_branch={args.vcs_opts.branch}",
                         f"git_access_token={args.vcs_opts.git_access_token}",
                     ],
                     ansible_tags=["anchor_run"],

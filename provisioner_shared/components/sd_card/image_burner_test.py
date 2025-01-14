@@ -203,7 +203,7 @@ class ImageBurnerTestShould(unittest.TestCase):
             post_user_input_message: str,
         ):
             self.assertEqual(message, "Type block device name")
-            self.assertEqual(post_user_input_message, "Selected block device :: ")
+            self.assertEqual(post_user_input_message, "Selected block device ")
             return None
 
         env.get_collaborators().prompter().on(

@@ -1,7 +1,7 @@
 ---
 layout: docs
 title: Get started with <code>provisioner</code>
-description: Browse through a range of available CLI applications a.k.a plugins or create new ones using a Python based framework allowing for creation and loading of dynamic CLI applications at runtime.
+description: Explore a variety of available CLI applications (also known as plugins), or create your own using a Python-based framework that supports the creation and dynamic loading of CLI applications at runtime
 toc: true
 aliases:
 - "/docs/latest/getting-started/"
@@ -24,26 +24,29 @@ pip install provisioner-runtime
 
 ### Plugins
 
-There are two methods for plugins installation, from PyPi or interactively from provisioner CLI.
+There are two methods used for plugins installation:
 
 <br>
 
-**Provisioner CLI:**
+**Using Provisioner CLI:**
 
-```bash
-provisioner plugins install
+```text
+# Interactive mode
+$ provisioner plugins install
+
+# Non interactive mode
+$ provisioner plugins install --name provisioner-examples-plugin
 ```
 
-**PyPi via pip:**
+**Using PyPi via pip:**
 
-```bash
-pip install provisioner-installers-plugin
-```
+```text
+# Examples plugin
+$ pip install provisioner-examples-plugin
 
-```bash
-pip install provisioner-single-board-plugin
-```
+# Installers plugin
+$ pip install provisioner-installers-plugin
 
-```bash
-pip install provisioner-examples-plugin
+# Single-Board plugin
+$ pip install provisioner-single-board-plugin
 ```

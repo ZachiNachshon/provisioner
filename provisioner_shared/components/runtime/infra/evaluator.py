@@ -5,7 +5,6 @@ from typing import Any, Callable
 
 from loguru import logger
 
-from provisioner_shared.components.runtime.cli.state import CliGlobalArgs
 from provisioner_shared.components.runtime.errors.cli_errors import (
     CliApplicationException,
     StepEvaluationFailure,
@@ -36,19 +35,19 @@ class Evaluator:
         return step_response
 
     @staticmethod
-    def eval_cli_entrypoint_step(name: str, call: Callable, error_message: str) -> None:
+    def eval_cli_entrypoint_step(name: str, call: Callable, error_message: str, verbose: bool = False) -> None:
         try:
             call()
         except StepEvaluationFailure as sef:
-            # logger.critical(f"{error_message}. name: {name}, ex: {sef.__class__.__name__}, message: {str(sef)}")
+            logger.critical(f"{error_message}. name: {name}, ex: {sef.__class__.__name__}, message: {str(sef)}")
             print(str(sef))
         except Exception as e:
             logger.critical(f"{error_message}. name: {name}, ex: {e.__class__.__name__}, message: {str(e)}")
-            if CliGlobalArgs.is_verbose():
+            if verbose:
                 raise CliApplicationException(e)
 
     @staticmethod
-    def eval_installer_cli_entrypoint_pyfn_step(name: str, call: Callable) -> None:
+    def eval_installer_cli_entrypoint_pyfn_step(name: str, call: Callable, verbose: bool = False) -> None:
         is_failure = False
         raised: Exception = None
         should_re_raise = False
@@ -60,15 +59,15 @@ class Evaluator:
             # raised = sef
             print(str(sef))
         except Exception as ex:
-            if CliGlobalArgs.is_verbose():
+            if verbose:
                 traceback.print_exc()
             is_failure = True
             raised = ex
             should_re_raise = True
 
-        if CliGlobalArgs.is_verbose() and (is_failure or not response):
+        if verbose and (is_failure or not response):
             logger.critical(
                 f"Failed to install CLI utility. name: {name}, ex: {raised.__class__.__name__}, message: {str(raised)}"
             )
-            if should_re_raise and CliGlobalArgs.is_verbose():
+            if should_re_raise and verbose:
                 raise CliApplicationException(raised)

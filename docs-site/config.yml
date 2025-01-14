@@ -54,7 +54,7 @@ params:
   social_logo_path:     /docs/latest/assets/brand/provisioner-social-logo.png
   google_analytics:     "G-SGWDJDLWSW"
 
-  current_version:      "0.1.9"
+  current_version:      "0.1.15"
   docs_version:         "latest"
   go_version:           "1.20"
   python_version:       "3.11"
