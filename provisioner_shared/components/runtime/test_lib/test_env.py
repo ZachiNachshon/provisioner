@@ -1,11 +1,23 @@
 #!/usr/bin/env python3
 
+import pathlib
+import click
+from provisioner_shared.components.runtime.config.domain.config import ProvisionerConfig
+from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
+from provisioner_shared.components.runtime.cli.entrypoint import EntryPoint
+from provisioner_shared.components.runtime.cli.version import append_version_cmd_to_cli
+from provisioner_shared.components.runtime.command.config.cli import append_config_cmd_to_cli
+from provisioner_shared.components.runtime.command.plugins.cli import append_plugins_cmd_to_cli
+from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.shared.collaborators_fakes import FakeCoreCollaborators
 from provisioner_shared.components.runtime.utils.os import MAC_OS, OsArch
 from provisioner_shared.components.runtime.utils.paths_fakes import FakePaths
 
 ROOT_PATH_TEST_ENV = "/test/env/root"
+
+PROJECT_ROOT_FOLDER = str(pathlib.Path(__file__).parent.parent.parent.parent.parent)
+CONFIG_INTERNAL_PATH = f"{PROJECT_ROOT_FOLDER}/provisioner/resources/config.yaml"
 
 
 class TestEnv:
@@ -60,3 +72,13 @@ class TestEnv:
 
     def get_collaborators(self) -> FakeCoreCollaborators:
         return self.__collaborators
+
+    @staticmethod
+    def create_cli_app() -> click.Group:
+        root_menu = EntryPoint.create_cli_menu()
+        ConfigManager.instance().load(CONFIG_INTERNAL_PATH, None, ProvisionerConfig),
+        cols = CoreCollaborators(Context.create_empty())
+        append_version_cmd_to_cli(root_menu, root_package=ROOT_PATH_TEST_ENV)
+        append_config_cmd_to_cli(root_menu, collaborators=cols)
+        append_plugins_cmd_to_cli(root_menu, collaborators=cols)
+        return root_menu
