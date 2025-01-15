@@ -53,7 +53,7 @@ def append_plugins_cmd_to_cli(root_menu: click.Group, collaborators: CoreCollabo
 
 
 def list_locally_installed_plugins(collaborators: CoreCollaborators) -> None:
-    packages = _try_get_pip_installed_packages()
+    packages = _try_get_pip_installed_packages(collaborators)
     output: str = "\n=== Locally Installed Plugins ===\n"
     if packages is None or len(packages) == 0:
         output += "\nNo plugins found."
@@ -92,7 +92,7 @@ def install_available_plugins_from_args(plgn_name: str, collaborators: CoreColla
 
 
 def install_available_plugins_from_prompt(collaborators: CoreCollaborators) -> None:
-    packages_from_pip = _try_get_pip_installed_packages()
+    packages_from_pip = _try_get_pip_installed_packages(collaborators)
     packages_from_pip_escaped: List[str] = []
     # Adjust pip plugin name to config plugin name
     for package_name in packages_from_pip:
@@ -140,7 +140,7 @@ def uninstall_local_plugins_from_args(plgn_name: str, collaborators: CoreCollabo
 
 
 def uninstall_local_plugins_from_prompt(collaborators: CoreCollaborators) -> None:
-    packages_from_pip = _try_get_pip_installed_packages()
+    packages_from_pip = _try_get_pip_installed_packages(collaborators)
     if packages_from_pip is None or len(packages_from_pip) == 0:
         collaborators.printer().print_fn("No installed plugins found.")
         return
