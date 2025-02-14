@@ -6,17 +6,25 @@ from typing import Any, Callable, Optional
 import click
 from loguru import logger
 
-from provisioner_shared.components.remote.domain.config import RemoteConfig, RunEnvironment
-from provisioner_shared.components.remote.remote_opts import REMOTE_CLICK_CTX_NAME, CliRemoteOpts, RemoteVerbosity
+from provisioner_shared.components.remote.domain.config import RemoteConfig, RemoteConnectMode, RunEnvironment
+from provisioner_shared.components.remote.remote_opts import (
+    REMOTE_CLICK_CTX_NAME,
+    RemoteOpts,
+    RemoteOptsFromConfig,
+    RemoteOptsFromConnFlags,
+    RemoteOptsFromScanFlags,
+    RemoteVerbosity,
+)
 from provisioner_shared.components.runtime.cli.click_callbacks import mutually_exclusive_callback
 from provisioner_shared.components.runtime.cli.menu_format import GroupedOption, get_nested_value, normalize_cli_item
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
 
 REMOTE_GENERAL_OPTS_GROUP_NAME = "General"
-REMOTE_CON_OPTS_GROUP_NAME = "Connection"
-REMOTE_DISCOVERY_OPTS_GROUP_NAME = "Discovery"
+REMOTE_CON_FLAGS_GROUP_NAME = "Flags"
+REMOTE_SCAN_LAN_OPTS_GROUP_NAME = "ScanLAN"
 REMOTE_EXECUTION_OPTS_GROUP_NAME = "Execution"
 
+REMOTE_OPT_CONNECT_MODE = "connect-mode"
 REMOTE_OPT_ENV = "environment"
 REMOTE_OPT_NODE_USERNAME = "node-username"
 REMOTE_OPT_NODE_PASSWORD = "node-password"
@@ -26,7 +34,6 @@ REMOTE_OPT_HOSTNAME = "hostname"
 REMOTE_OPT_IP_DISCOVERY_RANGE = "ip-discovery-range"
 REMOTE_OPT_VERBOSITY = "verbosity"
 REMOTE_OPT_REMOTE_DRY_RUN = "remote-dry-run"
-REMOTE_OPT_REMOTE_NON_INTERACTIVE = "remote-non-interactive"
 
 
 # Define modifiers globally
@@ -47,12 +54,22 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             group=REMOTE_GENERAL_OPTS_GROUP_NAME,
         )
         @click.option(
+            f"--{REMOTE_OPT_CONNECT_MODE}",
+            default="Interactive",
+            show_default=True,
+            type=click.Choice([v.value for v in RemoteConnectMode], case_sensitive=False),
+            help="Specifies the mode to connect to the remote machine",
+            envvar="PROV_REMOTE_CONNECT_MODE",
+            cls=GroupedOption,
+            group=REMOTE_GENERAL_OPTS_GROUP_NAME,
+        )
+        @click.option(
             f"--{REMOTE_OPT_NODE_USERNAME}",
             show_default=False,
             help="Remote node username",
             envvar="PROV_NODE_USERNAME",
             cls=GroupedOption,
-            group=REMOTE_CON_OPTS_GROUP_NAME,
+            group=REMOTE_CON_FLAGS_GROUP_NAME,
         )
         @click.option(
             f"--{REMOTE_OPT_NODE_PASSWORD}",
@@ -60,7 +77,7 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             help="Remote node password",
             envvar="PROV_NODE_PASSWORD",
             cls=GroupedOption,
-            group=REMOTE_CON_OPTS_GROUP_NAME,
+            group=REMOTE_CON_FLAGS_GROUP_NAME,
             callback=mutually_exclusive_callback,
         )
         @click.option(
@@ -69,7 +86,7 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             help="Private SSH key local file path",
             envvar="PROV_SSH_PRIVATE_KEY_FILE_PATH",
             cls=GroupedOption,
-            group=REMOTE_CON_OPTS_GROUP_NAME,
+            group=REMOTE_CON_FLAGS_GROUP_NAME,
             callback=mutually_exclusive_callback,
         )
         @click.option(
@@ -78,7 +95,7 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             help="Remote node IP address",
             envvar="PROV_IP_ADDRESS",
             cls=GroupedOption,
-            group=REMOTE_CON_OPTS_GROUP_NAME,
+            group=REMOTE_CON_FLAGS_GROUP_NAME,
         )
         @click.option(
             f"--{REMOTE_OPT_HOSTNAME}",
@@ -86,7 +103,7 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             help="Remote node host name",
             envvar="PROV_HOSTNAME",
             cls=GroupedOption,
-            group=REMOTE_CON_OPTS_GROUP_NAME,
+            group=REMOTE_CON_FLAGS_GROUP_NAME,
         )
         @click.option(
             f"--{REMOTE_OPT_IP_DISCOVERY_RANGE}",
@@ -95,7 +112,7 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             help="LAN network IP discovery scan range",
             envvar="PROV_IP_DISCOVERY_RANGE",
             cls=GroupedOption,
-            group=REMOTE_DISCOVERY_OPTS_GROUP_NAME,
+            group=REMOTE_SCAN_LAN_OPTS_GROUP_NAME,
         )
         @click.option(
             f"--{REMOTE_OPT_VERBOSITY}",
@@ -117,16 +134,6 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             cls=GroupedOption,
             group=REMOTE_EXECUTION_OPTS_GROUP_NAME,
         )
-        @click.option(
-            f"--{REMOTE_OPT_REMOTE_NON_INTERACTIVE}",
-            default=False,
-            is_flag=True,
-            show_default=True,
-            help="Turn off interactive prompts and outputs on remote machine",
-            envvar="PROV_REMOTE_NON_INTERACTIVE",
-            cls=GroupedOption,
-            group=REMOTE_EXECUTION_OPTS_GROUP_NAME,
-        )
         @wraps(func)
         @click.pass_context  # Decorator to pass context to the function
         def wrapper(ctx, *args: Any, **kwargs: Any) -> Any:
@@ -134,17 +141,19 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             remote_verbosity = RemoteVerbosity.from_str(verbosity)
 
             dry_run = kwargs.pop(normalize_cli_item(REMOTE_OPT_REMOTE_DRY_RUN), False)
-            non_interactive = kwargs.pop(normalize_cli_item(REMOTE_OPT_REMOTE_NON_INTERACTIVE), False)
             remote_context = RemoteContext.create(
                 dry_run=dry_run,
                 verbose=remote_verbosity == RemoteVerbosity.Verbose,
                 silent=remote_verbosity == RemoteVerbosity.Silent,
-                non_interactive=non_interactive,
             )
 
             # Fail if environment is not supplied
-            environment = kwargs.pop(normalize_cli_item(REMOTE_OPT_ENV))
-            run_env = RunEnvironment.from_str(environment)
+            cli_flag_env = kwargs.pop(normalize_cli_item(REMOTE_OPT_ENV))
+            environment = RunEnvironment.from_str(cli_flag_env)
+
+            # Fail if connect-mode is not supplied
+            cli_flag_conn_mode = kwargs.pop(normalize_cli_item(REMOTE_OPT_CONNECT_MODE))
+            connect_mode = RemoteConnectMode.from_str(cli_flag_conn_mode)
 
             node_username = kwargs.pop(normalize_cli_item(REMOTE_OPT_NODE_USERNAME), None)
             node_password = kwargs.pop(normalize_cli_item(REMOTE_OPT_NODE_PASSWORD), None)
@@ -153,62 +162,66 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             ip_address = kwargs.pop(normalize_cli_item(REMOTE_OPT_IP_ADDRESS), None)
             hostname = kwargs.pop(normalize_cli_item(REMOTE_OPT_HOSTNAME), None)
 
-            remote_hosts = remote_config.to_hosts_dict()
-
             # Add it to the context object
             if ctx.obj is None:
                 ctx.obj = {}
 
             if REMOTE_CLICK_CTX_NAME not in ctx.obj:
                 # First-time initialization
-                ctx.obj[REMOTE_CLICK_CTX_NAME] = CliRemoteOpts(
-                    environment,
-                    node_username,
-                    node_password,
-                    ssh_private_key_file_path,
-                    ip_discovery_range,
-                    ip_address,
-                    hostname,
-                    remote_hosts,
-                    remote_context,
+                ctx.obj[REMOTE_CLICK_CTX_NAME] = RemoteOpts(
+                    environment=environment,
+                    connect_mode=connect_mode,
+                    remote_context=remote_context,
+                    conn_flags=RemoteOptsFromConnFlags(
+                        node_username=node_username,
+                        node_password=node_password,
+                        ssh_private_key_file_path=ssh_private_key_file_path,
+                        ip_address=ip_address,
+                        hostname=hostname,
+                    ),
+                    scan_flags=RemoteOptsFromScanFlags(ip_discovery_range=ip_discovery_range),
+                    config=RemoteOptsFromConfig(remote_config=remote_config),
                 )
                 logger.debug("Initialized CliRemoteOpts for the first time.")
             else:
                 # Update only the relevant fields if they change
                 remote_opts = ctx.obj[REMOTE_CLICK_CTX_NAME]
 
-                if verbosity and not remote_opts.verbosity:
-                    remote_opts.verbosity = True
+                if verbosity and not remote_opts._remote_context._dry_run:
+                    remote_opts._remote_context._dry_run = dry_run
 
-                if dry_run and not remote_opts.dry_run:
-                    remote_opts.dry_run = True
+                if verbosity and not remote_opts._remote_context._verbose:
+                    remote_opts._remote_context._verbose = remote_verbosity == RemoteVerbosity.Verbose
 
-                if non_interactive and not remote_opts.non_interactive:
-                    remote_opts.non_interactive = True
+                if verbosity and not remote_opts._remote_context._silent:
+                    remote_opts._remote_context._silent = remote_verbosity == RemoteVerbosity.Silent
 
-                if remote_context and remote_opts.remote_context != remote_context:
-                    remote_opts.remote_context = remote_context
+                if environment and remote_opts._environment != environment:
+                    remote_opts._environment = environment
 
-                if run_env and remote_opts.environment != run_env:
-                    remote_opts.environment = run_env
+                if connect_mode and remote_opts._connect_mode != connect_mode:
+                    remote_opts._connect_mode = connect_mode
 
-                if node_username and remote_opts.node_username != node_username:
-                    remote_opts.node_username = node_username
+                if node_username and remote_opts._flags.node_username != node_username:
+                    remote_opts._flags.node_username = node_username
 
-                if node_password and remote_opts.node_password != node_password:
-                    remote_opts.node_password = node_password
+                if node_password and remote_opts._flags.node_password != node_password:
+                    remote_opts._flags.node_password = node_password
 
-                if ssh_private_key_file_path and remote_opts.ssh_private_key_file_path != ssh_private_key_file_path:
-                    remote_opts.ssh_private_key_file_path = ssh_private_key_file_path
+                if (
+                    ssh_private_key_file_path
+                    and remote_opts._flags.ssh_private_key_file_path != ssh_private_key_file_path
+                ):
+                    remote_opts._flags.ssh_private_key_file_path = ssh_private_key_file_path
 
-                if ip_discovery_range and remote_opts.ip_discovery_range != ip_discovery_range:
-                    remote_opts.ip_discovery_range = ip_discovery_range
+                if ip_address and remote_opts._flags.ip_address != ip_address:
+                    remote_opts._flags.ip_address = ip_address
 
-                if ip_address and remote_opts.ip_address != ip_address:
-                    remote_opts.ip_address = ip_address
+                if hostname and remote_opts._flags.hostname != hostname:
+                    remote_opts._flags.hostname = hostname
 
-                if hostname and remote_opts.hostname != hostname:
-                    remote_opts.hostname = hostname
+                if ip_discovery_range and remote_opts._scan_flags.ip_discovery_range != ip_discovery_range:
+                    remote_opts._scan_flags.ip_discovery_range = ip_discovery_range
 
             return func(*args, **kwargs)
 

@@ -41,7 +41,7 @@ class PackageLoader:
                 logger.debug(f"Importing module {plugin_import_path}")
                 plugin_main_module = importlib.import_module(plugin_import_path)
             except Exception as ex:
-                logger.error(f"Failed to import module. import_path: {plugin_import_path}, ex: {ex}")
+                print(f"Failed to import module. import_path: {plugin_import_path}, ex: {ex}")
                 continue
 
             try:
@@ -80,6 +80,9 @@ class PackageLoader:
             )
             # Decode the output and split it into lines
             pip_lines = output.decode("utf-8").split("\n")
+            # for line in pip_lines:
+            #     print(line)
+            #     logger.debug(line)
         except Exception as ex:
             logger.error(f"Failed to retrieve a list of pip packages, make sure pip is properly installed. ex: {ex}")
             return

@@ -6,10 +6,10 @@ import click
 
 from provisioner_shared.components.runtime.cli.cli_modifiers import cli_modifiers
 from provisioner_shared.components.runtime.cli.entrypoint import EntryPoint
-from provisioner_shared.components.runtime.test_lib.test_cli_runner import TestCliRunner
 from provisioner_shared.components.vcs.cli_vcs_opts import cli_vcs_opts
 from provisioner_shared.components.vcs.vcs_opts import CliVersionControlOpts
 from provisioner_shared.components.vcs.vcs_opts_fakes import TestDataVersionControlOpts
+from provisioner_shared.test_lib.test_cli_runner import TestCliRunner
 
 ARG_CLI_OVERRIDE_GITHUB_ACCESS_TOKEN = "arg-test-override-git-access-token"
 

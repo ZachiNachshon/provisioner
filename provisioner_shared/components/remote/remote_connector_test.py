@@ -14,17 +14,17 @@ from provisioner_shared.components.remote.remote_connector import (
 from provisioner_shared.components.remote.remote_connector_fakes import (
     TestDataRemoteConnector,
 )
-from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
+from provisioner_shared.components.remote.remote_opts import RemoteOpts
 from provisioner_shared.components.remote.remote_opts_fakes import (
     TEST_DATA_REMOTE_NODE_PASSWORD_1,
     TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
     TestDataRemoteOpts,
 )
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
-from provisioner_shared.components.runtime.test_lib import faker
-from provisioner_shared.components.runtime.test_lib.assertions import Assertion
-from provisioner_shared.components.runtime.test_lib.test_env import TestEnv
 from provisioner_shared.components.runtime.utils.prompter import PromptLevel
+from provisioner_shared.test_lib import faker
+from provisioner_shared.test_lib.assertions import Assertion
+from provisioner_shared.test_lib.test_env import TestEnv
 
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner_shared/components/remote/remote_connector_test.py
@@ -77,7 +77,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
 
         env = TestEnv.create()
         RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
-            env.get_context(), CliRemoteOpts(), force_single_conn_info=True
+            env.get_context(), RemoteOpts(), force_single_conn_info=True
         )
         Assertion.expect_call_argument(self, host_selection_call, "force_single_conn_info", True)
         Assertion.expect_call_argument(
@@ -105,7 +105,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
 
         env = TestEnv.create()
         RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
-            env.get_context(), CliRemoteOpts(), force_single_conn_info=True
+            env.get_context(), RemoteOpts(), force_single_conn_info=True
         )
         Assertion.expect_call_argument(self, host_selection_call, "force_single_conn_info", True)
         Assertion.expect_call_argument(
@@ -132,7 +132,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
     ) -> None:
 
         env = TestEnv.create()
-        RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(env.get_context(), CliRemoteOpts())
+        RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(env.get_context(), RemoteOpts())
         Assertion.expect_call_argument(
             self,
             collect_auth_info_call,
@@ -149,7 +149,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
     ) -> None:
         env = TestEnv.create()
         response = RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
-            env.get_context(), CliRemoteOpts()
+            env.get_context(), RemoteOpts()
         )
         self.assertIsNone(response)
 
@@ -258,7 +258,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         ansible_hosts_deep_copy = copy.deepcopy(TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS)
 
         response = RemoteMachineConnector(env.get_collaborators())._collect_ssh_auth_info(
-            env.get_context(), CliRemoteOpts(), ansible_hosts_deep_copy
+            env.get_context(), RemoteOpts(), ansible_hosts_deep_copy
         )
 
         self.assertEqual(response.ansible_hosts[0].username, COLLECT_AUTH_CUSTOM_USERNAME)
@@ -305,7 +305,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         ansible_hosts_deep_copy = copy.deepcopy(TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS)
 
         response = RemoteMachineConnector(env.get_collaborators())._collect_ssh_auth_info(
-            env.get_context(), CliRemoteOpts(), ansible_hosts_deep_copy
+            env.get_context(), RemoteOpts(), ansible_hosts_deep_copy
         )
 
         self.assertEqual(response.ansible_hosts[0].username, COLLECT_AUTH_CUSTOM_USERNAME)
@@ -469,7 +469,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
         ).side_effect = assertion_callback
         response = RemoteMachineConnector(env.get_collaborators())._collect_auth_password(
-            env.get_context(), CliRemoteOpts()
+            env.get_context(), RemoteOpts()
         )
         self.assertEqual(response, TestDataRemoteConnector.TEST_DATA_SSH_PASSWORD_1)
 
@@ -502,7 +502,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
         ).side_effect = assertion_callback
         response = RemoteMachineConnector(env.get_collaborators())._collect_auth_ssh_private_key_path(
-            env.get_context(), CliRemoteOpts()
+            env.get_context(), RemoteOpts()
         )
         self.assertEqual(response, TestDataRemoteConnector.TEST_DATA_SSH_PRIVATE_KEY_FILE_PATH_1)
 

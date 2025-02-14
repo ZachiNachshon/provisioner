@@ -2,11 +2,12 @@
 
 import yaml
 
-from provisioner_shared.components.remote.domain.config import RemoteConfig, RunEnvironment
-from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
+from provisioner_shared.components.remote.domain.config import RemoteConfig, RemoteConnectMode, RunEnvironment
+from provisioner_shared.components.remote.remote_opts import RemoteOpts
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
 
 TEST_DATA_ENVIRONMENT: RunEnvironment = RunEnvironment.Local
+TEST_DATA_CONNECT_MODE: RemoteConnectMode = RemoteConnectMode.Interactive
 TEST_DATA_SSH_HOSTNAME_1 = "test-hostname-1"
 TEST_DATA_SSH_HOSTNAME_2 = "test-hostname-2"
 TEST_DATA_SSH_IP_ADDRESS_1 = "test-ip-address-1"
@@ -70,13 +71,15 @@ class TestDataRemoteOpts:
     def create_fake_cli_remote_opts(
         remote_context: RemoteContext = None,
         environment: RunEnvironment = TEST_DATA_ENVIRONMENT,
-    ) -> CliRemoteOpts:
-        return CliRemoteOpts(
+        connect_mode: RemoteConnectMode = TEST_DATA_CONNECT_MODE,
+    ) -> RemoteOpts:
+        return RemoteOpts(
             environment=environment,
+            connect_mode=connect_mode,
             node_username=TEST_DATA_REMOTE_NODE_USERNAME_1,
             node_password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
             ssh_private_key_file_path=TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
             ip_discovery_range=TEST_DATA_REMOTE_IP_DISCOVERY_RANGE,
-            remote_hosts=TestDataRemoteOpts.create_fake_remote_cfg().to_hosts_dict(),
             remote_context=remote_context,
+            cfg_remote_hosts=TestDataRemoteOpts.create_fake_remote_cfg().to_hosts_dict(),
         )

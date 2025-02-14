@@ -7,7 +7,7 @@ from unittest import mock
 
 from click.testing import Result
 
-from provisioner_shared.components.runtime.test_lib.test_errors import CliRunnerTestError
+from provisioner_shared.test_lib.test_errors import CliRunnerTestError
 
 REGEX_REMOTE_COLOR_CODES = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
 

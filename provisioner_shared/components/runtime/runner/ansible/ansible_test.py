@@ -11,10 +11,10 @@ from provisioner_shared.components.runtime.runner.ansible.ansible_runner import 
     AnsiblePlaybook,
     AnsibleRunnerLocal,
 )
-from provisioner_shared.components.runtime.test_lib.assertions import Assertion
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
 from provisioner_shared.components.runtime.utils.os import OsArch
 from provisioner_shared.components.runtime.utils.paths import Paths
+from provisioner_shared.test_lib.assertions import Assertion
 
 #
 # NOTE: THOES ARE E2E TESTS - THEY'LL CREATE FILES & FOLDERS IN THE FILE SYSTEM
@@ -48,12 +48,16 @@ ANSIBLE_DUMMY_PLAYBOOK_CONTENT_WITH_REMOTE_CTX = """
 """
 
 ANSIBLE_DUMMY_PLAYBOOK_NAME = "dummy_playbook"
-ANSIBLE_DUMMY_PLAYBOOK = AnsiblePlaybook(name=ANSIBLE_DUMMY_PLAYBOOK_NAME, content=ANSIBLE_DUMMY_PLAYBOOK_CONTENT)
+ANSIBLE_DUMMY_PLAYBOOK = AnsiblePlaybook(
+    name=ANSIBLE_DUMMY_PLAYBOOK_NAME,
+    content=ANSIBLE_DUMMY_PLAYBOOK_CONTENT,
+    remote_context=RemoteContext.create(verbose=True),
+)
 
 ANSIBLE_DUMMY_PLAYBOOK_WITH_REMOTE_CTX = AnsiblePlaybook(
     name=ANSIBLE_DUMMY_PLAYBOOK_NAME,
     content=ANSIBLE_DUMMY_PLAYBOOK_CONTENT_WITH_REMOTE_CTX,
-    remote_context=RemoteContext.create(dry_run=True, verbose=True, silent=True, non_interactive=True),
+    remote_context=RemoteContext.create(dry_run=True, verbose=True, silent=True),
 )
 
 ANSIBLE_HOSTS = [
@@ -117,6 +121,7 @@ class AnsibleRunnerTestShould(unittest.TestCase):
                 f"ansible-playbook -i {os.path.expanduser('~/.config/provisioner/ansible/hosts')} DRY_RUN_RESPONSE -e local_bin_folder='~/.local/bin' -e dry_run=True -e {ANSIBLE_VAR_1} -e {ANSIBLE_VAR_2} --tags {ANSIBLE_TAG_1},{ANSIBLE_TAG_2},TEST_OS -vvvv",
             ],
         )
+        self.assertTrue(False)
 
     def test_run_ansible_with_remote_context_modifiers(self):
         ctx = Context.create(dry_run=True, verbose=True, auto_prompt=True, os_arch=OsArch(os="TEST_OS"))

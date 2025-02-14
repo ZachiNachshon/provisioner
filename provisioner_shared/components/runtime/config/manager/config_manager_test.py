@@ -11,7 +11,7 @@ from provisioner_shared.components.runtime.test_data.domain import (
     USER_CONFIG_TEST_DATA_FILE_PATH,
     FakeConfigObj,
 )
-from provisioner_shared.components.runtime.test_lib.assertions import Assertion
+from provisioner_shared.test_lib.assertions import Assertion
 
 ARG_CONFIG_INTERNAL_PATH = "/path/to/internal/config"
 ARG_CONFIG_USER_PATH = "/path/to/user/config"

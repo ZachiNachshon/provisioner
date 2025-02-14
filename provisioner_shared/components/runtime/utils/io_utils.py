@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import inspect
 import os
 import pathlib
 import stat
@@ -12,6 +13,8 @@ from typing import Optional
 from loguru import logger
 
 from provisioner_shared.components.runtime.infra.context import Context
+
+GIT_DIRECTORY = ".git"
 
 
 class IOUtils:
@@ -192,6 +195,39 @@ class IOUtils:
         os.chmod(file_path, current_permission | permissions_octal)
         return file_path
 
+    def _find_git_repo_root_abs_path(self, clazz) -> Optional[pathlib.Path]:
+        """
+        Find the root directory of a git repository by traversing up from the class location.
+
+        Args:
+            clazz: The class object to start the search from
+
+        Returns:
+            Optional[Path]: The absolute path to the git repository root if found, None otherwise
+        """
+        try:
+            # Get the directory containing the class file
+            current_path = pathlib.Path(inspect.getfile(clazz)).parent
+        except Exception as e:
+            logger.error("Failed to get the class file path", exc_info=e)
+            return None
+
+        abs_path = current_path.absolute()
+
+        # Traverse up the directory tree until we find .git or reach the root
+        while abs_path != abs_path.root:
+            git_dir = abs_path / GIT_DIRECTORY
+            if git_dir.is_dir():
+                return abs_path
+
+            # Move to the parent directory
+            parent = abs_path.parent
+            if parent == abs_path:  # Check if we've reached the root
+                break
+            abs_path = parent
+
+        return None
+
     create_directory_fn = _create_directory
     copy_file_fn = _copy_file
     copy_directory_fn = _copy_directory
@@ -207,3 +243,4 @@ class IOUtils:
     is_archive_fn = _is_archive
     unpack_archive_fn = _unpack_archive
     set_file_permissions_fn = _set_file_permissions
+    find_git_repo_root_abs_path_fn = _find_git_repo_root_abs_path

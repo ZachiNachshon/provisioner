@@ -26,7 +26,7 @@ prod-mode: ## Enable production mode for packaging and distribution
 .PHONY: dev-mode
 dev-mode: ## Enable local development
 	@pip3 install tomlkit --disable-pip-version-check --no-python-version-warning
-	@./scripts/switch_mode.py dev
+	@./scripts/switch_mode.py dev --force
 	@poetry lock
 
 .PHONY: deps-install
@@ -53,15 +53,27 @@ fmt: ## Format Python code using Black style and sort imports
 	@poetry run ruff check . --show-fixes --fix
 
 .PHONY: test
-test: ## Run tests suite on runtime and all plugins (output: None)
-	@poetry run coverage run -m pytest; \
+test: ## Run tests suite on runtime and all plugins, use 'e2e' for E2E tests (output: None)
+	@if [ -n "$(word 2, $(MAKECMDGOALS))" ]; then \
+		echo "Running tests IT/Unit/E2E"; \
+		poetry run coverage run -m pytest --e2e; \
+	else \
+		echo "Running tests IT/Unit"; \
+		poetry run coverage run -m pytest; \
+	fi;
 	if [ $$? -ne 0 ]; then \
 		exit 1; \
 	fi;
 
 .PHONY: test-coverage-html
-test-coverage-html: ## Run tests suite on runtime and all plugins (output: HTML report)
-	@poetry run coverage run -m pytest; \
+test-coverage-html: ## Run tests suite on runtime and all plugins, use 'e2e' for E2E tests (output: HTML report)
+	@if [ -n "$(word 2, $(MAKECMDGOALS))" ]; then \
+		echo "Running tests IT/Unit/E2E (with coverage report)"; \
+		poetry run coverage run -m pytest --e2e; \
+	else \
+		echo "Running tests IT/Unit (with coverage report)"; \
+		poetry run coverage run -m pytest; \
+	fi;
 	if [ $$? -ne 0 ]; then \
 		exit 1; \
 	fi;
@@ -98,7 +110,7 @@ pip-install-runtime: ## [LOCAL] Install provisioner runtime to local pip
 # @pip3 install provisioner/dist/provisioner_*.tar.gz	
 
 .PHONY: pip-install-plugin
-pip-install-plugin: ## [LOCAL] Install any plugin to local pip (make pip-install-plugin example)
+pip-install-plugin: ## [LOCAL] Install any plugin to local pip (make pip-install-plugin examples)
 	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
 		echo "Error: plugin name is required. Usage: make pip-install-plugin <plugin_name>"; \
 		exit 1; \

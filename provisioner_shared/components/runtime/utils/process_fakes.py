@@ -4,8 +4,8 @@ from typing import List, Optional
 from unittest.mock import MagicMock
 
 from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.test_lib.faker import TestFakes
 from provisioner_shared.components.runtime.utils.process import Process
+from provisioner_shared.test_lib.faker import TestFakes
 
 
 class FakeProcess(TestFakes, Process):

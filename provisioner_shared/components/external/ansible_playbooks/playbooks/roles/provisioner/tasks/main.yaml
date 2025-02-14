@@ -9,7 +9,9 @@
   tags: ['provisioner_wrapper']
   script: "provisioner_wrapper.sh"
   register: scriptOut
-  become: no
+  # become: no
+  become: true
+  become_user: pi
   changed_when: False # nothing really gets changed
   environment:
     # --- PATHS ---
@@ -17,8 +19,10 @@
     ENV_LOCAL_PIP_PKG_FOLDER_PATH: "{{ local_pip_pkg_folder_path | mandatory }}"
     # --- PROVISIONER ---
     ENV_PROVISIONER_BINARY: "{{ provisioner_binary | mandatory }}"
+    ENV_PROVISIONER_RUNTIME_PIP_PKG_NAME: "{{ provisioner_runtime_pip_pkg_name | mandatory }}"
     ENV_PROVISIONER_COMMAND: "{{ provisioner_command | mandatory }}"
     ENV_PROVISIONER_VERSION: "{{ provisioner_version | mandatory }}"
+    ENV_PROVISIONER_PYTHON_VERSION: "{{ provisioner_python_version | mandatory }}"
     # Array of tuple items i.e. ['provisioner_examples_plugin:0.1.0', 'provisioner_installers_plugin:0.2.0']
     ENV_REQUIRED_PLUGINS: "{{ required_plugins | mandatory }}"
     ENV_INSTALL_METHOD: "{{ install_method | mandatory }}"

@@ -9,8 +9,8 @@ from provisioner_shared.components.remote.remote_opts_fakes import *
 from provisioner_shared.components.runtime.cli.cli_modifiers import cli_modifiers
 from provisioner_shared.components.runtime.cli.entrypoint import EntryPoint
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
-from provisioner_shared.components.runtime.test_lib.assertions import Assertion
-from provisioner_shared.components.runtime.test_lib.test_cli_runner import TestCliRunner
+from provisioner_shared.test_lib.assertions import Assertion
+from provisioner_shared.test_lib.test_cli_runner import TestCliRunner
 
 ARG_CLI_OVERRIDE_ENVIRONMENT = "test-environment"
 ARG_CLI_OVERRIDE_NODE_USERNAME = "test-node-username"
@@ -33,12 +33,12 @@ class RemoteOptsTestShould(unittest.TestCase):
         @click.pass_context
         def dummy(ctx: click.Context) -> None:
             """Dummy click command"""
-            remote_opts = CliRemoteOpts.from_click_ctx(ctx)
+            remote_opts = RemoteOpts.from_click_ctx(ctx)
             self.assertIsNotNone(remote_opts)
 
             Assertion.expect_equal_objects(
                 self,
-                obj1=remote_opts.ansible_hosts,
+                obj1=remote_opts.get_config().ansible_hosts,
                 obj2=[
                     AnsibleHost(
                         host=TEST_DATA_SSH_HOSTNAME_1,
@@ -73,9 +73,9 @@ class RemoteOptsTestShould(unittest.TestCase):
         @click.pass_context
         def dummy(ctx: click.Context) -> None:
             """Dummy click command"""
-            remote_opts = CliRemoteOpts.from_click_ctx(ctx)
+            remote_opts = RemoteOpts.from_click_ctx(ctx)
             self.assertIsNotNone(remote_opts)
-            self.assertEqual(remote_opts.ip_discovery_range, ARG_CLI_OVERRIDE_IP_DISCOVERY_RANGE)
+            self.assertEqual(remote_opts.get_scan_flags().ip_discovery_range, ARG_CLI_OVERRIDE_IP_DISCOVERY_RANGE)
             if ctx.invoked_subcommand is None:
                 click.echo(ctx.get_help())
 

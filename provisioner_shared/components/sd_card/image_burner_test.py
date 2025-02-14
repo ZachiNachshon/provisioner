@@ -5,9 +5,6 @@ from typing import List
 from unittest import mock
 
 from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.test_lib import faker
-from provisioner_shared.components.runtime.test_lib.assertions import Assertion
-from provisioner_shared.components.runtime.test_lib.test_env import TestEnv
 from provisioner_shared.components.runtime.utils.checks_fakes import FakeChecks
 from provisioner_shared.components.runtime.utils.os import LINUX, MAC_OS, WINDOWS, OsArch
 from provisioner_shared.components.runtime.utils.prompter import PromptLevel
@@ -15,6 +12,9 @@ from provisioner_shared.components.sd_card.image_burner import (
     ImageBurnerArgs,
     ImageBurnerCmdRunner,
 )
+from provisioner_shared.test_lib import faker
+from provisioner_shared.test_lib.assertions import Assertion
+from provisioner_shared.test_lib.test_env import TestEnv
 
 #
 # To run as a single test target:

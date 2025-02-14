@@ -42,6 +42,6 @@ class TestCliRunner:
             # raise AssertionError(f"{error_message}{error_details}")
 
         else:
-            print(f"Command succeeded:\n{result.output}")
+            print(f"CLI command ran with no errors:\n{result.output}")
 
         return result.output

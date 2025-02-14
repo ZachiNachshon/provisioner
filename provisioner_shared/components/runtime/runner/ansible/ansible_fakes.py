@@ -10,7 +10,7 @@ from provisioner_shared.components.runtime.runner.ansible.ansible_runner import 
     AnsiblePlaybook,
     AnsibleRunnerLocal,
 )
-from provisioner_shared.components.runtime.test_lib.faker import TestFakes
+from provisioner_shared.test_lib.faker import TestFakes
 
 
 class FakeAnsibleRunnerLocal(TestFakes, AnsibleRunnerLocal):

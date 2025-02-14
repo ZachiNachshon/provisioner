@@ -16,7 +16,7 @@ def resolve_repo_path():
     raise RuntimeError("Repository root not found.")
 
 
-def update_root_pyproject_toml(pyproject_path, mode):
+def update_root_pyproject_toml(pyproject_path, mode: str, force: bool = False):
     """Switch between development and production mode in pyproject.toml."""
     if not os.path.exists(pyproject_path):
         print(f"Error: {pyproject_path} does not exist.")
@@ -36,7 +36,7 @@ def update_root_pyproject_toml(pyproject_path, mode):
         print(f"Error: Plugins directory '{plugins_path}' does not exist.")
 
     if mode == "dev":
-        if prod_dependency_key in dependencies:
+        if not force and prod_dependency_key in dependencies:
             print(f"{project_name} is already in dev mode.")
         else:
             # Add the development dependency as an inline table
@@ -81,7 +81,7 @@ def update_root_pyproject_toml(pyproject_path, mode):
         file.write(tomlkit.dumps(toml_content))
 
 
-def update_pyproject_toml(pyproject_path, mode):
+def update_pyproject_toml(pyproject_path, mode: str, force: bool = False):
     """Switch between development and production mode in pyproject.toml."""
     if not os.path.exists(pyproject_path):
         print(f"Error: {pyproject_path} does not exist.")
@@ -96,6 +96,11 @@ def update_pyproject_toml(pyproject_path, mode):
     dependencies = toml_content["tool"]["poetry"]["dependencies"]
     prod_dependency_key = "provisioner-shared"
     prod_dependency_pattern = r"^#?\s*provisioner-shared\s*=\s*\"\^.+?\""
+
+    # Delete the dependency key if it exists
+    if force and prod_dependency_key in dependencies:
+        del dependencies[prod_dependency_key]
+        print(f"[FORCE] Removed {prod_dependency_key} from {project_name} dependencies.")
 
     if mode == "dev":
         # Comment out the production dependency if it exists
@@ -155,13 +160,14 @@ def replace_line(content, old_line_start, new_line):
     return "\n".join(lines)
 
 
-def process_plugins(mode):
+def process_plugins(mode: str, force: bool = False):
     """Iterate through plugins and update their pyproject.toml files."""
     repo_path = resolve_repo_path()
     runtime_path = os.path.join(repo_path, "provisioner")
     plugins_path = os.path.join(repo_path, "plugins")
 
     print()
+    print(f"Mode.............: {mode}")
     print(f"Repository path..: {repo_path}")
     print(f"Runtime path.....: {runtime_path}")
     print(f"Plugins path.....: {plugins_path}")
@@ -177,28 +183,29 @@ def process_plugins(mode):
 
     # Update the monorepo and runtime pyproject.toml files
     monorepo_pyproject_path = os.path.join(repo_path, "pyproject.toml")
-    update_root_pyproject_toml(monorepo_pyproject_path, mode)
+    update_root_pyproject_toml(monorepo_pyproject_path, mode, force)
 
     # Update the runtime pyproject.toml file
     runtime_pyproject_path = os.path.join(runtime_path, "pyproject.toml")
-    update_pyproject_toml(runtime_pyproject_path, mode)
+    update_pyproject_toml(runtime_pyproject_path, mode, force)
 
     # Update the plugins pyproject.toml files
     for folder in os.listdir(plugins_path):
         folder_path = os.path.join(plugins_path, folder)
         if os.path.isdir(folder_path) and folder.endswith("_plugin"):
             pyproject_path = os.path.join(folder_path, "pyproject.toml")
-            update_pyproject_toml(pyproject_path, mode)
+            update_pyproject_toml(pyproject_path, mode, force)
 
 
 def main():
     parser = argparse.ArgumentParser(
         description="Switch between development and production modes in pyproject.toml for plugins."
     )
-    parser.add_argument("mode", choices=["dev", "prod"], help="Mode to switch to: 'dev' or 'prod'.")
+    parser.add_argument("mode", choices=["dev", "prod", "docker"], help="Mode to switch to: 'dev', 'prod' or 'docker'.")
+    parser.add_argument("--force", action="store_true", help="Ignore status and force switch to selected mode.")
     args = parser.parse_args()
 
-    process_plugins(args.mode)
+    process_plugins(mode=args.mode, force=args.force)
     print()
 
 

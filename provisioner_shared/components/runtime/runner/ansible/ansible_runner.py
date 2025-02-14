@@ -84,6 +84,8 @@ class AnsiblePlaybook:
         if "ansible_playbooks_path" in self.__content:
             resolved_path = self._get_ansible_playbook_path(paths, ansible_playbook_package)
 
+        # TODO: Separate between the {modifiers} section to the XTERM, add two section that
+        #       will be added to the playbook content under 'environment:' attribute
         modifiers: str = ""
         # if "modifiers" in self.__content and not dry_run:
         if "modifiers" in self.__content:
@@ -97,10 +99,15 @@ class AnsiblePlaybook:
         return self.__content.format(ansible_playbooks_path=resolved_path, modifiers=modifiers)
 
     def _generate_modifiers(self, remote_context: RemoteContext):
+        # Added TERM=xterm: xterm to allow a unified Linux terminal experience, not all terminals are supported
         if not remote_context.is_dry_run() and not remote_context.is_silent() and not remote_context.is_verbose():
-            return ""
+            return """
+  environment:
+    TERM: xterm
+"""
         return f"""
   environment:
+    TERM: xterm
     {"DRY_RUN: True" if remote_context.is_dry_run() else ""}
     {"VERBOSE: True" if remote_context.is_verbose() else ""}
     {"SILENT: True" if remote_context.is_silent() else ""}
@@ -211,7 +218,8 @@ class AnsibleRunnerLocal:
             if "ansible_connection=local" in host.ip_address:
                 result.append(f"{host.host} {host.ip_address}")
             else:
-                host_entry = f"{host.host} ansible_host={host.ip_address} ansible_user={host.username}"
+                # TODO: add 'ansible_port=2222' to the host entry
+                host_entry = f"{host.host} ansible_host={host.ip_address} ansible_user={host.username} ansible_port=2222 ansible_ssh_common_args='-o StrictHostKeyChecking=no'"
                 if host.password:
                     # k8s-master ansible_host=1.1.1.1 ansible_user=user1 ansible_password=password1
                     host_entry += f" ansible_password={host.password}"
