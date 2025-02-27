@@ -41,7 +41,7 @@ plugin = "provisioner.main_dev:main"   # PLUGIN_NAME="provisioner_examples_plugi
 
 [tool.poetry.dependencies]
 python = "^3.11"
-provisioner-shared = {path = "/Users/zachin/codebase/github/provisioner/provisioner_shared", develop = true}
+provisioner_shared = {path = "/Users/zachin/codebase/github/provisioner/provisioner_shared", develop = true}
 provisioner_installers_plugin = {path = "/Users/zachin/codebase/github/provisioner/plugins/provisioner_installers_plugin", develop = true}
 provisioner_examples_plugin = {path = "/Users/zachin/codebase/github/provisioner/plugins/provisioner_examples_plugin", develop = true}
 provisioner_single_board_plugin = {path = "/Users/zachin/codebase/github/provisioner/plugins/provisioner_single_board_plugin", develop = true}
@@ -56,6 +56,7 @@ ruff = "^0.9.1"
 docker = "^7.1.0"
 testcontainers = "^4.9.1"
 paramiko = "^3.5.1"
+tomlkit = "^0.13.2"
 
 [build-system]
 requires = ["poetry-core>=1.4.0"]
