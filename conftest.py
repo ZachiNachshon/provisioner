@@ -1,5 +1,11 @@
+import docker
+import logging
 import pytest
 
+# Configure Docker logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('docker')
+logger.setLevel(logging.DEBUG)
 
 # pytest hook that allows to exclude or include E2E tests based tests decorators
 # Should run on CI but not locally
@@ -19,3 +25,5 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "e2e" in item.keywords:
                 item.add_marker(skip_e2e)
+
+pytest_plugins = ['provisioner_shared.test_lib.fixtures']

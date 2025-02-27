@@ -26,13 +26,19 @@ prod-mode: ## Enable production mode for packaging and distribution
 .PHONY: dev-mode
 dev-mode: ## Enable local development
 	@pip3 install tomlkit --disable-pip-version-check --no-python-version-warning
+	@./scripts/switch_mode.py dev
+	@poetry lock
+
+.PHONY: dev-mode-container
+dev-mode-container: ## Enable local development for containerized environment
+	@pip3 install tomlkit --disable-pip-version-check --no-python-version-warning
 	@./scripts/switch_mode.py dev --force
 	@poetry lock
 
 .PHONY: deps-install
 deps-install: ## Update and install pyproject.toml dependencies on all virtual environments
-	@poetry lock
 	@poetry install --with dev --sync -v
+	@poetry lock
 	
 .PHONY: run
 run: ## Run provisioner CLI from sources (Usage: make run 'config view')

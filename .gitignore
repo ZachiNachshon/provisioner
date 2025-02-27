@@ -38,6 +38,7 @@ dist/
 
 # Tests
 htmlcov/
+e2e_docker_essential_files.tar.gz
 
 # Ansible
 .secrets

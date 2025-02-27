@@ -1,53 +1,62 @@
-# Use the official Python slim image
 FROM python:3.11-slim
 
+ARG E2E_ESSENTIAL_FILES_ARCHIVE_NAME="e2e_docker_essential_files.tar.gz"
+
 ENV POETRY_VERSION=1.8.4 \
-    POETRY_HOME="/home/testuser/.local" \
-    PATH="/home/testuser/.local/bin:$PATH"
+    POETRY_HOME="/.local" \
+    PATH="/.local/bin:$PATH"
 
-# Install dependencies for Poetry and Python
-RUN apt-get update && apt-get install -y make curl git && apt-get clean
+# Set working directory in the container
+WORKDIR /app
 
-RUN mkdir -p /home/testuser/app
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create a test user and set permissions
-RUN useradd -m -d /home/testuser -s /bin/bash testuser
-RUN chown -R testuser:testuser /home/testuser
+# Install locales package and generate en_US.UTF-8
+# RUN apt-get update && apt-get install -y locales \
+#     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
+#     && locale-gen en_US.UTF-8 \
+#     && dpkg-reconfigure --frontend=noninteractive locales \
+#     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
-# Set working directory
-WORKDIR /home/testuser/app
+# Set environment variables for locale
+# ENV LANG en_US.UTF-8
+# ENV LC_ALL en_US.UTF-8
 
-# # Copy only the necessary folders for your project
-# COPY --chown=testuser:testuser plugins/ plugins/
-# COPY --chown=testuser:testuser provisioner/ provisioner/
-# COPY --chown=testuser:testuser provisioner_shared/ provisioner_shared/
-# COPY --chown=testuser:testuser scripts/ scripts/
-# COPY --chown=testuser:testuser pyproject.toml poetry.lock ./
-
-# # Copy other required files
-# COPY --chown=testuser:testuser .dockerignore .gitignore .coveragerc .gitattributes .gitmodules conftest.py Makefile poetry.lock \
-#     poetry.toml pyproject.toml pytest.ini run_e2e_tests.py ./
+# Use a recognized terminal in the container to support TUI Python libraries terminal environment
+# RUN echo 'export TERM=xterm' >> /etc/bash.bashrc
 
 # Dummy git index for the scanning script tool to work (searches for .git at root folder)
-# RUN mkdir -p .git && chown -R testuser:testuser .git
-
-# Switch to test user
-USER testuser
+RUN mkdir -p /app/.git
 
 # Install a specific version of Poetry (1.8.4)
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
     poetry self update $POETRY_VERSION
 
+# Copy the essentials e2e files archive from the host
+COPY ${E2E_ESSENTIAL_FILES_ARCHIVE_NAME} /tmp/
+
+# Extract essential files used for E2E tests while preserving directory structure
+RUN tar -xzf /tmp/${E2E_ESSENTIAL_FILES_ARCHIVE_NAME} -C /app && rm /tmp/${E2E_ESSENTIAL_FILES_ARCHIVE_NAME}
+
 # # Verify files and install dependencies
-# RUN cd /home/testuser/app && ls -lah && make dev-mode
-# RUN poetry --version
-
-# # Install dependencies with Poetry
-# RUN poetry install --no-root
-
+RUN cd /app && ls -lah && make dev-mode-container && make deps-install
+RUN poetry --version
 RUN pwd && ls -lah
 
-RUN mkdir -p /home/testuser/app/.venv/ && touch /home/testuser/app/.venv/pyvenv.cfg && echo 'home = /usr/bin/python3.11' > /home/testuser/app/.venv/pyvenv.cfg
+# Backup the container adjusted Poetry pyproject config into /tmp/app_backup
+RUN mkdir -p /tmp/app_backup && cp -r /app/. /tmp/app_backup
 
-# Default command (can be overridden)
-CMD ["poetry", "run", "coverage", "run", "-m", "pytest"]
+# Configure Poetry
+RUN poetry config virtualenvs.create false \
+    && poetry config virtualenvs.in-project true
+
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+CMD [""]
+
+# Don't copy the project code - it will be mounted
