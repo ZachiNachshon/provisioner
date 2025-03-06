@@ -3,7 +3,12 @@
 import yaml
 
 from provisioner_shared.components.remote.domain.config import RemoteConfig, RemoteConnectMode, RunEnvironment
-from provisioner_shared.components.remote.remote_opts import RemoteOpts
+from provisioner_shared.components.remote.remote_opts import (
+    RemoteOpts,
+    RemoteOptsFromConfig,
+    RemoteOptsFromConnFlags,
+    RemoteOptsFromScanFlags,
+)
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
 
 TEST_DATA_ENVIRONMENT: RunEnvironment = RunEnvironment.Local
@@ -11,6 +16,8 @@ TEST_DATA_CONNECT_MODE: RemoteConnectMode = RemoteConnectMode.Interactive
 TEST_DATA_SSH_HOSTNAME_1 = "test-hostname-1"
 TEST_DATA_SSH_HOSTNAME_2 = "test-hostname-2"
 TEST_DATA_SSH_IP_ADDRESS_1 = "test-ip-address-1"
+TEST_DATA_SSH_PORT_1 = 2222
+TEST_DATA_SSH_PORT_2 = 2233
 TEST_DATA_SSH_IP_ADDRESS_2 = "test-ip-address-2"
 TEST_DATA_REMOTE_NODE_USERNAME_1 = "test-user-1"
 TEST_DATA_REMOTE_NODE_USERNAME_2 = "test-user-2"
@@ -74,12 +81,18 @@ class TestDataRemoteOpts:
         connect_mode: RemoteConnectMode = TEST_DATA_CONNECT_MODE,
     ) -> RemoteOpts:
         return RemoteOpts(
+            remote_context=remote_context,
             environment=environment,
             connect_mode=connect_mode,
-            node_username=TEST_DATA_REMOTE_NODE_USERNAME_1,
-            node_password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
-            ssh_private_key_file_path=TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
-            ip_discovery_range=TEST_DATA_REMOTE_IP_DISCOVERY_RANGE,
-            remote_context=remote_context,
-            cfg_remote_hosts=TestDataRemoteOpts.create_fake_remote_cfg().to_hosts_dict(),
+            conn_flags=RemoteOptsFromConnFlags(
+                node_username=TEST_DATA_REMOTE_NODE_USERNAME_1,
+                node_password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
+                ssh_private_key_file_path=TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
+            ),
+            scan_flags=RemoteOptsFromScanFlags(
+                ip_discovery_range=TEST_DATA_REMOTE_IP_DISCOVERY_RANGE,
+            ),
+            config=RemoteOptsFromConfig(
+                remote_config=TestDataRemoteOpts.create_fake_remote_cfg(),
+            ),
         )

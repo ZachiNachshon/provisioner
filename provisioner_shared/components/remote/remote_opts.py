@@ -57,6 +57,7 @@ class RemoteOptsFromConnFlags:
         node_password: Optional[str] = None,
         ssh_private_key_file_path: Optional[str] = None,
         ip_address: Optional[str] = None,
+        port: Optional[int] = None,
         hostname: Optional[str] = None,
     ) -> None:
 
@@ -64,6 +65,7 @@ class RemoteOptsFromConnFlags:
         self.node_password = node_password
         self.ssh_private_key_file_path = ssh_private_key_file_path
         self.ip_address = ip_address
+        self.port = port
         self.hostname = hostname
 
     def is_empty(self) -> bool:
@@ -73,6 +75,7 @@ class RemoteOptsFromConnFlags:
                 self.node_password,
                 self.ssh_private_key_file_path,
                 self.ip_address,
+                # self.port,
                 self.hostname,
             ]
         )
@@ -82,6 +85,7 @@ class RemoteOptsFromConnFlags:
             AnsibleHost(
                 host=self.hostname,
                 ip_address=self.ip_address,
+                port=self.port,
                 username=self.node_username,
                 password=self.node_password,
                 ssh_private_key_file_path=self.ssh_private_key_file_path,
@@ -94,6 +98,7 @@ class RemoteOptsFromConnFlags:
             + f"  node_username: {self.node_username}\n"
             + f"  node_password: {self.node_password}\n"
             + f"  ip_address: {self.ip_address}\n"
+            + f"  port: {self.port}\n"
             + f"  hostname: {self.hostname}\n"
             + f"  ssh_private_key_file_path: {self.ssh_private_key_file_path}\n",
         )
@@ -122,6 +127,7 @@ class RemoteOptsFromConfig:
                 AnsibleHost(
                     host=value.name,
                     ip_address=value.address,
+                    port=value.port,
                     username=maybe_auth.username,
                     password=maybe_auth.password,
                     ssh_private_key_file_path=maybe_auth.ssh_private_key_file_path,

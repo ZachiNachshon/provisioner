@@ -38,7 +38,7 @@ class TestCliRunner:
             # Enhanced error output with detailed information
             assert (
                 result.exit_code == 0
-            ), f"Command failed with exit code {result.exit_code}\noutput: {result.output}\ndetails: {error_details}"
+            ), f"Command failed with exit code {result.exit_code}\n\n=== OUTPUT ===\n\n{result.output}\n\n=== DETAILS ===\n\n{error_details}"
             # raise AssertionError(f"{error_message}{error_details}")
 
         else:

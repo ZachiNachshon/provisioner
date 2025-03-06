@@ -19,6 +19,9 @@ class NetworkDeviceSelectionMethod(str, Enum):
     UserConfig = "User Config"
     UserPrompt = "User Prompt"
 
+    def __str__(self):
+        return self.value
+    
     @staticmethod
     def from_remote_conn_mode(mode: RemoteConnectMode) -> "NetworkDeviceSelectionMethod":
         if mode == RemoteConnectMode.ScanLAN:
@@ -36,6 +39,9 @@ class NetworkDeviceAuthenticationMethod(str, Enum):
     Password = "Password"
     SSHPrivateKeyPath = "SSH Private Key"
     NoAuth = "No Auth"
+
+    def __str__(self):
+        return self.value
 
 
 class SSHConnectionInfo:
@@ -95,6 +101,7 @@ class RemoteMachineConnector:
                     AnsibleHost(
                         host="DRY_RUN_RESPONSE",
                         ip_address="DRY_RUN_RESPONSE",
+                        port="DRY_RUN_RESPONSE",
                         username="DRY_RUN_RESPONSE",
                         password="DRY_RUN_RESPONSE",
                         ssh_private_key_file_path="DRY_RUN_RESPONSE",
@@ -275,7 +282,7 @@ class RemoteMachineConnector:
             err_msg="Failed to read node host name",
         )
 
-        return [AnsibleHost(host=hostname, ip_address=ip_address)]
+        return [AnsibleHost(host=hostname, ip_address=ip_address, port=22)]
 
     def _collect_ssh_auth_info(
         self,

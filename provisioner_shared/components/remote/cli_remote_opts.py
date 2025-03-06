@@ -30,6 +30,7 @@ REMOTE_OPT_NODE_USERNAME = "node-username"
 REMOTE_OPT_NODE_PASSWORD = "node-password"
 REMOTE_OPT_SSH_PRIVATE_KEY_FILE_PATH = "ssh-private-key-file-path"
 REMOTE_OPT_IP_ADDRESS = "ip-address"
+REMOTE_OPT_PORT = "port"
 REMOTE_OPT_HOSTNAME = "hostname"
 REMOTE_OPT_IP_DISCOVERY_RANGE = "ip-discovery-range"
 REMOTE_OPT_VERBOSITY = "verbosity"
@@ -98,6 +99,15 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             group=REMOTE_CON_FLAGS_GROUP_NAME,
         )
         @click.option(
+            f"--{REMOTE_OPT_PORT}",
+            default=22,
+            show_default=True,
+            help="Remote node port",
+            envvar="PROV_PORT",
+            cls=GroupedOption,
+            group=REMOTE_CON_FLAGS_GROUP_NAME,
+        )
+        @click.option(
             f"--{REMOTE_OPT_HOSTNAME}",
             default="",
             help="Remote node host name",
@@ -160,6 +170,7 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             ssh_private_key_file_path = kwargs.pop(normalize_cli_item(REMOTE_OPT_SSH_PRIVATE_KEY_FILE_PATH), None)
             ip_discovery_range = kwargs.pop(normalize_cli_item(REMOTE_OPT_IP_DISCOVERY_RANGE), None)
             ip_address = kwargs.pop(normalize_cli_item(REMOTE_OPT_IP_ADDRESS), None)
+            port = kwargs.pop(normalize_cli_item(REMOTE_OPT_PORT), None)
             hostname = kwargs.pop(normalize_cli_item(REMOTE_OPT_HOSTNAME), None)
 
             # Add it to the context object
@@ -177,6 +188,7 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
                         node_password=node_password,
                         ssh_private_key_file_path=ssh_private_key_file_path,
                         ip_address=ip_address,
+                        port=port,
                         hostname=hostname,
                     ),
                     scan_flags=RemoteOptsFromScanFlags(ip_discovery_range=ip_discovery_range),
@@ -216,6 +228,9 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
 
                 if ip_address and remote_opts._flags.ip_address != ip_address:
                     remote_opts._flags.ip_address = ip_address
+
+                if port and remote_opts._flags.port != port:
+                    remote_opts._flags.port = port
 
                 if hostname and remote_opts._flags.hostname != hostname:
                     remote_opts._flags.hostname = hostname

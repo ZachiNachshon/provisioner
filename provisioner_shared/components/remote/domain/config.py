@@ -120,12 +120,13 @@ class Auth(SerializationBase):
 
 
 class Host(SerializationBase):
-    name: str = ""
-    address: str = ""
-    auth: Auth = Auth({})
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
+        self.name: str = ""
+        self.address: str = ""
+        self.port: int = 22
+        self.auth: Auth = Auth({})
 
     def merge(self, other: "Host") -> SerializationBase:
         # Hosts aren't mergable, they are all or nothing
@@ -136,6 +137,8 @@ class Host(SerializationBase):
             self.name = dict_obj["name"]
         if "address" in dict_obj:
             self.address = dict_obj["address"]
+        if "port" in dict_obj:
+            self.port = dict_obj["port"]
         if "auth" in dict_obj:
             self.auth = Auth(dict_obj["auth"])
 
@@ -149,6 +152,7 @@ class RemoteConfig(SerializationBase):
 
     def merge(self, other: "RemoteConfig") -> SerializationBase:
         # Hosts config are all or nothing, if partial config is provided, user overrides won't apply
+        # Port is optional and defaults to 22
         if hasattr(other, "hosts"):
             self.hosts = []
             for other_host in other.hosts:
@@ -183,6 +187,7 @@ class RemoteConfig(SerializationBase):
                     print(msg)
                     logger.error(msg)
                 else:
+                    # Port is optional and defaults to 22
                     new_host = Host(host_block)
                     self.hosts.append(new_host)
 

@@ -1,6 +1,9 @@
+import json
+import os
 import pathlib
 import time
 
+import docker
 import paramiko
 from testcontainers.core.container import DockerContainer
 
@@ -11,13 +14,19 @@ PROJECT_ROOT_PATH = str(pathlib.Path(__file__).parent.parent.parent.resolve())
 # TEST_DOCKER_ROOT_PATH = str(pathlib.Path(__file__).parent.resolve())
 DEFAULT_REMOTE_SSH_DOCKERFILE_PATH = f"{PROJECT_ROOT_PATH}/dockerfiles/remote_ssh/Dockerfile"
 
-
+# 
+# To debug the container, run the following command:
+#  docker run -v ~/.ssh:/root/.ssh -p 2222:22 -d -it --name "z-provisioner-remote-ssh-e2e" "provisioner-remote-ssh-e2e"
+# 
 class RemoteSSHContainer(DockerContainer):
     def __init__(self, image="provisioner-remote-ssh-e2e"):
         super().__init__(image)
         self.with_exposed_ports(22)  # Ensure SSH is exposed
 
     def start(self):
+        # Build the Docker image first
+        self.build_image()
+
         self.with_bind_ports(22, 2222)
         super().start()
         time.sleep(3)  # Give SSH time to initialize
@@ -29,6 +38,9 @@ class RemoteSSHContainer(DockerContainer):
         # Wait for SSH to be responsive
         self._wait_for_ssh()
         return self
+
+    def _should_build_image_before_tests(self) -> bool:
+        return os.getenv("PROVISIONER_BUILD_IMAGE_BEFORE_TESTS", "false").lower() == "true"
 
     def _wait_for_ssh(self):
         """Ensure SSH is ready before proceeding."""
@@ -47,6 +59,56 @@ class RemoteSSHContainer(DockerContainer):
                 time.sleep(2)
                 attempt += 1
         raise RuntimeError("❌ SSH did not start in time.")
+
+    def _image_exists(self, client: docker.DockerClient, image_name: str) -> bool:
+        """Check if a Docker image exists locally."""
+        try:
+            client.images.get(image_name)
+            return True
+        except docker.errors.ImageNotFound:
+            return False
+    
+    def build_image(self):
+        """Build the Docker image locally"""
+        client = docker.from_env()
+        force_build = self._should_build_image_before_tests()
+        image_exist = self._image_exists(client, DEFAULT_REMOTE_SSH_IMAGE_NAME)
+        
+        if image_exist and not force_build:
+            print(f"Image {DEFAULT_REMOTE_SSH_IMAGE_NAME} already exists, skipping build...")
+            return
+        elif not image_exist or force_build:
+            print("\nBuilding Docker image for E2E tests...")
+            print(f"Dockerfile Path: {DEFAULT_REMOTE_SSH_DOCKERFILE_PATH}")
+            print(f"Build Context: {PROJECT_ROOT_PATH}\n")
+            try:
+                # Build the image
+                build_logs = client.api.build(
+                    path=PROJECT_ROOT_PATH,
+                    dockerfile=DEFAULT_REMOTE_SSH_DOCKERFILE_PATH,
+                    tag=DEFAULT_REMOTE_SSH_IMAGE_NAME,
+                    rm=True
+                )
+
+                # Stream build logs
+                for log in build_logs:
+                    try:
+                        log_line = json.loads(log.decode('utf-8'))
+                        if 'stream' in log_line:
+                            print(log_line['stream'].strip())
+                    except json.JSONDecodeError:
+                        print(log.decode('utf-8').strip())
+
+            except Exception as e:
+                print(f"Failed to build Docker image: {str(e)}")
+                raise RuntimeError(f"Failed to build Docker image: {str(e)}")
+            
+                
+
+
+            
+
+
 
 
 #     def __init__(self, core_cols: CoreCollaborators, allow_logging=False):

@@ -26,12 +26,6 @@ prod-mode: ## Enable production mode for packaging and distribution
 .PHONY: dev-mode
 dev-mode: ## Enable local development
 	@pip3 install tomlkit --disable-pip-version-check --no-python-version-warning
-	@./scripts/switch_mode.py dev
-	@poetry lock
-
-.PHONY: dev-mode-container
-dev-mode-container: ## Enable local development for containerized environment
-	@pip3 install tomlkit --disable-pip-version-check --no-python-version-warning
 	@./scripts/switch_mode.py dev --force
 	@poetry lock
 
@@ -58,24 +52,27 @@ fmt: ## Format Python code using Black style and sort imports
 	@poetry run black . 
 	@poetry run ruff check . --show-fixes --fix
 
-.PHONY: test
-test: ## Run tests suite on runtime and all plugins, use 'e2e' for E2E tests (output: None)
-	@if [ -n "$(word 2, $(MAKECMDGOALS))" ]; then \
-		echo "Running tests IT/Unit/E2E"; \
-		poetry run coverage run -m pytest --e2e; \
-	else \
-		echo "Running tests IT/Unit"; \
-		poetry run coverage run -m pytest; \
-	fi;
-	if [ $$? -ne 0 ]; then \
-		exit 1; \
-	fi;
+# .PHONY: test-all
+# test-all: ## Run full tests suite on host, Unit/IT/E2E (output: None)
+# 	@poetry run coverage run -m pytest
+
+.PHONY: test-all-in-container
+test-all-in-container: ## Run full tests suite in a Docker container, Unit/IT/E2E (output: None)
+	@./run_in_docker.py
+	
+.PHONY: test-skip-e2e
+test-skip-e2e: ## Run only Unit/IT tests
+	@poetry run coverage run -m pytest --skip-e2e
+
+.PHONY: test-e2e
+test-e2e: ## Run only E2E tests in a Docker container
+	@./run_in_docker.py --only-e2e
 
 .PHONY: test-coverage-html
-test-coverage-html: ## Run tests suite on runtime and all plugins, use 'e2e' for E2E tests (output: HTML report)
+test-coverage-html: ## Run tests suite on runtime and all plugins, use 'e2e' to run only E2E tests (output: HTML report)
 	@if [ -n "$(word 2, $(MAKECMDGOALS))" ]; then \
 		echo "Running tests IT/Unit/E2E (with coverage report)"; \
-		poetry run coverage run -m pytest --e2e; \
+		poetry run coverage run -m pytest --only-e2e; \
 	else \
 		echo "Running tests IT/Unit (with coverage report)"; \
 		poetry run coverage run -m pytest; \

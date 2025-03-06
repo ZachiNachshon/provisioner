@@ -2,27 +2,35 @@
 
 import os
 import re
+import time
 from typing import List, Optional
 
 import ansible_runner
+from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
 from loguru import logger
+import paramiko
 
 from provisioner_shared.components.runtime.errors.cli_errors import (
+    AnsiblePassAuthRequireSSHPassException,
     AnsiblePlaybookRunnerException,
+    AnsibleRunnerNoHostSSHAccessException,
     InvalidAnsibleHostPair,
 )
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
+from provisioner_shared.components.runtime.utils.process import Process
 from provisioner_shared.components.runtime.utils.os import OsArch
 from provisioner_shared.components.runtime.utils.paths import Paths
 
 ProvisionerAnsibleProjectPath = os.path.expanduser("~/.config/provisioner/ansible")
 
 ANSIBLE_HOSTS_FILE_NAME = "hosts"
+ANSIBLE_LOCAL_CONNECTION = "ansible_connection=local"
 
 ANSIBLE_CFG_PYTHON_PACKAGE = "provisioner_shared.components.runtime.runner.ansible.resources"
 ANSIBLE_CFG_FILE_NAME = "ansible.cfg"
+# ANSIBLE_DEFAULT_PYTHON_INTERPRETER_PATH = "/usr/bin/python3"
 
 ANSIBLE_CALLBACK_PLUGINS_PYTHON_PACKAGE = (
     "provisioner_shared.components.runtime.runner.ansible.resources.callback_plugins"
@@ -49,6 +57,7 @@ ENV_VARS = {
     "ANSIBLE_CONFIG": f"{ProvisionerAnsibleProjectPath}/{ANSIBLE_CFG_FILE_NAME}",
     "ANSIBLE_CALLBACK_PLUGINS": f"{ProvisionerAnsibleProjectPath}/{ANSIBLE_CALLBACK_PLUGINS_DIR_NAME}",
     "ANSIBLE_STDOUT_CALLBACK": ANSIBLE_STDOUT_PLUGIN_NAME,
+    "ANSIBLE_PYTHON_INTERPRETER": "auto",
 }
 
 REMOTE_MACHINE_LOCAL_BIN_FOLDER = "~/.local/bin"
@@ -133,16 +142,12 @@ class AnsiblePlaybook:
 
 
 class AnsibleHost:
-    host: str
-    ip_address: str
-    username: str
-    password: str
-    ssh_private_key_file_path: str
 
     def __init__(
         self,
         host: str,
         ip_address: str,
+        port: Optional[int] = 22,
         username: str = None,
         password: Optional[str] = None,
         ssh_private_key_file_path: Optional[str] = None,
@@ -150,6 +155,7 @@ class AnsibleHost:
 
         self.host = host
         self.ip_address = ip_address
+        self.port = port
         self.username = username
         self.password = password
         self.ssh_private_key_file_path = ssh_private_key_file_path
@@ -159,6 +165,7 @@ class AnsibleHost:
         return AnsibleHost(
             host=ansible_host_dict["hostname"],
             ip_address=ansible_host_dict["ip_address"],
+            port=ansible_host_dict["port"],
             username=ansible_host_dict["username"] if "username" in ansible_host_dict else None,
             password=ansible_host_dict["password"] if "password" in ansible_host_dict else None,
             ssh_private_key_file_path=(
@@ -176,16 +183,22 @@ class AnsibleRunnerLocal:
     _verbose: bool = None
     _paths: Paths = None
     _io_utils: IOUtils = None
+    _process: Process = None
+    _progress: ProgressIndicator = None
 
     def __init__(
         self,
         io_utils: IOUtils,
         paths: Paths,
+        process: Process,
+        progress: ProgressIndicator,
         ctx: Context,
     ) -> None:
 
         self._io_utils = io_utils
         self._paths = paths
+        self._process = process
+        self._progress = progress
         self._dry_run = ctx.is_dry_run()
         self._verbose = ctx.is_verbose()
         self._os_arch = ctx.os_arch
@@ -195,10 +208,12 @@ class AnsibleRunnerLocal:
         ctx: Context,
         io_utils: IOUtils,
         paths: Paths,
+        process: Process,
+        progress: ProgressIndicator
     ) -> "AnsibleRunnerLocal":
 
         logger.debug(f"Creating Ansible runner (dry_run: {ctx.is_dry_run()}, verbose: {ctx.is_verbose()})...")
-        return AnsibleRunnerLocal(io_utils, paths, ctx)
+        return AnsibleRunnerLocal(io_utils, paths, process, progress, ctx)
 
     def _prepare_ansible_host_items(self, ansible_hosts: List[AnsibleHost]) -> List[str]:
         result = []
@@ -208,18 +223,15 @@ class AnsibleRunnerLocal:
 
         for host in ansible_hosts:
             if not host.host or not host.ip_address and not self._dry_run:
-                err_msg = (
-                    f"Ansible selected host is missing a manadatory arguments. host: {host.host}, ip: {host.ip_address}"
-                )
+                err_msg = f"Ansible selected host is missing a manadatory arguments. host: {host.host}, ip: {host.ip_address}, port: {host.port}"
                 logger.error(err_msg)
                 raise InvalidAnsibleHostPair(err_msg)
 
             # Do not append 'ansible_host=' prefix for local connection
-            if "ansible_connection=local" in host.ip_address:
+            if ANSIBLE_LOCAL_CONNECTION in host.ip_address:
                 result.append(f"{host.host} {host.ip_address}")
             else:
-                # TODO: add 'ansible_port=2222' to the host entry
-                host_entry = f"{host.host} ansible_host={host.ip_address} ansible_user={host.username} ansible_port=2222 ansible_ssh_common_args='-o StrictHostKeyChecking=no'"
+                host_entry = f"{host.host} ansible_host={host.ip_address} ansible_user={host.username} ansible_port={host.port} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'"
                 if host.password:
                     # k8s-master ansible_host=1.1.1.1 ansible_user=user1 ansible_password=password1
                     host_entry += f" ansible_password={host.password}"
@@ -272,6 +284,8 @@ class AnsibleRunnerLocal:
             "-i",
             f"{ProvisionerAnsibleProjectPath}/{ANSIBLE_HOSTS_FILE_NAME}",
             playbook_file_path,
+            # "-e",
+            # f"ansible_python_interpreter={ANSIBLE_DEFAULT_PYTHON_INTERPRETER_PATH}",
             "-e",
             f"local_bin_folder='{REMOTE_MACHINE_LOCAL_BIN_FOLDER}'",
             "-e",
@@ -294,6 +308,7 @@ class AnsibleRunnerLocal:
         cmdline_args += ["--tags"] + [tags_str]
 
         if self._verbose:
+            # cmdline_args += ["-vvvv"]
             cmdline_args += ["-vvvv"]
         # for host in selected_hosts:
         #     if host.password:
@@ -342,6 +357,10 @@ class AnsibleRunnerLocal:
         # to use the 'ssh' connection type with passwords or pkcs11_provider,
         # you must install the sshpass program
         #
+        if self.is_password_was_used_in_hosts(selected_hosts) and not self._process._is_tool_exist("sshpass"):
+            raise AnsiblePassAuthRequireSSHPassException("SSH password authentication requires utility to be installed. name: sshpass")
+        
+        self._check_ssh_conn_on_hosts(ansible_hosts=selected_hosts)
 
         # Solution:
         # It is possible to pass the parameter using paramiko,
@@ -392,6 +411,12 @@ class AnsibleRunnerLocal:
         else:
             return self._try_extract_stdout_message(out)
 
+    def is_password_was_used_in_hosts(self, selected_hosts: List[AnsibleHost]) -> bool:
+        for selected_host in selected_hosts:
+            if selected_host.password is not None:
+                return True
+        return False
+    
     def _try_extract_stderr_message(self, ansible_run_output: str) -> str:
         match = re.search(r"stderr: \|-\s+(.*?)\s+stderr_lines:", ansible_run_output, re.DOTALL)
         extracted_text = ansible_run_output
@@ -411,4 +436,31 @@ class AnsibleRunnerLocal:
             logger.debug("Could not find Ansible stdout in playbook output")
         return extracted_text
 
+    def _check_ssh_conn_on_hosts(self, ansible_hosts: List[AnsibleHost]) -> None:
+        for selected_host in ansible_hosts:
+            if selected_host.ip_address == ANSIBLE_LOCAL_CONNECTION:
+                continue
+            self._wait_for_ssh(selected_host)
+
+    def _wait_for_ssh(self, host: AnsibleHost) -> None:
+        """Ensure SSH is ready before proceeding."""
+        max_attempts = 10
+        attempt = 0
+        while attempt < max_attempts:
+            try:
+                client = paramiko.SSHClient()
+                client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                if host.password:
+                    client.connect(host.ip_address, port=host.port, username=host.username, password=host.password)
+                else:
+                    client.connect(host.ip_address, port=host.port, username=host.username, key_filename=host.ssh_private_key_file_path)
+                print("✅ SSH Connection Successful")
+                client.close()
+                return
+            except Exception:
+                print(f"🔄 Waiting for SSH... ({attempt + 1}/{max_attempts})")
+                time.sleep(2)
+                attempt += 1
+        raise AnsibleRunnerNoHostSSHAccessException(f"❌ No SSH access to host. name: {host.host}, ip: {host.ip_address}, port: {host.port}")
+    
     run_fn = _run

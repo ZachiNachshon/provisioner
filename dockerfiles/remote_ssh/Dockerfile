@@ -43,7 +43,7 @@ RUN mkdir /var/run/sshd && \
 EXPOSE 22
 
 # Update python3 to point to python3.11 explicitly (optional, since it's the default)
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.11 1
+# RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.11 1
 
 # Start the SSH service
 CMD ["/usr/sbin/sshd", "-D"]

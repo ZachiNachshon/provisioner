@@ -43,6 +43,7 @@ class RemoteOptsTestShould(unittest.TestCase):
                     AnsibleHost(
                         host=TEST_DATA_SSH_HOSTNAME_1,
                         ip_address=TEST_DATA_SSH_IP_ADDRESS_1,
+                        port=TEST_DATA_SSH_PORT_1,
                         username=TEST_DATA_REMOTE_NODE_USERNAME_1,
                         password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
                         ssh_private_key_file_path="",
@@ -50,6 +51,7 @@ class RemoteOptsTestShould(unittest.TestCase):
                     AnsibleHost(
                         host=TEST_DATA_SSH_HOSTNAME_2,
                         ip_address=TEST_DATA_SSH_IP_ADDRESS_2,
+                        port=TEST_DATA_SSH_PORT_2,
                         username=TEST_DATA_REMOTE_NODE_USERNAME_2,
                         password="",
                         ssh_private_key_file_path=TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_2,

@@ -13,6 +13,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     curl \
     build-essential \
+    # sshpass is mandatory for using Ansible with plain password
+    sshpass \
     && rm -rf /var/lib/apt/lists/*
 
 # Install locales package and generate en_US.UTF-8
@@ -43,7 +45,7 @@ COPY ${E2E_ESSENTIAL_FILES_ARCHIVE_NAME} /tmp/
 RUN tar -xzf /tmp/${E2E_ESSENTIAL_FILES_ARCHIVE_NAME} -C /app && rm /tmp/${E2E_ESSENTIAL_FILES_ARCHIVE_NAME}
 
 # # Verify files and install dependencies
-RUN cd /app && ls -lah && make dev-mode-container && make deps-install
+RUN cd /app && ls -lah && make dev-mode && make deps-install
 RUN poetry --version
 RUN pwd && ls -lah
 

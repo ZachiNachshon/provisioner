@@ -105,6 +105,10 @@ class IOUtils:
     def _write_symlink(self, file_path: str, symlink_path: str) -> str:
         if self._dry_run:
             return symlink_path
+        if not os.path.exists(symlink_path):
+            symlink_dir_path = os.path.dirname(symlink_path)
+            logger.debug("Symlink folder path does not exist. creating path at: {}".format(symlink_dir_path))
+            os.makedirs(symlink_dir_path, exist_ok=True)
         os.symlink(src=file_path, dst=symlink_path)
         logger.debug("Created symlink. path: {}".format(symlink_path))
         return symlink_path

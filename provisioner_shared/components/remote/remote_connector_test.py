@@ -436,6 +436,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
                 AnsibleHost(
                     host=TestDataRemoteConnector.TEST_DATA_SSH_HOSTNAME_1,
                     ip_address=TestDataRemoteConnector.TEST_DATA_SSH_IP_ADDRESS_1,
+                    port=TestDataRemoteConnector.TEST_DATA_SSH_PORT_1,
                 )
             ],
         )
