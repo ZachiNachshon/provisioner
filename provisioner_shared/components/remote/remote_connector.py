@@ -13,6 +13,7 @@ from provisioner_shared.components.runtime.infra.evaluator import Evaluator
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
 
+ANSIBLE_LOCAL_CONNECTION = "ansible_connection=local"
 
 class NetworkDeviceSelectionMethod(str, Enum):
     ScanLAN = "Scan LAN"
@@ -74,11 +75,15 @@ class RemoteMachineConnector:
 
     def _throw_if_partial_remote_flags(self, cli_remote_opts: RemoteOpts):
         """Fail if the CLI remote options were provided partially for a remote command"""
-        if not cli_remote_opts and not cli_remote_opts.get_flags():
+        if not cli_remote_opts and not cli_remote_opts.get_conn_flags():
             logger.debug("No CLI remote options supplied for a remote command")
             return
 
         flags = cli_remote_opts.get_conn_flags()
+        if flags.ip_address == ANSIBLE_LOCAL_CONNECTION:
+            # Local connection, no need for auth info
+            return
+        
         if (
             not flags.node_username
             or (not flags.node_password and not flags.ssh_private_key_file_path)

@@ -180,7 +180,7 @@ class RemoteOpts:
 
     def print(self) -> None:
         logger.debug(
-            "CliRemoteOpts: \n"
+            "RemoteOpts: \n"
             + f"  environment: {self._environment}\n"
             + f"  connect_mode: {self._connect_mode}\n"
             + f"  remote_context: {str(self._remote_context.__dict__) if self._remote_context is not None else None}\n"

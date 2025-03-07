@@ -1,18 +1,20 @@
 ---
 # --- PATHS ---
-local_bin_folder_path: "$HOME/.local/bin"
-local_pip_pkg_folder_path: "$HOME/.config/provisioner/.pip-pkg"
+user_home: "{{ ansible_env.HOME }}"
+local_bin_folder_path: "{{ user_home }}/.local/bin"
+local_pip_pkg_folder_path: "{{ user_home }}/.config/provisioner/.pip-pkg"
 # --- PROVISIONER ---
 provisioner_binary: provisioner
 provisioner_runtime_pip_pkg_name: provisioner_runtime
-provisioner_command: null         # Mandatory
+provisioner_command: null          # Mandatory
 provisioner_version: "0.1.18"      # Relevant for install methods: pip/github-release
 provisioner_python_version: "3.11"
 # Array of tuple items i.e. ['provisioner_examples_plugin:0.1.0', 'provisioner_installers_plugin:0.2.0']
 required_plugins: null            # Plugins that are required for running the provisioner command
 install_method: "pip"  # pip/github-release/local-dev
+local_dev_provisioner_repo_path: /app  # Relevant for install method: local-dev
 # --- GITHUB ---
 github_owner: "ZachiNachshon"
 github_repository: "provisioner-oss"
 github_repo_branch: "master"
-git_access_token: null            # Mandatory
+git_access_token: null

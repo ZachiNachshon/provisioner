@@ -1,3 +1,14 @@
+# BUILD:
+#   docker build -f ./dockerfiles/poetry/Dockerfile -t provisioner-poetry-e2e:latest ./dockerfiles/poetry
+# 
+# RUN:
+#   docker run --network=host --rm -it \
+#   --name "provisioner-poetry-e2e-manual" \
+#   -v /var/run/docker.sock:/var/run/docker.sock \
+#   -w /app \
+#   --entrypoint=/bin/bash
+#   "provisioner-poetry-e2e"
+# 
 FROM python:3.11-slim
 
 ARG E2E_ESSENTIAL_FILES_ARCHIVE_NAME="e2e_docker_essential_files.tar.gz"
@@ -33,6 +44,7 @@ RUN apt-get update && apt-get install -y \
 
 # Dummy git index for the scanning script tool to work (searches for .git at root folder)
 RUN mkdir -p /app/.git
+RUN mkdir -p ~/.local/bin && chmod +x ~/.local/bin
 
 # Install a specific version of Poetry (1.8.4)
 RUN curl -sSL https://install.python-poetry.org | python3 - && \

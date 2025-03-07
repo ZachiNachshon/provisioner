@@ -53,6 +53,7 @@ exit_on_error() {
   if [ $exit_code -ne 0 ]; then
     #        >&1 echo "\"${message}\" command failed with exit code ${exit_code}."
     # >&1 echo "\"${message}\""
+    # printf "${COLOR_RED}Error: ${message}${COLOR_NONE}\n" >&1
     exit $exit_code
   fi
 }
@@ -280,10 +281,6 @@ github_download_release_asset() {
 #######################################
 read_python_version() {
   python3 --version 2>/dev/null | awk '{print $2}'
-}
-
-is_pip_installed() {
-  python3 -m pip --version >/dev/null 2>&1
 }
 
 append_to_path() {

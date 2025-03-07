@@ -12,8 +12,9 @@ SHELL_SCRIPTS_LIB_IMPORT_PATH="${ANSIBLE_TEMP_FOLDER_PATH}/shell_lib.sh"
 source "${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
 
 PIP_COMMAND_NAME="pip"
-PIP_LIST_FLAGS="--no-python-version-warning --disable-pip-version-check"
-PIP_INSTALL_SUPPRESS_FLAGS="${PIP_LIST_FLAGS} --no-warn-script-location"
+PIP_LIST_FLAGS="--no-python-downloads"
+PIP_INSTALL_SUPPRESS_FLAGS="${PIP_LIST_FLAGS}"
+UV_TEMP_VENV_PATH="/tmp/uv-venv"
 
 should_install_using_pip() {
   [[ "${ENV_INSTALL_METHOD}" == "${PIP_COMMAND_NAME}" ]]
@@ -23,14 +24,27 @@ should_install_using_github_release() {
   [[ "${ENV_INSTALL_METHOD}" == "github-release" ]]
 }
 
+should_install_from_local_dev() {
+  [[ "${ENV_INSTALL_METHOD}" == "local-dev" ]]
+}
+
+get_local_dev_provisioner_repo_path() {
+  echo "${ENV_LOCAL_DEV_PROVISIONER_REPO_PATH}"
+}
+
 get_binary_path() {
-  # pip installs by default the binary in user folder: ~/.local/bin
   command -v "${ENV_PROVISIONER_BINARY}"
 }
 
 get_local_pip_pkg_path() {
   local pkg_name=$1
   echo "${ENV_LOCAL_PIP_PKG_FOLDER_PATH}/${pkg_name}"
+}
+
+get_python_bin_path() {
+  local ver
+  ver=$(cmd_run "uv python find ${ENV_PROVISIONER_PYTHON_VERSION}" 2>/dev/null)
+  echo "${ver}"
 }
 
 verify_mandatory_run_arguments() {
@@ -51,35 +65,11 @@ verify_supported_os() {
   fi
 }
 
-verify_python_version() {
-  if is_tool_exist "python3"; then
-    log_debug "Found installed Python3. path: $(which python3)"
-  else
-    log_fatal "Python3 is not installed as a global command"
-  fi
-
-  local version=$(read_python_version)
-  local major_minor_version=$(echo "${version}" | awk -F. '{print $1"."$2}')
-  local expected_major_minor_version=$(echo "${ENV_PROVISIONER_PYTHON_VERSION}" | awk -F. '{print $1"."$2}')
-
-  if [[ "${major_minor_version}" != "${expected_major_minor_version}" ]]; then
-    log_fatal "Python3 version is not supported. version: ${version}, wanted: ${ENV_PROVISIONER_PYTHON_VERSION}"
-  else
-    log_info "Python3 version is supported. version: ${version}"
-  fi
-
-  if is_pip_installed; then
-    log_debug "Found installed pip as a Python module"
-  else
-    log_fatal "Pip module is not installed as a Python module"
-  fi
-}
-
 uninstall_via_pip() {
   local pkg_name=$1
   local pkg_version=$2
   log_debug "Uninstalling ${PIP_COMMAND_NAME} package. name: ${pkg_name}"
-  cmd_run "python3 -m ${PIP_COMMAND_NAME} uninstall --yes ${pkg_name}"
+  cmd_run "uv pip uninstall ${pkg_name}"
 }
 
 install_via_github_release() {
@@ -105,7 +95,7 @@ install_via_github_release() {
   if is_dry_run || is_file_exist "${pkg_folder_path}/${asset_name}"; then
     uninstall_via_pip "${pkg_name}" "${pkg_version}"
     log_debug "Installing from GitHub release. name: ${asset_name}, version: ${pkg_version}"
-    cmd_run "python3 -m ${PIP_COMMAND_NAME} install ${pkg_folder_path}/${asset_name} ${PIP_INSTALL_SUPPRESS_FLAGS}"
+    cmd_run "uv pip install ${pkg_folder_path}/${asset_name} ${PIP_INSTALL_SUPPRESS_FLAGS} 2>/dev/null"
   else
     log_fatal "Cannot find downloaded package asset to install. path: ${pkg_folder_path}/${asset_name}"
   fi
@@ -124,14 +114,14 @@ install_via_pip() {
   else
     pkg_coords="${pkg_name}"
   fi
-  cmd_run "python3 -m ${PIP_COMMAND_NAME} install ${pkg_coords} ${PIP_INSTALL_SUPPRESS_FLAGS}"
+  cmd_run "uv pip install ${pkg_coords} ${PIP_INSTALL_SUPPRESS_FLAGS} 2>/dev/null"
 }
 
 pip_get_package_version() {
   local pkg_name=$1
   local version="DUMMY_VER"
   if ! is_dry_run; then
-    version=$(python3 -m ${PIP_COMMAND_NAME} show "${pkg_name}" --no-color | grep -i '^Version:' | awk '{print $2}')
+    version=$(uv pip show "${pkg_name}" --no-color | grep -i '^Version:' | awk '{print $2}')
   fi
   echo "${version}"
 }
@@ -139,7 +129,24 @@ pip_get_package_version() {
 is_pip_installed_package() {
   local pkg_name=$1
   log_debug "Checking if installed from ${PIP_COMMAND_NAME}. name: ${pkg_name}"
-  cmd_run "python3 -m ${PIP_COMMAND_NAME} list --no-color ${PIP_LIST_FLAGS} | grep -w ${pkg_name} | head -1 > /dev/null"
+  cmd_run "uv pip list --no-color ${PIP_LIST_FLAGS} --python ${ENV_PROVISIONER_PYTHON_VERSION} | grep -w ${pkg_name} | head -1 > /dev/null"
+}
+
+create_provisioner_entrypoint() {
+  local python_ver=$(uv python find "${ENV_PROVISIONER_PYTHON_VERSION}")
+  local entrypoint="${ENV_LOCAL_BIN_FOLDER_PATH}/${ENV_PROVISIONER_BINARY}"
+  log_info "Creating a provisioner entrypoint. path: ${entrypoint}"
+  echo "#!${python_ver}
+# -*- coding: utf-8 -*-
+import re
+import sys
+from provisioner_runtime.main import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())" > "${entrypoint}"
+
+  cmd_run "chmod +x ${entrypoint}"
+  # ls -lah ~/.local/bin
 }
 
 install_package() {
@@ -150,6 +157,27 @@ install_package() {
     install_via_pip "${pkg_name}" "${pkg_version}"
   elif should_install_using_github_release; then
     install_via_github_release "${pkg_name}" "${pkg_version}"
+  elif should_install_from_local_dev; then
+    local_repo_path=$(get_local_dev_provisioner_repo_path)
+    ls -lah "${local_repo_path}"
+    cd "${local_repo_path}" || exit
+    log_debug "Installing provisioner runtime and installers-plugin from sources to local pip."
+    
+    cmd_run "make dev-mode"
+
+    echo -e "\n========= PROJECT: provisioner ==============\n"
+    cd provisioner || exit
+    cmd_run "poetry build-project -f sdist" 
+    cd .. || exit
+    cmd_run "uv pip install provisioner/dist/provisioner_*.tar.gz"
+
+    echo -e "\n========= PLUGIN: installers ==============\n"
+    cd plugins/provisioner_installers_plugin || exit
+    cmd_run "poetry build-project -f sdist"
+    cd ../.. || exit
+    cmd_run "uv pip install plugins/provisioner_installers_plugin/dist/provisioner_*.tar.gz"
+    
+    cmd_run "provisioner"
   else
     log_fatal "Install method is not supported. name: ${ENV_INSTALL_METHOD}"
   fi
@@ -160,7 +188,7 @@ install_or_update() {
   local pkg_version=$2
 
   if ! is_pip_installed_package "${pkg_name}"; then
-    log_debug "Pip package is not installed. name: ${pkg_name}"
+    log_debug "pip package is not installed. name: ${pkg_name}"
     install_package "${pkg_name}" "${pkg_version}"
   else
     log_debug "Trying to read ${PIP_COMMAND_NAME} package version. name: ${pkg_name}"
@@ -168,10 +196,11 @@ install_or_update() {
     if [[ "${current_version}" == "${ENV_PROVISIONER_VERSION}" ]]; then
       log_debug "Found installed ${PIP_COMMAND_NAME} package with expected version. name: ${pkg_name}, version: ${pkg_version}"
     else
-      log_debug "Pip package does not have the expected version. name: ${pkg_name}, current_version: ${current_version}, expected: ${pkg_version}"
+      log_debug "pip package does not have the expected version. name: ${pkg_name}, current_version: ${current_version}, expected: ${pkg_version}"
       install_package "${pkg_name}" "${pkg_version}"
     fi
   fi
+  create_provisioner_entrypoint
 }
 
 install_provisioner_engine() {
@@ -208,27 +237,67 @@ install_provisioner_plugins() {
   done
 }
 
+maybe_install_python_version() {
+  local python_ver=$(uv python find "${ENV_PROVISIONER_PYTHON_VERSION}")
+  if [[ -n "${python_ver}" ]]; then
+    log_debug "Found installed python${ENV_PROVISIONER_PYTHON_VERSION}. path: ${python_ver}"
+  else
+    log_warning "python${ENV_PROVISIONER_PYTHON_VERSION} is not installed as a global command, installing..."
+    cmd_run "uv python install --reinstall ${ENV_PROVISIONER_PYTHON_VERSION}"
+  fi
+  cmd_run "mkdir -p ${UV_TEMP_VENV_PATH}"
+  cmd_run "uv venv --directory ${UV_TEMP_VENV_PATH}"
+}
+
+maybe_install_uv() {
+  if is_tool_exist "uv"; then
+    log_debug "Found installed 'uv' command. path: $(which uv)"
+  else
+    log_warning "uv is not installed as a global command, installing..."
+    cmd_run "curl -LsSf https://astral.sh/uv/install.sh | sh"
+  fi
+}
+
 main() {
   evaluate_run_mode
-  verify_supported_os
-  verify_python_version
-  verify_mandatory_run_arguments
   append_to_path "${ENV_LOCAL_BIN_FOLDER_PATH}"
+  verify_supported_os
+  maybe_install_uv
+  maybe_install_python_version
+  verify_mandatory_run_arguments
 
   install_provisioner_engine
   install_provisioner_plugins
 
-  cmd_run "python3 -m ${PIP_COMMAND_NAME} list --no-color ${PIP_LIST_FLAGS}"  
+  # Enable to debug the installed packages  
+  cmd_run "uv pip list --no-color ${PIP_LIST_FLAGS}"  
 
   local prov_binary_path=$(get_binary_path)
   if is_verbose; then
     new_line
-    echo "========= Running ${prov_binary_path} Command =========" >&1
+    echo -e "========= Running ${prov_binary_path} Command =========\n" >&1
   fi
-  cmd_run "${prov_binary_path} ${ENV_PROVISIONER_COMMAND}"
+  # cmd_run "${prov_binary_path} ${ENV_PROVISIONER_COMMAND}"
 
-  # log_info "Printing menu:"
-  # "${ENV_PROVISIONER_BINARY}"
+  log_info "Printing menu:"
+  "${ENV_PROVISIONER_BINARY}"
 }
 
 main "$@"
+
+
+
+
+
+
+# change_working_dir() {
+#   if should_install_from_local_dev; then
+#     local working_dir=$(get_local_dev_provisioner_repo_path)
+#     cd "${working_dir}" || exit
+#     log_debug "Changing working directory. path: ${working_dir}"
+#   else
+#     local working_dir="/tmp"
+#     cd "${working_dir}" || exit
+#     log_debug "Changing working directory. path: ${working_dir}"
+#   fi
+# }

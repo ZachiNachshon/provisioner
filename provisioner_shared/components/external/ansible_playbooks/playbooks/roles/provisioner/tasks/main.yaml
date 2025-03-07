@@ -1,8 +1,12 @@
 ---
+- name: Gather facts
+  setup:
+
 - name: Copy shell scripts library to remote host
   copy:
     src: "{{ role_path }}/files/shell_lib.sh"
-    dest: "$HOME/.ansible/tmp/shell_lib.sh"
+    dest: "{{ ansible_env.HOME }}/.ansible/tmp/shell_lib.sh"
+    mode: '0755'
   tags: ['provisioner_wrapper']
 
 - name: "Runing provisioner (version: {{ provisioner_version }})"
@@ -10,8 +14,8 @@
   script: "provisioner_wrapper.sh"
   register: scriptOut
   # become: no
-  become: true
-  become_user: pi
+  # become: true
+  # become_user: pi
   changed_when: False # nothing really gets changed
   environment:
     # --- PATHS ---
@@ -26,6 +30,7 @@
     # Array of tuple items i.e. ['provisioner_examples_plugin:0.1.0', 'provisioner_installers_plugin:0.2.0']
     ENV_REQUIRED_PLUGINS: "{{ required_plugins | mandatory }}"
     ENV_INSTALL_METHOD: "{{ install_method | mandatory }}"
+    ENV_LOCAL_DEV_PROVISIONER_REPO_PATH: "{{ local_dev_provisioner_repo_path | mandatory }}"
     # --- GITHUB ---
     ENV_GITHUB_OWNER: "{{ github_owner }}"
     ENV_GITHUB_REPOSITORY: "{{ github_repository }}"

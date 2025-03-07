@@ -106,7 +106,8 @@ def _run_docker_container(
         "/app",
         image_name,
         test_target if test_target else "",
-        "--only-e2e" if only_e2e else "" "--report" if report else "",
+        "--only-e2e" if only_e2e else "",
+        "--report" if report else "",
     ]
 
     if test_target:

@@ -57,7 +57,7 @@ ENV_VARS = {
     "ANSIBLE_CONFIG": f"{ProvisionerAnsibleProjectPath}/{ANSIBLE_CFG_FILE_NAME}",
     "ANSIBLE_CALLBACK_PLUGINS": f"{ProvisionerAnsibleProjectPath}/{ANSIBLE_CALLBACK_PLUGINS_DIR_NAME}",
     "ANSIBLE_STDOUT_CALLBACK": ANSIBLE_STDOUT_PLUGIN_NAME,
-    "ANSIBLE_PYTHON_INTERPRETER": "auto",
+    # "ANSIBLE_PYTHON_INTERPRETER": "auto",
 }
 
 REMOTE_MACHINE_LOCAL_BIN_FOLDER = "~/.local/bin"
@@ -223,10 +223,10 @@ class AnsibleRunnerLocal:
 
         for host in ansible_hosts:
             if not host.host or not host.ip_address and not self._dry_run:
-                err_msg = f"Ansible selected host is missing a manadatory arguments. host: {host.host}, ip: {host.ip_address}, port: {host.port}"
+                err_msg = f"Ansible selected host is missing manadatory arguments. host: {host.host}, ip: {host.ip_address}, port: {host.port}"
                 logger.error(err_msg)
                 raise InvalidAnsibleHostPair(err_msg)
-
+            
             # Do not append 'ansible_host=' prefix for local connection
             if ANSIBLE_LOCAL_CONNECTION in host.ip_address:
                 result.append(f"{host.host} {host.ip_address}")
@@ -444,7 +444,7 @@ class AnsibleRunnerLocal:
 
     def _wait_for_ssh(self, host: AnsibleHost) -> None:
         """Ensure SSH is ready before proceeding."""
-        max_attempts = 10
+        max_attempts = 5
         attempt = 0
         while attempt < max_attempts:
             try:
