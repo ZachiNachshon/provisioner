@@ -11,8 +11,8 @@ provisioner_version: "0.1.18"      # Relevant for install methods: pip/github-re
 provisioner_python_version: "3.11"
 # Array of tuple items i.e. ['provisioner_examples_plugin:0.1.0', 'provisioner_installers_plugin:0.2.0']
 required_plugins: null            # Plugins that are required for running the provisioner command
-install_method: "pip"  # pip/github-release/local-dev
-local_dev_provisioner_repo_path: /app  # Relevant for install method: local-dev
+install_method: "pip"  # pip/github-release/testing
+provisioner_e2e_tests_archives_host_path: "" # Mandatory for running e2e tests using install method: testing
 # --- GITHUB ---
 github_owner: "ZachiNachshon"
 github_repository: "provisioner-oss"

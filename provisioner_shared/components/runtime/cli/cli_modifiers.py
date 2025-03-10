@@ -7,7 +7,7 @@ import click
 from loguru import logger
 
 from provisioner_shared.components.runtime.cli.menu_format import GroupedOption, normalize_cli_item
-from provisioner_shared.components.runtime.cli.modifiers import MODIFIERS_CLICK_CTX_NAME, CliModifiers
+from provisioner_shared.components.runtime.cli.modifiers import MODIFIERS_CLICK_CTX_NAME, CliModifiers, PackageManager
 from provisioner_shared.components.runtime.infra.log import LoggerManager
 
 MODIFIERS_GROUP_NAME = "Modifiers"
@@ -17,6 +17,7 @@ MODIFIERS_OPT_AUTO_PROMPT = "auto-prompt"
 MODIFIERS_OPT_DRY_RUN = "dry-run"
 MODIFIERS_OPT_NON_INTERACTIVE = "non-interactive"
 MODIFIERS_OPT_OS_ARCH = "os-arch"
+MODIFIERS_OPT_PKG_MGR = "package-manager"
 
 
 # Define modifiers globally
@@ -60,6 +61,16 @@ def cli_modifiers(func: Callable) -> Callable:
         cls=GroupedOption,
         group=MODIFIERS_GROUP_NAME,
     )
+    @click.option(
+        f"--{MODIFIERS_OPT_PKG_MGR}",
+        default=PackageManager.PIP.value,
+        show_default=True,
+        type=click.Choice([v.value for v in PackageManager], case_sensitive=False),
+        envvar="PROV_MODIFIERS_PKG_MGR",
+        help=f"Specify a Python package manager  [default: {PackageManager.PIP.value}]",
+        cls=GroupedOption,
+        group=MODIFIERS_GROUP_NAME,
+    )
     @wraps(func)
     @click.pass_context  # Decorator to pass context to the function
     def wrapper(ctx, *args: Any, **kwargs: Any) -> Any:
@@ -68,6 +79,7 @@ def cli_modifiers(func: Callable) -> Callable:
         auto_prompt = kwargs.pop(normalize_cli_item(MODIFIERS_OPT_AUTO_PROMPT), False)
         non_interactive = kwargs.pop(normalize_cli_item(MODIFIERS_OPT_NON_INTERACTIVE), False)
         os_arch = kwargs.pop(normalize_cli_item(MODIFIERS_OPT_OS_ARCH), None)
+        pkg_mgr = kwargs.pop(normalize_cli_item(MODIFIERS_OPT_PKG_MGR), None)
 
         # Add a state tracker to the context object
         if ctx.obj is None:
@@ -81,6 +93,7 @@ def cli_modifiers(func: Callable) -> Callable:
                 auto_prompt=auto_prompt,
                 non_interactive=non_interactive,
                 os_arch=os_arch,
+                pkg_mgr=pkg_mgr,
             )
             logger.debug("Initialized CliModifiers for the first time.")
         else:
@@ -106,6 +119,10 @@ def cli_modifiers(func: Callable) -> Callable:
             if os_arch and modifiers.os_arch != os_arch:
                 modifiers.os_arch = os_arch
                 click.echo(f"OS_Arch updated to: {os_arch}")
+
+            if pkg_mgr and modifiers.pkg_mgr != pkg_mgr:
+                modifiers.pkg_mgr = pkg_mgr
+                click.echo(f"Package manager: {pkg_mgr}")
 
         # Access the current state
         modifiers = ctx.obj[MODIFIERS_CLICK_CTX_NAME]

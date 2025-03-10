@@ -3,15 +3,15 @@ Test containers like for Python to:
   - Run example 'provisioner examples ansible hello --username TestTest -y'
   - Check all 'version' commands on runtime and plugins
   - Inside Docker:
-    - Run 'provisioner install cli anchor'
+    - [Done] Run 'provisioner install cli anchor'
     - Run 'provisioner install system python --version 3.11.1'
     - Run 'provisioner install k8s distro k3s-server'
     - Run 'provisioner install k8s distro k3s-agent'
-    - 
-Add installer "system" command group with Python install via apt-get
+ 
+Add installer "system" command group with Python install via uv 
 Expose proper error from Ansible remote execution (verbose and non-verbose)
 Streaming Ansible logs
-Exclude testlib from production code
+[Done] Exclude testlib from production code
 Add GitHub tags to the README
 Add terraform atlantis setup to provisioner install plugin (https://www.runatlantis.io/guide)
 Charts creation via https://github.com/chartdb/chartdb

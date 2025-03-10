@@ -5,6 +5,7 @@ import subprocess
 from types import ModuleType
 from typing import Callable, List, Optional
 
+from provisioner_shared.components.runtime.cli.modifiers import PackageManager
 from loguru import logger
 
 from provisioner_shared.components.runtime.infra.context import Context
@@ -12,13 +13,14 @@ from provisioner_shared.components.runtime.infra.context import Context
 
 class PackageLoader:
     _ctx: Context = None
+    _pkg_mgr: PackageManager = None
 
     def __init__(self, ctx: Context) -> None:
         self._ctx = ctx
 
     @staticmethod
     def create(ctx: Context) -> "PackageLoader":
-        logger.debug("Creating package loader")
+        logger.debug(f"Creating package loader using {ctx._pkg_mgr} as package manager")
         return PackageLoader(ctx)
 
     def _filter_by_keyword(self, pip_lines: List[str], filter_keyword: str, exclusions: List[str]) -> List[str]:
@@ -66,12 +68,11 @@ class PackageLoader:
             logger.debug(
                 f"About to retrieve pip packages. filter_keyword: {filter_keyword}, exclusions: {str(exclusions)}"
             )
+            pip_install_cmd: List[str] = self._get_pip_install_cmd()
             # Get the list of installed packages
             output = subprocess.check_output(
+                pip_install_cmd + 
                 [
-                    "python3",
-                    "-m",
-                    "pip",
                     "list",
                     "--no-color",
                     "--no-python-version-warning",
@@ -133,11 +134,10 @@ class PackageLoader:
     def _install_pip_package(self, package_name: str) -> None:
         try:
             logger.debug(f"About to install pip package. name: {package_name}")
+            pip_install_cmd: List[str] = self._get_pip_install_cmd()
             subprocess.check_output(
+                pip_install_cmd +
                 [
-                    "python3",
-                    "-m",
-                    "pip",
                     "install",
                     package_name,
                     "--no-color",
@@ -152,11 +152,10 @@ class PackageLoader:
     def _uninstall_pip_package(self, package_name: str) -> None:
         try:
             logger.debug(f"About to uninstall pip package. name: {package_name}")
+            pip_install_cmd: List[str] = self._get_pip_install_cmd()
             subprocess.check_output(
+                pip_install_cmd + 
                 [
-                    "python3",
-                    "-m",
-                    "pip",
                     "uninstall",
                     package_name,
                     "-y",
@@ -168,6 +167,16 @@ class PackageLoader:
         except Exception as ex:
             logger.error(f"Failed to uninstall pip package. name: {package_name}, ex: {ex}")
             raise ex
+
+    def _get_pip_install_cmd(self) -> List[str]:
+        return ["python3", "-m", "pip"]
+        # match self._pkg_mgr:
+        #     case PackageManager.PIP:
+        #         return ["python3", "-m", "pip"]
+        #     case PackageManager.UV:
+        #         return ["uv", "pip"]
+        #     case _:
+        #         raise ValueError(f"Unsupported package manager: {self._pkg_mgr}")
 
     load_modules_fn = _load_modules
     import_modules_fn = _import_modules

@@ -11,13 +11,13 @@ SHELL_SCRIPTS_LIB_IMPORT_PATH="${ANSIBLE_TEMP_FOLDER_PATH}/shell_lib.sh"
 
 source "${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
 
-PIP_COMMAND_NAME="pip"
 PIP_LIST_FLAGS="--no-python-downloads"
 PIP_INSTALL_SUPPRESS_FLAGS="${PIP_LIST_FLAGS}"
 UV_TEMP_VENV_PATH="/tmp/uv-venv"
+PROV_TESTING_ARCHIVES_PATH="$HOME/.ansible/tmp/provisioner_scripts/"
 
 should_install_using_pip() {
-  [[ "${ENV_INSTALL_METHOD}" == "${PIP_COMMAND_NAME}" ]]
+  [[ "${ENV_INSTALL_METHOD}" == "pip" ]]
 }
 
 should_install_using_github_release() {
@@ -25,11 +25,11 @@ should_install_using_github_release() {
 }
 
 should_install_from_local_dev() {
-  [[ "${ENV_INSTALL_METHOD}" == "local-dev" ]]
+  [[ "${ENV_INSTALL_METHOD}" == "testing" ]]
 }
 
-get_local_dev_provisioner_repo_path() {
-  echo "${ENV_LOCAL_DEV_PROVISIONER_REPO_PATH}"
+get_provisioner_e2e_tests_archives_host_path() {
+  echo "${PROV_TESTING_ARCHIVES_PATH}"
 }
 
 get_binary_path() {
@@ -68,7 +68,7 @@ verify_supported_os() {
 uninstall_via_pip() {
   local pkg_name=$1
   local pkg_version=$2
-  log_debug "Uninstalling ${PIP_COMMAND_NAME} package. name: ${pkg_name}"
+  log_debug "Uninstalling pip package. name: ${pkg_name}"
   cmd_run "uv pip uninstall ${pkg_name}"
 }
 
@@ -79,7 +79,7 @@ install_via_github_release() {
 
   local pkg_folder_path=$(get_local_pip_pkg_path "${pkg_name}")
   if is_directory_exist "${pkg_folder_path}"; then
-    log_debug "Removing local ${PIP_COMMAND_NAME} pkg. path: ${pkg_folder_path}"
+    log_debug "Removing local pip pkg. path: ${pkg_folder_path}"
     cmd_run "rm -rf ${pkg_folder_path}"
   fi
 
@@ -108,7 +108,7 @@ install_via_pip() {
 
   uninstall_via_pip "${pkg_name}" "${pkg_version}"
 
-  log_debug "Installing from ${PIP_COMMAND_NAME} registry. name: ${pkg_name}, version: ${pkg_version}"
+  log_debug "Installing from pip registry. name: ${pkg_name}, version: ${pkg_version}"
   if [[ -n "${pkg_version}" ]]; then
     pkg_coords="${pkg_name}==${pkg_version}"
   else
@@ -128,7 +128,7 @@ pip_get_package_version() {
 
 is_pip_installed_package() {
   local pkg_name=$1
-  log_debug "Checking if installed from ${PIP_COMMAND_NAME}. name: ${pkg_name}"
+  log_debug "Checking if installed from pip. name: ${pkg_name}"
   cmd_run "uv pip list --no-color ${PIP_LIST_FLAGS} --python ${ENV_PROVISIONER_PYTHON_VERSION} | grep -w ${pkg_name} | head -1 > /dev/null"
 }
 
@@ -157,27 +157,6 @@ install_package() {
     install_via_pip "${pkg_name}" "${pkg_version}"
   elif should_install_using_github_release; then
     install_via_github_release "${pkg_name}" "${pkg_version}"
-  elif should_install_from_local_dev; then
-    local_repo_path=$(get_local_dev_provisioner_repo_path)
-    ls -lah "${local_repo_path}"
-    cd "${local_repo_path}" || exit
-    log_debug "Installing provisioner runtime and installers-plugin from sources to local pip."
-    
-    cmd_run "make dev-mode"
-
-    echo -e "\n========= PROJECT: provisioner ==============\n"
-    cd provisioner || exit
-    cmd_run "poetry build-project -f sdist" 
-    cd .. || exit
-    cmd_run "uv pip install provisioner/dist/provisioner_*.tar.gz"
-
-    echo -e "\n========= PLUGIN: installers ==============\n"
-    cd plugins/provisioner_installers_plugin || exit
-    cmd_run "poetry build-project -f sdist"
-    cd ../.. || exit
-    cmd_run "uv pip install plugins/provisioner_installers_plugin/dist/provisioner_*.tar.gz"
-    
-    cmd_run "provisioner"
   else
     log_fatal "Install method is not supported. name: ${ENV_INSTALL_METHOD}"
   fi
@@ -191,16 +170,15 @@ install_or_update() {
     log_debug "pip package is not installed. name: ${pkg_name}"
     install_package "${pkg_name}" "${pkg_version}"
   else
-    log_debug "Trying to read ${PIP_COMMAND_NAME} package version. name: ${pkg_name}"
+    log_debug "Trying to read pip package version. name: ${pkg_name}"
     local current_version=$(pip_get_package_version "${pkg_name}")
     if [[ "${current_version}" == "${ENV_PROVISIONER_VERSION}" ]]; then
-      log_debug "Found installed ${PIP_COMMAND_NAME} package with expected version. name: ${pkg_name}, version: ${pkg_version}"
+      log_debug "Found installed pip package with expected version. name: ${pkg_name}, version: ${pkg_version}"
     else
       log_debug "pip package does not have the expected version. name: ${pkg_name}, current_version: ${current_version}, expected: ${pkg_version}"
       install_package "${pkg_name}" "${pkg_version}"
     fi
   fi
-  create_provisioner_entrypoint
 }
 
 install_provisioner_engine() {
@@ -266,8 +244,18 @@ main() {
   maybe_install_python_version
   verify_mandatory_run_arguments
 
-  install_provisioner_engine
-  install_provisioner_plugins
+  if should_install_from_local_dev; then
+    cd "${UV_TEMP_VENV_PATH}" || exit
+    local prov_archives=$(get_provisioner_e2e_tests_archives_host_path)
+    log_debug "Installing provisioner shared/runtime/installers-plugin from archives to local pip."
+    cmd_run "uv pip install ${prov_archives}/provisioner_shared*.tar.gz 2>/dev/null"
+    cmd_run "uv pip install ${prov_archives}/provisioner_runtime*.tar.gz 2>/dev/null"
+    cmd_run "uv pip install ${prov_archives}/provisioner_*_plugin*.tar.gz 2>/dev/null"
+  else
+    install_provisioner_engine
+    install_provisioner_plugins
+  fi
+  create_provisioner_entrypoint
 
   # Enable to debug the installed packages  
   cmd_run "uv pip list --no-color ${PIP_LIST_FLAGS}"  
@@ -280,24 +268,8 @@ main() {
   # cmd_run "${prov_binary_path} ${ENV_PROVISIONER_COMMAND}"
 
   log_info "Printing menu:"
+  export PROVISIONER_PRE_INIT_DEBUG="true"
   "${ENV_PROVISIONER_BINARY}"
 }
 
 main "$@"
-
-
-
-
-
-
-# change_working_dir() {
-#   if should_install_from_local_dev; then
-#     local working_dir=$(get_local_dev_provisioner_repo_path)
-#     cd "${working_dir}" || exit
-#     log_debug "Changing working directory. path: ${working_dir}"
-#   else
-#     local working_dir="/tmp"
-#     cd "${working_dir}" || exit
-#     log_debug "Changing working directory. path: ${working_dir}"
-#   fi
-# }
