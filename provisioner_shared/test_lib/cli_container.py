@@ -14,10 +14,11 @@ PROJECT_ROOT_PATH = str(pathlib.Path(__file__).parent.parent.parent.resolve())
 # TEST_DOCKER_ROOT_PATH = str(pathlib.Path(__file__).parent.resolve())
 DEFAULT_REMOTE_SSH_DOCKERFILE_PATH = f"{PROJECT_ROOT_PATH}/dockerfiles/remote_ssh/Dockerfile"
 
-# 
+
+#
 # To debug the container, run the following command:
 #  docker run -v ~/.ssh:/root/.ssh -p 2222:22 -d -it --name "z-provisioner-remote-ssh-e2e" "provisioner-remote-ssh-e2e"
-# 
+#
 class RemoteSSHContainer(DockerContainer):
     def __init__(self, image="provisioner-remote-ssh-e2e"):
         super().__init__(image)
@@ -67,13 +68,13 @@ class RemoteSSHContainer(DockerContainer):
             return True
         except docker.errors.ImageNotFound:
             return False
-    
+
     def build_image(self):
         """Build the Docker image locally"""
         client = docker.from_env()
         force_build = self._should_build_image_before_tests()
         image_exist = self._image_exists(client, DEFAULT_REMOTE_SSH_IMAGE_NAME)
-        
+
         if image_exist and not force_build:
             print(f"Image {DEFAULT_REMOTE_SSH_IMAGE_NAME} already exists, skipping build...")
             return
@@ -87,28 +88,21 @@ class RemoteSSHContainer(DockerContainer):
                     path=PROJECT_ROOT_PATH,
                     dockerfile=DEFAULT_REMOTE_SSH_DOCKERFILE_PATH,
                     tag=DEFAULT_REMOTE_SSH_IMAGE_NAME,
-                    rm=True
+                    rm=True,
                 )
 
                 # Stream build logs
                 for log in build_logs:
                     try:
-                        log_line = json.loads(log.decode('utf-8'))
-                        if 'stream' in log_line:
-                            print(log_line['stream'].strip())
+                        log_line = json.loads(log.decode("utf-8"))
+                        if "stream" in log_line:
+                            print(log_line["stream"].strip())
                     except json.JSONDecodeError:
-                        print(log.decode('utf-8').strip())
+                        print(log.decode("utf-8").strip())
 
             except Exception as e:
                 print(f"Failed to build Docker image: {str(e)}")
                 raise RuntimeError(f"Failed to build Docker image: {str(e)}")
-            
-                
-
-
-            
-
-
 
 
 #     def __init__(self, core_cols: CoreCollaborators, allow_logging=False):

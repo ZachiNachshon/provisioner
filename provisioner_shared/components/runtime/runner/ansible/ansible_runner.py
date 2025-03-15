@@ -6,9 +6,8 @@ import time
 from typing import List, Optional
 
 import ansible_runner
-from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
-from loguru import logger
 import paramiko
+from loguru import logger
 
 from provisioner_shared.components.runtime.errors.cli_errors import (
     AnsiblePassAuthRequireSSHPassException,
@@ -19,9 +18,10 @@ from provisioner_shared.components.runtime.errors.cli_errors import (
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
-from provisioner_shared.components.runtime.utils.process import Process
 from provisioner_shared.components.runtime.utils.os import OsArch
 from provisioner_shared.components.runtime.utils.paths import Paths
+from provisioner_shared.components.runtime.utils.process import Process
+from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
 
 ProvisionerAnsibleProjectPath = os.path.expanduser("~/.config/provisioner/ansible")
 
@@ -205,11 +205,7 @@ class AnsibleRunnerLocal:
 
     @staticmethod
     def create(
-        ctx: Context,
-        io_utils: IOUtils,
-        paths: Paths,
-        process: Process,
-        progress: ProgressIndicator
+        ctx: Context, io_utils: IOUtils, paths: Paths, process: Process, progress: ProgressIndicator
     ) -> "AnsibleRunnerLocal":
 
         logger.debug(f"Creating Ansible runner (dry_run: {ctx.is_dry_run()}, verbose: {ctx.is_verbose()})...")
@@ -226,7 +222,7 @@ class AnsibleRunnerLocal:
                 err_msg = f"Ansible selected host is missing manadatory arguments. host: {host.host}, ip: {host.ip_address}, port: {host.port}"
                 logger.error(err_msg)
                 raise InvalidAnsibleHostPair(err_msg)
-            
+
             # Do not append 'ansible_host=' prefix for local connection
             if ANSIBLE_LOCAL_CONNECTION in host.ip_address:
                 result.append(f"{host.host} {host.ip_address}")
@@ -358,8 +354,10 @@ class AnsibleRunnerLocal:
         # you must install the sshpass program
         #
         if self.is_password_was_used_in_hosts(selected_hosts) and not self._process._is_tool_exist("sshpass"):
-            raise AnsiblePassAuthRequireSSHPassException("SSH password authentication requires utility to be installed. name: sshpass")
-        
+            raise AnsiblePassAuthRequireSSHPassException(
+                "SSH password authentication requires utility to be installed. name: sshpass"
+            )
+
         self._check_ssh_conn_on_hosts(ansible_hosts=selected_hosts)
 
         # Solution:
@@ -416,7 +414,7 @@ class AnsibleRunnerLocal:
             if selected_host.password is not None:
                 return True
         return False
-    
+
     def _try_extract_stderr_message(self, ansible_run_output: str) -> str:
         match = re.search(r"stderr: \|-\s+(.*?)\s+stderr_lines:", ansible_run_output, re.DOTALL)
         extracted_text = ansible_run_output
@@ -453,7 +451,12 @@ class AnsibleRunnerLocal:
                 if host.password:
                     client.connect(host.ip_address, port=host.port, username=host.username, password=host.password)
                 else:
-                    client.connect(host.ip_address, port=host.port, username=host.username, key_filename=host.ssh_private_key_file_path)
+                    client.connect(
+                        host.ip_address,
+                        port=host.port,
+                        username=host.username,
+                        key_filename=host.ssh_private_key_file_path,
+                    )
                 print("✅ SSH Connection Successful")
                 client.close()
                 return
@@ -461,6 +464,8 @@ class AnsibleRunnerLocal:
                 print(f"🔄 Waiting for SSH... ({attempt + 1}/{max_attempts})")
                 time.sleep(2)
                 attempt += 1
-        raise AnsibleRunnerNoHostSSHAccessException(f"❌ No SSH access to host. name: {host.host}, ip: {host.ip_address}, port: {host.port}")
-    
+        raise AnsibleRunnerNoHostSSHAccessException(
+            f"❌ No SSH access to host. name: {host.host}, ip: {host.ip_address}, port: {host.port}"
+        )
+
     run_fn = _run

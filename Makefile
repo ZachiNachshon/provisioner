@@ -23,8 +23,8 @@ prod-mode: ## Enable production mode for packaging and distribution
 	@./scripts/switch_mode.py prod
 	@poetry lock
 
-.PHONY: dev-mode
-dev-mode: ## Enable local development
+.PHONY: dev-mode-sources
+dev-mode-sources: ## Enable local development from sources using abs file path on pyproject.toml
 	@pip3 install tomlkit --disable-pip-version-check --no-python-version-warning
 	@./scripts/switch_mode.py dev --force
 	@poetry lock
@@ -34,6 +34,25 @@ deps-install: ## Update and install pyproject.toml dependencies on all virtual e
 	@poetry install --with dev --sync -v
 	@poetry lock
 	
+.PHONY: dev-mode-pip-sdists
+dev-mode-pip-sdists: ## Enable local development from built sdists into project .venv
+	@rm -rf provisioner_shared/dist
+	@cd provisioner_shared; poetry build-project -f sdist; cd ..
+	@mv provisioner_shared/dist/provisioner_shared*.tar.gz dockerfiles/poetry/dists/
+	@rm -rf provisioner/dist
+	$(MAKE) pip-install-runtime
+	@mv provisioner/dist/provisioner*.tar.gz dockerfiles/poetry/dists/
+	@rm -rf plugins/provisioner_installers_plugin/dist
+	@cd plugins/provisioner_installers_plugin; poetry build-project -f sdist; cd ../..
+	@mv plugins/provisioner_installers_plugin/dist/provisioner_*_plugin*.tar.gz dockerfiles/poetry/dists/
+
+# $(MAKE) prod-mode
+# @./.venv/bin/pip3 install provisioner_shared/dist/provisioner_shared*.tar.gz
+# @rm -r plugins/provisioner_examples_plugin/dist
+# $(MAKE) "pip-install-plugin examples"
+# @rm -r plugins/provisioner_single_board_plugin/dist
+# $(MAKE) "pip-install-plugin single-board"
+
 .PHONY: run
 run: ## Run provisioner CLI from sources (Usage: make run 'config view')
 	@poetry run provisioner $(filter-out $@,$(MAKECMDGOALS))
@@ -102,9 +121,11 @@ test-coverage-xml: ## Run tests suite on runtime and all plugins (output: XML re
 
 .PHONY: pip-install-runtime
 pip-install-runtime: ## [LOCAL] Install provisioner runtime to local pip
-	@echo "\n========= PROJECT: provisioner ==============\n"
-	@cd provisioner; poetry build-project -f sdist; cd ..
-	@pip3 install provisioner/dist/provisioner_*.tar.gz	
+	@echo "\n========= PROJECT: provisioner ==============\n"; \
+	cd provisioner; poetry build-project -f sdist; cd ..; \
+	
+
+# ./.venv/bin/pip3 install provisioner/dist/provisioner_*.tar.gz	 
 
 # @cd provisioner; poetry build-project -f wheel; cd ..
 # @pip3 install provisioner/dist/provisioner_*.whl
@@ -121,7 +142,8 @@ pip-install-plugin: ## [LOCAL] Install any plugin to local pip (make pip-install
 	@PLUGIN=$(word 2, $(MAKECMDGOALS)); \
 	echo "\n========= PLUGIN: $$PLUGIN ==============\n"; \
 	cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f sdist; cd ../..; \
-	pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.tar.gz;
+	
+# ./.venv/bin/pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.tar.gz;
 
 # cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f wheel; cd ../..; \
 # pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.whl;

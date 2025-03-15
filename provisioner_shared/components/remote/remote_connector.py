@@ -15,6 +15,7 @@ from provisioner_shared.components.runtime.shared.collaborators import CoreColla
 
 ANSIBLE_LOCAL_CONNECTION = "ansible_connection=local"
 
+
 class NetworkDeviceSelectionMethod(str, Enum):
     ScanLAN = "Scan LAN"
     UserConfig = "User Config"
@@ -22,7 +23,7 @@ class NetworkDeviceSelectionMethod(str, Enum):
 
     def __str__(self):
         return self.value
-    
+
     @staticmethod
     def from_remote_conn_mode(mode: RemoteConnectMode) -> "NetworkDeviceSelectionMethod":
         if mode == RemoteConnectMode.ScanLAN:
@@ -83,7 +84,7 @@ class RemoteMachineConnector:
         if flags.ip_address == ANSIBLE_LOCAL_CONNECTION:
             # Local connection, no need for auth info
             return
-        
+
         if (
             not flags.node_username
             or (not flags.node_password and not flags.ssh_private_key_file_path)

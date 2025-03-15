@@ -1,27 +1,35 @@
 #!/usr/bin/env python3
 
 import importlib
+import pathlib
 import subprocess
 from types import ModuleType
 from typing import Callable, List, Optional
 
-from provisioner_shared.components.runtime.cli.modifiers import PackageManager
+from provisioner_shared.components.runtime.utils.io_utils import IOUtils
+from provisioner_shared.components.runtime.utils.process import Process
 from loguru import logger
 
+from provisioner_shared.components.runtime.cli.modifiers import PackageManager
 from provisioner_shared.components.runtime.infra.context import Context
 
 
 class PackageLoader:
     _ctx: Context = None
+    _io_utils: IOUtils = None
+    _process: Process = None
     _pkg_mgr: PackageManager = None
 
-    def __init__(self, ctx: Context) -> None:
+    def __init__(self, ctx: Context, io_utils: IOUtils, process: Process) -> None:
         self._ctx = ctx
+        self._pkg_mgr = ctx.get_package_manager()
+        self._io_utils = io_utils
+        self._process = process
 
     @staticmethod
-    def create(ctx: Context) -> "PackageLoader":
+    def create(ctx: Context, io_utils: IOUtils, process: Process) -> "PackageLoader":
         logger.debug(f"Creating package loader using {ctx._pkg_mgr} as package manager")
-        return PackageLoader(ctx)
+        return PackageLoader(ctx, io_utils, process)
 
     def _filter_by_keyword(self, pip_lines: List[str], filter_keyword: str, exclusions: List[str]) -> List[str]:
         filtered_packages = []
@@ -35,6 +43,10 @@ class PackageLoader:
     def _import_modules(
         self, packages: List[str], import_path: str, callback: Optional[Callable[[ModuleType], None]] = None
     ) -> None:
+        if packages is None:
+            logger.warning("No packages to import")
+            return
+
         for package in packages:
             escaped_package_name = package.replace("-", "_")
             plugin_import_path = f"{escaped_package_name}.{import_path}"
@@ -71,12 +83,10 @@ class PackageLoader:
             pip_install_cmd: List[str] = self._get_pip_install_cmd()
             # Get the list of installed packages
             output = subprocess.check_output(
-                pip_install_cmd + 
-                [
+                pip_install_cmd
+                + [
                     "list",
                     "--no-color",
-                    "--no-python-version-warning",
-                    "--disable-pip-version-check",
                 ]
             )
             # Decode the output and split it into lines
@@ -85,7 +95,9 @@ class PackageLoader:
             #     print(line)
             #     logger.debug(line)
         except Exception as ex:
-            logger.error(f"Failed to retrieve a list of pip packages, make sure pip is properly installed. ex: {ex}")
+            logger.error(
+                f"Failed to retrieve a list of pip packages, make sure {self._pkg_mgr} is properly installed. ex: {ex}"
+            )
             return
 
         filtered_packages = self._filter_by_keyword(pip_lines, filter_keyword, exclusions)
@@ -136,13 +148,11 @@ class PackageLoader:
             logger.debug(f"About to install pip package. name: {package_name}")
             pip_install_cmd: List[str] = self._get_pip_install_cmd()
             subprocess.check_output(
-                pip_install_cmd +
-                [
+                pip_install_cmd
+                + [
                     "install",
                     package_name,
                     "--no-color",
-                    "--no-python-version-warning",
-                    "--disable-pip-version-check",
                 ]
             )
         except Exception as ex:
@@ -154,14 +164,12 @@ class PackageLoader:
             logger.debug(f"About to uninstall pip package. name: {package_name}")
             pip_install_cmd: List[str] = self._get_pip_install_cmd()
             subprocess.check_output(
-                pip_install_cmd + 
-                [
+                pip_install_cmd
+                + [
                     "uninstall",
                     package_name,
                     "-y",
                     "--no-color",
-                    "--no-python-version-warning",
-                    "--disable-pip-version-check",
                 ]
             )
         except Exception as ex:
@@ -169,14 +177,71 @@ class PackageLoader:
             raise ex
 
     def _get_pip_install_cmd(self) -> List[str]:
-        return ["python3", "-m", "pip"]
-        # match self._pkg_mgr:
-        #     case PackageManager.PIP:
-        #         return ["python3", "-m", "pip"]
-        #     case PackageManager.UV:
-        #         return ["uv", "pip"]
-        #     case _:
-        #         raise ValueError(f"Unsupported package manager: {self._pkg_mgr}")
+        # return ["python3", "-m", "pip"]
+        match self._pkg_mgr:
+            case PackageManager.PIP:
+                logger.debug("Using pip as package manager")
+                return ["python3", "-m", "pip", "--no-python-version-warning", "--disable-pip-version-check"]
+            case PackageManager.UV:
+                logger.debug("Using uv as package manager")
+                return ["uv", "pip", "--no-python-downloads"]
+            # case PackageManager.VENV:
+            #     logger.debug("Using venv as package manager")
+            #     return ["./.venv/bin/pip"]
+            case _:
+                raise ValueError(f"Unsupported package manager: {self._pkg_mgr}")
+            
+    # This method currently works only with Poetry since it is the only package manager 
+    # that supports bundling multiple projects into a single sdist/wheel using a poetry plugin
+    def _build_sdists(self, project_paths: List[str], target_dist_folder: str):
+        """
+        Runs `poetry build` on multiple projects and copies built distributions.
+
+        :param project_paths: List of paths to Poetry projects in the monorepo.
+        :param target_dist_folder: Path to the folder where built distributions should be copied.
+        """
+        target_dist_folder = pathlib.Path(target_dist_folder)
+        self._io_utils.create_directory_fn(target_dist_folder)  # Ensure target folder exists
+
+        for project_path in project_paths:
+            project_path = pathlib.Path(project_path).resolve()
+            if not (project_path / "pyproject.toml").exists():
+                print(f"Skipping {project_path}: No pyproject.toml found.")
+                continue
+
+            # Determine expected distribution filename
+            print(f"Checking {project_path} version for distribution...")
+            output = self._process.run_fn(
+                args=["poetry", "version"],
+                working_dir=project_path,
+                fail_msg=f"Failed to install dependencies with Poetry. project: {project_path}",
+                fail_on_error=True,
+            )
+
+            package_name, version = output.strip().split()
+            expected_tarball = f"{package_name}-{version}.tar.gz"
+            dist_path = project_path / "dist" / expected_tarball
+
+            # Check if distribution already exists in target folder
+            # if (target_dist_folder / expected_tarball).exists():
+            #     print(f"Skipping build for {package_name}, already exists in {target_dist_folder}")
+            #     continue
+
+            # Build package with `poetry build`
+            print(f"Building {package_name} in {project_path}...")
+            self._process.run_fn(
+                args=["poetry", "build-project", "-f", "sdist"],
+                working_dir=project_path,
+                fail_msg=f"Failed to install dependencies with Poetry. project: {project_path}",
+                fail_on_error=True,
+            )
+
+            # Copy distribution to target folder
+            if dist_path.exists():
+                self._io_utils.copy_file_fn(dist_path, target_dist_folder)
+                print(f"Copied {expected_tarball} to {target_dist_folder}")
+            else:
+                print(f"Error: Expected tarball {expected_tarball} not found in {project_path / 'dist'}!")
 
     load_modules_fn = _load_modules
     import_modules_fn = _import_modules
@@ -185,3 +250,4 @@ class PackageLoader:
     get_pip_installed_packages_fn = _get_pip_installed_packages
     install_pip_package_fn = _install_pip_package
     uninstall_pip_package_fn = _uninstall_pip_package
+    build_sdists_fn = _build_sdists

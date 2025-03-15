@@ -3,8 +3,6 @@
 import os
 import unittest
 
-from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
-
 from provisioner_shared.components.runtime.errors.cli_errors import InvalidAnsibleHostPair
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
@@ -14,9 +12,10 @@ from provisioner_shared.components.runtime.runner.ansible.ansible_runner import 
     AnsibleRunnerLocal,
 )
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
-from provisioner_shared.components.runtime.utils.process import Process
 from provisioner_shared.components.runtime.utils.os import OsArch
 from provisioner_shared.components.runtime.utils.paths import Paths
+from provisioner_shared.components.runtime.utils.process import Process
+from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
 from provisioner_shared.test_lib.assertions import Assertion
 
 #
@@ -111,9 +110,9 @@ class AnsibleRunnerTestShould(unittest.TestCase):
         Assertion.expect_outputs(
             self,
             method_to_run=lambda: AnsibleRunnerLocal.create(
-                ctx=ctx, 
-                io_utils=IOUtils.create(ctx), 
-                paths=Paths.create(ctx), 
+                ctx=ctx,
+                io_utils=IOUtils.create(ctx),
+                paths=Paths.create(ctx),
                 process=Process.create(ctx),
                 progress=ProgressIndicator.create(ctx, IOUtils.create(ctx)),
             ).run_fn(
@@ -138,9 +137,9 @@ class AnsibleRunnerTestShould(unittest.TestCase):
         Assertion.expect_outputs(
             self,
             method_to_run=lambda: AnsibleRunnerLocal.create(
-                ctx=ctx, 
-                io_utils=IOUtils.create(ctx), 
-                paths=Paths.create(ctx), 
+                ctx=ctx,
+                io_utils=IOUtils.create(ctx),
+                paths=Paths.create(ctx),
                 process=Process.create(ctx),
                 progress=ProgressIndicator.create(ctx, IOUtils.create(ctx)),
             ).run_fn(
@@ -168,9 +167,9 @@ class AnsibleRunnerTestShould(unittest.TestCase):
         Assertion.expect_outputs(
             self,
             method_to_run=lambda: AnsibleRunnerLocal.create(
-                ctx=ctx, 
-                io_utils=IOUtils.create(ctx), 
-                paths=Paths.create(ctx), 
+                ctx=ctx,
+                io_utils=IOUtils.create(ctx),
+                paths=Paths.create(ctx),
                 process=Process.create(ctx),
                 progress=ProgressIndicator.create(ctx, IOUtils.create(ctx)),
             ).run_fn(

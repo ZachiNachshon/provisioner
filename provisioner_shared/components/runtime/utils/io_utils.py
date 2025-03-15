@@ -28,6 +28,14 @@ class IOUtils:
         logger.debug("Creating IO utils...")
         return IOUtils(ctx)
 
+    def _create_temp_directory(self, maybe_prefix: Optional[str]) -> str:
+        if self._dry_run:
+            return "DRY_RUN_RESPONSE"
+        folder_name_prefix = maybe_prefix if maybe_prefix else "provisioner-temp"
+        temp_dir = tempfile.mkdtemp(prefix=folder_name_prefix)
+        logger.debug("Created temp directory: {}".format(temp_dir))
+        return temp_dir
+
     def _create_directory(self, folder_path) -> str:
         if self._dry_run:
             return "DRY_RUN_RESPONSE"
@@ -232,6 +240,7 @@ class IOUtils:
 
         return None
 
+    create_temp_directory_fn = _create_temp_directory
     create_directory_fn = _create_directory
     copy_file_fn = _copy_file
     copy_directory_fn = _copy_directory

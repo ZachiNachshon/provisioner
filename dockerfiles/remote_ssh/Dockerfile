@@ -39,6 +39,24 @@ RUN mkdir /var/run/sshd && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
 
+# Install Python uv package manager
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    # Move uv from .local/bin to a standard location
+    mv $HOME/.local/bin/uv /usr/local/bin/ && \
+    # Install Python 3.11
+    uv python install --reinstall 3.11 && \
+    # Create virtual environment in a standard location with correct permissions
+    mkdir -p /opt/venv && \
+    uv venv --directory /opt/venv && \
+    # Set ownership to pi user and group
+    chown -R pi:pi /opt/venv && \
+    # Set directory permissions (rwx for owner, rx for group and others)
+    chmod -R 755 /opt/venv
+
+# Add virtual environment to PATH
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+
 # Expose SSH port
 EXPOSE 22
 

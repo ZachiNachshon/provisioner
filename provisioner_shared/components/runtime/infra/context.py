@@ -64,7 +64,8 @@ class Context:
 
     def get_package_manager(self) -> PackageManager:
         return self._pkg_mgr
-    
+
+
 class CliContextManager:
 
     @staticmethod

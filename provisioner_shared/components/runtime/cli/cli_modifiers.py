@@ -93,7 +93,7 @@ def cli_modifiers(func: Callable) -> Callable:
                 auto_prompt=auto_prompt,
                 non_interactive=non_interactive,
                 os_arch=os_arch,
-                pkg_mgr=pkg_mgr,
+                pkg_mgr=PackageManager.from_str(pkg_mgr),
             )
             logger.debug("Initialized CliModifiers for the first time.")
         else:
@@ -120,8 +120,12 @@ def cli_modifiers(func: Callable) -> Callable:
                 modifiers.os_arch = os_arch
                 click.echo(f"OS_Arch updated to: {os_arch}")
 
-            if pkg_mgr and modifiers.pkg_mgr != pkg_mgr:
-                modifiers.pkg_mgr = pkg_mgr
+            if (
+                pkg_mgr
+                and modifiers.pkg_mgr
+                and modifiers.pkg_mgr.value.lower() != PackageManager.from_str(pkg_mgr).value.lower()
+            ):
+                modifiers.pkg_mgr = PackageManager.from_str(pkg_mgr)
                 click.echo(f"Package manager: {pkg_mgr}")
 
         # Access the current state

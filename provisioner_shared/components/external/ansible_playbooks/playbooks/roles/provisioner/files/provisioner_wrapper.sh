@@ -13,7 +13,8 @@ source "${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
 
 PIP_LIST_FLAGS="--no-python-downloads"
 PIP_INSTALL_SUPPRESS_FLAGS="${PIP_LIST_FLAGS}"
-UV_TEMP_VENV_PATH="/tmp/uv-venv"
+# UV_TEMP_VENV_PATH="/tmp/uv-venv"
+UV_TEMP_VENV_PATH="/opt/venv"
 PROV_TESTING_ARCHIVES_PATH="$HOME/.ansible/tmp/provisioner_scripts/"
 
 should_install_using_pip() {
@@ -95,7 +96,7 @@ install_via_github_release() {
   if is_dry_run || is_file_exist "${pkg_folder_path}/${asset_name}"; then
     uninstall_via_pip "${pkg_name}" "${pkg_version}"
     log_debug "Installing from GitHub release. name: ${asset_name}, version: ${pkg_version}"
-    cmd_run "uv pip install ${pkg_folder_path}/${asset_name} ${PIP_INSTALL_SUPPRESS_FLAGS} 2>/dev/null"
+    cmd_run "uv pip install ${pkg_folder_path}/${asset_name} ${PIP_INSTALL_SUPPRESS_FLAGS} --quiet"
   else
     log_fatal "Cannot find downloaded package asset to install. path: ${pkg_folder_path}/${asset_name}"
   fi
@@ -114,7 +115,7 @@ install_via_pip() {
   else
     pkg_coords="${pkg_name}"
   fi
-  cmd_run "uv pip install ${pkg_coords} ${PIP_INSTALL_SUPPRESS_FLAGS} 2>/dev/null"
+  cmd_run "uv pip install ${pkg_coords} ${PIP_INSTALL_SUPPRESS_FLAGS} --quiet"
 }
 
 pip_get_package_version() {
@@ -135,6 +136,9 @@ is_pip_installed_package() {
 create_provisioner_entrypoint() {
   local python_ver=$(uv python find "${ENV_PROVISIONER_PYTHON_VERSION}")
   local entrypoint="${ENV_LOCAL_BIN_FOLDER_PATH}/${ENV_PROVISIONER_BINARY}"
+  if ! is_directory_exist "${ENV_LOCAL_BIN_FOLDER_PATH}"; then
+    cmd_run "mkdir -p ${ENV_LOCAL_BIN_FOLDER_PATH}"
+  fi
   log_info "Creating a provisioner entrypoint. path: ${entrypoint}"
   echo "#!${python_ver}
 # -*- coding: utf-8 -*-
@@ -244,13 +248,16 @@ main() {
   maybe_install_python_version
   verify_mandatory_run_arguments
 
+  maybe_non_default_pkg_mgr=""
   if should_install_from_local_dev; then
     cd "${UV_TEMP_VENV_PATH}" || exit
     local prov_archives=$(get_provisioner_e2e_tests_archives_host_path)
+    cmd_run "ls -lah ${prov_archives}"
     log_debug "Installing provisioner shared/runtime/installers-plugin from archives to local pip."
-    cmd_run "uv pip install ${prov_archives}/provisioner_shared*.tar.gz 2>/dev/null"
-    cmd_run "uv pip install ${prov_archives}/provisioner_runtime*.tar.gz 2>/dev/null"
-    cmd_run "uv pip install ${prov_archives}/provisioner_*_plugin*.tar.gz 2>/dev/null"
+    cmd_run "uv pip install ${prov_archives}/provisioner_shared*.tar.gz --quiet"
+    cmd_run "uv pip install ${prov_archives}/provisioner_runtime*.tar.gz --quiet"
+    cmd_run "uv pip install ${prov_archives}/provisioner_*_plugin*.tar.gz --quiet"
+    maybe_non_default_pkg_mgr="--package-manager uv"
   else
     install_provisioner_engine
     install_provisioner_plugins
@@ -258,18 +265,18 @@ main() {
   create_provisioner_entrypoint
 
   # Enable to debug the installed packages  
-  cmd_run "uv pip list --no-color ${PIP_LIST_FLAGS}"  
+  cmd_run "uv pip list --no-color ${PIP_LIST_FLAGS} | grep prov"  
 
   local prov_binary_path=$(get_binary_path)
   if is_verbose; then
     new_line
     echo -e "========= Running ${prov_binary_path} Command =========\n" >&1
   fi
-  # cmd_run "${prov_binary_path} ${ENV_PROVISIONER_COMMAND}"
 
   log_info "Printing menu:"
-  export PROVISIONER_PRE_INIT_DEBUG="true"
-  "${ENV_PROVISIONER_BINARY}"
+  cmd_run "${ENV_PROVISIONER_BINARY} ${maybe_non_default_pkg_mgr}"
+
+  cmd_run "${prov_binary_path} ${ENV_PROVISIONER_COMMAND} ${maybe_non_default_pkg_mgr}"
 }
 
 main "$@"

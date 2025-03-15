@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from typing import List
 from unittest.mock import MagicMock
 
 from provisioner_shared.components.runtime.infra.context import Context
@@ -17,6 +18,7 @@ class FakePackageLoader(TestFakes, PackageLoader):
         fake = FakePackageLoader(ctx)
         fake.check_tool_fn = MagicMock(side_effect=fake.check_tool_fn)
         fake.is_tool_exist_fn = MagicMock(side_effect=fake.is_tool_exist_fn)
+        fake.build_sdists_fn = MagicMock(side_effect=fake.build_sdists_fn)
         return fake
 
     def is_tool_exist_fn(self, name: str) -> bool:
@@ -24,3 +26,6 @@ class FakePackageLoader(TestFakes, PackageLoader):
 
     def check_tool_fn(self, name: str) -> None:
         return self.trigger_side_effect("check_tool_fn", name)
+    
+    def build_sdists_fn(self, project_paths: List[str], target_dist_folder: str):
+        return self.trigger_side_effect("build_sdists_fn", project_paths, target_dist_folder)
