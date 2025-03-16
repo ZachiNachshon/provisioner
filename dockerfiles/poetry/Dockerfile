@@ -33,20 +33,6 @@ RUN apt-get update && apt-get install -y \
     sshpass \
     && rm -rf /var/lib/apt/lists/*
 
-# Install locales package and generate en_US.UTF-8
-# RUN apt-get update && apt-get install -y locales \
-#     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
-#     && locale-gen en_US.UTF-8 \
-#     && dpkg-reconfigure --frontend=noninteractive locales \
-#     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
-
-# Set environment variables for locale
-# ENV LANG en_US.UTF-8
-# ENV LC_ALL en_US.UTF-8
-
-# Use a recognized terminal in the container to support TUI Python libraries terminal environment
-# RUN echo 'export TERM=xterm' >> /etc/bash.bashrc
-
 # Set working directory in the container
 WORKDIR /app
 
@@ -65,15 +51,6 @@ RUN mkdir -p /app/.git $TEST_SDIST_OUTPUTS_CONTAINER_PATH
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
     poetry self update $POETRY_VERSION
 
-# Copy the projects sdists files archive from the host
-# COPY $TEST_SDSIT_OUTPUTS_HOST_PATH $TEST_SDIST_OUTPUTS_CONTAINER_PATH
-
-# RUN echo "Installing provisioner shared/runtime/installers-plugin from archives to local pip."
-# RUN . $HOME/.local/bin/env && \
-#     uv pip install $TEST_SDIST_OUTPUTS_CONTAINER_PATH/provisioner_shared*.tar.gz --quiet && \
-#     uv pip install $TEST_SDIST_OUTPUTS_CONTAINER_PATH/provisioner_runtime*.tar.gz --quiet && \
-#     uv pip install $TEST_SDIST_OUTPUTS_CONTAINER_PATH/provisioner_*_plugin*.tar.gz --quiet
-
 # Copy the essentials e2e files archive from the host
 COPY ${E2E_ESSENTIAL_FILES_ARCHIVE_NAME} /tmp/
 
@@ -84,9 +61,6 @@ RUN tar -xzf /tmp/${E2E_ESSENTIAL_FILES_ARCHIVE_NAME} -C /app && rm /tmp/${E2E_E
 RUN cd /app && ls -lah && make deps-install
 RUN poetry --version
 RUN pwd && ls -lah
-
-# Backup the container adjusted Poetry pyproject config into /tmp/app_backup
-# RUN mkdir -p /tmp/app_backup && cp -r /app/. /tmp/app_backup
 
 # Configure Poetry
 RUN poetry config virtualenvs.create false \
