@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
 import inspect
+import os
 import traceback
 from typing import List
 
 import click
 import click.testing
 from click.testing import CliRunner
+
+ENV_VAR_TESTING_MODE_ENABLED = "PROVISIONER_TESTING_MODE_ENABLED"
 
 
 class TestCliRunner:
@@ -15,8 +18,17 @@ class TestCliRunner:
         return CliRunner().invoke(cmd, args)
 
     @staticmethod
+    def is_testing_mode_enabled() -> bool:
+        return os.getenv(key=ENV_VAR_TESTING_MODE_ENABLED, default=False)
+
+    @staticmethod
     def run(cmd: click.BaseCommand, args: List[str] = []) -> str:
-        result = CliRunner().invoke(cmd, args)
+        test_env_vars = {}
+        if TestCliRunner.is_testing_mode_enabled():
+            print("Testing mode is enabled")
+            test_env_vars = {ENV_VAR_TESTING_MODE_ENABLED: "true"}
+
+        result = CliRunner(mix_stderr=True).invoke(cli=cmd, args=args, env=test_env_vars)
 
         # Check the exit code to see if there was an issue
         if result.exit_code != 0:

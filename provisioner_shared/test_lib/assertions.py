@@ -112,7 +112,18 @@ class Assertion:
 
 
 def to_json(obj: Any) -> str:
-    if hasattr(obj, "__dict__"):
-        return json.dumps(obj.__dict__, default=vars, indent=2)
-    else:
-        return json.dumps(obj, default=vars, indent=2)
+    try:
+        if isinstance(obj, (str, int, float, bool, type(None))):
+            return json.dumps(obj)
+        elif isinstance(obj, (list, tuple)):
+            return json.dumps([to_json(item) for item in obj])
+        elif isinstance(obj, dict):
+            return json.dumps({k: to_json(v) for k, v in obj.items()})
+        elif hasattr(obj, "__dict__"):
+            return json.dumps(obj.__dict__, default=lambda x: to_json(x), indent=2)
+        elif hasattr(obj, "_asdict"):  # Handle namedtuples
+            return json.dumps(obj._asdict(), default=lambda x: to_json(x), indent=2)
+        else:
+            return str(obj)  # Fallback for objects that can't be serialized
+    except Exception as e:
+        return f"<unserializable object of type {type(obj).__name__}: {str(e)}>"

@@ -15,7 +15,7 @@ class PackageManager(Enum):
     # https://github.com/astral-sh/uv
     PIP = "pip"
     UV = "uv"
-    POETRY = "poetry"
+    # POETRY = "poetry"
     # VENV = "venv"
     # CONDA = "conda"
     # PIPENV = "pipenv"
@@ -34,8 +34,8 @@ class PackageManager(Enum):
             return PackageManager.PIP
         elif lower in ("uv"):
             return PackageManager.UV
-        elif lower in ("poetry"):
-            return PackageManager.POETRY
+        # elif lower in ("poetry"):
+        #     return PackageManager.POETRY
         else:
             raise NotImplementedError(f"PackageManager enum does not support label '{label}'")
 

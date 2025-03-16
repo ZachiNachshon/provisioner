@@ -11,7 +11,7 @@ from provisioner_shared.test_lib.faker import TestFakes
 class FakePackageLoader(TestFakes, PackageLoader):
     def __init__(self, ctx: Context):
         TestFakes.__init__(self)
-        PackageLoader.__init__(self, ctx)
+        PackageLoader.__init__(self, ctx, io_utils=None, process=None)
 
     @staticmethod
     def create(ctx: Context) -> "FakePackageLoader":

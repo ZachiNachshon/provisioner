@@ -3,6 +3,12 @@ set -e
 
 . "${HOME}/.local/bin/env"
 
+# Set terminal width to avoid line wrapping
+export COLUMNS=200
+export PYTHONIOENCODING=utf-8
+# Set pytest options for cleaner output
+export PYTEST_ADDOPTS="--tb=short --no-header"
+
 echo "Installing packages from ${TEST_SDIST_OUTPUTS_CONTAINER_PATH}..."
 
 # poetry env info

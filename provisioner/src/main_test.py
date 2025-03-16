@@ -7,7 +7,7 @@ from provisioner_shared.test_lib.test_cli_runner import TestCliRunner
 
 
 # To run these directly from the terminal use:
-#  poetry run coverage run -m pytest -s provisioner/src/main_test.py
+#  ./run_tests.py provisioner/src/main_test.py
 #
 class TestCLI(unittest.TestCase):
 
@@ -18,18 +18,24 @@ class TestCLI(unittest.TestCase):
                 "--help",
             ],
         )
-        self.assertIn("config        Configuration management", result)
-        self.assertIn("plugins       Plugins management", result)
-        self.assertIn("version       Print runtime version", result)
-        self.assertIn(
-            """MODIFIERS
-  --verbose, -v          Run command with DEBUG verbosity
-  --auto-prompt, -y      Do not prompt for approval and accept everything
-  --dry-run, -d          Run command as NO-OP, print commands to output, do not
-  execute
-  --non-interactive, -n  Turn off interactive prompts and outputs, basic output
-  only
-  --os-arch TEXT         Specify a OS_ARCH tuple manually
-  --help, -h             Show this message and exit.""",
-            result,
-        )
+        self.assertIn("config", result)
+        self.assertIn("Configuration management", result)
+        self.assertIn("plugins", result)
+        self.assertIn("Plugins management", result)
+        self.assertIn("version", result)
+        self.assertIn("Print runtime version", result)
+        self.assertIn("MODIFIERS", result)
+        self.assertIn("--verbose, -v", result)
+        self.assertIn("Run command with DEBUG verbosity", result)
+        self.assertIn("--auto-prompt, -y", result)
+        self.assertIn("Do not prompt for approval and accept everything", result)
+        self.assertIn("--dry-run, -d", result)
+        self.assertIn("Run command as NO-OP, print commands to output", result)
+        self.assertIn("--non-interactive, -n", result)
+        self.assertIn("Turn off interactive prompts and outputs", result)
+        self.assertIn("--os-arch TEXT", result)
+        self.assertIn("Specify a OS_ARCH tuple manually", result)
+        self.assertIn("--package-manager [pip|uv]", result)
+        self.assertIn("Specify a Python package manager  [default: pip]", result)
+        self.assertIn("--help, -h", result)
+        self.assertIn("Show this message and exit.", result)

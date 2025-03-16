@@ -239,7 +239,7 @@ def build_docker_image(image_name: str, image_path: str):
         print(f"\n✅ Image {image_name} already exists, skipping build...")
         return
 
-    print("\n🔨 Building Docker image for tests...\n")
+    print("\n  🔨 Building Docker image for tests...")
     archive_path = create_project_essentials_archive()
     print(f"  🗃️ Created archive: {archive_path}\n")
 
