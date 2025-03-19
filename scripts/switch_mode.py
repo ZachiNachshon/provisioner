@@ -11,17 +11,22 @@ FORMAT_ALREADY_IN_PROD_MODE = " [PROD MODE] {}"
 FORMAT_SWITCHED_PROD_TO_DEV_MODE = " [PROD->DEV] {} ({})"
 FORMAT_SWITCHED_DEV_TO_PROD_MODE = " [DEV->PROD] {}"
 
+
 def print_switched_dev_mode(project_name: str, path: str):
     print(FORMAT_SWITCHED_PROD_TO_DEV_MODE.format(project_name, path))
+
 
 def print_switched_prod_mode(project_name: str):
     print(FORMAT_SWITCHED_DEV_TO_PROD_MODE.format(project_name))
 
+
 def print_already_in_dev_mode(project_name: str):
     print(FORMAT_ALREADY_IN_DEV_MODE.format(project_name))
 
+
 def print_already_in_prod_mode(project_name: str):
     print(FORMAT_ALREADY_IN_PROD_MODE.format(project_name))
+
 
 def resolve_repo_path():
     """Resolve the absolute path of the repository."""
@@ -32,7 +37,9 @@ def resolve_repo_path():
         current_dir = os.path.dirname(current_dir)
     raise RuntimeError("Repository root not found.")
 
+
 REPOSITORY_PATH = resolve_repo_path()
+
 
 def generate_toml_dev_dependency(dep_local_path: str):
     dev_dependency = tomlkit.inline_table()
@@ -45,7 +52,7 @@ def read_pyproject_toml_file(pyproject_path: str):
     if not os.path.exists(pyproject_path):
         print(f"Error: {pyproject_path} does not exist.")
         raise FileNotFoundError
-    
+
     with open(pyproject_path, "r") as file:
         toml_content = tomlkit.parse(file.read())
 
@@ -56,7 +63,7 @@ def write_pyproject_toml_file(pyproject_path: str, toml_content: str):
     if not os.path.exists(pyproject_path):
         print(f"Error: {pyproject_path} does not exist.")
         raise FileNotFoundError
-    
+
     with open(pyproject_path, "w") as file:
         file.write(tomlkit.dumps(toml_content))
 
@@ -66,7 +73,7 @@ def update_as_prod_dependency(toml_dependencies, dep_name: str, project_name: st
         # Remove dependency
         del toml_dependencies[dep_name]
         print_switched_prod_mode("[FORCED] " + dep_name)
-    
+
     # Other pyproject.toml files should have the dependencies as versioned rather than with absolute paths
     else:
         # Search for the comment and extract the version
@@ -88,7 +95,9 @@ def update_as_prod_dependency(toml_dependencies, dep_name: str, project_name: st
                     else:
                         raise ValueError(f"Invalid version for {dep_name} in {project_name} dependencies")
                 else:
-                    raise ValueError(f"Project {project_name} is missing the production version comment for {dep_name} dependency")
+                    raise ValueError(
+                        f"Project {project_name} is missing the production version comment for {dep_name} dependency"
+                    )
 
             elif key == dep_name and isinstance(value, str):
                 print_already_in_prod_mode(dep_name)
@@ -111,16 +120,12 @@ def update_as_dev_dependency(toml_dependencies, dep_abs_path: str, force: bool =
     found = False
     for key, value in toml_dependencies.items():
         # If key exists already as a production dependency, comment it and add new dev dependency
-        if (
-            key == dep_name
-            and isinstance(value, str)
-            and re.match(regx_pattern, f'{key} = "{value}"')
-        ):
+        if key == dep_name and isinstance(value, str) and re.match(regx_pattern, f'{key} = "{value}"'):
             toml_dependencies[key] = tomlkit.comment(f'{key} = "{value}"')
             toml_dependencies[dep_name] = dev_dependency
             found = True
             print_switched_dev_mode(dep_name, dev_dependency)
-            
+
         # If key exists already as a dev dependency, do not add again
         elif key == dep_name and isinstance(value, tomlkit.items.InlineTable):
             found = True
@@ -143,15 +148,17 @@ def switch_toml_to_dev_mode(toml_dependencies, project_name: str, with_plugins_d
         if not os.path.exists(plugins_path):
             print(f"Could not identify valid plugins dependencies path: {plugins_path}")
             return
-    
+
         # Add or update all plugins as development dependencies
         for plugin_folder in os.listdir(plugins_path):
             plugin_path = os.path.join(plugins_path, plugin_folder)
             if os.path.isdir(plugin_path) and plugin_folder.endswith("_plugin"):
                 update_as_dev_dependency(toml_dependencies, plugin_path, force)
-    
 
-def switch_toml_to_prod_mode(toml_dependencies, project_name: str, with_plugins_deps: bool = False, force: bool = False):
+
+def switch_toml_to_prod_mode(
+    toml_dependencies, project_name: str, with_plugins_deps: bool = False, force: bool = False
+):
     print(f"\nSwitching {project_name} to production mode...")
     update_as_prod_dependency(toml_dependencies, PROVISIONER_SHARED_DEP_NAME, project_name, force)
 
