@@ -107,6 +107,9 @@ class Assertion:
             obj2_json = to_json(obj2)
             testObj.assertEqual(obj1_json, obj2_json)
         except Exception as ex:
+            print("Objects are not equal or encountered a JSON serialization failure.")
+            print(f"obj1: {obj1_json}")
+            print(f"obj2: {obj2_json}")
             testObj.fail(f"Objects are not equal or encountered a JSON serialization failure. message: {str(ex)}")
         return
 
@@ -116,14 +119,16 @@ def to_json(obj: Any) -> str:
         if isinstance(obj, (str, int, float, bool, type(None))):
             return json.dumps(obj)
         elif isinstance(obj, (list, tuple)):
-            return json.dumps([to_json(item) for item in obj])
+            return json.dumps(
+                [json.loads(item) if isinstance(item, str) and item.strip().startswith("{") else item for item in obj]
+            )
         elif isinstance(obj, dict):
-            return json.dumps({k: to_json(v) for k, v in obj.items()})
+            return json.dumps(obj)
         elif hasattr(obj, "__dict__"):
-            return json.dumps(obj.__dict__, default=lambda x: to_json(x), indent=2)
+            return json.dumps(obj.__dict__)
         elif hasattr(obj, "_asdict"):  # Handle namedtuples
-            return json.dumps(obj._asdict(), default=lambda x: to_json(x), indent=2)
+            return json.dumps(obj._asdict())
         else:
-            return str(obj)  # Fallback for objects that can't be serialized
+            return json.dumps(str(obj))
     except Exception as e:
         return f"<unserializable object of type {type(obj).__name__}: {str(e)}>"

@@ -6,12 +6,12 @@ import subprocess
 from types import ModuleType
 from typing import Callable, List, Optional
 
-from provisioner_shared.components.runtime.utils.io_utils import IOUtils
-from provisioner_shared.components.runtime.utils.process import Process
 from loguru import logger
 
 from provisioner_shared.components.runtime.cli.modifiers import PackageManager
 from provisioner_shared.components.runtime.infra.context import Context
+from provisioner_shared.components.runtime.utils.io_utils import IOUtils
+from provisioner_shared.components.runtime.utils.process import Process
 
 
 class PackageLoader:
@@ -190,8 +190,8 @@ class PackageLoader:
             #     return ["./.venv/bin/pip"]
             case _:
                 raise ValueError(f"Unsupported package manager: {self._pkg_mgr}")
-            
-    # This method currently works only with Poetry since it is the only package manager 
+
+    # This method currently works only with Poetry since it is the only package manager
     # that supports bundling multiple projects into a single sdist/wheel using a poetry plugin
     def _build_sdists(self, project_paths: List[str], target_dist_folder: str):
         """

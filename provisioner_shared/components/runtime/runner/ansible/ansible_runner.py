@@ -358,8 +358,6 @@ class AnsibleRunnerLocal:
                 "SSH password authentication requires utility to be installed. name: sshpass"
             )
 
-        self._check_ssh_conn_on_hosts(ansible_hosts=selected_hosts)
-
         # Solution:
         # It is possible to pass the parameter using paramiko,
         # which is another pure python implementation of SSH.
@@ -370,6 +368,7 @@ class AnsibleRunnerLocal:
         self._create_ansible_config_file()
         self._create_ansible_callback_plugins_folder()
         self._create_inventory_hosts_file(selected_hosts)
+        self._check_ssh_conn_on_hosts(ansible_hosts=selected_hosts)
 
         playbook_content_escaped = playbook.get_content(self._paths, ansible_playbook_package, self._dry_run)
         playbook_file_path = self._create_playbook_file(name=playbook.get_name(), content=playbook_content_escaped)

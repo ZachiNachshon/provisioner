@@ -43,7 +43,7 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config, items):
-    run_all = config.getoption("--all")
+    # run_all = config.getoption("--all")
     only_e2e = config.getoption("--only-e2e")
     skip_e2e = config.getoption("--skip-e2e")
 

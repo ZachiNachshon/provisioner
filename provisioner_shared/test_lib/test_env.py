@@ -18,7 +18,7 @@ from provisioner_shared.components.runtime.utils.paths_fakes import FakePaths
 
 ROOT_PATH_TEST_ENV = "/test/env/root"
 
-PROJECT_ROOT_FOLDER = str(pathlib.Path(__file__).parent.parent.parent.parent.parent)
+PROJECT_ROOT_FOLDER = str(pathlib.Path(__file__).parent.parent.parent)
 CONFIG_INTERNAL_PATH = f"{PROJECT_ROOT_FOLDER}/provisioner/resources/config.yaml"
 
 

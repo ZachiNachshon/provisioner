@@ -8,12 +8,12 @@ from provisioner_shared.test_lib.test_env import TestEnv
 
 
 # To run as a single test target:
-#  poetry run coverage run -m pytest provisioner_shared/components/runtime/command/plugins/cli_test.py
+#  ./run-tests.py provisioner_shared/components/runtime/command/plugins/cli_test.py
 #
 class PluginsCliTestShould(unittest.TestCase):
     env = TestEnv.create()
 
-    def test_e2e_cli_plugins_list_cmd_success(self) -> None:
+    def test_cli_plugins_list_cmd_success(self) -> None:
         cli_app = self.env.create_cli_app()
         Assertion.expect_success(
             self,

@@ -8,7 +8,7 @@ from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
 from provisioner_shared.components.runtime.utils.yaml_util import YamlUtil
 
-YAML_TEST_DATA_FILE_PATH = "provisioner_shared/components/runtime/test_data/internal_config.yaml"
+YAML_TEST_DATA_FILE_PATH = "provisioner_shared/test_data/internal_config.yaml"
 
 
 # To run as a single test target:

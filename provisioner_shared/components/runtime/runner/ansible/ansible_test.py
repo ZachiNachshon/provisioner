@@ -17,12 +17,13 @@ from provisioner_shared.components.runtime.utils.paths import Paths
 from provisioner_shared.components.runtime.utils.process import Process
 from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
 from provisioner_shared.test_lib.assertions import Assertion
+from provisioner_shared.test_lib.docker.skip_if_not_docker import skip_if_not_in_docker
 
 #
 # NOTE: THOES ARE E2E TESTS - THEY'LL CREATE FILES & FOLDERS IN THE FILE SYSTEM
 #
 # To run these directly from the terminal use:
-#  poetry run coverage run -m pytest provisioner_shared/components/runtime/runner/ansible/ansible_test.py
+#  ./run-tests.py provisioner_shared/components/runtime/runner/ansible/ansible_test.py --container
 #
 ANSIBLE_PLAYBOOK_TEST_PATH = "/ansible/playbook/path"
 
@@ -105,6 +106,7 @@ class AnsibleRunnerTestShould(unittest.TestCase):
             ),
         )
 
+    @skip_if_not_in_docker
     def test_run_ansible_success(self):
         ctx = Context.create(dry_run=True, verbose=True, auto_prompt=True, os_arch=OsArch(os="TEST_OS"))
         Assertion.expect_outputs(
@@ -130,8 +132,8 @@ class AnsibleRunnerTestShould(unittest.TestCase):
                 f"ansible-playbook -i {os.path.expanduser('~/.config/provisioner/ansible/hosts')} DRY_RUN_RESPONSE -e local_bin_folder='~/.local/bin' -e dry_run=True -e {ANSIBLE_VAR_1} -e {ANSIBLE_VAR_2} --tags {ANSIBLE_TAG_1},{ANSIBLE_TAG_2},TEST_OS -vvvv",
             ],
         )
-        self.assertTrue(False)
 
+    @skip_if_not_in_docker
     def test_run_ansible_with_remote_context_modifiers(self):
         ctx = Context.create(dry_run=True, verbose=True, auto_prompt=True, os_arch=OsArch(os="TEST_OS"))
         Assertion.expect_outputs(
@@ -162,6 +164,7 @@ class AnsibleRunnerTestShould(unittest.TestCase):
             ],
         )
 
+    @skip_if_not_in_docker
     def test_run_ansible_reducing_sensitive_data_from_command(self):
         ctx = Context.create(dry_run=True, verbose=True, auto_prompt=True, os_arch=OsArch(os="TEST_OS"))
         Assertion.expect_outputs(

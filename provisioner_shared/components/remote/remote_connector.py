@@ -302,6 +302,7 @@ class RemoteMachineConnector:
         )
 
         for host in ansible_hosts:
+            # If the username is not set, prompt the user for it
             if not host.username or len(host.username) == 0:
                 default_username = remote_opts.get_conn_flags().node_username if remote_opts.get_conn_flags() else None
                 host.username = Evaluator.eval_step_return_value_throw_on_failure(
@@ -313,7 +314,6 @@ class RemoteMachineConnector:
                     ctx=ctx,
                     err_msg="Failed to read username",
                 )
-
             if (not host.password or len(host.password) > 0) and (
                 not host.ssh_private_key_file_path or len(host.ssh_private_key_file_path) > 0
             ):
@@ -352,7 +352,9 @@ class RemoteMachineConnector:
             ssh_private_key_path = Evaluator.eval_step_return_value_throw_on_failure(
                 call=lambda: self.collaborators.prompter().prompt_user_input_fn(
                     message="Enter SSH private key path",
-                    default=remote_opts.node_password,
+                    default=(
+                        remote_opts.get_conn_flags().ssh_private_key_file_path if remote_opts.get_conn_flags() else None
+                    ),
                     post_user_input_message="Set private key path ",
                     redact_value=True,
                 ),
@@ -371,11 +373,12 @@ class RemoteMachineConnector:
         options_list: List[str] = []
         option_to_value_dict: dict[str, dict] = {}
         for pair in ansible_hosts:
-            identifier = f"{pair.host}, {pair.ip_address}"
-            options_list.append(identifier)
-            option_to_value_dict[identifier] = {
+            host_ip_pair_id = f"{pair.host}, {pair.ip_address}"
+            options_list.append(host_ip_pair_id)
+            option_to_value_dict[host_ip_pair_id] = {
                 "hostname": pair.host,
                 "ip_address": pair.ip_address,
+                "port": pair.port,
                 "username": pair.username,
                 "password": pair.password,
                 "ssh_private_key_file_path": pair.ssh_private_key_file_path,
@@ -437,7 +440,7 @@ class RemoteMachineConnector:
         return result
 
     def _is_remote_flags_were_used(self, cli_remote_opts: RemoteOpts) -> bool:
-        return cli_remote_opts and not cli_remote_opts.get_conn_flags().is_empty()
+        return cli_remote_opts and cli_remote_opts.get_conn_flags() and not cli_remote_opts.get_conn_flags().is_empty()
 
 
 def generate_instructions_network_scan() -> str:

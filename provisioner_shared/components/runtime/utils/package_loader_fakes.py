@@ -26,6 +26,6 @@ class FakePackageLoader(TestFakes, PackageLoader):
 
     def check_tool_fn(self, name: str) -> None:
         return self.trigger_side_effect("check_tool_fn", name)
-    
+
     def build_sdists_fn(self, project_paths: List[str], target_dist_folder: str):
         return self.trigger_side_effect("build_sdists_fn", project_paths, target_dist_folder)

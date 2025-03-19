@@ -37,7 +37,7 @@ class Checks:
 
         if which(name) is None:
             raise MissingUtilityException(f"missing CLI tool. name: {name}")
-        
+
     def _is_env_var_equals(self, name: str, value: str) -> bool:
         if self._dry_run:
             return False

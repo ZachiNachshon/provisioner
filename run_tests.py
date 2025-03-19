@@ -3,12 +3,13 @@
 import argparse
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import tarfile
-import shutil
 from pathlib import Path
 from typing import List, Optional, Set, Tuple
+
 import tomlkit
 
 # Docker-related constants
@@ -21,15 +22,17 @@ DEFAULT_POETRY_IMAGE_NAME = "provisioner-poetry-e2e"
 DEFAULT_POETRY_TAGGED_IMAGE_NAME = "provisioner-poetry-e2e:latest"
 DEFAULT_E2E_DOCKER_ESSENTIAL_FILES_ARCHIVE_NAME = "e2e_docker_essential_files.tar.gz"
 
+
 def should_build_image_before_tests() -> bool:
     return os.getenv("PROVISIONER_BUILD_IMAGE_BEFORE_TESTS", "false").lower() == "true"
+
 
 def get_project_from_test_path(test_path: str) -> str:
     """Extract project name from test path."""
     # Remove any test class and method specifications from the path
     if "::" in test_path:
         test_path = test_path.split("::")[0]
-    
+
     path = Path(test_path)
     if "plugins" in path.parts:
         # For plugin tests, return the plugin name
@@ -37,9 +40,10 @@ def get_project_from_test_path(test_path: str) -> str:
         plugin_name = plugin_parts[0] if plugin_parts else "provisioner_shared"
         return plugin_name.removesuffix(".py") if plugin_name.endswith(".py") else plugin_name
     elif "runtime" in path.parts:
-        return "provisioner_runtime"
+        return "provisioner"
     else:
         return "provisioner_shared"
+
 
 def get_project_path(project: str) -> Path:
     """Get the path to a project's directory."""
@@ -47,6 +51,7 @@ def get_project_path(project: str) -> Path:
         return Path("plugins") / project
     else:
         return Path(project)
+
 
 def get_dependencies(project: str) -> Set[str]:
     """Get dependencies for a project from pyproject.toml."""
@@ -57,14 +62,14 @@ def get_dependencies(project: str) -> Set[str]:
     try:
         with open(pyproject_path, "r") as f:
             pyproject = tomlkit.parse(f.read())
-            
+
         dependencies = pyproject.get("tool", {}).get("poetry", {}).get("dependencies", {})
-        
+
         for dep in dependencies:
             if dep.startswith("provisioner_"):
                 deps.add(dep)
                 deps.update(get_dependencies(dep))
-                
+
         return deps
     except FileNotFoundError:
         print(f"Warning: No pyproject.toml found for {project} at {pyproject_path}")
@@ -73,44 +78,46 @@ def get_dependencies(project: str) -> Set[str]:
         print(f"Error reading dependencies for {project}: {e}")
         return deps
 
+
 def build_sdists(projects: Set[str]):
     """Build sdist packages for specified projects and install them in the venv."""
     output_dir = Path(DEFAULT_POETRY_BUILT_SDIST_FOLDER)
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     for file in output_dir.glob("*.tar.gz"):
         file.unlink()
-    
+
     print("Building sdist packages for:")
     for project in projects:
         print(f"  - {project}")
-    
+
     for project in projects:
         project_path = get_project_path(project)
         dist_dir = project_path / "dist"
-        
+
         try:
             subprocess.run(
                 ["poetry", "build-project", "--format", "sdist"],
                 cwd=project_path,
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
             )
             print(f"Built {project} sdist package")
-            
+
             for sdist in dist_dir.glob("*.tar.gz"):
                 shutil.copy2(sdist, output_dir / sdist.name)
                 print(f"Copied {sdist.name} to {output_dir}")
-            
+
             shutil.rmtree(dist_dir)
-            
+
         except subprocess.CalledProcessError as e:
             print(f"Error building {project}: {e.stderr}")
             sys.exit(1)
         except Exception as e:
             print(f"Error processing {project}: {str(e)}")
             sys.exit(1)
+
 
 def install_sdists():
     """Install built sdist packages into the project's virtual environment."""
@@ -122,20 +129,19 @@ def install_sdists():
     print("Installing sdist packages:")
     try:
         subprocess.run(
-            ["poetry", "run", "pip", "uninstall", "-y"] + 
-            [p.stem.split('-')[0] for p in output_dir.glob("*.tar.gz")],
+            ["poetry", "run", "pip", "uninstall", "-y"] + [p.stem.split("-")[0] for p in output_dir.glob("*.tar.gz")],
             check=True,
             capture_output=True,
-            text=True
+            text=True,
         )
-        
+
         for sdist in output_dir.glob("*.tar.gz"):
             print(f"  - Installing {sdist.name}")
             subprocess.run(
                 ["poetry", "run", "pip", "install", str(sdist.absolute()), "--no-deps"],
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
             )
         print("All sdist packages installed successfully")
     except subprocess.CalledProcessError as e:
@@ -145,17 +151,29 @@ def install_sdists():
         print(f"Error during installation: {str(e)}")
         sys.exit(1)
 
+
 def run_local_tests(test_path: str = None):
     """Run tests locally using pytest and coverage."""
+    # Create a new environment with existing env vars plus our additions
+    env = os.environ.copy()
+    env.update(
+        {
+            "COLUMNS": "200",
+            "PYTHONIOENCODING": "utf-8",
+            "PYTEST_ADDOPTS": "--tb=short --no-header",
+        }
+    )
+
     cmd = ["poetry", "run", "coverage", "run", "-m", "pytest"]
-    
+
     if test_path:
         cmd.append(test_path)
-    
+
     try:
-        subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, env=env)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
+
 
 # Docker-related functions
 def get_project_mounted_volumes() -> List[str]:
@@ -172,6 +190,7 @@ def get_project_mounted_volumes() -> List[str]:
         "pytest.ini",
     ]
 
+
 def resolve_repo_path():
     """Resolve the absolute path of the repository."""
     current_dir = os.path.abspath(os.getcwd())
@@ -181,9 +200,11 @@ def resolve_repo_path():
         current_dir = os.path.dirname(current_dir)
     raise RuntimeError("Repository root not found.")
 
+
 def get_test_container_volumes(project_root: str) -> List[str]:
     folders_to_mount = get_project_mounted_volumes()
     return [f"{os.path.join(project_root, folder)}:/app/{folder}" for folder in folders_to_mount]
+
 
 def run_docker_command(cmd: List[str], is_build: bool = False) -> Tuple[int, str]:
     process = subprocess.Popen(
@@ -207,6 +228,7 @@ def run_docker_command(cmd: List[str], is_build: bool = False) -> Tuple[int, str
 
     return process.poll(), "\n".join(output_lines)
 
+
 def create_project_essentials_archive() -> str:
     """Create archive with essential project files."""
     repo_path = resolve_repo_path()
@@ -225,12 +247,13 @@ def create_project_essentials_archive() -> str:
                 tar.add(essential_file, arcname=os.path.relpath(essential_file, repo_path))
     return archive_path
 
+
 def build_docker_image(image_name: str, image_path: str):
     """Build Docker image if needed."""
     images_find_cmd = [
         "sh",
         "-c",
-        f'docker images --format "{{{{.Repository}}}} {{{{.Tag}}}} {{{{.ID}}}}" | grep {image_name} | sort -Vk2 | tail -n 1 | awk \'{{print $3}}\'',
+        f"docker images --format \"{{{{.Repository}}}} {{{{.Tag}}}} {{{{.ID}}}}\" | grep {image_name} | sort -Vk2 | tail -n 1 | awk '{{print $3}}'",
     ]
     exit_code, output = run_docker_command(images_find_cmd)
 
@@ -245,17 +268,18 @@ def build_docker_image(image_name: str, image_path: str):
 
     build_cmd = ["docker", "build", "-f", image_path, "-t", image_name, os.path.dirname(image_path)]
     exit_code, output = run_docker_command(build_cmd, is_build=True)
-    
+
     if exit_code == 0:
         print(f"\n✅ Image {image_name} built successfully!")
     else:
         print(f"\n❌ Error building image: {output}")
         sys.exit(1)
 
+
 def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, report: bool = False):
     """Run tests in Docker container."""
     build_docker_image(DEFAULT_POETRY_IMAGE_NAME, DEFAULT_POETRY_DOCKERFILE_FILE_PATH)
-    
+
     project_root = resolve_repo_path()
     mount_vols = get_test_container_volumes(project_root)
     vol_list = []
@@ -299,6 +323,7 @@ def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, rep
         print(f"\n❌ Test run failed on image: {DEFAULT_POETRY_IMAGE_NAME}, output: {output}")
         sys.exit(1)
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Run provisioner tests locally or in Docker",
@@ -316,7 +341,7 @@ Examples:
 
   # Run all tests in container with E2E only and coverage report
   ./run_tests.py --all --container --only-e2e --report
-"""
+""",
     )
     parser.add_argument("test_path", nargs="?", help="Path to specific test file")
     parser.add_argument("--all", action="store_true", help="Run all tests")
@@ -348,17 +373,18 @@ Examples:
         projects_to_build = {
             "provisioner_shared",
             "provisioner_runtime",
-            *[d.name for d in Path("plugins").iterdir() if d.is_dir() and d.name.startswith("provisioner_")]
+            *[d.name for d in Path("plugins").iterdir() if d.is_dir() and d.name.startswith("provisioner_")],
         }
         print("Building all packages")
 
     build_sdists(projects_to_build)
-    
+
     if args.container:
         run_docker_tests(args.test_path, args.only_e2e, args.report)
     else:
         install_sdists()
         run_local_tests(args.test_path)
 
+
 if __name__ == "__main__":
-    main() 
+    main()

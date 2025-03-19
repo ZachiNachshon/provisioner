@@ -20,7 +20,7 @@ ARG_CLI_OVERRIDE_IP_DISCOVERY_RANGE = "arg-test-ip-discovery-range"
 
 
 # To run as a single test target:
-#  poetry run coverage run -m pytest provisioner_shared/components/remote/remote_opts_test.py
+#  ./run-tests.py provisioner_shared/components/remote/remote_opts_test.py
 #
 class RemoteOptsTestShould(unittest.TestCase):
     def test_set_remote_opts_defaults_from_config_values(self) -> None:
@@ -38,7 +38,7 @@ class RemoteOptsTestShould(unittest.TestCase):
 
             Assertion.expect_equal_objects(
                 self,
-                obj1=remote_opts.get_config().ansible_hosts,
+                obj1=remote_opts.get_config().get_ansible_hosts(),
                 obj2=[
                     AnsibleHost(
                         host=TEST_DATA_SSH_HOSTNAME_1,
