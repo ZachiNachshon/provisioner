@@ -20,7 +20,7 @@ pre_run_args: PreRunArgs = PreRunArgs().handle_pre_click_args(ctx=pre_click_ctx)
 cols = CoreCollaborators(pre_click_ctx)
 
 root_menu = EntryPoint.create_cli_menu()
-ConfigManager.instance().load(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig),
+ConfigManager.instance().load(CONFIG_INTERNAL_PATH, CONFIG_USER_PATH, ProvisionerConfig)
 
 append_version_cmd_to_cli(root_menu, root_package=RUNTIME_ROOT_PATH)
 append_config_cmd_to_cli(root_menu, collaborators=cols)

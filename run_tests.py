@@ -34,7 +34,13 @@ def get_project_from_test_path(test_path: str) -> str:
         test_path = test_path.split("::")[0]
 
     path = Path(test_path)
-    if "plugins" in path.parts:
+    if path.name == "plugins":
+        # If the path is just "plugins", return all plugin projects
+        plugins_dir = Path("plugins")
+        if plugins_dir.exists():
+            plugin_projects = [d.name for d in plugins_dir.iterdir() if d.is_dir() and d.name.startswith("provisioner_")]
+            return " ".join(plugin_projects)
+    elif "plugins" in path.parts:
         # For plugin tests, return the plugin name
         plugin_parts = [part for part in path.parts if "provisioner_" in part]
         plugin_name = plugin_parts[0] if plugin_parts else "provisioner_shared"
@@ -152,15 +158,49 @@ def install_sdists():
         sys.exit(1)
 
 
-def run_local_tests(test_path: str = None):
+def clean_pycache_directories():
+    """Clean up all __pycache__ directories in the project."""
+    print(f"Cleaning project from __pycache__ folders ...")
+    for root, dirs, files in os.walk("."):
+        if "__pycache__" in dirs:
+            pycache_path = os.path.join(root, "__pycache__")
+            # print(f"Cleaning {pycache_path}")
+            shutil.rmtree(pycache_path)
+            dirs.remove("__pycache__")
+
+
+def get_test_directories() -> List[str]:
+    """Get all directories containing test files in the project."""
+    test_dirs = set()
+    
+    # Add main project directories
+    for project in ["provisioner_shared", "provisioner"]:
+        project_path = Path(project)
+        if project_path.exists():
+            test_dirs.add(str(project_path))
+    
+    # Add plugin directories
+    plugins_dir = Path("plugins")
+    if plugins_dir.exists():
+        for plugin_dir in plugins_dir.iterdir():
+            if plugin_dir.is_dir() and plugin_dir.name.startswith("provisioner_"):
+                test_dirs.add(str(plugin_dir))
+    
+    return list(test_dirs)
+
+
+def run_local_tests(test_path: str = None, report_type: str = None):
     """Run tests locally using pytest and coverage."""
+    # Clean up __pycache__ directories
+    clean_pycache_directories()
+
     # Create a new environment with existing env vars plus our additions
     env = os.environ.copy()
     env.update(
         {
             "COLUMNS": "200",
             "PYTHONIOENCODING": "utf-8",
-            "PYTEST_ADDOPTS": "--tb=short --no-header",
+            "PYTEST_ADDOPTS": "--tb=short --no-header --import-mode=importlib --ignore=.venv",
         }
     )
 
@@ -168,9 +208,21 @@ def run_local_tests(test_path: str = None):
 
     if test_path:
         cmd.append(test_path)
+    else:
+        # Add all project directories containing test files
+        cmd.extend(get_test_directories())
 
     try:
         subprocess.run(cmd, check=True, env=env)
+        # Generate coverage report if requested
+        if report_type:
+            subprocess.run(["poetry", "run", "coverage", "report"], check=True)
+            if report_type == "html":
+                subprocess.run(["poetry", "run", "coverage", "html"], check=True)
+                print(f"\n✅ HTML coverage report generated in {os.getcwd()}/htmlcov/index.html")
+            elif report_type == "xml":
+                subprocess.run(["poetry", "run", "coverage", "xml"], check=True)
+                print("\n✅ XML coverage report generated in coverage.xml")
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
@@ -276,7 +328,7 @@ def build_docker_image(image_name: str, image_path: str):
         sys.exit(1)
 
 
-def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, report: bool = False):
+def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, report_type: str = None):
     """Run tests in Docker container."""
     build_docker_image(DEFAULT_POETRY_IMAGE_NAME, DEFAULT_POETRY_DOCKERFILE_FILE_PATH)
 
@@ -285,6 +337,16 @@ def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, rep
     vol_list = []
     for vol in mount_vols:
         vol_list.extend(["-v", vol])
+
+    # Set environment variables for the container
+    env_vars = [
+        "-e", "COLUMNS=200",
+        "-e", "PYTHONIOENCODING=utf-8",
+        "-e", "PYTEST_ADDOPTS=--tb=short --no-header --import-mode=importlib",
+    ]
+
+    if report_type:
+        env_vars.extend(["-e", f"COVERAGE_REPORT_TYPE={report_type}"])
 
     cmd = [
         "docker",
@@ -298,6 +360,7 @@ def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, rep
         f"{project_root}/dockerfiles/poetry/dists:/tmp/provisioner-sdists",
         "-v",
         "/var/run/docker.sock:/var/run/docker.sock",
+        *env_vars,  # Add environment variables
         *vol_list,
         "-w",
         "/app",
@@ -312,8 +375,6 @@ def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, rep
 
     if only_e2e:
         cmd.append("--only-e2e")
-    if report:
-        cmd.append("--report")
 
     exit_code, output = run_docker_command(cmd)
     if exit_code == 0:
@@ -339,15 +400,27 @@ Examples:
   # Run specific test in container
   ./run_tests.py path/to/test.py --container
 
-  # Run all tests in container with E2E only and coverage report
-  ./run_tests.py --all --container --only-e2e --report
+  # Run all tests in container with E2E only and HTML coverage report
+  ./run_tests.py --all --container --only-e2e --report html
+
+  # Run tests with XML coverage report
+  ./run_tests.py --all --report xml
+
+  # Run tests without coverage report
+  ./run_tests.py --all
 """,
     )
     parser.add_argument("test_path", nargs="?", help="Path to specific test file")
     parser.add_argument("--all", action="store_true", help="Run all tests")
     parser.add_argument("--container", action="store_true", help="Run tests in Docker container")
     parser.add_argument("--only-e2e", action="store_true", help="Run only E2E tests")
-    parser.add_argument("--report", action="store_true", help="Generate coverage HTML report")
+    parser.add_argument(
+        "--report",
+        nargs="?",
+        choices=["html", "xml"],
+        const="html",  # Default value when --report is used without argument
+        help="Generate coverage report in specified format (html or xml). If no format is specified, defaults to html.",
+    )
     args = parser.parse_args()
 
     # If no arguments provided, show help
@@ -367,12 +440,16 @@ Examples:
 
     if args.test_path:
         project = get_project_from_test_path(args.test_path)
-        projects_to_build = get_dependencies(project)
+        # Split project string into list if it contains multiple projects
+        projects_to_build = set()
+        for p in project.split():
+            projects_to_build.add(p)
+            projects_to_build.update(get_dependencies(p))
         print(f"Building packages for test: {args.test_path}")
     elif args.all:
         projects_to_build = {
             "provisioner_shared",
-            "provisioner_runtime",
+            "provisioner",
             *[d.name for d in Path("plugins").iterdir() if d.is_dir() and d.name.startswith("provisioner_")],
         }
         print("Building all packages")
@@ -383,7 +460,7 @@ Examples:
         run_docker_tests(args.test_path, args.only_e2e, args.report)
     else:
         install_sdists()
-        run_local_tests(args.test_path)
+        run_local_tests(args.test_path, args.report)
 
 
 if __name__ == "__main__":

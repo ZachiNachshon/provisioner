@@ -4,6 +4,8 @@ name: Publish Provisioner to PyPi (auto version increment)
 # Upon publishign provisioner runtime, the provisioner_shared is also published
 # under the same version. This is because the provisioner_shared is a dependency
 # of the provisioner runtime and its plugins.
+# We must have it installed separately since if it'll be linked to runtime or plugins
+# upon uninstall, it'll get removed
 # 
 on:
   workflow_dispatch:

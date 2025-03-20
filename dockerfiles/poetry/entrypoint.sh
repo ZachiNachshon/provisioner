@@ -7,7 +7,7 @@ set -e
 export COLUMNS=200
 export PYTHONIOENCODING=utf-8
 # Set pytest options for cleaner output
-export PYTEST_ADDOPTS="--tb=short --no-header"
+export PYTEST_ADDOPTS="--tb=short --no-header --import-mode=importlib --ignore=.venv"
 
 echo "Installing packages from ${TEST_SDIST_OUTPUTS_CONTAINER_PATH}..."
 
@@ -50,9 +50,24 @@ else
     poetry run coverage run -m pytest "$@"
 fi
 
-if [[ $* == *--report* ]]; then
+# Handle coverage reports based on COVERAGE_REPORT_TYPE environment variable
+if [ -n "$COVERAGE_REPORT_TYPE" ]; then
     echo -e "\n\n========= COVERAGE FULL REPORT ======================\n\n"		
     poetry run coverage report
-    poetry run coverage html
-    echo -e "\n====\n\nFull coverage report available on the following link:\n\n  • $(pwd)/htmlcov/index.html\n"
+
+    case $COVERAGE_REPORT_TYPE in
+        "html")
+            poetry run coverage html
+            echo -e "\n====\n\nFull coverage report available on the following link:\n\n  • $(pwd)/htmlcov/index.html\n"
+            ;;
+        "xml")
+            poetry run coverage xml
+            echo -e "\n====\n\nXML coverage report available at:\n\n  • $(pwd)/coverage.xml\n"
+            ;;
+        *)
+            echo "Warning: Unknown report type '$COVERAGE_REPORT_TYPE'. Defaulting to HTML report."
+            poetry run coverage html
+            echo -e "\n====\n\nFull coverage report available on the following link:\n\n  • $(pwd)/htmlcov/index.html\n"
+            ;;
+    esac
 fi

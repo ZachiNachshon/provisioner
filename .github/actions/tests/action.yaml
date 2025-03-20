@@ -23,12 +23,12 @@ runs:
         echo "::endgroup::"
       shell: bash
 
-    - name: Switch to DEV mode on all projects
-      run: |
-        echo "::group::Switching to DEV mode on all projects"
-        make dev-mode
-        echo "::endgroup::"
-      shell: bash
+    # - name: Switch to DEV mode on all projects
+    #   run: |
+    #     echo "::group::Switching to DEV mode on all projects"
+    #     make dev-mode
+    #     echo "::endgroup::"
+    #   shell: bash
 
     # 
     # Temporary disable caching since the upload time takes longer than the actual action time
@@ -51,6 +51,6 @@ runs:
     - name: (Test) provisioner monorepo
       run: |
         echo "::group::Running tests on provisioner monorepo"
-        make test-coverage-xml
+        ./run-tests.py --all --container --report xml
         echo "::endgroup::"
       shell: bash    
