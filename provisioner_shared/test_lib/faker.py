@@ -70,7 +70,7 @@ class TestFakes:
         args_hash = hash(args_as_str)
 
         # print("==========================")
-        # print(f"hash: {args_hash}, args_str: {args_as_str}")
+        # print(f"func_name: {func_name}, hash: {args_hash}, args_str: {args_as_str}")
         # print("==========================")
 
         fn_register_log_msg = fn_register_log_msg.removesuffix(", ")
@@ -140,7 +140,7 @@ class TestFakes:
         logger.debug(fn_register_log_msg + ")")
 
         # print("==========================")
-        # print(f"hash: {hash(args_as_str)}, args_str: {args_as_str}")
+        # print(f"func_name: {func_name}, hash: {hash(args_as_str)}, args_str: {args_as_str}")
         # print("==========================")
         return mock_obj
 

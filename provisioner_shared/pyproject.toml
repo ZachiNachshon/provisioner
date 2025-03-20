@@ -18,6 +18,14 @@ packages = [
     { include = "resources", to = "provisioner_shared" },
 ]
 
+# Exclude test files from the package
+exclude = [
+    "**/*_test.py",
+    "**/*_test/*",
+    "*_test.py",
+    "*_test/*"
+]
+
 # Add components as dependencies
 [tool.poetry.dependencies]
 python = "^3.11"

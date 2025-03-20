@@ -38,7 +38,9 @@ def get_project_from_test_path(test_path: str) -> str:
         # If the path is just "plugins", return all plugin projects
         plugins_dir = Path("plugins")
         if plugins_dir.exists():
-            plugin_projects = [d.name for d in plugins_dir.iterdir() if d.is_dir() and d.name.startswith("provisioner_")]
+            plugin_projects = [
+                d.name for d in plugins_dir.iterdir() if d.is_dir() and d.name.startswith("provisioner_")
+            ]
             return " ".join(plugin_projects)
     elif "plugins" in path.parts:
         # For plugin tests, return the plugin name
@@ -102,6 +104,14 @@ def build_sdists(projects: Set[str]):
         dist_dir = project_path / "dist"
 
         try:
+            # Create a temporary MANIFEST.in file to exclude test files
+            manifest_path = project_path / "MANIFEST.in"
+            with open(manifest_path, "w") as f:
+                f.write("exclude */*_test.py\n")
+                f.write("exclude */*_test/*\n")
+                f.write("exclude *_test.py\n")
+                f.write("exclude *_test/*\n")
+
             subprocess.run(
                 ["poetry", "build-project", "--format", "sdist"],
                 cwd=project_path,
@@ -116,6 +126,7 @@ def build_sdists(projects: Set[str]):
                 print(f"Copied {sdist.name} to {output_dir}")
 
             shutil.rmtree(dist_dir)
+            manifest_path.unlink()  # Remove the temporary MANIFEST.in file
 
         except subprocess.CalledProcessError as e:
             print(f"Error building {project}: {e.stderr}")
@@ -160,7 +171,7 @@ def install_sdists():
 
 def clean_pycache_directories():
     """Clean up all __pycache__ directories in the project."""
-    print(f"Cleaning project from __pycache__ folders ...")
+    print("Cleaning project from __pycache__ folders ...")
     for root, dirs, files in os.walk("."):
         if "__pycache__" in dirs:
             pycache_path = os.path.join(root, "__pycache__")
@@ -172,20 +183,20 @@ def clean_pycache_directories():
 def get_test_directories() -> List[str]:
     """Get all directories containing test files in the project."""
     test_dirs = set()
-    
+
     # Add main project directories
     for project in ["provisioner_shared", "provisioner"]:
         project_path = Path(project)
         if project_path.exists():
             test_dirs.add(str(project_path))
-    
+
     # Add plugin directories
     plugins_dir = Path("plugins")
     if plugins_dir.exists():
         for plugin_dir in plugins_dir.iterdir():
             if plugin_dir.is_dir() and plugin_dir.name.startswith("provisioner_"):
                 test_dirs.add(str(plugin_dir))
-    
+
     return list(test_dirs)
 
 
@@ -340,9 +351,12 @@ def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, rep
 
     # Set environment variables for the container
     env_vars = [
-        "-e", "COLUMNS=200",
-        "-e", "PYTHONIOENCODING=utf-8",
-        "-e", "PYTEST_ADDOPTS=--tb=short --no-header --import-mode=importlib",
+        "-e",
+        "COLUMNS=200",
+        "-e",
+        "PYTHONIOENCODING=utf-8",
+        "-e",
+        "PYTEST_ADDOPTS=--tb=short --no-header --import-mode=importlib",
     ]
 
     if report_type:
@@ -459,6 +473,14 @@ Examples:
     if args.container:
         run_docker_tests(args.test_path, args.only_e2e, args.report)
     else:
+        # For local tests, uninstall existing packages before installing sdists
+        print("\nUninstalling existing packages from local virtual environment...")
+        subprocess.run(
+            ["poetry", "run", "pip", "uninstall", "-y", "provisioner", "provisioner_shared", "provisioner_*_plugin"],
+            check=False,  # Don't fail if some packages aren't installed
+            capture_output=True,
+            text=True,
+        )
         install_sdists()
         run_local_tests(args.test_path, args.report)
 

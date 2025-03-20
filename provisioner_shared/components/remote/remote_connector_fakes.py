@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from typing import Callable
 
 from provisioner_shared.components.remote.remote_connector import (
     DHCPCDConfigurationInfo,
@@ -46,19 +45,13 @@ class TestDataRemoteConnector:
     TEST_DATA_DHCP_STATIC_IP_ADDRESS = "test-static-ip-address"
 
     @staticmethod
-    def create_fake_ssh_conn_info_fn() -> Callable[..., SSHConnectionInfo]:
-        def create_fn(*any) -> SSHConnectionInfo:
-            return SSHConnectionInfo(ansible_hosts=TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS)
-
-        return create_fn
+    def create_fake_ssh_conn_info() -> SSHConnectionInfo:
+        return SSHConnectionInfo(ansible_hosts=TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS)
 
     @staticmethod
-    def create_fake_get_dhcpcd_configure_info_fn() -> Callable[..., DHCPCDConfigurationInfo]:
-        def create_fn(*any) -> DHCPCDConfigurationInfo:
-            return DHCPCDConfigurationInfo(
-                gw_ip_address=TestDataRemoteConnector.TEST_DATA_DHCP_GW_IP_ADDRESS,
-                dns_ip_address=TestDataRemoteConnector.TEST_DATA_DHCP_DNS_IP_ADDRESS,
-                static_ip_address=TestDataRemoteConnector.TEST_DATA_DHCP_STATIC_IP_ADDRESS,
-            )
-
-        return create_fn
+    def create_fake_get_dhcpcd_configure_info() -> DHCPCDConfigurationInfo:
+        return DHCPCDConfigurationInfo(
+            gw_ip_address=TestDataRemoteConnector.TEST_DATA_DHCP_GW_IP_ADDRESS,
+            dns_ip_address=TestDataRemoteConnector.TEST_DATA_DHCP_DNS_IP_ADDRESS,
+            static_ip_address=TestDataRemoteConnector.TEST_DATA_DHCP_STATIC_IP_ADDRESS,
+        )

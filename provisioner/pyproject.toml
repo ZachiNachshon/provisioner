@@ -10,6 +10,14 @@ packages = [
     { include = "resources", to = "provisioner_runtime"},
 ]
 
+# Exclude test files from the package
+exclude = [
+    "**/*_test.py",
+    "**/*_test/*",
+    "*_test.py",
+    "*_test/*"
+]
+
 # A list of patterns that will be included in the final package.
 # If no format is specified, it will default to include both sdist and wheel
 # i.e. { path = "tests", format = ["sdist", "wheel"] }
