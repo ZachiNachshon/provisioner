@@ -192,6 +192,21 @@ class RemoteMachineConnector:
         dns_ip_address: str = None,
     ) -> DHCPCDConfigurationInfo:
 
+        # Check if DHCP flags were used
+        if static_ip_address and gw_ip_address and dns_ip_address:
+            # All required DHCP flags are present, return configuration
+            return DHCPCDConfigurationInfo(
+                gw_ip_address=gw_ip_address,
+                dns_ip_address=dns_ip_address,
+                static_ip_address=static_ip_address
+            )
+        elif any([static_ip_address, gw_ip_address, dns_ip_address]):
+            # Only some flags were provided - this is an error
+            logger.error("All DHCP configuration flags must be provided together")
+            raise CliApplicationException(
+                "Must provide all of: static-ip-address, gw-ip-address, dns-ip-address"
+            )
+            
         self.collaborators.printer().print_with_rich_table_fn(
             generate_instructions_dhcpcd_config(
                 ansible_hosts=ansible_hosts,

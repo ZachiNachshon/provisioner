@@ -14,7 +14,7 @@ ENV_VAR_TESTING_MODE_ENABLED = "PROVISIONER_TESTING_MODE_ENABLED"
 
 class TestCliRunner:
     @staticmethod
-    def run_raw(cmd: click.BaseCommand, args: List[str] = []) -> click.testing.Result:
+    def run_throws_not_managed(cmd: click.BaseCommand, args: List[str] = []) -> click.testing.Result:
         return CliRunner().invoke(cmd, args)
 
     @staticmethod
@@ -50,7 +50,7 @@ class TestCliRunner:
             # Enhanced error output with detailed information
             assert (
                 result.exit_code == 0
-            ), f"Command failed with exit code {result.exit_code}\n\n=== OUTPUT ===\n\n{result.output}\n\n=== DETAILS ===\n\n{error_details}"
+            ), f"=== TestCliRunner managed assertion error ===\n\nCommand failed with exit code {result.exit_code}\n\n=== OUTPUT ===\n\n{result.output}\n\n=== DETAILS ===\n\n{error_details}"
             # raise AssertionError(f"{error_message}{error_details}")
 
         else:

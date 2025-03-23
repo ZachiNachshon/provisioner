@@ -120,13 +120,13 @@ class Auth(SerializationBase):
 
 
 class Host(SerializationBase):
+    name: str = ""
+    address: str = ""
+    port: int = 22
+    auth: Auth = Auth({})
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
-        self.name: str = ""
-        self.address: str = ""
-        self.port: int = 22
-        self.auth: Auth = Auth({})
 
     def merge(self, other: "Host") -> SerializationBase:
         # Hosts aren't mergable, they are all or nothing

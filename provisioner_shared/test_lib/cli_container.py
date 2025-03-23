@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import json
 import os
 import pathlib
@@ -103,7 +105,6 @@ class RemoteSSHContainer(DockerContainer):
             except Exception as e:
                 print(f"Failed to build Docker image: {str(e)}")
                 raise RuntimeError(f"Failed to build Docker image: {str(e)}")
-
 
 #     def __init__(self, core_cols: CoreCollaborators, allow_logging=False):
 #         self.core_cols = core_cols

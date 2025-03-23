@@ -194,7 +194,7 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
                     scan_flags=RemoteOptsFromScanFlags(ip_discovery_range=ip_discovery_range),
                     config=RemoteOptsFromConfig(remote_config=remote_config),
                 )
-                logger.debug("Initialized CliRemoteOpts for the first time.")
+                logger.debug("Initialized RemoteOpts for the first time.")
             else:
                 # Update only the relevant fields if they change
                 remote_opts = ctx.obj[REMOTE_CLICK_CTX_NAME]
