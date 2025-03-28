@@ -1,0 +1,39 @@
+# Ignore Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Test related
+*.img
+
+# Ignroe dev deps
+.ruff_cache/
+htmlcov/
+
+# Documentation
+docs-site/
+
+# Ignore virtual environments
+venv/
+env/
+.venv/
+
+# Ignore development and test files
+.git/
+.tox/
+.coverage
+*.log
+*.tmp
+
+# Ignore IDE and editor-specific files
+.idea/
+.vscode/
+.DS_Store
+
+# Ignore other unnecessary folders
+node_modules/
+build/
+dist/
+*.md
+.github/

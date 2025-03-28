@@ -3,8 +3,8 @@
 from typing import Optional
 
 from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.test_lib.test_errors import FakeEnvironmentAssertionError
 from provisioner_shared.components.runtime.utils.checks import Checks
+from provisioner_shared.test_lib.test_errors import FakeEnvironmentAssertionError
 
 DUMMY_VERSION = "v1.0.0"
 

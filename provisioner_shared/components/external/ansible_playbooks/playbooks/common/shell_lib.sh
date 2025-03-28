@@ -268,3 +268,37 @@ github_download_release_asset() {
     cmd_run "cd ${cwd} || exit"
   fi
 }
+
+#######################################
+# Return Python version as plain string
+# Globals:
+#   None
+# Arguments:
+#   None
+# Usage:
+#   read_python_version
+#######################################
+read_python_version() {
+  python3 --version 2>/dev/null | awk '{print $2}'
+}
+
+is_pip_installed() {
+  python3 -m pip --version >/dev/null 2>&1
+}
+
+append_to_path() {
+  local value=$1
+  if [[ -n "${value}" ]]; then
+    log_info "Appending to PATH: ${value}"
+    eval value="$value"  # Expands both $HOME and ~
+    PATH="${value}:${PATH}"
+  fi
+}
+
+refresh_bashrc() {
+  # Check if exists
+  if is_file_exist "${HOME}/.bashrc"; then
+    log_info "Refreshing bashrc..."
+    source "${HOME}/.bashrc"
+  fi
+}

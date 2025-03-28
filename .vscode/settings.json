@@ -1,6 +1,7 @@
 {
     "python.analysis.extraPaths": [
-        "./provisioner_features_lib"
+        "provisioner_shared",
+        "plugins"
     ],
     "workbench.colorCustomizations": {
         // Change the hex code to your desired background color

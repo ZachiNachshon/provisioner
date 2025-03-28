@@ -7,7 +7,7 @@ from unittest import mock
 
 from click.testing import Result
 
-from provisioner_shared.components.runtime.test_lib.test_errors import CliRunnerTestError
+from provisioner_shared.test_lib.test_errors import CliRunnerTestError
 
 REGEX_REMOTE_COLOR_CODES = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
 
@@ -107,12 +107,28 @@ class Assertion:
             obj2_json = to_json(obj2)
             testObj.assertEqual(obj1_json, obj2_json)
         except Exception as ex:
+            print("Objects are not equal or encountered a JSON serialization failure.")
+            print(f"obj1: {obj1_json}")
+            print(f"obj2: {obj2_json}")
             testObj.fail(f"Objects are not equal or encountered a JSON serialization failure. message: {str(ex)}")
         return
 
 
 def to_json(obj: Any) -> str:
-    if hasattr(obj, "__dict__"):
-        return json.dumps(obj.__dict__, default=vars, indent=2)
-    else:
-        return json.dumps(obj, default=vars, indent=2)
+    try:
+        if isinstance(obj, (str, int, float, bool, type(None))):
+            return json.dumps(obj)
+        elif isinstance(obj, (list, tuple)):
+            return json.dumps(
+                [json.loads(item) if isinstance(item, str) and item.strip().startswith("{") else item for item in obj]
+            )
+        elif isinstance(obj, dict):
+            return json.dumps(obj)
+        elif hasattr(obj, "__dict__"):
+            return json.dumps(obj.__dict__)
+        elif hasattr(obj, "_asdict"):  # Handle namedtuples
+            return json.dumps(obj._asdict())
+        else:
+            return json.dumps(str(obj))
+    except Exception as e:
+        return f"<unserializable object of type {type(obj).__name__}: {str(e)}>"

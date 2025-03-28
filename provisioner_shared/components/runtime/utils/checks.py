@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 from shutil import which
 
 from loguru import logger
@@ -37,5 +38,11 @@ class Checks:
         if which(name) is None:
             raise MissingUtilityException(f"missing CLI tool. name: {name}")
 
+    def _is_env_var_equals(self, name: str, value: str) -> bool:
+        if self._dry_run:
+            return False
+        return os.environ.get(name) == value
+
     is_tool_exist_fn = _is_tool_exist
     check_tool_fn = _check_tool
+    is_env_var_equals_fn = _is_env_var_equals

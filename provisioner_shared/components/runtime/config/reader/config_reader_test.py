@@ -4,9 +4,9 @@ import unittest
 
 from provisioner_shared.components.runtime.config.reader.config_reader import ConfigReader
 from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.test_data.domain import INTERNAL_CONFIG_TEST_DATA_FILE_PATH, FakeConfigObj
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
 from provisioner_shared.components.runtime.utils.yaml_util import YamlUtil
+from provisioner_shared.test_data.domain import INTERNAL_CONFIG_TEST_DATA_FILE_PATH, FakeConfigObj
 
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner/config/reader/config_reader_test.py

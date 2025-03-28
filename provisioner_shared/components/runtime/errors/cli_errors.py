@@ -53,6 +53,14 @@ class AnsiblePlaybookRunnerException(StepEvaluationFailure):
     pass
 
 
+class AnsiblePassAuthRequireSSHPassException(StepEvaluationFailure):
+    pass
+
+
+class AnsibleRunnerNoHostSSHAccessException(StepEvaluationFailure):
+    pass
+
+
 class CliEntrypointFailure(Exception):
     pass
 

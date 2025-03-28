@@ -5,11 +5,11 @@ from typing import Callable
 from unittest import mock
 
 from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.test_lib.assertions import Assertion
-from provisioner_shared.components.runtime.test_lib.test_env import TestEnv
 from provisioner_shared.components.runtime.utils.network import NetworkUtil
 from provisioner_shared.components.runtime.utils.printer_fakes import FakePrinter
 from provisioner_shared.components.runtime.utils.progress_indicator_fakes import FakeProgressIndicator
+from provisioner_shared.test_lib.assertions import Assertion
+from provisioner_shared.test_lib.test_env import TestEnv
 
 #
 # To run these directly from the terminal use:

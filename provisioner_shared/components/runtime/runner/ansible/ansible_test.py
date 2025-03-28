@@ -11,16 +11,19 @@ from provisioner_shared.components.runtime.runner.ansible.ansible_runner import 
     AnsiblePlaybook,
     AnsibleRunnerLocal,
 )
-from provisioner_shared.components.runtime.test_lib.assertions import Assertion
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
 from provisioner_shared.components.runtime.utils.os import OsArch
 from provisioner_shared.components.runtime.utils.paths import Paths
+from provisioner_shared.components.runtime.utils.process import Process
+from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
+from provisioner_shared.test_lib.assertions import Assertion
+from provisioner_shared.test_lib.docker.skip_if_not_docker import skip_if_not_in_docker
 
 #
 # NOTE: THOES ARE E2E TESTS - THEY'LL CREATE FILES & FOLDERS IN THE FILE SYSTEM
 #
 # To run these directly from the terminal use:
-#  poetry run coverage run -m pytest provisioner_shared/components/runtime/runner/ansible/ansible_test.py
+#  ./run-tests.py provisioner_shared/components/runtime/runner/ansible/ansible_test.py --container
 #
 ANSIBLE_PLAYBOOK_TEST_PATH = "/ansible/playbook/path"
 
@@ -48,18 +51,23 @@ ANSIBLE_DUMMY_PLAYBOOK_CONTENT_WITH_REMOTE_CTX = """
 """
 
 ANSIBLE_DUMMY_PLAYBOOK_NAME = "dummy_playbook"
-ANSIBLE_DUMMY_PLAYBOOK = AnsiblePlaybook(name=ANSIBLE_DUMMY_PLAYBOOK_NAME, content=ANSIBLE_DUMMY_PLAYBOOK_CONTENT)
+ANSIBLE_DUMMY_PLAYBOOK = AnsiblePlaybook(
+    name=ANSIBLE_DUMMY_PLAYBOOK_NAME,
+    content=ANSIBLE_DUMMY_PLAYBOOK_CONTENT,
+    remote_context=RemoteContext.create(verbose=True),
+)
 
 ANSIBLE_DUMMY_PLAYBOOK_WITH_REMOTE_CTX = AnsiblePlaybook(
     name=ANSIBLE_DUMMY_PLAYBOOK_NAME,
     content=ANSIBLE_DUMMY_PLAYBOOK_CONTENT_WITH_REMOTE_CTX,
-    remote_context=RemoteContext.create(dry_run=True, verbose=True, silent=True, non_interactive=True),
+    remote_context=RemoteContext.create(dry_run=True, verbose=True, silent=True),
 )
 
 ANSIBLE_HOSTS = [
     AnsibleHost(
         host="localhost",
         ip_address="ansible_connection=local",
+        port=2222,
         username="test-user",
         password="test-pass",
     )
@@ -90,18 +98,25 @@ class AnsibleRunnerTestShould(unittest.TestCase):
                 ctx=ctx,
                 io_utils=IOUtils.create(ctx),
                 paths=Paths.create(ctx),
+                process=Process.create(ctx),
+                progress=ProgressIndicator.create(ctx, IOUtils.create(ctx)),
             ).run_fn(
                 selected_hosts=[AnsibleHost("localhost", None)],
                 playbook=ANSIBLE_DUMMY_PLAYBOOK,
             ),
         )
 
+    @skip_if_not_in_docker
     def test_run_ansible_success(self):
         ctx = Context.create(dry_run=True, verbose=True, auto_prompt=True, os_arch=OsArch(os="TEST_OS"))
         Assertion.expect_outputs(
             self,
             method_to_run=lambda: AnsibleRunnerLocal.create(
-                ctx=ctx, io_utils=IOUtils.create(ctx), paths=Paths.create(ctx)
+                ctx=ctx,
+                io_utils=IOUtils.create(ctx),
+                paths=Paths.create(ctx),
+                process=Process.create(ctx),
+                progress=ProgressIndicator.create(ctx, IOUtils.create(ctx)),
             ).run_fn(
                 selected_hosts=ANSIBLE_HOSTS,
                 playbook=ANSIBLE_DUMMY_PLAYBOOK_WITH_REMOTE_CTX,
@@ -118,12 +133,17 @@ class AnsibleRunnerTestShould(unittest.TestCase):
             ],
         )
 
+    @skip_if_not_in_docker
     def test_run_ansible_with_remote_context_modifiers(self):
         ctx = Context.create(dry_run=True, verbose=True, auto_prompt=True, os_arch=OsArch(os="TEST_OS"))
         Assertion.expect_outputs(
             self,
             method_to_run=lambda: AnsibleRunnerLocal.create(
-                ctx=ctx, io_utils=IOUtils.create(ctx), paths=Paths.create(ctx)
+                ctx=ctx,
+                io_utils=IOUtils.create(ctx),
+                paths=Paths.create(ctx),
+                process=Process.create(ctx),
+                progress=ProgressIndicator.create(ctx, IOUtils.create(ctx)),
             ).run_fn(
                 selected_hosts=ANSIBLE_HOSTS,
                 playbook=ANSIBLE_DUMMY_PLAYBOOK_WITH_REMOTE_CTX,
@@ -144,12 +164,17 @@ class AnsibleRunnerTestShould(unittest.TestCase):
             ],
         )
 
+    @skip_if_not_in_docker
     def test_run_ansible_reducing_sensitive_data_from_command(self):
         ctx = Context.create(dry_run=True, verbose=True, auto_prompt=True, os_arch=OsArch(os="TEST_OS"))
         Assertion.expect_outputs(
             self,
             method_to_run=lambda: AnsibleRunnerLocal.create(
-                ctx=ctx, io_utils=IOUtils.create(ctx), paths=Paths.create(ctx)
+                ctx=ctx,
+                io_utils=IOUtils.create(ctx),
+                paths=Paths.create(ctx),
+                process=Process.create(ctx),
+                progress=ProgressIndicator.create(ctx, IOUtils.create(ctx)),
             ).run_fn(
                 selected_hosts=ANSIBLE_HOSTS,
                 playbook=ANSIBLE_DUMMY_PLAYBOOK_WITH_REMOTE_CTX,

@@ -10,13 +10,13 @@ from provisioner_shared.components.runtime.runner.ansible.ansible_runner import 
     AnsiblePlaybook,
     AnsibleRunnerLocal,
 )
-from provisioner_shared.components.runtime.test_lib.faker import TestFakes
+from provisioner_shared.test_lib.faker import TestFakes
 
 
 class FakeAnsibleRunnerLocal(TestFakes, AnsibleRunnerLocal):
     def __init__(self, ctx: Context) -> None:
         TestFakes.__init__(self)
-        AnsibleRunnerLocal.__init__(self, io_utils=None, paths=None, ctx=ctx)
+        AnsibleRunnerLocal.__init__(self, io_utils=None, paths=None, process=None, progress=None, ctx=ctx)
 
     @staticmethod
     def create(ctx: Context) -> "FakeAnsibleRunnerLocal":

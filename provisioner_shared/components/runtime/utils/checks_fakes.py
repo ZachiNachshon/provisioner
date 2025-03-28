@@ -3,8 +3,8 @@
 from unittest.mock import MagicMock
 
 from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.test_lib.faker import TestFakes
 from provisioner_shared.components.runtime.utils.checks import Checks
+from provisioner_shared.test_lib.faker import TestFakes
 
 
 class FakeChecks(TestFakes, Checks):
@@ -17,6 +17,7 @@ class FakeChecks(TestFakes, Checks):
         fake = FakeChecks(dry_run=ctx.is_dry_run(), verbose=ctx.is_verbose())
         fake.check_tool_fn = MagicMock(side_effect=fake.check_tool_fn)
         fake.is_tool_exist_fn = MagicMock(side_effect=fake.is_tool_exist_fn)
+        fake.is_env_var_equals_fn = MagicMock(side_effect=fake.is_env_var_equals_fn)
         return fake
 
     def is_tool_exist_fn(self, name: str) -> bool:
@@ -24,3 +25,6 @@ class FakeChecks(TestFakes, Checks):
 
     def check_tool_fn(self, name: str) -> None:
         return self.trigger_side_effect("check_tool_fn", name)
+
+    def is_env_var_equals_fn(self, name: str, value: str) -> bool:
+        return self.trigger_side_effect("is_env_var_equals_fn", name, value)

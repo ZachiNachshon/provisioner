@@ -18,6 +18,14 @@ packages = [
     { include = "resources", to = "provisioner_shared" },
 ]
 
+# Exclude test files from the package
+exclude = [
+    "**/*_test.py",
+    "**/*_test/*",
+    "*_test.py",
+    "*_test/*"
+]
+
 # Add components as dependencies
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -32,6 +40,7 @@ inquirer = ">=2.10,<4.0"
 python-hosts = "^1.0.3"
 ansible = ">=7.3,<12.0"
 ansible-runner = "^2.3.2"
+paramiko = "^3.5.1"
 
 # GitPython = "^3.1.18" # - GitPython provides object model access to your git repository (https://github.com/gitpython-developers/GitPython)
 # Jinja2 = "^3.0.3"      - Templating engine (https://github.com/pallets/jinja)
