@@ -72,10 +72,6 @@ fmt: ## Format Python code using Black style and sort imports
 	@poetry run black . 
 	@poetry run ruff check . --show-fixes --fix
 
-# .PHONY: test-all
-# test-all: ## Run full tests suite on host, Unit/IT/E2E (output: None)
-# 	@poetry run coverage run -m pytest
-
 .PHONY: test-all-in-container
 test-all-in-container: ## Run full tests suite in a Docker container, Unit/IT/E2E (output: none)
 	@./run_tests.py --all --container --report
