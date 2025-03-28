@@ -8,7 +8,7 @@ from provisioner_shared.test_lib.test_env import TestEnv
 
 
 # To run as a single test target:
-#  ./run-tests.py provisioner_shared/components/runtime/command/plugins/cli_test.py
+#  ./run_tests.py provisioner_shared/components/runtime/command/plugins/cli_test.py
 #
 class PluginsCliTestShould(unittest.TestCase):
     env = TestEnv.create()

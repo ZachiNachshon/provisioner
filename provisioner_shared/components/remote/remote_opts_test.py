@@ -20,7 +20,7 @@ ARG_CLI_OVERRIDE_IP_DISCOVERY_RANGE = "arg-test-ip-discovery-range"
 
 
 # To run as a single test target:
-#  ./run-tests.py provisioner_shared/components/remote/remote_opts_test.py
+#  ./run_tests.py provisioner_shared/components/remote/remote_opts_test.py
 #
 class RemoteOptsTestShould(unittest.TestCase):
     def test_set_remote_opts_defaults_from_config_values(self) -> None:

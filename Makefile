@@ -31,6 +31,7 @@ dev-mode-sources: ## Enable local development from sources using abs file path o
 
 .PHONY: deps-install
 deps-install: ## Update and install pyproject.toml dependencies on all virtual environments
+	@poetry lock
 	@poetry install --with dev --sync -v
 	@poetry lock
 	
@@ -76,33 +77,20 @@ fmt: ## Format Python code using Black style and sort imports
 # 	@poetry run coverage run -m pytest
 
 .PHONY: test-all-in-container
-test-all-in-container: ## Run full tests suite in a Docker container, Unit/IT/E2E (output: None)
-	@./run_in_docker.py
+test-all-in-container: ## Run full tests suite in a Docker container, Unit/IT/E2E (output: none)
+	@./run_tests.py --all --container --report
 	
 .PHONY: test-skip-e2e
 test-skip-e2e: ## Run only Unit/IT tests
-	@poetry run coverage run -m pytest --skip-e2e
+	@./run_tests.py --skip-e2e
 
 .PHONY: test-e2e
 test-e2e: ## Run only E2E tests in a Docker container
-	@./run_in_docker.py --only-e2e
+	@./run_tests.py --only-e2e
 
 .PHONY: test-coverage-html
-test-coverage-html: ## Run tests suite on runtime and all plugins, use 'e2e' to run only E2E tests (output: HTML report)
-	@if [ -n "$(word 2, $(MAKECMDGOALS))" ]; then \
-		echo "Running tests IT/Unit/E2E (with coverage report)"; \
-		poetry run coverage run -m pytest --only-e2e; \
-	else \
-		echo "Running tests IT/Unit (with coverage report)"; \
-		poetry run coverage run -m pytest; \
-	fi;
-	if [ $$? -ne 0 ]; then \
-		exit 1; \
-	fi;
-	@echo "\n\n========= COVERAGE FULL REPORT ======================\n\n"		
-	@poetry run coverage report
-	@poetry run coverage html
-	-@echo "\n====\n\nFull coverage report available on the following link:\n\n  • $(PWD)/htmlcov/index.html\n"
+test-coverage-html: ## Run tests suite on runtime and all plugins (output: HTML report)
+	./run_tests.py --all --container --report html
 
 # This is the command used by GitHub Actions to run the tests
 # It must fail the GitHub action step if any of the tests fail
@@ -110,14 +98,7 @@ test-coverage-html: ## Run tests suite on runtime and all plugins, use 'e2e' to 
 # is a makefile that runs other makefiles within a for loop
 .PHONY: test-coverage-xml
 test-coverage-xml: ## Run tests suite on runtime and all plugins (output: XML report)
-	@poetry run coverage run -m pytest; \
-	if [ $$? -ne 0 ]; then \
-		exit 1; \
-	fi; 
-	@echo "\n\n========= COVERAGE FULL REPORT ======================\n\n"		
-	@poetry run coverage report
-	@poetry run coverage xml
-	-@echo "\n====\n\nFull coverage report available on the following link:\n\n  • $(PWD)/coverage.xml\n"
+	./run_tests.py --all --container --report xml
 
 .PHONY: pip-install-runtime
 pip-install-runtime: ## [LOCAL] Install provisioner runtime to local pip
