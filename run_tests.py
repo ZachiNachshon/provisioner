@@ -241,6 +241,7 @@ def run_local_tests(test_path: str = None, report_type: str = None):
 # Docker-related functions
 def get_project_mounted_volumes() -> List[str]:
     return [
+        "dockerfiles",
         "provisioner",
         "provisioner_shared",
         "plugins",
