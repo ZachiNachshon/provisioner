@@ -106,6 +106,7 @@ class RemoteSSHContainer(DockerContainer):
                 print(f"Failed to build Docker image: {str(e)}")
                 raise RuntimeError(f"Failed to build Docker image: {str(e)}")
 
+
 #     def __init__(self, core_cols: CoreCollaborators, allow_logging=False):
 #         self.core_cols = core_cols
 #         self.allow_logging = allow_logging

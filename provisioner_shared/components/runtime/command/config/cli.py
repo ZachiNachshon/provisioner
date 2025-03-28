@@ -132,19 +132,40 @@ def remove_key(data, key):
         return remove_attribute_from_obj(data, key)
 
 
-def remove_attribute_from_obj(obj, attr):
+def remove_attribute_from_obj(obj, attr, depth=0, max_depth=10):
+    """Remove an attribute from an object and its nested structures.
+
+    Args:
+        obj: The object to process
+        attr: The attribute name to remove
+        depth: Current recursion depth
+        max_depth: Maximum allowed recursion depth
+    """
+    if depth >= max_depth:
+        return
+
+    # Handle None and primitive types
+    if obj is None or isinstance(obj, (str, int, float, bool)):
+        return
+
+    # Handle the object itself
     if hasattr(obj, attr):
         delattr(obj, attr)
-    for attribute in dir(obj):
-        if attribute.startswith("__") and attribute.endswith("__"):
-            # Ignore Python internal attributes/methods
-            continue
-        attr_value = getattr(obj, attribute)
-        if isinstance(attr_value, list):
-            for item in attr_value:
-                remove_attribute_from_obj(item, attr)
-        elif isinstance(attr_value, dict):
-            for item in attr_value.values():
-                remove_attribute_from_obj(item, attr)
-        else:
-            remove_attribute_from_obj(attr_value, attr)
+
+    # Handle different types of objects
+    if isinstance(obj, (list, tuple)):
+        for item in obj:
+            remove_attribute_from_obj(item, attr, depth + 1, max_depth)
+    elif isinstance(obj, dict):
+        for value in obj.values():
+            remove_attribute_from_obj(value, attr, depth + 1, max_depth)
+    elif hasattr(obj, "__dict__"):
+        # Only process object attributes if it's a custom object
+        for attribute in dir(obj):
+            if attribute.startswith("__") and attribute.endswith("__"):
+                continue
+            try:
+                attr_value = getattr(obj, attribute)
+                remove_attribute_from_obj(attr_value, attr, depth + 1, max_depth)
+            except (AttributeError, TypeError):
+                continue

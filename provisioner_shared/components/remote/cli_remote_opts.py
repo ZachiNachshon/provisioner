@@ -21,7 +21,7 @@ from provisioner_shared.components.runtime.infra.remote_context import RemoteCon
 
 REMOTE_GENERAL_OPTS_GROUP_NAME = "General"
 REMOTE_CON_FLAGS_GROUP_NAME = "Flags"
-REMOTE_SCAN_LAN_OPTS_GROUP_NAME = "ScanLAN"
+REMOTE_SCAN_LAN_OPTS_GROUP_NAME = "ScanLAN (requires nmap)"
 REMOTE_EXECUTION_OPTS_GROUP_NAME = "Execution"
 
 REMOTE_OPT_CONNECT_MODE = "connect-mode"

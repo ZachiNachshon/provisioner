@@ -40,9 +40,9 @@ class TestDataRemoteConnector:
     )
 
     TEST_DATA_SSH_ANSIBLE_HOSTS = [TEST_DATA_ANSIBLE_HOST_1, TEST_DATA_ANSIBLE_HOST_2]
-    TEST_DATA_DHCP_GW_IP_ADDRESS = "test-gw-ip-address"
-    TEST_DATA_DHCP_DNS_IP_ADDRESS = "test-dns-ip-address"
-    TEST_DATA_DHCP_STATIC_IP_ADDRESS = "test-static-ip-address"
+    TEST_DATA_DHCP_GW_IP_ADDRESS = "1.2.3.4"
+    TEST_DATA_DHCP_DNS_IP_ADDRESS = "1.1.1.1"
+    TEST_DATA_DHCP_STATIC_IP_ADDRESS = "2.2.2.2"
 
     @staticmethod
     def create_fake_ssh_conn_info() -> SSHConnectionInfo:

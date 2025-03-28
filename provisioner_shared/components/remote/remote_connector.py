@@ -196,17 +196,13 @@ class RemoteMachineConnector:
         if static_ip_address and gw_ip_address and dns_ip_address:
             # All required DHCP flags are present, return configuration
             return DHCPCDConfigurationInfo(
-                gw_ip_address=gw_ip_address,
-                dns_ip_address=dns_ip_address,
-                static_ip_address=static_ip_address
+                gw_ip_address=gw_ip_address, dns_ip_address=dns_ip_address, static_ip_address=static_ip_address
             )
         elif any([static_ip_address, gw_ip_address, dns_ip_address]):
             # Only some flags were provided - this is an error
             logger.error("All DHCP configuration flags must be provided together")
-            raise CliApplicationException(
-                "Must provide all of: static-ip-address, gw-ip-address, dns-ip-address"
-            )
-            
+            raise CliApplicationException("Must provide all of: static-ip-address, gw-ip-address, dns-ip-address")
+
         self.collaborators.printer().print_with_rich_table_fn(
             generate_instructions_dhcpcd_config(
                 ansible_hosts=ansible_hosts,
@@ -479,7 +475,7 @@ def generate_instructions_connect_via_ssh(ansible_hosts: List[AnsibleHost]):
     return f"""
   Gathering SSH connection information for IP addresses:
 {ip_addresses}
-  This step prompts for connection access information (press ENTER for defaults):
+  This step prompts for connection access information:
     • Raspberry Pi node user
     • Raspberry Pi node password
     • Raspberry Pi private SSH key path (Recommended)

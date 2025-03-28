@@ -165,7 +165,7 @@ class AnsibleHost:
         return AnsibleHost(
             host=ansible_host_dict["hostname"],
             ip_address=ansible_host_dict["ip_address"],
-            port=ansible_host_dict["port"],
+            port=ansible_host_dict["port"] if "port" in ansible_host_dict else 22,
             username=ansible_host_dict["username"] if "username" in ansible_host_dict else None,
             password=ansible_host_dict["password"] if "password" in ansible_host_dict else None,
             ssh_private_key_file_path=(
@@ -456,6 +456,7 @@ class AnsibleRunnerLocal:
                         username=host.username,
                         key_filename=host.ssh_private_key_file_path,
                     )
+                    # TODO: Replace with prompter
                 print("✅ SSH Connection Successful")
                 client.close()
                 return

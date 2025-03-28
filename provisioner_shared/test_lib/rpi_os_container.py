@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import logging
 import os
 import pathlib
 import time
@@ -8,23 +9,21 @@ import time
 import docker
 import paramiko
 from testcontainers.core.container import DockerContainer
-from testcontainers.core.waiting_utils import wait_for
-from testcontainers.core.exceptions import ContainerStartException
-import logging
 
 DEFAULT_RPI_OS_IMAGE_NAME = "provisioner-rpi-os-e2e"
 
 # Define the root path of the project (absolute path)
 PROJECT_ROOT_PATH = str(pathlib.Path(__file__).parent.parent.parent.resolve())
-DEFAULT_RPI_OS_DOCKERFILE_PATH = f"{PROJECT_ROOT_PATH}/dockerfiles/raspbian_test/Dockerfile"
+DEFAULT_RPI_OS_DOCKERFILE_PATH = f"{PROJECT_ROOT_PATH}/dockerfiles/raspbian_os/Dockerfile"
 
 logger = logging.getLogger(__name__)
 
+
 class RemoteRPiOsContainer(DockerContainer):
     """A container class for testing Raspberry Pi OS configuration in a lightweight environment."""
-    
+
     def __init__(self, image=DEFAULT_RPI_OS_IMAGE_NAME):
-    # def __init__(self, timeout: int = 30):
+        # def __init__(self, timeout: int = 30):
         super().__init__(image)
         self.with_exposed_ports(22)  # Ensure SSH is exposed
         # self.timeout = timeout
@@ -127,4 +126,4 @@ class RemoteRPiOsContainer(DockerContainer):
 
     # def get_container_logs(self) -> str:
     #     """Get the container logs."""
-    #     return self.get_wrapped_container().logs().decode("utf-8") 
+    #     return self.get_wrapped_container().logs().decode("utf-8")

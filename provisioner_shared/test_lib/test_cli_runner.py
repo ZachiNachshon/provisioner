@@ -9,7 +9,12 @@ import click
 import click.testing
 from click.testing import CliRunner
 
-ENV_VAR_TESTING_MODE_ENABLED = "PROVISIONER_TESTING_MODE_ENABLED"
+ENV_VAR_INSTALLER_PLUGIN_TEST = "PROVISIONER_INSTALLER_PLUGIN_TEST"
+
+
+class CliTestRunnerConfig:
+    def __init__(self, is_installer_plugin_test: bool = False):
+        self.is_installer_plugin_test = is_installer_plugin_test
 
 
 class TestCliRunner:
@@ -18,15 +23,15 @@ class TestCliRunner:
         return CliRunner().invoke(cmd, args)
 
     @staticmethod
-    def is_testing_mode_enabled() -> bool:
-        return os.getenv(key=ENV_VAR_TESTING_MODE_ENABLED, default=False)
+    def is_installer_plugin_test() -> bool:
+        return os.getenv(key=ENV_VAR_INSTALLER_PLUGIN_TEST, default=False)
 
     @staticmethod
-    def run(cmd: click.BaseCommand, args: List[str] = []) -> str:
+    def run(cmd: click.BaseCommand, args: List[str] = [], test_cfg: CliTestRunnerConfig = CliTestRunnerConfig()) -> str:
         test_env_vars = {}
-        if TestCliRunner.is_testing_mode_enabled():
-            print("Testing mode is enabled")
-            test_env_vars = {ENV_VAR_TESTING_MODE_ENABLED: "true"}
+        if TestCliRunner.is_installer_plugin_test() or test_cfg.is_installer_plugin_test:
+            print("Installer plugin testing mode is enabled")
+            test_env_vars = {ENV_VAR_INSTALLER_PLUGIN_TEST: "true"}
 
         result = CliRunner(mix_stderr=True).invoke(cli=cmd, args=args, env=test_env_vars)
 

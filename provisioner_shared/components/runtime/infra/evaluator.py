@@ -44,6 +44,9 @@ class Evaluator:
             print(str(sef))
         except Exception as e:
             logger.critical(f"{error_message}. name: {name}, ex: {e.__class__.__name__}, message: {str(e)}")
+            print("================================")
+            print(e.__class__.__name__)
+            print("================================")
             if verbose:
                 raise CliApplicationException(e)
             raise click.ClickException(error_message)

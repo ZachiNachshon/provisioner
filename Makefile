@@ -121,14 +121,14 @@ test-coverage-xml: ## Run tests suite on runtime and all plugins (output: XML re
 
 .PHONY: pip-install-runtime
 pip-install-runtime: ## [LOCAL] Install provisioner runtime to local pip
-	@echo "\n========= PROJECT: provisioner ==============\n"; \
-	cd provisioner; poetry build-project -f sdist; cd ..; \
-	
-
-# ./.venv/bin/pip3 install provisioner/dist/provisioner_*.tar.gz	 
-
-# @cd provisioner; poetry build-project -f wheel; cd ..
-# @pip3 install provisioner/dist/provisioner_*.whl
+	@echo "\n========= PROJECT: provisioner_shared ==============\n"; \
+	pip3 uninstall -y provisioner_shared; \
+	cd provisioner_shared; poetry build-project -f wheel; cd ..; \
+	pip3 install provisioner_shared/dist/provisioner_shared*.whl; \
+	echo "\n========= PROJECT: provisioner ==============\n"; \
+	pip3 uninstall -y provisioner; \
+	cd provisioner; poetry build-project -f wheel; cd ..; \
+	pip3 install provisioner/dist/provisioner_*.whl
 
 # @cd provisioner; poetry build-project -f sdist; cd ..
 # @pip3 install provisioner/dist/provisioner_*.tar.gz	
@@ -141,12 +141,12 @@ pip-install-plugin: ## [LOCAL] Install any plugin to local pip (make pip-install
 	fi
 	@PLUGIN=$(word 2, $(MAKECMDGOALS)); \
 	echo "\n========= PLUGIN: $$PLUGIN ==============\n"; \
-	cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f sdist; cd ../..; \
-	
-# ./.venv/bin/pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.tar.gz;
+	pip3 uninstall -y provisioner_$${PLUGIN}_plugin; \
+	cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f wheel; cd ../..; \
+	pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.whl;
 
-# cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f wheel; cd ../..; \
-# pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.whl;
+# cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f sdist; cd ../..; \
+# pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.tar.gz;
 
 .PHONY: pip-uninstall-runtime
 pip-uninstall-runtime: ## [LOCAL] Uninstall provisioner from local pip
