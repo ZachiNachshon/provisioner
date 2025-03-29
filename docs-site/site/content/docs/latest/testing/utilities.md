@@ -80,6 +80,57 @@ The container exposes several useful properties:
 - `ssh_port`: The mapped SSH port for connecting to the container
 - `container_id`: The ID of the running container
 
+### RemoteSSHContainer
+
+`RemoteSSHContainer` provides a lightweight SSH server environment for testing remote connections and SSH-based operations:
+
+```python
+from provisioner_shared.test_lib.ssh_container import RemoteSSHContainer
+
+class SSHConnectionTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.container = RemoteSSHContainer()
+        cls.container.start()
+        
+    @classmethod
+    def tearDownClass(cls):
+        if cls.container:
+            cls.container.stop()
+            cls.container = None
+            
+    def test_ssh_connection(self):
+        # Test connecting to the SSH container
+        output = TestCliRunner.run(
+            root_menu,
+            [
+                "remote",
+                "--connect-mode", "Flags",
+                "--username", "user",
+                "--password", "password",
+                "--host", "127.0.0.1",
+                "--port", str(self.container.ssh_port),
+                "command"
+            ],
+        )
+        
+        self.assertIn("Connection successful", output)
+```
+
+Key features of the `RemoteSSHContainer`:
+
+- Standard SSH server with preconfigured credentials
+- Pre-mapped port for SSH connections (accessible via `ssh_port` property)
+- Designed for testing remote connection workflows
+- Simpler than the RPi container when you only need SSH capabilities
+- Faster startup times for tests that only require basic SSH functionality
+
+The `RemoteSSHContainer` supports the same core methods as other container utilities:
+
+- `start()`: Starts the container and waits for SSH to be ready
+- `stop()`: Stops and removes the container
+- `is_running()`: Checks if the container is currently running
+
 ### Using Containers in Tests
 
 For end-to-end tests, the containers allow you to:

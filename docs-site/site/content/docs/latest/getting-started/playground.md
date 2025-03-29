@@ -1,42 +1,113 @@
 ---
 layout: docs
-title: Playground
-description: Give <code>provisioner</code> a try by using the examples plugin
+title: Interactive Playground
+description: Explore <code>Provisioner</code> features through practical examples
 group: getting-started
 toc: true
 ---
 
-## Instructions
-Follow these steps to install the examples plugin and run **no-op** commands just to get the feel of using provisioner, its plugins and overall user experience.
+## The Examples Plugin
 
-1. Install the playground
+The Examples plugin provides a safe, interactive environment to explore Provisioner's capabilities without making any system changes. It demonstrates the framework's user interface patterns, command structures, and interactive features.
 
-   ```bash
-   pip install provisioner-examples-plugin
-   ```
+## Getting Started
 
-1. List the available Ansible example commands
+### Installation
 
-   ```bash
-   provisioner examples ansible
-   ```
+First, install the Examples plugin:
 
-1. Run an example Ansible no-op local command
+```bash
+pip install provisioner-examples-plugin
+```
 
-   ```bash
-   provisioner examples ansible hello
-   ```
+This plugin adds several demonstration commands to your Provisioner installation, all designed to be completely safe to run.
 
-<br>
+### Exploring Commands
+
+After installation, explore the available example commands:
+
+```bash
+provisioner examples --help
+```
+
+You'll see several command groups:
+
+- `ansible` - Demonstrates localhost Ansible integration patterns
+- `anchor` - Interact with an OSS tool
+
+## Running Example Commands
+
+### Basic Ansible Example
+
+Try the "hello" command to see a basic Ansible integration example:
+
+```bash
+provisioner examples ansible hello
+```
+
+This command simulates an Ansible execution without actually modifying your system. It demonstrates:
+
+- Command parameter handling
+- Execution workflow visualization
+- Success/failure reporting
+
+<!-- ### Interactive Demos
+
+To experience Provisioner's interactive capabilities:
+
+```bash
+# TODO: Maybe add dummy commands to the examples plugin instead of a full blown RPi command
+provisioner single-board raspberry-pi node configure
+```
+
+This command demonstrates:
+
+- Dynamic menu generation
+- User input handling
+- Parameter validation
+- Contextual help -->
+
+## Using Dry Run Mode
+
+Provisioner includes a powerful "dry run" mode that shows what a command would do without actually executing it. This is especially useful for understanding complex commands before running them.
+
+To use dry run mode, add the `--dry-run` flag (or `-d` for short):
+
+```bash
+provisioner examples ansible hello --dry-run
+```
+
+For more detailed output, combine with the verbose flag:
+
+```bash
+provisioner examples ansible hello --dry-run --verbose
+```
+
+This will display:
+
+- Command hierarchy and structure
+- Parameter values and sources
+- Mock execution steps
+- Validation checks
 
 {{< callout info >}}
-This is a quick overview just to get a grasp of how simple it is to use `provisioner`.<br>For more information, please see the [usage section](/docs/{{< param docs_version >}}/usage/structure).
+Dry run mode is available for all Provisioner commands, not just examples. It's a safe way to explore commands in production environments before execution.
 {{< /callout >}}
 
-## Dry Run
+<!-- ## Experiment Safely
 
-Using `provisioner`, every command is a playground.
+The Examples plugin is designed for experimentation and learning. Feel free to try different command combinations, flags, and options to understand how Provisioner's command system works.
 
-Use the `--dry-run` (short: `-d`) to check command exeuction breakdown, you can also add the `--verbose` (short: `-v`) flag to read DEBUG information.
+Some interesting commands to try:
 
-*All dry-run actions are no-op, you can safely run them as they only print to stdout.*
+```bash
+# TODO (Zachi): Implement the following examples:
+
+# Try the remote execution simulation
+
+# Explore the progress reporting features
+
+# See how validation works
+``` -->
+
+After exploring the Examples plugin, you'll have a solid understanding of Provisioner's command patterns and will be ready to use more advanced plugins for real-world tasks.
