@@ -51,6 +51,6 @@ runs:
     - name: (Test) provisioner monorepo
       run: |
         echo "::group::Running tests on provisioner monorepo"
-        ./run-tests.py --all --container --report xml
+        make test-coverage-xml
         echo "::endgroup::"
       shell: bash    

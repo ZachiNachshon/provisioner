@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import hashlib
 from pathlib import Path
 from typing import List, Optional, Set, Tuple
 
@@ -16,15 +17,12 @@ import tomlkit
 PROJECT_ROOT_PATH = str(pathlib.Path(__file__).parent.resolve())
 DEFAULT_POETRY_DOCKER_FOLDER_PATH = f"{PROJECT_ROOT_PATH}/dockerfiles/poetry"
 DEFAULT_POETRY_DOCKERFILE_FILE_PATH = f"{DEFAULT_POETRY_DOCKER_FOLDER_PATH}/Dockerfile"
+DEFAULT_POETRY_HASH_FILE = f"{DEFAULT_POETRY_DOCKER_FOLDER_PATH}/.dockerfile_hash"
 DEFAULT_POETRY_BUILT_SDIST_FOLDER = f"{DEFAULT_POETRY_DOCKER_FOLDER_PATH}/dists/"
 DEFAULT_CONTAINER_PROJECT_PATH = "/app"
 DEFAULT_POETRY_IMAGE_NAME = "provisioner-poetry-e2e"
 DEFAULT_POETRY_TAGGED_IMAGE_NAME = "provisioner-poetry-e2e:latest"
 DEFAULT_E2E_DOCKER_ESSENTIAL_FILES_ARCHIVE_NAME = "e2e_docker_essential_files.tar.gz"
-
-
-def should_build_image_before_tests() -> bool:
-    return os.getenv("PROVISIONER_BUILD_IMAGE_BEFORE_TESTS", "false").lower() == "true"
 
 
 def get_project_from_test_path(test_path: str) -> str:
@@ -200,7 +198,7 @@ def get_test_directories() -> List[str]:
     return list(test_dirs)
 
 
-def run_local_tests(test_path: str = None, report_type: str = None):
+def run_local_tests(test_path: str = None, report_type: str = None, only_e2e: bool = False, skip_e2e: bool = False):
     """Run tests locally using pytest and coverage."""
     # Clean up __pycache__ directories
     clean_pycache_directories()
@@ -223,6 +221,12 @@ def run_local_tests(test_path: str = None, report_type: str = None):
         # Add all project directories containing test files
         cmd.extend(get_test_directories())
 
+    # Add e2e flags
+    if only_e2e:
+        cmd.append("--only-e2e")
+    elif skip_e2e:
+        cmd.append("--skip-e2e")
+
     try:
         subprocess.run(cmd, check=True, env=env)
         # Generate coverage report if requested
@@ -241,6 +245,7 @@ def run_local_tests(test_path: str = None, report_type: str = None):
 # Docker-related functions
 def get_project_mounted_volumes() -> List[str]:
     return [
+        "dockerfiles",
         "provisioner",
         "provisioner_shared",
         "plugins",
@@ -311,35 +316,84 @@ def create_project_essentials_archive() -> str:
     return archive_path
 
 
+def get_dockerfile_hash(dockerfile_path):
+    """Calculate hash of Dockerfile content"""
+    if not os.path.exists(dockerfile_path):
+        print(f"Warning: Dockerfile not found at {dockerfile_path}")
+        return "no-dockerfile-found"
+        
+    with open(dockerfile_path, 'rb') as f:
+        return hashlib.md5(f.read()).hexdigest()
+
+
+def has_dockerfile_hash_changed(current_hash, hash_file_path):
+    """Check if Dockerfile hash has changed compared to stored hash"""
+    # If hash file doesn't exist, consider it as changed
+    if not os.path.exists(hash_file_path):
+        return True
+        
+    with open(hash_file_path, 'r') as f:
+        stored_hash = f.read().strip()
+        
+    return stored_hash != current_hash
+
+
+def save_dockerfile_hash(hash_value, hash_file_path):
+    """Save Dockerfile hash for future comparison"""
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(hash_file_path), exist_ok=True)
+    
+    with open(hash_file_path, 'w') as f:
+        f.write(hash_value)
+
+
 def build_docker_image(image_name: str, image_path: str):
-    """Build Docker image if needed."""
+    """Build Docker image if needed using content hash for caching."""
+    # Check if image exists
     images_find_cmd = [
         "sh",
         "-c",
         f"docker images --format \"{{{{.Repository}}}} {{{{.Tag}}}} {{{{.ID}}}}\" | grep {image_name} | sort -Vk2 | tail -n 1 | awk '{{print $3}}'",
     ]
     exit_code, output = run_docker_command(images_find_cmd)
-
-    force_build = should_build_image_before_tests()
-    if exit_code == 0 and output.strip() and not force_build:
-        print(f"\n✅ Image {image_name} already exists, skipping build...")
+    image_exists = exit_code == 0 and output.strip()
+    
+    # Calculate Dockerfile hash
+    dockerfile_hash = get_dockerfile_hash(image_path)
+    print(f"Image {image_name} Dockerfile hash: {dockerfile_hash}")
+    
+    # Define hash file path
+    hash_file_path = os.path.join(os.path.dirname(image_path), '.dockerfile_hash')
+    
+    # Check if hash has changed
+    hash_changed = has_dockerfile_hash_changed(dockerfile_hash, hash_file_path)
+    
+    if image_exists and not hash_changed:
+        print(f"\n✅ Image {image_name} already exists with current Dockerfile hash, skipping build...")
         return
-
-    print("\n  🔨 Building Docker image for tests...")
-    archive_path = create_project_essentials_archive()
-    print(f"  🗃️ Created archive: {archive_path}\n")
-
-    build_cmd = ["docker", "build", "-f", image_path, "-t", image_name, os.path.dirname(image_path)]
-    exit_code, output = run_docker_command(build_cmd, is_build=True)
-
-    if exit_code == 0:
-        print(f"\n✅ Image {image_name} built successfully!")
     else:
-        print(f"\n❌ Error building image: {output}")
-        sys.exit(1)
+        if hash_changed:
+            print("Dockerfile has changed since last build, rebuilding image...")
+        else:
+            print("Image doesn't exist, building it...")
+
+        print("\n  🔨 Building Docker image for tests...")
+        archive_path = create_project_essentials_archive()
+        print(f"  🗃️ Created archive: {archive_path}\n")
+
+        build_cmd = ["docker", "build", "-f", image_path, "-t", image_name, os.path.dirname(image_path)]
+        exit_code, output = run_docker_command(build_cmd, is_build=True)
+
+        if exit_code == 0:
+            print(f"\n✅ Image {image_name} built successfully!")
+            # Save the new hash after successful build
+            save_dockerfile_hash(dockerfile_hash, hash_file_path)
+        else:
+            print(f"\n❌ Error building image: {output}")
+            sys.exit(1)
 
 
-def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, report_type: str = None):
+def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, report_type: str = None, skip_e2e: bool = False):
     """Run tests in Docker container."""
     build_docker_image(DEFAULT_POETRY_IMAGE_NAME, DEFAULT_POETRY_DOCKERFILE_FILE_PATH)
 
@@ -367,7 +421,9 @@ def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, rep
         "run",
         "--network=host",
         "--rm",
-        "-it",
+        "-i",
+        "--tty=false",
+        # "-it",
         "--name",
         DEFAULT_POETRY_IMAGE_NAME,
         "-v",
@@ -387,8 +443,11 @@ def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, rep
     else:
         print("\n🧪 Running tests suite...\n")
 
+    # Pass both flags independently
     if only_e2e:
         cmd.append("--only-e2e")
+    elif skip_e2e:
+        cmd.append("--skip-e2e")
 
     exit_code, output = run_docker_command(cmd)
     if exit_code == 0:
@@ -414,6 +473,9 @@ Examples:
   # Run specific test in container
   ./run_tests.py path/to/test.py --container
 
+  # Run all tests ignoring E2E tests
+  ./run_tests.py --all --skip-e2e
+
   # Run all tests in container with E2E only and HTML coverage report
   ./run_tests.py --all --container --only-e2e --report html
 
@@ -428,6 +490,7 @@ Examples:
     parser.add_argument("--all", action="store_true", help="Run all tests")
     parser.add_argument("--container", action="store_true", help="Run tests in Docker container")
     parser.add_argument("--only-e2e", action="store_true", help="Run only E2E tests")
+    parser.add_argument("--skip-e2e", action="store_true", help="Skip E2E tests")
     parser.add_argument(
         "--report",
         nargs="?",
@@ -452,6 +515,11 @@ Examples:
         parser.error("Cannot specify both test path and --all")
         sys.exit(1)
 
+    # Ensure --only-e2e and --skip-e2e are not used together
+    if args.only_e2e and args.skip_e2e:
+        parser.error("Cannot specify both --only-e2e and --skip-e2e")
+        sys.exit(1)
+
     if args.test_path:
         project = get_project_from_test_path(args.test_path)
         # Split project string into list if it contains multiple projects
@@ -471,7 +539,7 @@ Examples:
     build_sdists(projects_to_build)
 
     if args.container:
-        run_docker_tests(args.test_path, args.only_e2e, args.report)
+        run_docker_tests(args.test_path, args.only_e2e, args.report, args.skip_e2e)
     else:
         # For local tests, uninstall existing packages before installing sdists
         print("\nUninstalling existing packages from local virtual environment...")
@@ -482,7 +550,7 @@ Examples:
             text=True,
         )
         install_sdists()
-        run_local_tests(args.test_path, args.report)
+        run_local_tests(args.test_path, args.report, args.only_e2e, args.skip_e2e)
 
 
 if __name__ == "__main__":

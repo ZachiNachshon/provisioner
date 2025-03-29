@@ -52,3 +52,10 @@ runs:
         sudo mv gh_*_linux_amd64/bin/gh /usr/local/bin/
         gh --version
       shell: bash
+
+    - name: (Install) pip packages
+      if: steps.cache-pip-packages.outputs.cache-hit != 'true'
+      run: |
+        pip3 install tomlkit --disable-pip-version-check --no-python-version-warning
+      shell: bash
+

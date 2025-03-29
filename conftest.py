@@ -44,8 +44,8 @@ def pytest_configure(config):
 
 def pytest_collection_modifyitems(config, items):
     # run_all = config.getoption("--all")
-    only_e2e = config.getoption("--only-e2e")
-    skip_e2e = config.getoption("--skip-e2e")
+    only_e2e_flag = config.getoption("--only-e2e")
+    skip_e2e_flag = config.getoption("--skip-e2e")
 
     skip_non_e2e = pytest.mark.skip(reason="Skipping non-E2E tests (--only-e2e enabled)")
     skip_e2e_marker = pytest.mark.skip(reason="Skipping E2E tests (--skip-e2e enabled)")
@@ -53,9 +53,9 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         is_e2e = item.get_closest_marker("e2e") is not None  # More reliable check
 
-        if only_e2e and not is_e2e:
+        if only_e2e_flag and not is_e2e:
             item.add_marker(skip_non_e2e)  # Skip non-E2E tests if --only-e2e is passed
-        elif skip_e2e and is_e2e:
+        elif skip_e2e_flag and is_e2e:
             item.add_marker(skip_e2e_marker)  # Skip E2E tests if --skip-e2e is passed
         # If --all is passed, run all tests without skipping anything
 

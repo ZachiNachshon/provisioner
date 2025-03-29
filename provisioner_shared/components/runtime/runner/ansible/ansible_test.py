@@ -23,7 +23,7 @@ from provisioner_shared.test_lib.docker.skip_if_not_docker import skip_if_not_in
 # NOTE: THOES ARE E2E TESTS - THEY'LL CREATE FILES & FOLDERS IN THE FILE SYSTEM
 #
 # To run these directly from the terminal use:
-#  ./run-tests.py provisioner_shared/components/runtime/runner/ansible/ansible_test.py --container
+#  ./run_tests.py provisioner_shared/components/runtime/runner/ansible/ansible_test.py --container
 #
 ANSIBLE_PLAYBOOK_TEST_PATH = "/ansible/playbook/path"
 

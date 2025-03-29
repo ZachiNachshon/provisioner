@@ -4,6 +4,7 @@ import json
 import os
 import pathlib
 import time
+import hashlib
 
 import docker
 import paramiko
@@ -15,6 +16,7 @@ DEFAULT_REMOTE_SSH_IMAGE_NAME = "provisioner-remote-ssh-e2e"
 PROJECT_ROOT_PATH = str(pathlib.Path(__file__).parent.parent.parent.resolve())
 # TEST_DOCKER_ROOT_PATH = str(pathlib.Path(__file__).parent.resolve())
 DEFAULT_REMOTE_SSH_DOCKERFILE_PATH = f"{PROJECT_ROOT_PATH}/dockerfiles/remote_ssh/Dockerfile"
+DEFAULT_REMOTE_SSH_HASH_FILE = f"{PROJECT_ROOT_PATH}/dockerfiles/remote_ssh/.dockerfile_hash"
 
 
 #
@@ -41,9 +43,6 @@ class RemoteSSHContainer(DockerContainer):
         # Wait for SSH to be responsive
         self._wait_for_ssh()
         return self
-
-    def _should_build_image_before_tests(self) -> bool:
-        return os.getenv("PROVISIONER_BUILD_IMAGE_BEFORE_TESTS", "false").lower() == "true"
 
     def _wait_for_ssh(self):
         """Ensure SSH is ready before proceeding."""
@@ -72,15 +71,26 @@ class RemoteSSHContainer(DockerContainer):
             return False
 
     def build_image(self):
-        """Build the Docker image locally"""
+        """Build the Docker image locally using Dockerfile content hash for caching"""
         client = docker.from_env()
-        force_build = self._should_build_image_before_tests()
         image_exist = self._image_exists(client, DEFAULT_REMOTE_SSH_IMAGE_NAME)
-
-        if image_exist and not force_build:
-            print(f"Image {DEFAULT_REMOTE_SSH_IMAGE_NAME} already exists, skipping build...")
+        
+        # Calculate Dockerfile hash
+        dockerfile_hash = self._get_dockerfile_hash(DEFAULT_REMOTE_SSH_DOCKERFILE_PATH)
+        print(f"Image {DEFAULT_REMOTE_SSH_IMAGE_NAME} Dockerfile hash: {dockerfile_hash}")
+        
+        # Check if hash has changed
+        hash_changed = self._has_dockerfile_hash_changed(dockerfile_hash, DEFAULT_REMOTE_SSH_HASH_FILE)
+        
+        if image_exist and not hash_changed:
+            print(f"Image {DEFAULT_REMOTE_SSH_IMAGE_NAME} already exists with current Dockerfile hash, skipping build...")
             return
-        elif not image_exist or force_build:
+        else:
+            if hash_changed:
+                print("Dockerfile has changed since last build, rebuilding image...")
+            else:
+                print("Image doesn't exist, building it...")
+                
             print("\nBuilding Docker image for E2E tests...")
             print(f"Dockerfile Path: {DEFAULT_REMOTE_SSH_DOCKERFILE_PATH}")
             print(f"Build Context: {PROJECT_ROOT_PATH}\n")
@@ -101,10 +111,41 @@ class RemoteSSHContainer(DockerContainer):
                             print(log_line["stream"].strip())
                     except json.JSONDecodeError:
                         print(log.decode("utf-8").strip())
+                
+                # Save the new hash after successful build
+                self._save_dockerfile_hash(dockerfile_hash, DEFAULT_REMOTE_SSH_HASH_FILE)
 
             except Exception as e:
                 print(f"Failed to build Docker image: {str(e)}")
                 raise RuntimeError(f"Failed to build Docker image: {str(e)}")
+
+    def _get_dockerfile_hash(self, dockerfile_path):
+        """Calculate hash of Dockerfile content"""
+        if not os.path.exists(dockerfile_path):
+            print(f"Warning: Dockerfile not found at {dockerfile_path}")
+            return "no-dockerfile-found"
+            
+        with open(dockerfile_path, 'rb') as f:
+            return hashlib.md5(f.read()).hexdigest()
+
+    def _has_dockerfile_hash_changed(self, current_hash, hash_file_path):
+        """Check if Dockerfile hash has changed compared to stored hash"""
+        # If hash file doesn't exist, consider it as changed
+        if not os.path.exists(hash_file_path):
+            return True
+            
+        with open(hash_file_path, 'r') as f:
+            stored_hash = f.read().strip()
+            
+        return stored_hash != current_hash
+
+    def _save_dockerfile_hash(self, hash_value, hash_file_path):
+        """Save Dockerfile hash for future comparison"""
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(hash_file_path), exist_ok=True)
+        
+        with open(hash_file_path, 'w') as f:
+            f.write(hash_value)
 
 
 #     def __init__(self, core_cols: CoreCollaborators, allow_logging=False):
