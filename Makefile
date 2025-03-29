@@ -78,7 +78,7 @@ test-all-in-container: ## Run full tests suite in a Docker container, Unit/IT/E2
 	
 .PHONY: test-skip-e2e
 test-skip-e2e: ## Run only Unit/IT tests
-	@./run_tests.py --skip-e2e
+	@./run_tests.py --all --skip-e2e
 
 .PHONY: test-e2e
 test-e2e: ## Run only E2E tests in a Docker container
@@ -96,7 +96,7 @@ test-coverage-html: ## Run tests suite on runtime and all plugins (output: HTML 
 # 		  and do not build from scratch each time
 .PHONY: test-coverage-xml
 test-coverage-xml: ## Run tests suite on runtime and all plugins NO E2E (output: XML report)
-	./run_tests.py --skip-e2e --container --report xml
+	./run_tests.py --all --skip-e2e --report xml
 
 .PHONY: pip-install-runtime
 pip-install-runtime: ## [LOCAL] Install provisioner runtime to local pip

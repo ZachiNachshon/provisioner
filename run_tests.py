@@ -198,7 +198,7 @@ def get_test_directories() -> List[str]:
     return list(test_dirs)
 
 
-def run_local_tests(test_path: str = None, report_type: str = None):
+def run_local_tests(test_path: str = None, report_type: str = None, only_e2e: bool = False, skip_e2e: bool = False):
     """Run tests locally using pytest and coverage."""
     # Clean up __pycache__ directories
     clean_pycache_directories()
@@ -220,6 +220,12 @@ def run_local_tests(test_path: str = None, report_type: str = None):
     else:
         # Add all project directories containing test files
         cmd.extend(get_test_directories())
+
+    # Add e2e flags
+    if only_e2e:
+        cmd.append("--only-e2e")
+    elif skip_e2e:
+        cmd.append("--skip-e2e")
 
     try:
         subprocess.run(cmd, check=True, env=env)
@@ -387,7 +393,7 @@ def build_docker_image(image_name: str, image_path: str):
             sys.exit(1)
 
 
-def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, report_type: str = None):
+def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, report_type: str = None, skip_e2e: bool = False):
     """Run tests in Docker container."""
     build_docker_image(DEFAULT_POETRY_IMAGE_NAME, DEFAULT_POETRY_DOCKERFILE_FILE_PATH)
 
@@ -437,8 +443,11 @@ def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, rep
     else:
         print("\n🧪 Running tests suite...\n")
 
+    # Pass both flags independently
     if only_e2e:
         cmd.append("--only-e2e")
+    elif skip_e2e:
+        cmd.append("--skip-e2e")
 
     exit_code, output = run_docker_command(cmd)
     if exit_code == 0:
@@ -464,6 +473,9 @@ Examples:
   # Run specific test in container
   ./run_tests.py path/to/test.py --container
 
+  # Run all tests ignoring E2E tests
+  ./run_tests.py --all --skip-e2e
+
   # Run all tests in container with E2E only and HTML coverage report
   ./run_tests.py --all --container --only-e2e --report html
 
@@ -478,6 +490,7 @@ Examples:
     parser.add_argument("--all", action="store_true", help="Run all tests")
     parser.add_argument("--container", action="store_true", help="Run tests in Docker container")
     parser.add_argument("--only-e2e", action="store_true", help="Run only E2E tests")
+    parser.add_argument("--skip-e2e", action="store_true", help="Skip E2E tests")
     parser.add_argument(
         "--report",
         nargs="?",
@@ -502,6 +515,11 @@ Examples:
         parser.error("Cannot specify both test path and --all")
         sys.exit(1)
 
+    # Ensure --only-e2e and --skip-e2e are not used together
+    if args.only_e2e and args.skip_e2e:
+        parser.error("Cannot specify both --only-e2e and --skip-e2e")
+        sys.exit(1)
+
     if args.test_path:
         project = get_project_from_test_path(args.test_path)
         # Split project string into list if it contains multiple projects
@@ -521,7 +539,7 @@ Examples:
     build_sdists(projects_to_build)
 
     if args.container:
-        run_docker_tests(args.test_path, args.only_e2e, args.report)
+        run_docker_tests(args.test_path, args.only_e2e, args.report, args.skip_e2e)
     else:
         # For local tests, uninstall existing packages before installing sdists
         print("\nUninstalling existing packages from local virtual environment...")
@@ -532,7 +550,7 @@ Examples:
             text=True,
         )
         install_sdists()
-        run_local_tests(args.test_path, args.report)
+        run_local_tests(args.test_path, args.report, args.only_e2e, args.skip_e2e)
 
 
 if __name__ == "__main__":
