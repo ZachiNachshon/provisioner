@@ -5,6 +5,7 @@ import unittest
 from typing import List
 from unittest import mock
 
+from provisioner_shared.components.remote.domain.config import RemoteConfig, RemoteConnectMode
 from provisioner_shared.components.remote.remote_connector import (
     DHCPCDConfigurationInfo,
     NetworkDeviceAuthenticationMethod,
@@ -14,17 +15,22 @@ from provisioner_shared.components.remote.remote_connector import (
 from provisioner_shared.components.remote.remote_connector_fakes import (
     TestDataRemoteConnector,
 )
-from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
+from provisioner_shared.components.remote.remote_opts import (
+    RemoteOpts,
+    RemoteOptsFromConfig,
+    RemoteOptsFromConnFlags,
+    RemoteOptsFromScanFlags,
+)
 from provisioner_shared.components.remote.remote_opts_fakes import (
     TEST_DATA_REMOTE_NODE_PASSWORD_1,
     TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
     TestDataRemoteOpts,
 )
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
-from provisioner_shared.components.runtime.test_lib import faker
-from provisioner_shared.components.runtime.test_lib.assertions import Assertion
-from provisioner_shared.components.runtime.test_lib.test_env import TestEnv
 from provisioner_shared.components.runtime.utils.prompter import PromptLevel
+from provisioner_shared.test_lib import faker
+from provisioner_shared.test_lib.assertions import Assertion
+from provisioner_shared.test_lib.test_env import TestEnv
 
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner_shared/components/remote/remote_connector_test.py
@@ -48,10 +54,18 @@ HOST_SELECTION_OPTIONS_DICT = {
     HOST_SELECTION_HOST_ID_1: {
         "hostname": TestDataRemoteConnector.TEST_DATA_SSH_HOSTNAME_1,
         "ip_address": TestDataRemoteConnector.TEST_DATA_SSH_IP_ADDRESS_1,
+        "port": TestDataRemoteConnector.TEST_DATA_SSH_PORT_1,
+        "username": TestDataRemoteConnector.TEST_DATA_SSH_USERNAME_1,
+        "password": TestDataRemoteConnector.TEST_DATA_SSH_PASSWORD_1,
+        "ssh_private_key_file_path": TestDataRemoteConnector.TEST_DATA_SSH_PRIVATE_KEY_FILE_PATH_1,
     },
     HOST_SELECTION_HOST_ID_2: {
         "hostname": TestDataRemoteConnector.TEST_DATA_SSH_HOSTNAME_2,
         "ip_address": TestDataRemoteConnector.TEST_DATA_SSH_IP_ADDRESS_2,
+        "port": TestDataRemoteConnector.TEST_DATA_SSH_PORT_2,
+        "username": TestDataRemoteConnector.TEST_DATA_SSH_USERNAME_2,
+        "password": TestDataRemoteConnector.TEST_DATA_SSH_PASSWORD_2,
+        "ssh_private_key_file_path": TestDataRemoteConnector.TEST_DATA_SSH_PRIVATE_KEY_FILE_PATH_2,
     },
 }
 
@@ -76,16 +90,23 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
     ) -> None:
 
         env = TestEnv.create()
+        remote_opts = RemoteOpts(
+            connect_mode=RemoteConnectMode.UserConfig,
+            config=RemoteOptsFromConfig(
+                remote_config=RemoteConfig(
+                    dict_obj={
+                        "ansible_hosts": [host.__dict__ for host in TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS]
+                    }
+                )
+            ),
+        )
         RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
-            env.get_context(), CliRemoteOpts(), force_single_conn_info=True
+            env.get_context(), force_single_conn_info=True, cli_remote_opts=remote_opts
         )
-        Assertion.expect_call_argument(self, host_selection_call, "force_single_conn_info", True)
-        Assertion.expect_call_argument(
-            self,
-            collect_auth_info_call,
-            "ansible_hosts",
-            TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS,
+        host_selection_call.assert_called_once_with(
+            ansible_hosts=remote_opts.get_config().get_ansible_hosts(), force_single_conn_info=True
         )
+        collect_auth_info_call.assert_not_called()
 
     @mock.patch(
         f"{REMOTE_MACHINE_CONNECTOR_PATH}._ask_for_network_device_selection_method",
@@ -104,16 +125,17 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
     ) -> None:
 
         env = TestEnv.create()
+        remote_opts = RemoteOpts(
+            connect_mode=RemoteConnectMode.ScanLAN,
+            scan_flags=RemoteOptsFromScanFlags(ip_discovery_range=ARG_IP_DISCOVERY_RANGE),
+        )
         RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
-            env.get_context(), CliRemoteOpts(), force_single_conn_info=True
+            ctx=env.get_context(), cli_remote_opts=remote_opts, force_single_conn_info=True
         )
-        Assertion.expect_call_argument(self, host_selection_call, "force_single_conn_info", True)
-        Assertion.expect_call_argument(
-            self,
-            collect_auth_info_call,
-            "ansible_hosts",
-            TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS,
+        host_selection_call.assert_called_once_with(
+            ip_discovery_range=ARG_IP_DISCOVERY_RANGE, force_single_conn_info=True
         )
+        collect_auth_info_call.assert_called_once()
 
     @mock.patch(
         f"{REMOTE_MACHINE_CONNECTOR_PATH}._ask_for_network_device_selection_method",
@@ -132,13 +154,12 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
     ) -> None:
 
         env = TestEnv.create()
-        RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(env.get_context(), CliRemoteOpts())
-        Assertion.expect_call_argument(
-            self,
-            collect_auth_info_call,
-            "ansible_hosts",
-            TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS,
+        remote_opts = RemoteOpts(connect_mode=RemoteConnectMode.Interactive)
+        RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(env.get_context(), remote_opts)
+        host_selection_call.assert_called_once_with(
+            env.get_context(),
         )
+        collect_auth_info_call.assert_called_once()
 
     @mock.patch(
         f"{REMOTE_MACHINE_CONNECTOR_PATH}._ask_for_network_device_selection_method",
@@ -149,7 +170,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
     ) -> None:
         env = TestEnv.create()
         response = RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
-            env.get_context(), CliRemoteOpts()
+            env.get_context(), RemoteOpts()
         )
         self.assertIsNone(response)
 
@@ -248,17 +269,26 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             return COLLECT_AUTH_CUSTOM_USERNAME
 
         env.get_collaborators().prompter().on(
-            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+            "prompt_user_input_fn", str, str, bool, PromptLevel, str
         ).side_effect = ansible_host_username_assertion_callback
         env.get_collaborators().prompter().on(
-            "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
+            "prompt_user_input_fn", str, str, bool, PromptLevel, str
         ).side_effect = ansible_host_username_assertion_callback
 
         # Ansible hosts are being changed within the test method, we deep copy to avoid from interfering with other tests
         ansible_hosts_deep_copy = copy.deepcopy(TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS)
+        # Set the username to None to trigger the username selection prompt
+        ansible_hosts_deep_copy[0].username = None
+        ansible_hosts_deep_copy[1].username = None
 
         response = RemoteMachineConnector(env.get_collaborators())._collect_ssh_auth_info(
-            env.get_context(), CliRemoteOpts(), ansible_hosts_deep_copy
+            env.get_context(),
+            RemoteOpts(
+                conn_flags=RemoteOptsFromConnFlags(
+                    node_username=COLLECT_AUTH_CUSTOM_USERNAME, node_password=COLLECT_AUTH_CUSTOM_PASSWORD
+                )
+            ),
+            ansible_hosts_deep_copy,
         )
 
         self.assertEqual(response.ansible_hosts[0].username, COLLECT_AUTH_CUSTOM_USERNAME)
@@ -303,9 +333,11 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
 
         # Ansible hosts are being changed within the test method, we deep copy to avoid from interfering with other tests
         ansible_hosts_deep_copy = copy.deepcopy(TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS)
+        ansible_hosts_deep_copy[0].username = None
+        ansible_hosts_deep_copy[1].username = None
 
         response = RemoteMachineConnector(env.get_collaborators())._collect_ssh_auth_info(
-            env.get_context(), CliRemoteOpts(), ansible_hosts_deep_copy
+            env.get_context(), RemoteOpts(), ansible_hosts_deep_copy
         )
 
         self.assertEqual(response.ansible_hosts[0].username, COLLECT_AUTH_CUSTOM_USERNAME)
@@ -318,16 +350,6 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             response.ansible_hosts[1].ssh_private_key_file_path,
             COLLECT_AUTH_CUSTOM_SSH_PRIVATE_KEY,
         )
-
-    # def test_collect_ssh_connection_info_dry_run_response(self) -> None:
-    #     env = TestEnv.create(dry_run=True)
-    #     response = RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
-    #         env.get_context(), CliRemoteOpts())
-    #     self.assertEqual(response.ansible_hosts[0].host, DRY_RUN_RESPONSE)
-    #     self.assertEqual(response.ansible_hosts[0].ip_address, DRY_RUN_RESPONSE)
-    #     self.assertEqual(response.ansible_hosts[0].username, DRY_RUN_RESPONSE)
-    #     self.assertEqual(response.ansible_hosts[0].password, DRY_RUN_RESPONSE)
-    #     self.assertEqual(response.ansible_hosts[0].ssh_private_key_file_path, DRY_RUN_RESPONSE)
 
     def test_ask_for_network_device_selection_method(self) -> None:
         env = TestEnv.create()
@@ -436,6 +458,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
                 AnsibleHost(
                     host=TestDataRemoteConnector.TEST_DATA_SSH_HOSTNAME_1,
                     ip_address=TestDataRemoteConnector.TEST_DATA_SSH_IP_ADDRESS_1,
+                    port=TestDataRemoteConnector.TEST_DATA_SSH_PORT_1,
                 )
             ],
         )
@@ -469,7 +492,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
         ).side_effect = assertion_callback
         response = RemoteMachineConnector(env.get_collaborators())._collect_auth_password(
-            env.get_context(), CliRemoteOpts()
+            env.get_context(), RemoteOpts()
         )
         self.assertEqual(response, TestDataRemoteConnector.TEST_DATA_SSH_PASSWORD_1)
 
@@ -502,7 +525,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
         ).side_effect = assertion_callback
         response = RemoteMachineConnector(env.get_collaborators())._collect_auth_ssh_private_key_path(
-            env.get_context(), CliRemoteOpts()
+            env.get_context(), RemoteOpts()
         )
         self.assertEqual(response, TestDataRemoteConnector.TEST_DATA_SSH_PRIVATE_KEY_FILE_PATH_1)
 
@@ -524,9 +547,11 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS,
             force_single_conn_info=True,
         )
-        Assertion.expect_call_argument(self, run_call, "force_single_conn_info", True)
-        Assertion.expect_call_argument(self, run_call, "options_list", HOST_SELECTION_OPTIONS_LIST)
-        Assertion.expect_call_arguments(self, run_call, "option_to_value_dict", assertion_callback)
+        run_call.assert_called_once_with(
+            options_list=HOST_SELECTION_OPTIONS_LIST,
+            option_to_value_dict=HOST_SELECTION_OPTIONS_DICT,
+            force_single_conn_info=True,
+        )
 
     @mock.patch(f"{REMOTE_MACHINE_CONNECTOR_PATH}._convert_prompted_host_selection_to_ansible_hosts")
     def test_run_lan_scan_host_selection(self, run_call: mock.MagicMock) -> None:

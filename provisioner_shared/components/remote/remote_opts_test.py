@@ -9,8 +9,8 @@ from provisioner_shared.components.remote.remote_opts_fakes import *
 from provisioner_shared.components.runtime.cli.cli_modifiers import cli_modifiers
 from provisioner_shared.components.runtime.cli.entrypoint import EntryPoint
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
-from provisioner_shared.components.runtime.test_lib.assertions import Assertion
-from provisioner_shared.components.runtime.test_lib.test_cli_runner import TestCliRunner
+from provisioner_shared.test_lib.assertions import Assertion
+from provisioner_shared.test_lib.test_cli_runner import TestCliRunner
 
 ARG_CLI_OVERRIDE_ENVIRONMENT = "test-environment"
 ARG_CLI_OVERRIDE_NODE_USERNAME = "test-node-username"
@@ -20,7 +20,7 @@ ARG_CLI_OVERRIDE_IP_DISCOVERY_RANGE = "arg-test-ip-discovery-range"
 
 
 # To run as a single test target:
-#  poetry run coverage run -m pytest provisioner_shared/components/remote/remote_opts_test.py
+#  ./run_tests.py provisioner_shared/components/remote/remote_opts_test.py
 #
 class RemoteOptsTestShould(unittest.TestCase):
     def test_set_remote_opts_defaults_from_config_values(self) -> None:
@@ -33,16 +33,17 @@ class RemoteOptsTestShould(unittest.TestCase):
         @click.pass_context
         def dummy(ctx: click.Context) -> None:
             """Dummy click command"""
-            remote_opts = CliRemoteOpts.from_click_ctx(ctx)
+            remote_opts = RemoteOpts.from_click_ctx(ctx)
             self.assertIsNotNone(remote_opts)
 
             Assertion.expect_equal_objects(
                 self,
-                obj1=remote_opts.ansible_hosts,
+                obj1=remote_opts.get_config().get_ansible_hosts(),
                 obj2=[
                     AnsibleHost(
                         host=TEST_DATA_SSH_HOSTNAME_1,
                         ip_address=TEST_DATA_SSH_IP_ADDRESS_1,
+                        port=TEST_DATA_SSH_PORT_1,
                         username=TEST_DATA_REMOTE_NODE_USERNAME_1,
                         password=TEST_DATA_REMOTE_NODE_PASSWORD_1,
                         ssh_private_key_file_path="",
@@ -50,6 +51,7 @@ class RemoteOptsTestShould(unittest.TestCase):
                     AnsibleHost(
                         host=TEST_DATA_SSH_HOSTNAME_2,
                         ip_address=TEST_DATA_SSH_IP_ADDRESS_2,
+                        port=TEST_DATA_SSH_PORT_2,
                         username=TEST_DATA_REMOTE_NODE_USERNAME_2,
                         password="",
                         ssh_private_key_file_path=TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_2,
@@ -73,9 +75,9 @@ class RemoteOptsTestShould(unittest.TestCase):
         @click.pass_context
         def dummy(ctx: click.Context) -> None:
             """Dummy click command"""
-            remote_opts = CliRemoteOpts.from_click_ctx(ctx)
+            remote_opts = RemoteOpts.from_click_ctx(ctx)
             self.assertIsNotNone(remote_opts)
-            self.assertEqual(remote_opts.ip_discovery_range, ARG_CLI_OVERRIDE_IP_DISCOVERY_RANGE)
+            self.assertEqual(remote_opts.get_scan_flags().ip_discovery_range, ARG_CLI_OVERRIDE_IP_DISCOVERY_RANGE)
             if ctx.invoked_subcommand is None:
                 click.echo(ctx.get_help())
 

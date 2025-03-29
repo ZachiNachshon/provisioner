@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
+from typing import Optional
 from unittest.mock import MagicMock
 
 from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.test_lib.faker import TestFakes
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
+from provisioner_shared.test_lib.faker import TestFakes
 
 
 class FakeIOUtils(TestFakes, IOUtils):
@@ -16,6 +17,7 @@ class FakeIOUtils(TestFakes, IOUtils):
     @staticmethod
     def create(ctx: Context) -> "FakeIOUtils":
         fake = FakeIOUtils(ctx=ctx)
+        fake.create_temp_directory_fn = MagicMock(side_effect=fake.create_temp_directory_fn)
         fake.create_directory_fn = MagicMock(side_effect=fake.create_directory_fn)
         fake.copy_file_fn = MagicMock(side_effect=fake.copy_file_fn)
         fake.copy_directory_fn = MagicMock(side_effect=fake.copy_directory_fn)
@@ -32,6 +34,9 @@ class FakeIOUtils(TestFakes, IOUtils):
         fake.unpack_archive_fn = MagicMock(side_effect=fake.unpack_archive_fn)
         fake.set_file_permissions_fn = MagicMock(side_effect=fake.set_file_permissions_fn)
         return fake
+
+    def create_temp_directory_fn(self, maybe_prefix: Optional[str]) -> str:
+        return self.trigger_side_effect("create_temp_directory_fn", maybe_prefix)
 
     def create_directory_fn(self, folder_path: str) -> bool:
         return self.trigger_side_effect("create_directory_fn", folder_path)

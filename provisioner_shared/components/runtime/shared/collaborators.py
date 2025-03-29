@@ -123,7 +123,9 @@ class CoreCollaborators:
     def ansible_runner(self) -> AnsibleRunnerLocal:
         def create_ansible_runner():
             if not self.__ansible_runner:
-                self.__ansible_runner = AnsibleRunnerLocal.create(self.__ctx, self.io_utils(), self.paths())
+                self.__ansible_runner = AnsibleRunnerLocal.create(
+                    self.__ctx, self.io_utils(), self.paths(), self.process(), self.progress_indicator()
+                )
             return self.__ansible_runner
 
         return self._lock_and_get(callback=create_ansible_runner)
@@ -184,7 +186,7 @@ class CoreCollaborators:
     def package_loader(self) -> PackageLoader:
         def create_package_loader():
             if not self.__package_loader:
-                self.__package_loader = PackageLoader.create(self.__ctx)
+                self.__package_loader = PackageLoader.create(self.__ctx, self.io_utils(), self.process())
             return self.__package_loader
 
         return self._lock_and_get(callback=create_package_loader)

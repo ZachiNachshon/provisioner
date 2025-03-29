@@ -268,3 +268,18 @@ github_download_release_asset() {
     cmd_run "cd ${cwd} || exit"
   fi
 }
+
+#######################################
+# Return Python version as plain string
+# Globals:
+#   None
+# Arguments:
+#   None
+# Usage:
+#   read_python_version
+#######################################
+read_python_version() {
+  cmd_run "python3 --version 2>/dev/null | awk '{print $2}'"
+  # local version=$(cmd_run "python3 --version 2>/dev/null | tr -d '\n'")
+  # echo "${version}"
+}

@@ -4,8 +4,8 @@ from typing import Any, List, Optional
 from unittest.mock import MagicMock
 
 from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.test_lib.faker import TestFakes
 from provisioner_shared.components.runtime.utils.prompter import Prompter, PromptLevel
+from provisioner_shared.test_lib.faker import TestFakes
 
 
 class FakePrompter(TestFakes, Prompter):

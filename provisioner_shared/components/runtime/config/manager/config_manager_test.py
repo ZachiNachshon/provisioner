@@ -6,12 +6,12 @@ from unittest import mock
 from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
 from provisioner_shared.components.runtime.domain.serialize import SerializationBase
 from provisioner_shared.components.runtime.errors.cli_errors import FailedToMergeConfiguration
-from provisioner_shared.components.runtime.test_data.domain import (
+from provisioner_shared.test_data.domain import (
     INTERNAL_CONFIG_TEST_DATA_FILE_PATH,
     USER_CONFIG_TEST_DATA_FILE_PATH,
     FakeConfigObj,
 )
-from provisioner_shared.components.runtime.test_lib.assertions import Assertion
+from provisioner_shared.test_lib.assertions import Assertion
 
 ARG_CONFIG_INTERNAL_PATH = "/path/to/internal/config"
 ARG_CONFIG_USER_PATH = "/path/to/user/config"

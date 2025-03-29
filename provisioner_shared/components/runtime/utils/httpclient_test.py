@@ -6,9 +6,9 @@ from unittest import mock
 import requests
 
 from provisioner_shared.components.runtime.errors.cli_errors import DownloadFileException
-from provisioner_shared.components.runtime.test_lib.assertions import Assertion
-from provisioner_shared.components.runtime.test_lib.test_env import TestEnv
 from provisioner_shared.components.runtime.utils.httpclient import HttpClient, HttpResponse
+from provisioner_shared.test_lib.assertions import Assertion
+from provisioner_shared.test_lib.test_env import TestEnv
 
 
 #

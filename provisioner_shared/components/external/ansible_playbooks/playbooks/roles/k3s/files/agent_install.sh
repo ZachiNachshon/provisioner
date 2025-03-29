@@ -120,7 +120,7 @@ verify_mandatory_variables() {
     log_fatal "Missing mandatory env var. name: ENV_K3S_OS"
   fi
   if is_k3s_os_darwin && ! is_install_as_binary; then
-    log_fatal "Installing a K3s as a system service on darwin is not supported."
+    log_fatal "Installing a K3s as a system service on darwin is not supported (consider --install-as-binary)."
   fi
 }
 

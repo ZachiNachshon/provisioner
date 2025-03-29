@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 from requests import Response
 
 from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.test_lib.faker import TestFakes
 from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
+from provisioner_shared.test_lib.faker import TestFakes
 
 
 class FakeProgressIndicator(ProgressIndicator):

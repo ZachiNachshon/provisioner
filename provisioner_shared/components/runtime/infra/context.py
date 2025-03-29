@@ -4,7 +4,7 @@ from typing import Optional
 
 from loguru import logger
 
-from provisioner_shared.components.runtime.cli.modifiers import CliModifiers
+from provisioner_shared.components.runtime.cli.modifiers import CliModifiers, PackageManager
 from provisioner_shared.components.runtime.utils.os import OsArch
 
 
@@ -14,6 +14,7 @@ class Context:
     _dry_run: bool = None
     _auto_prompt: bool = None
     _non_interactive: bool = None
+    _pkg_mgr: PackageManager = None
 
     @staticmethod
     def create_empty() -> "Context":
@@ -23,6 +24,7 @@ class Context:
         ctx._verbose = False
         ctx._auto_prompt = False
         ctx._non_interactive = False
+        ctx._pkg_mgr = PackageManager.PIP
         return ctx
 
     @staticmethod
@@ -32,6 +34,7 @@ class Context:
         auto_prompt: Optional[bool] = False,
         non_interactive: Optional[bool] = False,
         os_arch: Optional[OsArch] = None,
+        pkg_mgr: Optional[PackageManager] = PackageManager.PIP,
     ) -> "Context":
 
         try:
@@ -41,6 +44,7 @@ class Context:
             ctx._verbose = verbose
             ctx._auto_prompt = auto_prompt
             ctx._non_interactive = non_interactive
+            ctx._pkg_mgr = pkg_mgr
             return ctx
         except Exception as e:
             e_name = e.__class__.__name__
@@ -58,6 +62,9 @@ class Context:
     def is_non_interactive(self) -> bool:
         return self._non_interactive
 
+    def get_package_manager(self) -> PackageManager:
+        return self._pkg_mgr
+
 
 class CliContextManager:
 
@@ -72,4 +79,5 @@ class CliContextManager:
             auto_prompt=modifiers.is_auto_prompt(),
             non_interactive=modifiers.is_non_interactive(),
             os_arch=os_arch,
+            pkg_mgr=modifiers.get_package_manager(),
         )

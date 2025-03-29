@@ -3,9 +3,6 @@
 from enum import Enum
 from typing import List
 
-# TODO:
-# Tests are failing when not using default for class variables, need to investigate why
-# When using defaults, all tests pass - need to check the dot-notations and use hasattr()
 from loguru import logger
 
 from provisioner_shared.components.runtime.domain.serialize import SerializationBase
@@ -35,6 +32,32 @@ from provisioner_shared.components.runtime.domain.serialize import Serialization
         lan_scan:
             ip_discovery_range: 192.168.1.1/24
     """
+
+
+class RemoteConnectMode(str, Enum):
+    Interactive = "Interactive"
+    Flags = "Flags"
+    UserConfig = "UserConfig"
+    ScanLAN = "ScanLAN"
+    UserPrompt = "UserPrompt"
+
+    def __str__(self):
+        return self.value
+
+    @staticmethod
+    def from_str(label) -> "RemoteConnectMode":
+        if label in ("Interactive"):
+            return RemoteConnectMode.Interactive
+        elif label in ("Flags"):
+            return RemoteConnectMode.Flags
+        elif label in ("UserConfig"):
+            return RemoteConnectMode.UserConfig
+        elif label in ("ScanLAN"):
+            return RemoteConnectMode.ScanLAN
+        elif label in ("UserPrompt"):
+            return RemoteConnectMode.UserPrompt
+        else:
+            raise NotImplementedError(f"RemoteConnectMode enum does not support label '{label}'")
 
 
 class RunEnvironment(str, Enum):
@@ -99,6 +122,7 @@ class Auth(SerializationBase):
 class Host(SerializationBase):
     name: str = ""
     address: str = ""
+    port: int = 22
     auth: Auth = Auth({})
 
     def __init__(self, dict_obj: dict) -> None:
@@ -113,6 +137,8 @@ class Host(SerializationBase):
             self.name = dict_obj["name"]
         if "address" in dict_obj:
             self.address = dict_obj["address"]
+        if "port" in dict_obj:
+            self.port = dict_obj["port"]
         if "auth" in dict_obj:
             self.auth = Auth(dict_obj["auth"])
 
@@ -126,6 +152,7 @@ class RemoteConfig(SerializationBase):
 
     def merge(self, other: "RemoteConfig") -> SerializationBase:
         # Hosts config are all or nothing, if partial config is provided, user overrides won't apply
+        # Port is optional and defaults to 22
         if hasattr(other, "hosts"):
             self.hosts = []
             for other_host in other.hosts:
@@ -160,6 +187,7 @@ class RemoteConfig(SerializationBase):
                     print(msg)
                     logger.error(msg)
                 else:
+                    # Port is optional and defaults to 22
                     new_host = Host(host_block)
                     self.hosts.append(new_host)
 

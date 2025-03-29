@@ -6,7 +6,7 @@ from loguru import logger
 
 from provisioner_shared.components.remote.domain.config import RunEnvironment
 from provisioner_shared.components.remote.remote_connector import RemoteMachineConnector
-from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
+from provisioner_shared.components.remote.remote_opts import RemoteOpts
 from provisioner_shared.components.runtime.errors.cli_errors import MissingCliArgument
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.evaluator import Evaluator
@@ -32,13 +32,13 @@ class AnchorRunnerCmdArgs:
 
     anchor_run_command: str
     vcs_opts = CliVersionControlOpts
-    remote_opts: CliRemoteOpts
+    remote_opts: RemoteOpts
 
     def __init__(
         self,
         anchor_run_command: str,
         vcs_opts: Optional[CliVersionControlOpts] = None,
-        remote_opts: Optional[CliRemoteOpts] = None,
+        remote_opts: Optional[RemoteOpts] = None,
     ) -> None:
         self.anchor_run_command = anchor_run_command
         self.vcs_opts = vcs_opts
@@ -57,9 +57,9 @@ class AnchorCmdRunner:
 
         self.prerequisites(ctx=ctx, checks=collaborators.checks())
 
-        if args.remote_opts.environment == RunEnvironment.Local:
+        if args.remote_opts.get_environment() == RunEnvironment.Local:
             self._start_local_run_command_flow(ctx, args, collaborators)
-        elif args.remote_opts.environment == RunEnvironment.Remote:
+        elif args.remote_opts.get_environment() == RunEnvironment.Remote:
             self._start_remote_run_command_flow(ctx, args, collaborators)
         else:
             raise MissingCliArgument("Missing Cli argument. name: environment")

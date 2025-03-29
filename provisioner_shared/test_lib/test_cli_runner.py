@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import inspect
+import os
 import traceback
 from typing import List
 
@@ -8,15 +9,31 @@ import click
 import click.testing
 from click.testing import CliRunner
 
+ENV_VAR_INSTALLER_PLUGIN_TEST = "PROVISIONER_INSTALLER_PLUGIN_TEST"
+
+
+class CliTestRunnerConfig:
+    def __init__(self, is_installer_plugin_test: bool = False):
+        self.is_installer_plugin_test = is_installer_plugin_test
+
 
 class TestCliRunner:
     @staticmethod
-    def run_raw(cmd: click.BaseCommand, args: List[str] = []) -> click.testing.Result:
+    def run_throws_not_managed(cmd: click.BaseCommand, args: List[str] = []) -> click.testing.Result:
         return CliRunner().invoke(cmd, args)
 
     @staticmethod
-    def run(cmd: click.BaseCommand, args: List[str] = []) -> str:
-        result = CliRunner().invoke(cmd, args)
+    def is_installer_plugin_test() -> bool:
+        return os.getenv(key=ENV_VAR_INSTALLER_PLUGIN_TEST, default=False)
+
+    @staticmethod
+    def run(cmd: click.BaseCommand, args: List[str] = [], test_cfg: CliTestRunnerConfig = CliTestRunnerConfig()) -> str:
+        test_env_vars = {}
+        if TestCliRunner.is_installer_plugin_test() or test_cfg.is_installer_plugin_test:
+            print("Installer plugin testing mode is enabled")
+            test_env_vars = {ENV_VAR_INSTALLER_PLUGIN_TEST: "true"}
+
+        result = CliRunner(mix_stderr=True).invoke(cli=cmd, args=args, env=test_env_vars)
 
         # Check the exit code to see if there was an issue
         if result.exit_code != 0:
@@ -38,10 +55,10 @@ class TestCliRunner:
             # Enhanced error output with detailed information
             assert (
                 result.exit_code == 0
-            ), f"Command failed with exit code {result.exit_code}\noutput: {result.output}\ndetails: {error_details}"
+            ), f"=== TestCliRunner managed assertion error ===\n\nCommand failed with exit code {result.exit_code}\n\n=== OUTPUT ===\n\n{result.output}\n\n=== DETAILS ===\n\n{error_details}"
             # raise AssertionError(f"{error_message}{error_details}")
 
         else:
-            print(f"Command succeeded:\n{result.output}")
+            print(f"CLI command ran with no errors:\n{result.output}")
 
         return result.output

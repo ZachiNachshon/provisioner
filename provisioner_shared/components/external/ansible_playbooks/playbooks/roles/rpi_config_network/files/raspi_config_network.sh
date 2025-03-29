@@ -30,11 +30,11 @@ configure_network_settings() {
 
   log_info "Configuring remote RPi node system. name: ${HOST_NAME}"
 
-  if [[ "${curr_hostname}" == "${ENV_HOST_NAME}" ]]; then
+  if [[ "${curr_hostname}" == "${HOST_NAME}" ]]; then
     log_indicator_warning "Hostname is already configured. name: ${curr_hostname}"
   else
-    cmd_run "${RASPI_CONFIG_BINARY} nonint do_hostname ${ENV_HOST_NAME}"
-    log_indicator_good "Configured hostname on remote node. name: ${ENV_HOST_NAME}"
+    cmd_run "${RASPI_CONFIG_BINARY} nonint do_hostname ${HOST_NAME}"
+    log_indicator_good "Configured hostname on remote node. name: ${HOST_NAME}"
   fi
 
   if is_wifi_country; then

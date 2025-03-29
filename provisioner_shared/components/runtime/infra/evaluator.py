@@ -3,6 +3,7 @@
 import traceback
 from typing import Any, Callable
 
+import click
 from loguru import logger
 
 from provisioner_shared.components.runtime.errors.cli_errors import (
@@ -43,31 +44,40 @@ class Evaluator:
             print(str(sef))
         except Exception as e:
             logger.critical(f"{error_message}. name: {name}, ex: {e.__class__.__name__}, message: {str(e)}")
+            print("================================")
+            print(e.__class__.__name__)
+            print("================================")
             if verbose:
                 raise CliApplicationException(e)
+            raise click.ClickException(error_message)
 
     @staticmethod
     def eval_installer_cli_entrypoint_pyfn_step(name: str, call: Callable, verbose: bool = False) -> None:
-        is_failure = False
         raised: Exception = None
-        should_re_raise = False
-        response = None
+        is_failure = False
         try:
-            response = call()
+            call()
         except StepEvaluationFailure as sef:
-            # is_failure = True
-            # raised = sef
+            is_failure = True
             print(str(sef))
         except Exception as ex:
+            is_failure = True
             if verbose:
                 traceback.print_exc()
-            is_failure = True
             raised = ex
-            should_re_raise = True
 
-        if verbose and (is_failure or not response):
+        if verbose and is_failure:
             logger.critical(
                 f"Failed to install CLI utility. name: {name}, ex: {raised.__class__.__name__}, message: {str(raised)}"
             )
-            if should_re_raise and verbose:
-                raise CliApplicationException(raised)
+            raise CliApplicationException(raised)
+        elif is_failure:
+            # logger.error(f"name: {name}, exception: {raised.__class__.__name__}, message: {str(raised)}")
+            raise click.ClickException(f"name: {name}, exception: {raised.__class__.__name__}, message: {str(raised)}")
+
+        # if verbose and (is_failure or not response):
+        #     logger.critical(
+        #         f"Failed to install CLI utility. name: {name}, ex: {raised.__class__.__name__}, message: {str(raised)}"
+        #     )
+        #     if should_re_raise and verbose:
+        #         raise CliApplicationException(raised)

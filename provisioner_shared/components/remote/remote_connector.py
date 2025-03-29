@@ -5,11 +5,15 @@ from typing import List, Optional
 
 from loguru import logger
 
-from provisioner_shared.components.remote.remote_opts import CliRemoteOpts
+from provisioner_shared.components.remote.domain.config import RemoteConnectMode
+from provisioner_shared.components.remote.remote_opts import RemoteOpts
+from provisioner_shared.components.runtime.errors.cli_errors import CliApplicationException, MissingCliArgument
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.evaluator import Evaluator
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
+
+ANSIBLE_LOCAL_CONNECTION = "ansible_connection=local"
 
 
 class NetworkDeviceSelectionMethod(str, Enum):
@@ -17,11 +21,29 @@ class NetworkDeviceSelectionMethod(str, Enum):
     UserConfig = "User Config"
     UserPrompt = "User Prompt"
 
+    def __str__(self):
+        return self.value
+
+    @staticmethod
+    def from_remote_conn_mode(mode: RemoteConnectMode) -> "NetworkDeviceSelectionMethod":
+        if mode == RemoteConnectMode.ScanLAN:
+            return NetworkDeviceSelectionMethod.ScanLAN
+        if mode == RemoteConnectMode.UserConfig:
+            return NetworkDeviceSelectionMethod.UserConfig
+        if mode == RemoteConnectMode.UserPrompt:
+            return NetworkDeviceSelectionMethod.UserPrompt
+        if mode == RemoteConnectMode.Flags:
+            logger.error("Invalid remote connect mode, Flags is not supported for network device selection")
+        return None
+
 
 class NetworkDeviceAuthenticationMethod(str, Enum):
     Password = "Password"
     SSHPrivateKeyPath = "SSH Private Key"
     NoAuth = "No Auth"
+
+    def __str__(self):
+        return self.value
 
 
 class SSHConnectionInfo:
@@ -52,10 +74,30 @@ class RemoteMachineConnector:
     def __init__(self, collaborators: CoreCollaborators) -> None:
         self.collaborators = collaborators
 
+    def _throw_if_partial_remote_flags(self, cli_remote_opts: RemoteOpts):
+        """Fail if the CLI remote options were provided partially for a remote command"""
+        if not cli_remote_opts and not cli_remote_opts.get_conn_flags():
+            logger.debug("No CLI remote options supplied for a remote command")
+            return
+
+        flags = cli_remote_opts.get_conn_flags()
+        if flags.ip_address == ANSIBLE_LOCAL_CONNECTION:
+            # Local connection, no need for auth info
+            return
+
+        if (
+            not flags.node_username
+            or (not flags.node_password and not flags.ssh_private_key_file_path)
+            or not flags.hostname
+            or not flags.ip_address
+        ):
+            logger.error("Partial CLI remote flags were supplied")
+            raise MissingCliArgument("Partial CLI remote flags were supplied")
+
     def collect_ssh_connection_info(
         self,
         ctx: Context,
-        remote_opts: Optional[CliRemoteOpts] = None,
+        cli_remote_opts: Optional[RemoteOpts] = None,
         force_single_conn_info: Optional[bool] = False,
     ) -> SSHConnectionInfo:
 
@@ -65,54 +107,81 @@ class RemoteMachineConnector:
                     AnsibleHost(
                         host="DRY_RUN_RESPONSE",
                         ip_address="DRY_RUN_RESPONSE",
+                        port="DRY_RUN_RESPONSE",
                         username="DRY_RUN_RESPONSE",
                         password="DRY_RUN_RESPONSE",
                         ssh_private_key_file_path="DRY_RUN_RESPONSE",
                     )
                 ],
             )
-        """
-        Prompt the user for required remote SSH connection parameters
-        Possible sources for host/IP pairs:
-          - Scan local LAN network for available IP addresses
-          - Use the hosts attribute from user configuration
-          - Ask user for node host and IP address
-        """
+
+        if self._is_remote_flags_were_used(cli_remote_opts):
+            if cli_remote_opts.get_connect_mode() != RemoteConnectMode.Flags:
+                logger.error("To use remote flags, set the connect mode to Flags")
+                raise CliApplicationException("To use remote flags, set the connect mode to Flags")
+            else:
+                self._throw_if_partial_remote_flags(cli_remote_opts=cli_remote_opts)
+                return SSHConnectionInfo(ansible_hosts=cli_remote_opts.get_conn_flags().get_ansible_hosts())
+
         selected_ansible_hosts: List[AnsibleHost] = []
-        network_device_selection_method = self._ask_for_network_device_selection_method()
+
+        if cli_remote_opts._connect_mode == RemoteConnectMode.Interactive:
+            """
+            Prompt the user for required remote SSH connection parameters
+            Possible sources for host/IP pairs:
+            - Scan local LAN network for available IP addresses
+            - Use the hosts attribute from user configuration
+            - Ask user for node host and IP address
+            """
+            network_device_selection_method = self._ask_for_network_device_selection_method()
+        else:
+            network_device_selection_method = NetworkDeviceSelectionMethod.from_remote_conn_mode(
+                cli_remote_opts._connect_mode
+            )
 
         if network_device_selection_method == NetworkDeviceSelectionMethod.UserConfig:
-            selected_ansible_hosts = Evaluator.eval_step_return_value_throw_on_failure(
-                call=lambda: remote_opts
+            selected_ansible_hosts: List[AnsibleHost] = Evaluator.eval_step_return_value_throw_on_failure(
+                call=lambda: cli_remote_opts
                 and self._run_config_based_host_selection(
-                    ansible_hosts=remote_opts.ansible_hosts,
+                    ansible_hosts=cli_remote_opts.get_config().get_ansible_hosts(),
                     force_single_conn_info=force_single_conn_info,
                 ),
                 ctx=ctx,
                 err_msg="Failed to read host IP address from user configuration",
             )
+            # Config should have the auth info, no need to prompt the user
+            return SSHConnectionInfo(ansible_hosts=selected_ansible_hosts)
 
-        elif network_device_selection_method == NetworkDeviceSelectionMethod.ScanLAN:
-            selected_ansible_hosts = Evaluator.eval_step_return_value_throw_on_failure(
-                call=lambda: remote_opts
+        if network_device_selection_method == NetworkDeviceSelectionMethod.ScanLAN:
+            selected_ansible_hosts: List[AnsibleHost] = Evaluator.eval_step_return_value_throw_on_failure(
+                call=lambda: cli_remote_opts
                 and self._run_scan_lan_host_selection(
-                    ip_discovery_range=remote_opts.ip_discovery_range,
+                    ip_discovery_range=(
+                        cli_remote_opts.get_scan_flags().ip_discovery_range
+                        if cli_remote_opts.get_scan_flags()
+                        else None
+                    ),
                     force_single_conn_info=force_single_conn_info,
                 ),
                 ctx=ctx,
                 err_msg="Failed to read hosts IP addresses from LAN scan",
             )
+            return self._collect_ssh_auth_info(
+                ctx=ctx, remote_opts=cli_remote_opts, ansible_hosts=selected_ansible_hosts
+            )
 
-        elif network_device_selection_method == NetworkDeviceSelectionMethod.UserPrompt:
-            selected_ansible_hosts = Evaluator.eval_step_return_value_throw_on_failure(
+        if network_device_selection_method == NetworkDeviceSelectionMethod.UserPrompt:
+            selected_ansible_hosts: List[AnsibleHost] = Evaluator.eval_step_return_value_throw_on_failure(
                 call=lambda: self._run_manual_host_selection(ctx),
                 ctx=ctx,
                 err_msg="Failed to read a host IP address from user prompt",
             )
-        else:
-            return None
+            return self._collect_ssh_auth_info(
+                ctx=ctx, remote_opts=cli_remote_opts, ansible_hosts=selected_ansible_hosts
+            )
 
-        return self._collect_ssh_auth_info(ctx=ctx, remote_opts=remote_opts, ansible_hosts=selected_ansible_hosts)
+        logger.error("Failed to resolve network device selection method")
+        return None
 
     def collect_dhcpcd_configuration_info(
         self,
@@ -122,6 +191,17 @@ class RemoteMachineConnector:
         gw_ip_address: str = None,
         dns_ip_address: str = None,
     ) -> DHCPCDConfigurationInfo:
+
+        # Check if DHCP flags were used
+        if static_ip_address and gw_ip_address and dns_ip_address:
+            # All required DHCP flags are present, return configuration
+            return DHCPCDConfigurationInfo(
+                gw_ip_address=gw_ip_address, dns_ip_address=dns_ip_address, static_ip_address=static_ip_address
+            )
+        elif any([static_ip_address, gw_ip_address, dns_ip_address]):
+            # Only some flags were provided - this is an error
+            logger.error("All DHCP configuration flags must be provided together")
+            raise CliApplicationException("Must provide all of: static-ip-address, gw-ip-address, dns-ip-address")
 
         self.collaborators.printer().print_with_rich_table_fn(
             generate_instructions_dhcpcd_config(
@@ -219,12 +299,12 @@ class RemoteMachineConnector:
             err_msg="Failed to read node host name",
         )
 
-        return [AnsibleHost(host=hostname, ip_address=ip_address)]
+        return [AnsibleHost(host=hostname, ip_address=ip_address, port=22)]
 
     def _collect_ssh_auth_info(
         self,
         ctx: Context,
-        remote_opts: CliRemoteOpts,
+        remote_opts: RemoteOpts,
         ansible_hosts: List[AnsibleHost],
     ) -> SSHConnectionInfo:
 
@@ -233,29 +313,33 @@ class RemoteMachineConnector:
         )
 
         for host in ansible_hosts:
-            host.username = Evaluator.eval_step_return_value_throw_on_failure(
-                call=lambda: self.collaborators.prompter().prompt_user_input_fn(
-                    message="Enter remote node user name",
-                    default=remote_opts.node_username,
-                    post_user_input_message="Selected remote user ",
-                ),
-                ctx=ctx,
-                err_msg="Failed to read username",
-            )
+            # If the username is not set, prompt the user for it
+            if not host.username or len(host.username) == 0:
+                default_username = remote_opts.get_conn_flags().node_username if remote_opts.get_conn_flags() else None
+                host.username = Evaluator.eval_step_return_value_throw_on_failure(
+                    call=lambda: self.collaborators.prompter().prompt_user_input_fn(
+                        message="Enter remote node user name",
+                        default=default_username,
+                        post_user_input_message="Selected remote user ",
+                    ),
+                    ctx=ctx,
+                    err_msg="Failed to read username",
+                )
+            if (not host.password or len(host.password) > 0) and (
+                not host.ssh_private_key_file_path or len(host.ssh_private_key_file_path) > 0
+            ):
+                auth_method = self._ask_for_network_device_authentication_method()
 
-            auth_method = self._ask_for_network_device_authentication_method()
-
-            if auth_method == NetworkDeviceAuthenticationMethod.Password:
-                host.password = self._collect_auth_password(ctx, remote_opts)
-            elif auth_method == NetworkDeviceAuthenticationMethod.SSHPrivateKeyPath:
-                host.ssh_private_key_file_path = self._collect_auth_ssh_private_key_path(ctx, remote_opts)
+                if auth_method == NetworkDeviceAuthenticationMethod.Password:
+                    host.password = self._collect_auth_password(ctx, remote_opts)
+                elif auth_method == NetworkDeviceAuthenticationMethod.SSHPrivateKeyPath:
+                    host.ssh_private_key_file_path = self._collect_auth_ssh_private_key_path(ctx, remote_opts)
 
         return SSHConnectionInfo(ansible_hosts=ansible_hosts)
 
-    def _collect_auth_password(self, ctx: Context, remote_opts: CliRemoteOpts) -> str:
-        password = None
-        if remote_opts.node_password and len(remote_opts.node_password) > 0:
-            password = remote_opts.node_password
+    def _collect_auth_password(self, ctx: Context, remote_opts: RemoteOpts) -> str:
+        password = remote_opts.get_conn_flags().node_password if remote_opts.get_conn_flags() else None
+        if password and len(password) > 0:
             self.collaborators.printer().new_line_fn().print_fn("Identified SSH password from CLI argument.")
         else:
             password = Evaluator.eval_step_return_value_throw_on_failure(
@@ -269,16 +353,19 @@ class RemoteMachineConnector:
             )
         return password
 
-    def _collect_auth_ssh_private_key_path(self, ctx: Context, remote_opts: CliRemoteOpts) -> str:
-        ssh_private_key_path = None
-        if remote_opts.ssh_private_key_file_path and len(remote_opts.ssh_private_key_file_path) > 0:
-            ssh_private_key_path = remote_opts.ssh_private_key_file_path
+    def _collect_auth_ssh_private_key_path(self, ctx: Context, remote_opts: RemoteOpts) -> str:
+        ssh_private_key_path = (
+            remote_opts.get_conn_flags().ssh_private_key_file_path if remote_opts.get_conn_flags() else None
+        )
+        if ssh_private_key_path and len(ssh_private_key_path) > 0:
             self.collaborators.printer().new_line_fn().print_fn("Identified SSH private key path from CLI argument.")
         else:
             ssh_private_key_path = Evaluator.eval_step_return_value_throw_on_failure(
                 call=lambda: self.collaborators.prompter().prompt_user_input_fn(
                     message="Enter SSH private key path",
-                    default=remote_opts.node_password,
+                    default=(
+                        remote_opts.get_conn_flags().ssh_private_key_file_path if remote_opts.get_conn_flags() else None
+                    ),
                     post_user_input_message="Set private key path ",
                     redact_value=True,
                 ),
@@ -297,11 +384,15 @@ class RemoteMachineConnector:
         options_list: List[str] = []
         option_to_value_dict: dict[str, dict] = {}
         for pair in ansible_hosts:
-            identifier = f"{pair.host}, {pair.ip_address}"
-            options_list.append(identifier)
-            option_to_value_dict[identifier] = {
+            host_ip_pair_id = f"{pair.host}, {pair.ip_address}"
+            options_list.append(host_ip_pair_id)
+            option_to_value_dict[host_ip_pair_id] = {
                 "hostname": pair.host,
                 "ip_address": pair.ip_address,
+                "port": pair.port,
+                "username": pair.username,
+                "password": pair.password,
+                "ssh_private_key_file_path": pair.ssh_private_key_file_path,
             }
 
         return self._convert_prompted_host_selection_to_ansible_hosts(
@@ -359,6 +450,9 @@ class RemoteMachineConnector:
                     result.append(AnsibleHost.from_dict(selected_item_dict))
         return result
 
+    def _is_remote_flags_were_used(self, cli_remote_opts: RemoteOpts) -> bool:
+        return cli_remote_opts and cli_remote_opts.get_conn_flags() and not cli_remote_opts.get_conn_flags().is_empty()
+
 
 def generate_instructions_network_scan() -> str:
     return """
@@ -381,7 +475,7 @@ def generate_instructions_connect_via_ssh(ansible_hosts: List[AnsibleHost]):
     return f"""
   Gathering SSH connection information for IP addresses:
 {ip_addresses}
-  This step prompts for connection access information (press ENTER for defaults):
+  This step prompts for connection access information:
     • Raspberry Pi node user
     • Raspberry Pi node password
     • Raspberry Pi private SSH key path (Recommended)

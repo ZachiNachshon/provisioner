@@ -20,7 +20,7 @@ class SerializationBase:
         try:
             # print(f"Creating {self.__class__.__name__} with dict_obj: {dict_obj}")
             if dict_obj is None:
-                logger.error(f"Python dict obj is empty. type: {type(self)}")
+                logger.warning(f"Python dict obj is empty. type: {type(self)}")
                 return
             self._try_parse_config(dict_obj)
         except Exception as ex:

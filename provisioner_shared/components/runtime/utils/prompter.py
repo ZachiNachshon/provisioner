@@ -205,9 +205,7 @@ class Prompter:
                 self._overwrite_previous_line(message=post_yes_message, color_in_use=colors.GREEN, icon=CHECKMARK_ICON)
         else:
             if post_no_message:
-                self._overwrite_previous_line(
-                    message=post_no_message, color_in_use=colors.BRIGHT_BLACK, icon=CROSSMARK_ICON
-                )
+                self._overwrite_previous_line(message=post_no_message, color_in_use=colors.WHITE, icon=CROSSMARK_ICON)
 
         return is_approved
 

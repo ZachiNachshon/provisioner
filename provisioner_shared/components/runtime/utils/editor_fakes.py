@@ -3,8 +3,8 @@
 from unittest.mock import MagicMock
 
 from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.test_lib.faker import TestFakes
 from provisioner_shared.components.runtime.utils.editor import Editor
+from provisioner_shared.test_lib.faker import TestFakes
 
 
 class FakeEditor(TestFakes, Editor):

@@ -171,6 +171,7 @@ class CustomGroup(click.Group):
             group_name = getattr(param, "group", "General")
             # Used for later formatting of group vs. non-grouped options
             grouped_options.setdefault(group_name, []).append(param)
+
             option_str = ", ".join(param.opts)
             if isinstance(param.type, click.Choice):
                 option_str += f" [{('|'.join(param.type.choices))}]"

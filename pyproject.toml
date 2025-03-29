@@ -37,10 +37,22 @@ packages = [
 
 [tool.poetry.scripts]
 provisioner = "provisioner.main:main"
-plugin = "provisioner.main_dev:main"   # PLUGIN_NAME="provisioner_examples_plugin" poetry run plugin
 
 [tool.poetry.dependencies]
 python = "^3.11"
+provisioner_shared = "^0.1.18"
+provisioner_runtime = "^0.1.18"
+provisioner_installers_plugin = "^0.1.6"
+provisioner_examples_plugin = "^0.1.8"
+provisioner_single_board_plugin = "^0.1.5"
+
+# 
+# Can be used only when running Unit/IT tests locally using 'poetry run coverage run -m pytest -s <path>'
+# 
+# provisioner_shared = {path = "/Users/zachin/codebase/github/provisioner/provisioner_shared", develop = true}
+# provisioner_installers_plugin = {path = "/Users/zachin/codebase/github/provisioner/plugins/provisioner_installers_plugin", develop = true}
+# provisioner_examples_plugin = {path = "/Users/zachin/codebase/github/provisioner/plugins/provisioner_examples_plugin", develop = true}
+# provisioner_single_board_plugin = {path = "/Users/zachin/codebase/github/provisioner/plugins/provisioner_single_board_plugin", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
@@ -49,6 +61,10 @@ mypy = "^1.15"
 coverage = "^7.6.0"
 diagrams = "^0.24.1"
 ruff = "^0.9.1"
+docker = "^7.1.0"
+testcontainers = "^4.9.1"
+paramiko = "^3.5.1"
+tomlkit = "^0.13.2"
 
 [build-system]
 requires = ["poetry-core>=1.4.0"]

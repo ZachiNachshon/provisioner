@@ -4,9 +4,9 @@ from typing import Any, Callable
 from unittest.mock import MagicMock
 
 from provisioner_shared.components.runtime.infra.context import Context
-from provisioner_shared.components.runtime.test_lib.faker import TestFakes
 from provisioner_shared.components.runtime.utils.json_util import JsonUtil
 from provisioner_shared.components.runtime.utils.summary import Summary
+from provisioner_shared.test_lib.faker import TestFakes
 
 
 class FakeSummary(TestFakes, Summary):

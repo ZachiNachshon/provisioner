@@ -38,7 +38,9 @@ dist/
 
 # Tests
 htmlcov/
-
+e2e_docker_essential_files.tar.gz
+dockerfiles/poetry/dists/
+tests-outputs/
 # Ansible
 .secrets
 hosts
