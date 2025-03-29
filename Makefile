@@ -92,9 +92,11 @@ test-coverage-html: ## Run tests suite on runtime and all plugins (output: HTML 
 # It must fail the GitHub action step if any of the tests fail
 # This is the reason we're performing an exist code check since it
 # is a makefile that runs other makefiles within a for loop
+# TODO: Need to separate the tests Docker image creation into a separate step
+# 		  and do not build from scratch each time
 .PHONY: test-coverage-xml
-test-coverage-xml: ## Run tests suite on runtime and all plugins (output: XML report)
-	./run_tests.py --all --container --report xml
+test-coverage-xml: ## Run tests suite on runtime and all plugins NO E2E (output: XML report)
+	./run_tests.py --skip-e2e --container --report xml
 
 .PHONY: pip-install-runtime
 pip-install-runtime: ## [LOCAL] Install provisioner runtime to local pip

@@ -1,4 +1,4 @@
-name: 'Run Tests Suite'
+name: 'Tests Suite'
 description: 'Run Tests Suite'
 
 inputs:
@@ -23,78 +23,13 @@ runs:
         echo "::endgroup::"
       shell: bash
 
-    # Set up Docker Buildx for better caching
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-      
-    # Hash the Dockerfiles
-    - name: Generate Dockerfile Hashes
-      id: dockerfile-hashes
-      run: |
-        mkdir -p /tmp/dockerfile-hashes
-        REMOTE_SSH_HASH=""
-        RPI_OS_HASH=""
-        POETRY_HASH=""
-        
-        # Use Python for hashing to ensure consistency across platforms
-        hash_file() {
-          python3 -c "import hashlib; print(hashlib.md5(open('$1','rb').read()).hexdigest())"
-        }
-        
-        if [ -f "dockerfiles/remote_ssh/Dockerfile" ]; then
-          REMOTE_SSH_HASH=$(hash_file "dockerfiles/remote_ssh/Dockerfile")
-          echo "remote_ssh_hash=$REMOTE_SSH_HASH" >> $GITHUB_OUTPUT
-          echo "$REMOTE_SSH_HASH" > /tmp/dockerfile-hashes/remote_ssh.hash
-        fi
-        
-        if [ -f "dockerfiles/raspbian_os/Dockerfile" ]; then
-          RPI_OS_HASH=$(hash_file "dockerfiles/raspbian_os/Dockerfile")
-          echo "rpi_os_hash=$RPI_OS_HASH" >> $GITHUB_OUTPUT
-          echo "$RPI_OS_HASH" > /tmp/dockerfile-hashes/raspbian_os.hash
-        fi
-        
-        if [ -f "dockerfiles/poetry/Dockerfile" ]; then
-          POETRY_HASH=$(hash_file "dockerfiles/poetry/Dockerfile")
-          echo "poetry_hash=$POETRY_HASH" >> $GITHUB_OUTPUT
-          echo "$POETRY_HASH" > /tmp/dockerfile-hashes/poetry.hash
-        fi
-        
-        echo "Generated Dockerfile hashes:"
-        echo "Remote SSH Dockerfile: $REMOTE_SSH_HASH"
-        echo "RPi OS Dockerfile: $RPI_OS_HASH"
-        echo "Poetry Dockerfile: $POETRY_HASH"
-      shell: bash
+    # - name: Switch to DEV mode on all projects
+    #   run: |
+    #     echo "::group::Switching to DEV mode on all projects"
+    #     make dev-mode
+    #     echo "::endgroup::"
+    #   shell: bash
 
-    # Cache Docker layers with the hash-based keys
-    - name: Cache Docker layers
-      uses: actions/cache@v3
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ steps.dockerfile-hashes.outputs.remote_ssh_hash }}-${{ steps.dockerfile-hashes.outputs.rpi_os_hash }}-${{ steps.dockerfile-hashes.outputs.poetry_hash }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-${{ steps.dockerfile-hashes.outputs.remote_ssh_hash }}-${{ steps.dockerfile-hashes.outputs.rpi_os_hash }}-
-          ${{ runner.os }}-buildx-${{ steps.dockerfile-hashes.outputs.remote_ssh_hash }}-
-          ${{ runner.os }}-buildx-
-
-    # Add dockerfile hash files to their corresponding directories
-    - name: Save Dockerfile Hashes
-      run: |
-        if [ -f "/tmp/dockerfile-hashes/remote_ssh.hash" ]; then
-          mkdir -p dockerfiles/remote_ssh
-          cp /tmp/dockerfile-hashes/remote_ssh.hash dockerfiles/remote_ssh/.dockerfile_hash
-        fi
-        
-        if [ -f "/tmp/dockerfile-hashes/raspbian_os.hash" ]; then
-          mkdir -p dockerfiles/raspbian_os
-          cp /tmp/dockerfile-hashes/raspbian_os.hash dockerfiles/raspbian_os/.dockerfile_hash
-        fi
-        
-        if [ -f "/tmp/dockerfile-hashes/poetry.hash" ]; then
-          mkdir -p dockerfiles/poetry
-          cp /tmp/dockerfile-hashes/poetry.hash dockerfiles/poetry/.dockerfile_hash
-        fi
-      shell: bash
-      
     # 
     # Temporary disable caching since the upload time takes longer than the actual action time
     # 

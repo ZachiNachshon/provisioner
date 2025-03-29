@@ -1,3 +1,4 @@
+Separate tests Docker image mgmt into a separate push/pull steps into ghcr.io (free and optimized for GitHub Actions)
 Make the k3s install script to fail on exit 1 is no network via curl
 Test containers like for Python to:
   - Run example 'provisioner examples ansible hello --username TestTest -y'
