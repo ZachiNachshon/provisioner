@@ -112,10 +112,10 @@ In order to run a specific tests class, a root relative path should be used, for
 
 ```text
 # Running a single test class
-./run_test.py plugins/provisioner_single_board_plugin/provisioner_single_board_plugin/src/config/domain/config_test.py
+./run_tests.py plugins/provisioner_single_board_plugin/provisioner_single_board_plugin/src/config/domain/config_test.py
 
 # Running a specific test method
-./run_test.py provisioner_shared/components/remote/remote_connector_test.py::TestClassName::test_method_name
+./run_tests.py provisioner_shared/components/remote/remote_connector_test.py::TestClassName::test_method_name
 ```
 
 ## Documentation Scripts

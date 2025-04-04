@@ -37,7 +37,7 @@ The shared package provides common utilities and components used by both the cor
 
 - Remote connection utilities
 - Test frameworks and helpers
-- Shared UI components
+- Shared components
 - Common data models and interfaces
 
 This design ensures consistency across plugins and reduces code duplication.
@@ -65,14 +65,6 @@ Provisioner uses Poetry for dependency management and packaging:
 - Virtual environments are isolated for clean development
 - Dependencies are precisely specified with version constraints
 
-#### VS Code Integration
-
-The repository includes VS Code configurations to enhance the development experience:
-
-- Debugger configurations
-- Recommended extensions
-- Workspace settings optimized for Python development
-
 #### Testing Infrastructure
 
 The project includes comprehensive testing infrastructure:
@@ -87,7 +79,7 @@ The project includes comprehensive testing infrastructure:
 The repository supports a streamlined development workflow:
 
 1. **Development Mode**: Use `make dev-mode` to set up local development
-2. **Testing**: Run tests with `make test` or more specific test commands
+2. **Testing**: Run tests with `make test-all-in-container` or more specific test commands
 3. **Building**: Package components with Poetry
 4. **Documentation**: Update and preview documentation in the `docs-site` directory
 

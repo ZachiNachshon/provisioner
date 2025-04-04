@@ -109,5 +109,3 @@ Some interesting commands to try:
 
 # See how validation works
 ``` -->
-
-After exploring the Examples plugin, you'll have a solid understanding of Provisioner's command patterns and will be ready to use more advanced plugins for real-world tasks.

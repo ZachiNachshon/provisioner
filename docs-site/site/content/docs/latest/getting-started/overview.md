@@ -38,7 +38,7 @@ Provisioner supports both human operators and automated systems:
 
 ## Problems Solved
 
-### 1. Script Sprawl and Knowledge Silos
+### 1. Script Mess and Knowledge Silos
 
 Organizations often accumulate dozens or hundreds of scripts in different languages, with varying quality and documentation. Provisioner solves this by:
 

@@ -119,7 +119,6 @@ After submitting a PR:
 1. Automated tests will run to verify your changes
 2. Maintainers will review your code
 3. Address any feedback or requested changes
-4. Once approved, a maintainer will merge your contribution
 
 ## Best Practices
 
@@ -160,5 +159,3 @@ If you need assistance while contributing:
 
 - Check existing documentation
 - Look for similar issues in the issue tracker
-- Ask questions in GitHub Discussions
-- Reach out to the maintainers
