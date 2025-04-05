@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded active" aria-current="page">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -383,15 +382,30 @@
   <ul>
     <li><a href="#overview">Overview</a></li>
     <li><a href="#quickstart">Quickstart</a></li>
-    <li><a href="#usage">Usage</a>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#raspberry-pi">Raspberry Pi</a>
       <ul>
-        <li>
+        <li><a href="#available-commands">Available Commands</a></li>
+        <li><a href="#os-commands">OS Commands</a>
           <ul>
-            <li><a href="#raspberry-pi">Raspberry Pi</a></li>
+            <li><a href="#burn-image">Burn Image</a></li>
+          </ul>
+        </li>
+        <li><a href="#node-commands">Node Commands</a>
+          <ul>
+            <li><a href="#configure-node">Configure Node</a></li>
+            <li><a href="#configure-network">Configure Network</a></li>
           </ul>
         </li>
       </ul>
     </li>
+    <li><a href="#examples">Examples</a>
+      <ul>
+        <li><a href="#remote-configuration">Remote Configuration</a></li>
+        <li><a href="#network-configuration">Network Configuration</a></li>
+      </ul>
+    </li>
+    <li><a href="#environment-variables">Environment Variables</a></li>
   </ul>
 </nav>
           </div>
@@ -411,7 +425,7 @@ $ provisioner plugins install
 # Non interactive mode
 $ pip install provisioner-single-board-plugin
 </code></pre></div><h2 id="usage">Usage <a class="anchor-link" href="#usage" aria-label="Link to this section: Usage"></a></h2>
-<p>Print a list of available installables</p>
+<p>Print a list of available single-board options:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board
 </code></pre></div><div class="bd-callout bd-callout-info">
 <p>Currently, the following single-boards are supported:</p>
@@ -421,23 +435,130 @@ $ pip install provisioner-single-board-plugin
 
 </div>
 
-<br>
-<h4 id="raspberry-pi">Raspberry Pi <a class="anchor-link" href="#raspberry-pi" aria-label="Link to this section: Raspberry Pi"></a></h4>
-<p>The basic set of RPi commands is designed to address the challenges of setting up and configuring a fresh RPi computer remotely:</p>
+<h2 id="raspberry-pi">Raspberry Pi <a class="anchor-link" href="#raspberry-pi" aria-label="Link to this section: Raspberry Pi"></a></h2>
+<p>The Raspberry Pi commands address the challenges of setting up and configuring a fresh RPi computer remotely. This is especially useful for headless setups in IoT projects, Kubernetes clusters, or any scenario requiring remote management.</p>
+<h3 id="available-commands">Available Commands <a class="anchor-link" href="#available-commands" aria-label="Link to this section: Available Commands"></a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi --help
+</code></pre></div><p>Currently, the following commands are available:</p>
 <ul>
-<li>
-<p>Burn a Raspbian OS image on SD-Card</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi os burn-image
-</code></pre></div></li>
-<li>
-<p>Configure Raspbian OS software and hardware settings to optimize a headless RPi computer for use as a Kubernetes cluster master or node.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node configure
-</code></pre></div></li>
-<li>
-<p>Automatically scan the local network to detect the RPi computer once connected to the home network. This allows you to define a static IP address and reconnect it with the new address.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node network
-</code></pre></div></li>
+<li><code>os burn-image</code> - Burn a Raspbian OS image on SD-Card</li>
+<li><code>node configure</code> - Configure Raspbian OS software and hardware settings</li>
+<li><code>node network</code> - Configure network settings including static IP address</li>
 </ul>
+<h3 id="os-commands">OS Commands <a class="anchor-link" href="#os-commands" aria-label="Link to this section: OS Commands"></a></h3>
+<h4 id="burn-image">Burn Image <a class="anchor-link" href="#burn-image" aria-label="Link to this section: Burn Image"></a></h4>
+<p>Burn a Raspbian OS image onto an SD card for use with your Raspberry Pi:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi os burn-image
+</code></pre></div><p>This interactive command will guide you through selecting:</p>
+<ol>
+<li>The Raspbian OS image version</li>
+<li>The target SD card device</li>
+<li>Additional configuration options</li>
+</ol>
+<h3 id="node-commands">Node Commands <a class="anchor-link" href="#node-commands" aria-label="Link to this section: Node Commands"></a></h3>
+<p>Node commands help you configure a Raspberry Pi that&rsquo;s already running Raspbian OS, either locally or remotely.</p>
+<h4 id="configure-node">Configure Node <a class="anchor-link" href="#configure-node" aria-label="Link to this section: Configure Node"></a></h4>
+<p>Configure Raspbian OS software and hardware settings to optimize a headless RPi computer:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node configure <span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div><p><strong>Common Options:</strong></p>
+<pre><code>--environment [Local|Remote]      Environment type (default: interactive)
+--connect-mode [Interactive|Flags] Connection mode (default: interactive)
+--node-username TEXT              Username for SSH connection
+--node-password TEXT              Password for SSH connection
+--ip-address TEXT                 IP address of the remote node
+--port TEXT                       SSH port number
+--hostname TEXT                   Hostname to set on the device
+--verbosity [Normal|Verbose]      Output verbosity
+-v, --verbose                     Enable verbose output
+-y, --yes                         Auto-confirm prompts
+</code></pre><p><strong>Advanced Configuration Options:</strong></p>
+<pre><code>--boot-behaviour [B1|B2|...]      Boot behavior (B1=CLI requiring login, etc.)
+--ssh [0|1]                       SSH service (0=enabled, 1=disabled)
+--camera [0|1]                    Camera interface (0=enabled, 1=disabled)
+--spi [0|1]                       SPI interface (0=enabled, 1=disabled)
+--i2c [0|1]                       I2C interface (0=enabled, 1=disabled)
+--serial-bus [0|1]                Serial interface (0=enabled, 1=disabled)
+</code></pre><h4 id="configure-network">Configure Network <a class="anchor-link" href="#configure-network" aria-label="Link to this section: Configure Network"></a></h4>
+<p>Configure network settings on a Raspberry Pi, including setting a static IP address:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node network <span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div><p><strong>Common Options:</strong></p>
+<pre><code>--environment [Local|Remote]      Environment type (default: interactive)
+--connect-mode [Interactive|Flags] Connection mode (default: interactive)
+--node-username TEXT              Username for SSH connection
+--node-password TEXT              Password for SSH connection
+--ip-address TEXT                 IP address of the remote node
+--port TEXT                       SSH port number
+--hostname TEXT                   Hostname to set on the device
+--verbosity [Normal|Verbose]      Output verbosity
+-v, --verbose                     Enable verbose output
+-y, --yes                         Auto-confirm prompts
+</code></pre><p><strong>Network-specific Options:</strong></p>
+<pre><code>--static-ip-address TEXT          Static IP address to configure
+--gw-ip-address TEXT              Gateway IP address (typically your router)
+--dns-ip-address TEXT             DNS server address
+--update-hosts-file               Update /etc/hosts with hostname and IP
+--wifi-country TEXT               WiFi country code (e.g., US, UK, IL)
+--wifi-ssid TEXT                  WiFi network name
+--wifi-password TEXT              WiFi password
+</code></pre><h2 id="examples">Examples <a class="anchor-link" href="#examples" aria-label="Link to this section: Examples"></a></h2>
+<h3 id="remote-configuration">Remote Configuration <a class="anchor-link" href="#remote-configuration" aria-label="Link to this section: Remote Configuration"></a></h3>
+<p>Configure a remote Raspberry Pi with optimized settings for headless operation:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node <span class="se">\
+</span><span class="se"></span>  --environment Remote <span class="se">\
+</span><span class="se"></span>  --connect-mode Flags <span class="se">\
+</span><span class="se"></span>  --node-username pi <span class="se">\
+</span><span class="se"></span>  --node-password raspberry <span class="se">\
+</span><span class="se"></span>  --ip-address 192.168.1.100 <span class="se">\
+</span><span class="se"></span>  --port <span class="m">22</span> <span class="se">\
+</span><span class="se"></span>  --hostname rpi-node1 <span class="se">\
+</span><span class="se"></span>  --verbose <span class="se">\
+</span><span class="se"></span>  configure <span class="se">\
+</span><span class="se"></span>  --boot-behaviour B1 <span class="se">\
+</span><span class="se"></span>  --ssh <span class="m">0</span> <span class="se">\
+</span><span class="se"></span>  --camera <span class="m">1</span> <span class="se">\
+</span><span class="se"></span>  --spi <span class="m">1</span> <span class="se">\
+</span><span class="se"></span>  --i2c <span class="m">1</span> <span class="se">\
+</span><span class="se"></span>  --serial-bus <span class="m">1</span>
+</code></pre></div><h3 id="network-configuration">Network Configuration <a class="anchor-link" href="#network-configuration" aria-label="Link to this section: Network Configuration"></a></h3>
+<p>Set up a static IP address on a remote Raspberry Pi:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node <span class="se">\
+</span><span class="se"></span>  --environment Remote <span class="se">\
+</span><span class="se"></span>  --connect-mode Flags <span class="se">\
+</span><span class="se"></span>  --node-username pi <span class="se">\
+</span><span class="se"></span>  --node-password raspberry <span class="se">\
+</span><span class="se"></span>  --ip-address 192.168.1.100 <span class="se">\
+</span><span class="se"></span>  --port <span class="m">22</span> <span class="se">\
+</span><span class="se"></span>  --hostname rpi-node1 <span class="se">\
+</span><span class="se"></span>  --verbose <span class="se">\
+</span><span class="se"></span>  network <span class="se">\
+</span><span class="se"></span>  --static-ip-address 192.168.1.200 <span class="se">\
+</span><span class="se"></span>  --gw-ip-address 192.168.1.1 <span class="se">\
+</span><span class="se"></span>  --dns-ip-address 192.168.1.1 <span class="se">\
+</span><span class="se"></span>  --update-hosts-file
+</code></pre></div><h2 id="environment-variables">Environment Variables <a class="anchor-link" href="#environment-variables" aria-label="Link to this section: Environment Variables"></a></h2>
+<p>You can use environment variables instead of command-line arguments:</p>
+<table>
+<thead>
+<tr>
+<th>Environment Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PROV_RPI_STATIC_IP</code></td>
+<td>Static IP address to set</td>
+</tr>
+<tr>
+<td><code>PROV_GATEWAY_ADDRESS</code></td>
+<td>Gateway/router IP address</td>
+</tr>
+<tr>
+<td><code>PROV_DNS_ADDRESS</code></td>
+<td>DNS server IP address</td>
+</tr>
+</tbody>
+</table>
 
       </div>
     </main>

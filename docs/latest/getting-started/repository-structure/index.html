@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="Breakdown of the provisioner GitHub repository structure">
+<meta name="description" content="A comprehensive guide to the Provisioner repository architecture">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>Overview · Provisioner vlatest</title>
+<title>Repository Structure · Provisioner vlatest</title>
 
 <link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/getting-started/repository-structure/">
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="Overview">
-<meta name="twitter:description" content="Breakdown of the provisioner GitHub repository structure">
+<meta name="twitter:title" content="Repository Structure">
+<meta name="twitter:description" content="A comprehensive guide to the Provisioner repository architecture">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
 <meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/getting-started/repository-structure/">
-<meta property="og:title" content="Overview">
-<meta property="og:description" content="Breakdown of the provisioner GitHub repository structure">
+<meta property="og:title" content="Repository Structure">
+<meta property="og:description" content="A comprehensive guide to the Provisioner repository architecture">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -364,18 +363,106 @@
           <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/getting-started/repository-structure.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">Overview</h1>
+          <h1 class="bd-title mb-0" id="content">Repository Structure</h1>
         </div>
-        <p class="bd-lead">Breakdown of the provisioner GitHub repository structure</p>
+        <p class="bd-lead">A comprehensive guide to the Provisioner repository architecture</p>
         
       </div>
 
+      
+        <div class="bd-toc mt-3 mb-5 my-lg-0 ps-xl-3 mb-lg-5 text-muted">
+          <button class="btn btn-link link-dark p-md-0 mb-2 mb-md-0 text-decoration-none bd-toc-toggle d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#tocContents" aria-expanded="false" aria-controls="tocContents">
+            On this page
+            <svg class="bi d-md-none ms-2" aria-hidden="true"><use xlink:href="#chevron-expand"></use></svg>
+          </button>
+          <strong class="d-none d-md-block h6 my-2">On this page</strong>
+          <hr class="d-none d-md-block my-2">
+          <div class="collapse bd-toc-collapse" id="tocContents">
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#repository-organization">Repository Organization</a>
+      <ul>
+        <li><a href="#core-components">Core Components</a></li>
+        <li><a href="#runtime-core-provisioner">Runtime Core (<code>provisioner/</code>)</a></li>
+        <li><a href="#shared-components-provisioner_shared">Shared Components (<code>provisioner_shared/</code>)</a></li>
+        <li><a href="#plugin-ecosystem-plugins">Plugin Ecosystem (<code>plugins/</code>)</a></li>
+        <li><a href="#development-environment">Development Environment</a>
+          <ul>
+            <li><a href="#poetry-for-dependency-management">Poetry for Dependency Management</a></li>
+            <li><a href="#testing-infrastructure">Testing Infrastructure</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#development-workflow">Development Workflow</a></li>
+  </ul>
+</nav>
+          </div>
+        </div>
       
 
       <div class="bd-content ps-lg-2">
         
 
-        <p>This section outlines the structure of the provisioner GitHub repository. Each section includes a brief explanation of its purpose and contents.</p>
+        <h2 id="repository-organization">Repository Organization <a class="anchor-link" href="#repository-organization" aria-label="Link to this section: Repository Organization"></a></h2>
+<p>The Provisioner project follows a modular architecture designed for extensibility and maintainability. This section provides a detailed overview of the repository structure to help you navigate and contribute effectively.</p>
+<h3 id="core-components">Core Components <a class="anchor-link" href="#core-components" aria-label="Link to this section: Core Components"></a></h3>
+<pre><code>provisioner/
+├── provisioner/             # Runtime core package
+├── provisioner_shared/      # Shared utilities and components
+├── plugins/                 # Plugin ecosystem (submodule)
+├── dockerfiles/             # Container definitions for testing
+├── docs-site/               # Documentation website
+└── scripts/                 # Development and CI/CD scripts
+</code></pre><h3 id="runtime-core-provisioner">Runtime Core (<code>provisioner/</code>) <a class="anchor-link" href="#runtime-core-provisioner" aria-label="Link to this section: Runtime Core (provisioner/)"></a></h3>
+<p>The runtime core contains the central framework that powers the Provisioner CLI. It&rsquo;s responsible for:</p>
+<ul>
+<li>Plugin discovery and loading</li>
+<li>Command-line interface management</li>
+<li>Core commands implementation</li>
+<li>Configuration handling</li>
+</ul>
+<h3 id="shared-components-provisioner_shared">Shared Components (<code>provisioner_shared/</code>) <a class="anchor-link" href="#shared-components-provisioner_shared" aria-label="Link to this section: Shared Components (provisioner_shared/)"></a></h3>
+<p>The shared package provides common utilities and components used by both the core runtime and plugins:</p>
+<ul>
+<li>Remote connection utilities</li>
+<li>Test frameworks and helpers</li>
+<li>Shared components</li>
+<li>Common data models and interfaces</li>
+</ul>
+<p>This design ensures consistency across plugins and reduces code duplication.</p>
+<h3 id="plugin-ecosystem-plugins">Plugin Ecosystem (<code>plugins/</code>) <a class="anchor-link" href="#plugin-ecosystem-plugins" aria-label="Link to this section: Plugin Ecosystem (plugins/)"></a></h3>
+<p>Plugins extend the functionality of Provisioner with specific capabilities:</p>
+<pre><code>plugins/
+├── provisioner_examples_plugin/     # Example plugin for learning
+├── provisioner_single_board_plugin/ # Single-board computer management
+└── provisioner_installers_plugin/   # Software installation utilities
+</code></pre><p>Each plugin is a standalone Python package that adheres to the Provisioner plugin interface, allowing for dynamic discovery and loading at runtime.</p>
+<h3 id="development-environment">Development Environment <a class="anchor-link" href="#development-environment" aria-label="Link to this section: Development Environment"></a></h3>
+<h4 id="poetry-for-dependency-management">Poetry for Dependency Management <a class="anchor-link" href="#poetry-for-dependency-management" aria-label="Link to this section: Poetry for Dependency Management"></a></h4>
+<p>Provisioner uses Poetry for dependency management and packaging:</p>
+<ul>
+<li>Each component (core, shared, plugins) has its own <code>pyproject.toml</code> file</li>
+<li>Virtual environments are isolated for clean development</li>
+<li>Dependencies are precisely specified with version constraints</li>
+</ul>
+<h4 id="testing-infrastructure">Testing Infrastructure <a class="anchor-link" href="#testing-infrastructure" aria-label="Link to this section: Testing Infrastructure"></a></h4>
+<p>The project includes comprehensive testing infrastructure:</p>
+<ul>
+<li>Unit and integration tests for all components</li>
+<li>End-to-end (E2E) tests using Docker containers</li>
+<li>Pytest as the testing framework</li>
+<li>Coverage reporting tools</li>
+</ul>
+<h2 id="development-workflow">Development Workflow <a class="anchor-link" href="#development-workflow" aria-label="Link to this section: Development Workflow"></a></h2>
+<p>The repository supports a streamlined development workflow:</p>
+<ol>
+<li><strong>Development Mode</strong>: Use <code>make dev-mode</code> to set up local development</li>
+<li><strong>Testing</strong>: Run tests with <code>make test-all-in-container</code> or more specific test commands</li>
+<li><strong>Building</strong>: Package components with Poetry</li>
+<li><strong>Documentation</strong>: Update and preview documentation in the <code>docs-site</code> directory</li>
+</ol>
+<p>For more detailed information on the development process, see the <a href="./development.md">Development Guide</a>.</p>
 <p>// TODO: Python .venv using Poetry, the shared plugin, VSCode integration etc..</p>
 
       </div>

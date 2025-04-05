@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="Explore a variety of available CLI applications (also known as plugins), or create your own using a Python-based framework that supports the creation and dynamic loading of CLI applications at runtime">
+<meta name="description" content="A modular CLI framework for creating and managing extensible command-line applications">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>Get started with &lt;code&gt;provisioner&lt;/code&gt; · Provisioner vlatest</title>
+<title>Get Started with &lt;code&gt;Provisioner&lt;/code&gt; · Provisioner vlatest</title>
 
 <link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/getting-started/introduction/">
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="Get started with provisioner">
-<meta name="twitter:description" content="Explore a variety of available CLI applications (also known as plugins), or create your own using a Python-based framework that supports the creation and dynamic loading of CLI applications at runtime">
+<meta name="twitter:title" content="Get Started with Provisioner">
+<meta name="twitter:description" content="A modular CLI framework for creating and managing extensible command-line applications">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
 <meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/getting-started/introduction/">
-<meta property="og:title" content="Get started with provisioner">
-<meta property="og:description" content="Explore a variety of available CLI applications (also known as plugins), or create your own using a Python-based framework that supports the creation and dynamic loading of CLI applications at runtime">
+<meta property="og:title" content="Get Started with Provisioner">
+<meta property="og:description" content="A modular CLI framework for creating and managing extensible command-line applications">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -364,9 +363,9 @@
           <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/getting-started/introduction.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">Get started with <code>provisioner</code></h1>
+          <h1 class="bd-title mb-0" id="content">Get Started with <code>Provisioner</code></h1>
         </div>
-        <p class="bd-lead">Explore a variety of available CLI applications (also known as plugins), or create your own using a Python-based framework that supports the creation and dynamic loading of CLI applications at runtime</p>
+        <p class="bd-lead">A modular CLI framework for creating and managing extensible command-line applications</p>
         
       </div>
 
@@ -381,12 +380,27 @@
           <div class="collapse bd-toc-collapse" id="tocContents">
             <nav id="TableOfContents">
   <ul>
-    <li><a href="#requirements">Requirements</a></li>
-    <li><a href="#quickstart">QuickStart</a>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#system-requirements">System Requirements</a></li>
+    <li><a href="#installation">Installation</a>
       <ul>
-        <li><a href="#plugins">Plugins</a></li>
+        <li><a href="#installing-the-core-runtime">Installing the Core Runtime</a></li>
+        <li><a href="#installing-plugins">Installing Plugins</a>
+          <ul>
+            <li><a href="#method-1-using-the-provisioner-cli-recommended">Method 1: Using the Provisioner CLI (Recommended)</a></li>
+            <li><a href="#method-2-direct-installation-via-pip">Method 2: Direct Installation via pip</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
+    <li><a href="#basic-usage">Basic Usage</a>
+      <ul>
+        <li><a href="#exploring-available-commands">Exploring Available Commands</a></li>
+        <li><a href="#command-structure">Command Structure</a></li>
+        <li><a href="#interactive-vs-non-interactive-mode">Interactive vs. Non-Interactive Mode</a></li>
+      </ul>
+    </li>
+    <li><a href="#next-steps">Next Steps</a></li>
   </ul>
 </nav>
           </div>
@@ -396,33 +410,73 @@
       <div class="bd-content ps-lg-2">
         
 
-        <h2 id="requirements">Requirements <a class="anchor-link" href="#requirements" aria-label="Link to this section: Requirements"></a></h2>
+        <h2 id="introduction">Introduction <a class="anchor-link" href="#introduction" aria-label="Link to this section: Introduction"></a></h2>
+<p>Provisioner is a Python-based framework for creating, managing, and executing modular command-line applications. Its plugin architecture allows teams to develop, share, and integrate specialized tools while maintaining a consistent user experience across all components.</p>
+<h2 id="system-requirements">System Requirements <a class="anchor-link" href="#system-requirements" aria-label="Link to this section: System Requirements"></a></h2>
 <ul>
-<li>A Unix-like operating system: macOS, Linux</li>
-<li>Python <code>v3.11</code> and above</li>
+<li><strong>Operating System</strong>: Unix-like systems (macOS, Linux)</li>
+<li><strong>Python</strong>: Version 3.11 or higher</li>
+<li><strong>Disk Space</strong>: Minimal (~5MB for core runtime, varies by plugins)</li>
+<li><strong>Additional Requirements</strong>: Specific plugins may have additional dependencies</li>
 </ul>
-<h2 id="quickstart">QuickStart <a class="anchor-link" href="#quickstart" aria-label="Link to this section: QuickStart"></a></h2>
-<p>The fastest way (for <code>macOS</code> and <code>Linux</code>) to install <code>provisioner</code> is from <a href="https://pypi.org/">PyPi</a> via pip:</p>
+<h2 id="installation">Installation <a class="anchor-link" href="#installation" aria-label="Link to this section: Installation"></a></h2>
+<h3 id="installing-the-core-runtime">Installing the Core Runtime <a class="anchor-link" href="#installing-the-core-runtime" aria-label="Link to this section: Installing the Core Runtime"></a></h3>
+<p>The core runtime provides the foundation for all Provisioner functionality. Install it using pip:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">pip install provisioner-runtime
-</code></pre></div><h3 id="plugins">Plugins <a class="anchor-link" href="#plugins" aria-label="Link to this section: Plugins"></a></h3>
-<p>There are two methods used for plugins installation:</p>
-<br>
-<p><strong>Using Provisioner CLI:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"># Interactive mode
-$ provisioner plugins install
+</code></pre></div><p>After installation, verify the setup by running:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner --version
+</code></pre></div><h3 id="installing-plugins">Installing Plugins <a class="anchor-link" href="#installing-plugins" aria-label="Link to this section: Installing Plugins"></a></h3>
+<p>Plugins extend Provisioner&rsquo;s capabilities with specialized functionality. You can install plugins through two methods:</p>
+<h4 id="method-1-using-the-provisioner-cli-recommended">Method 1: Using the Provisioner CLI (Recommended) <a class="anchor-link" href="#method-1-using-the-provisioner-cli-recommended" aria-label="Link to this section: Method 1: Using the Provisioner CLI (Recommended)"></a></h4>
+<p>This method leverages Provisioner&rsquo;s built-in plugin management:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># Interactive mode - presents a list of available plugins</span>
+provisioner plugins install
 
-# Non interactive mode
-$ provisioner plugins install --name provisioner-examples-plugin
-</code></pre></div><p><strong>Using PyPi via pip:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"># Examples plugin
-$ pip install provisioner-examples-plugin
+<span class="c1"># Non-interactive mode - installs a specific plugin</span>
+provisioner plugins install --name provisioner-examples-plugin
+</code></pre></div><h4 id="method-2-direct-installation-via-pip">Method 2: Direct Installation via pip <a class="anchor-link" href="#method-2-direct-installation-via-pip" aria-label="Link to this section: Method 2: Direct Installation via pip"></a></h4>
+<p>You can also install plugins directly using pip:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># Example plugin (for learning and experimentation)</span>
+pip install provisioner-examples-plugin
 
-# Installers plugin
-$ pip install provisioner-installers-plugin
+<span class="c1"># Single-board plugin (for Raspberry Pi and other single-board computers)</span>
+pip install provisioner-single-board-plugin
 
-# Single-Board plugin
-$ pip install provisioner-single-board-plugin
-</code></pre></div>
+<span class="c1"># Installers plugin (for software installation utilities)</span>
+pip install provisioner-installers-plugin
+</code></pre></div><h2 id="basic-usage">Basic Usage <a class="anchor-link" href="#basic-usage" aria-label="Link to this section: Basic Usage"></a></h2>
+<h3 id="exploring-available-commands">Exploring Available Commands <a class="anchor-link" href="#exploring-available-commands" aria-label="Link to this section: Exploring Available Commands"></a></h3>
+<p>To see all available commands:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner --help
+</code></pre></div><p>To explore commands from a specific plugin:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text">provisioner examples --help
+provisioner single-board --help
+</code></pre></div><h3 id="command-structure">Command Structure <a class="anchor-link" href="#command-structure" aria-label="Link to this section: Command Structure"></a></h3>
+<p>Provisioner uses a hierarchical command structure:</p>
+<pre><code>provisioner &lt;plugin&gt; &lt;module&gt; &lt;submodule&gt; [options] &lt;command&gt;
+</code></pre><p>For example:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node configure
+</code></pre></div><h3 id="interactive-vs-non-interactive-mode">Interactive vs. Non-Interactive Mode <a class="anchor-link" href="#interactive-vs-non-interactive-mode" aria-label="Link to this section: Interactive vs. Non-Interactive Mode"></a></h3>
+<p>Most commands support both interactive and non-interactive modes:</p>
+<ul>
+<li><strong>Interactive Mode</strong>: Guides you through options with prompts and menus</li>
+<li><strong>Non-Interactive Mode</strong>: Uses command-line flags for automation and scripting</li>
+</ul>
+<p>Example of non-interactive mode:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node <span class="se">\
+</span><span class="se"></span>  --environment Remote <span class="se">\
+</span><span class="se"></span>  --connect-mode Flags <span class="se">\
+</span><span class="se"></span>  --node-username pi <span class="se">\
+</span><span class="se"></span>  --ip-address 192.168.1.100 <span class="se">\
+</span><span class="se"></span>  network
+</code></pre></div><h2 id="next-steps">Next Steps <a class="anchor-link" href="#next-steps" aria-label="Link to this section: Next Steps"></a></h2>
+<ul>
+<li>Explore the <a href="./playground.md">Playground</a> to try example commands</li>
+<li>Learn about the <a href="./repository-structure.md">Repository Structure</a></li>
+<li>Understand Provisioner&rsquo;s <a href="./overview.md">design philosophy</a></li>
+<li>Set up a <a href="./development.md">development environment</a> to contribute or create your own plugins</li>
+</ul>
+
       </div>
     </main>
   </div>

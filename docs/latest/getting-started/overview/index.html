@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="Discover the purpose of provisioner, the challenges it was designed to solve, and the solutions it provides">
+<meta name="description" content="Understanding Provisioner&rsquo;s architectural principles and the problems it solves">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>Overview · Provisioner vlatest</title>
+<title>Design Philosophy · Provisioner vlatest</title>
 
 <link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/getting-started/overview/">
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="Overview">
-<meta name="twitter:description" content="Discover the purpose of provisioner, the challenges it was designed to solve, and the solutions it provides">
+<meta name="twitter:title" content="Design Philosophy">
+<meta name="twitter:description" content="Understanding Provisioner&rsquo;s architectural principles and the problems it solves">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
 <meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/getting-started/overview/">
-<meta property="og:title" content="Overview">
-<meta property="og:description" content="Discover the purpose of provisioner, the challenges it was designed to solve, and the solutions it provides">
+<meta property="og:title" content="Design Philosophy">
+<meta property="og:description" content="Understanding Provisioner&rsquo;s architectural principles and the problems it solves">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -364,45 +363,135 @@
           <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/getting-started/overview.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">Overview</h1>
+          <h1 class="bd-title mb-0" id="content">Design Philosophy</h1>
         </div>
-        <p class="bd-lead">Discover the purpose of <code>provisioner</code>, the challenges it was designed to solve, and the solutions it provides</p>
+        <p class="bd-lead">Understanding Provisioner&rsquo;s architectural principles and the problems it solves</p>
         
       </div>
 
+      
+        <div class="bd-toc mt-3 mb-5 my-lg-0 ps-xl-3 mb-lg-5 text-muted">
+          <button class="btn btn-link link-dark p-md-0 mb-2 mb-md-0 text-decoration-none bd-toc-toggle d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#tocContents" aria-expanded="false" aria-controls="tocContents">
+            On this page
+            <svg class="bi d-md-none ms-2" aria-hidden="true"><use xlink:href="#chevron-expand"></use></svg>
+          </button>
+          <strong class="d-none d-md-block h6 my-2">On this page</strong>
+          <hr class="d-none d-md-block my-2">
+          <div class="collapse bd-toc-collapse" id="tocContents">
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#the-provisioner-philosophy">The Provisioner Philosophy</a></li>
+    <li><a href="#core-principles">Core Principles</a>
+      <ul>
+        <li><a href="#modularity-and-extensibility">Modularity and Extensibility</a></li>
+        <li><a href="#safety-and-discoverability">Safety and Discoverability</a></li>
+        <li><a href="#flexibility-and-automation">Flexibility and Automation</a></li>
+      </ul>
+    </li>
+    <li><a href="#problems-solved">Problems Solved</a>
+      <ul>
+        <li><a href="#1-script-mess-and-knowledge-silos">1. Script Mess and Knowledge Silos</a></li>
+        <li><a href="#2-context-switching-overhead">2. Context Switching Overhead</a></li>
+        <li><a href="#3-local-to-ci-portability">3. Local-to-CI Portability</a></li>
+        <li><a href="#4-documentation-code-synchronization">4. Documentation-Code Synchronization</a></li>
+        <li><a href="#5-reliability-and-safety">5. Reliability and Safety</a></li>
+      </ul>
+    </li>
+    <li><a href="#principles-in-practice">Principles in Practice</a></li>
+  </ul>
+</nav>
+          </div>
+        </div>
       
 
       <div class="bd-content ps-lg-2">
         
 
-        <h2 id="why-creating-provisioner">Why creating <code>provisioner</code>? <a class="anchor-link" href="#why-creating-provisioner" aria-label="Link to this section: Why creating provisioner?"></a></h2>
-<ol>
-<li>
-<p>Enhance the experience for teams using multiple sources of managed scripts. Make them approachable and safe by providing a tested, documented, and controlled process with minimal context switching, thereby increasing engineering velocity</p>
-</li>
-<li>
-<p>Enable the composition of various actions from multiple sources (e.g., shell scripts, CLI utilities, repetitive commands) into a coherent and well-documented plugin</p>
-</li>
-<li>
-<p>Facilitate running the same actions both locally and in CI environments. Execution is managed through flexible flags or different configuration sets for each environment</p>
-</li>
-<li>
-<p>Eliminate the risks associated with running arbitrary, undocumented scripts that rely on environment variables for execution</p>
-</li>
-<li>
-<p>Allow teams to use only the plugins they need by searching the plugins marketplace and installing (or pre-installing) them as required</p>
-</li>
-<li>
-<p>Reduce the proliferation of CLI utilities written in various languages within an organization</p>
-</li>
-<li>
-<p>Provide a dual user experience when interacting with <code>provisioner</code>:</p>
+        <h2 id="the-provisioner-philosophy">The Provisioner Philosophy <a class="anchor-link" href="#the-provisioner-philosophy" aria-label="Link to this section: The Provisioner Philosophy"></a></h2>
+<p>Provisioner was created to solve common challenges faced by DevOps, platform, and infrastructure teams. It combines the flexibility of individual CLI tools with the consistency and safety of a unified framework. This document explains the core principles that drove Provisioner&rsquo;s design and the problems it solves.</p>
+<h2 id="core-principles">Core Principles <a class="anchor-link" href="#core-principles" aria-label="Link to this section: Core Principles"></a></h2>
+<h3 id="modularity-and-extensibility">Modularity and Extensibility <a class="anchor-link" href="#modularity-and-extensibility" aria-label="Link to this section: Modularity and Extensibility"></a></h3>
+<p>Provisioner&rsquo;s plugin architecture allows teams to build specialized tools that integrate seamlessly into a cohesive ecosystem. This approach enables:</p>
 <ul>
-<li>Interactive Mode: A terminal-based UI (TUI) enriched with step-by-step documentation and guidance</li>
-<li>Non-Interactive Mode: Direct execution through CLI commands</li>
+<li>Independent development of domain-specific plugins</li>
+<li>Incremental adoption across teams and projects</li>
+<li>Centralized management with distributed execution</li>
 </ul>
-</li>
-</ol>
+<h3 id="safety-and-discoverability">Safety and Discoverability <a class="anchor-link" href="#safety-and-discoverability" aria-label="Link to this section: Safety and Discoverability"></a></h3>
+<p>Traditional scripts and utilities often lack guardrails, documentation, and standardized interfaces. Provisioner addresses these issues by:</p>
+<ul>
+<li>Enforcing consistent command patterns</li>
+<li>Providing built-in validation and safety checks</li>
+<li>Making options discoverable through interactive modes and help systems</li>
+</ul>
+<h3 id="flexibility-and-automation">Flexibility and Automation <a class="anchor-link" href="#flexibility-and-automation" aria-label="Link to this section: Flexibility and Automation"></a></h3>
+<p>Provisioner supports both human operators and automated systems:</p>
+<ul>
+<li>Interactive mode for exploration and occasional use</li>
+<li>Scripted mode for integration with CI/CD and automation systems</li>
+<li>Environment variable support for sensitive information</li>
+</ul>
+<h2 id="problems-solved">Problems Solved <a class="anchor-link" href="#problems-solved" aria-label="Link to this section: Problems Solved"></a></h2>
+<h3 id="1-script-mess-and-knowledge-silos">1. Script Mess and Knowledge Silos <a class="anchor-link" href="#1-script-mess-and-knowledge-silos" aria-label="Link to this section: 1. Script Mess and Knowledge Silos"></a></h3>
+<p>Organizations often accumulate dozens or hundreds of scripts in different languages, with varying quality and documentation. Provisioner solves this by:</p>
+<ul>
+<li>Centralizing operational tools in a consistent framework</li>
+<li>Making functionality self-documenting through command structure</li>
+<li>Reducing the &ldquo;tribal knowledge&rdquo; required to operate systems</li>
+</ul>
+<h3 id="2-context-switching-overhead">2. Context Switching Overhead <a class="anchor-link" href="#2-context-switching-overhead" aria-label="Link to this section: 2. Context Switching Overhead"></a></h3>
+<p>Teams working across multiple projects and systems face cognitive overhead when switching between different tools and paradigms. Provisioner reduces this by:</p>
+<ul>
+<li>Providing a consistent interface across diverse functionality</li>
+<li>Standardizing option handling and error reporting</li>
+<li>Enabling command composition and reuse</li>
+</ul>
+<h3 id="3-local-to-ci-portability">3. Local-to-CI Portability <a class="anchor-link" href="#3-local-to-ci-portability" aria-label="Link to this section: 3. Local-to-CI Portability"></a></h3>
+<p>Scripts that run on a developer&rsquo;s workstation often behave differently in CI environments. Provisioner addresses this by:</p>
+<ul>
+<li>Supporting both interactive and non-interactive modes</li>
+<li>Allowing configuration through multiple channels (flags, environment variables, files)</li>
+<li>Providing consistent logging and error handling</li>
+</ul>
+<h3 id="4-documentation-code-synchronization">4. Documentation-Code Synchronization <a class="anchor-link" href="#4-documentation-code-synchronization" aria-label="Link to this section: 4. Documentation-Code Synchronization"></a></h3>
+<p>Traditional documentation quickly becomes outdated as code evolves. Provisioner mitigates this by:</p>
+<ul>
+<li>Generating help text from code</li>
+<li>Making options and capabilities self-documenting</li>
+<li>Structuring commands in intuitive hierarchies</li>
+</ul>
+<h3 id="5-reliability-and-safety">5. Reliability and Safety <a class="anchor-link" href="#5-reliability-and-safety" aria-label="Link to this section: 5. Reliability and Safety"></a></h3>
+<p>Ad-hoc scripts often lack error handling, validation, and safety checks. Provisioner ensures:</p>
+<ul>
+<li>Systematic validation of inputs</li>
+<li>Consistent error reporting</li>
+<li>Dry-run capabilities for sensitive operations</li>
+</ul>
+<h2 id="principles-in-practice">Principles in Practice <a class="anchor-link" href="#principles-in-practice" aria-label="Link to this section: Principles in Practice"></a></h2>
+<p>To illustrate these principles, consider how Provisioner handles Raspberry Pi configuration:</p>
+<p><strong>Traditional approach:</strong></p>
+<ul>
+<li>Multiple SSH commands</li>
+<li>Custom Bash scripts</li>
+<li>Manual edits to configuration files</li>
+<li>Hardcoded credentials</li>
+</ul>
+<p><strong>Provisioner approach:</strong></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner single-board raspberry-pi node <span class="se">\
+</span><span class="se"></span>  --environment Remote <span class="se">\
+</span><span class="se"></span>  --connect-mode Flags <span class="se">\
+</span><span class="se"></span>  --node-username pi <span class="se">\
+</span><span class="se"></span>  --ip-address 192.168.1.100 <span class="se">\
+</span><span class="se"></span>  configure
+</code></pre></div><p>This command provides:</p>
+<ul>
+<li>Interactive prompting for missing values</li>
+<li>Validation of inputs</li>
+<li>Secure credential handling</li>
+<li>Consistent execution workflow</li>
+<li>Dry-run capability</li>
+</ul>
+<p>By embracing these principles, Provisioner helps teams build more maintainable, secure, and user-friendly operational tools.</p>
 
       </div>
     </main>

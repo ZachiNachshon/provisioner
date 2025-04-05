@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -434,7 +433,7 @@ Docs site is using npm scripts to build the documentation and compile source fil
 </code></pre></div></li>
 <li>
 <p>Run tests suite</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">make <span class="nb">test</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">make test-all-in-container
 </code></pre></div></li>
 <li>
 <p>Run any CLI command directly from sources</p>
@@ -542,7 +541,7 @@ Make sure to switch back to <strong>PROD</strong> mode using <code>make prod-mod
 <p>This repository had been developed using the TDD methodology (Test Driven Development). Tests allow you to make sure your changes work as expected, don&rsquo;t break existing code and keeping code coverage high.</p>
 <p>Running tests locally allows you to have short validation cycles instead of waiting for the PR status to complete.</p>
 <p><strong>How to run a test suite?</strong></p>
-<p>Use either <code>make test</code> or the full command <code>poetry run coverage run -m pytest</code>.</p>
+<p>Use either <code>make test-all-in-container</code> or use the dedicated test script full command <code>./run_tests.py -h</code>.</p>
 <p>There are two methods to export tests coverge data:</p>
 <ol>
 <li><strong>Local</strong> - run <code>make test-coverage-html</code> and click on the summary link to get into HTML formatted report</li>
@@ -551,11 +550,11 @@ Make sure to switch back to <strong>PROD</strong> mode using <code>make prod-mod
 <br>
 <h4 id="running-a-specific-test-class">Running a specific test class <a class="anchor-link" href="#running-a-specific-test-class" aria-label="Link to this section: Running a specific test class"></a></h4>
 <p>In order to run a specific tests class, a root relative path should be used, for example:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># Running a shared component single test</span>
-poetry run coverage run -m pytest provisioner_shared/components/remote/remote_connector_test.py
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"># Running a single test class
+./run_tests.py plugins/provisioner_single_board_plugin/provisioner_single_board_plugin/src/config/domain/config_test.py
 
-<span class="c1"># Running a plugin single test</span>
-poetry run coverage run -m pytest plugins/provisioner_single_board_plugin/provisioner_single_board_plugin/src/config/domain/config_test.py
+# Running a specific test method
+./run_tests.py provisioner_shared/components/remote/remote_connector_test.py::TestClassName::test_method_name
 </code></pre></div><h2 id="documentation-scripts">Documentation Scripts <a class="anchor-link" href="#documentation-scripts" aria-label="Link to this section: Documentation Scripts"></a></h2>
 <p>The <code>/docs-site/package.json</code> includes numerous tasks for developing the documentation site. Run <code>npm run</code> to see all the available npm scripts in your terminal. Primary tasks include:</p>
 <div class="table-responsive"><table class="table">

@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="Contribution guidelines">
+<meta name="description" content="Guidelines and best practices for contributing to the Provisioner project">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>Contribute · Provisioner vlatest</title>
+<title>Contributing to Provisioner · Provisioner vlatest</title>
 
 <link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/getting-started/contribute/">
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="Contribute">
-<meta name="twitter:description" content="Contribution guidelines">
+<meta name="twitter:title" content="Contributing to Provisioner">
+<meta name="twitter:description" content="Guidelines and best practices for contributing to the Provisioner project">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
 <meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/getting-started/contribute/">
-<meta property="og:title" content="Contribute">
-<meta property="og:description" content="Contribution guidelines">
+<meta property="og:title" content="Contributing to Provisioner">
+<meta property="og:description" content="Guidelines and best practices for contributing to the Provisioner project">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -364,9 +363,9 @@
           <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/getting-started/contribute.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">Contribute</h1>
+          <h1 class="bd-title mb-0" id="content">Contributing to Provisioner</h1>
         </div>
-        <p class="bd-lead">Contribution guidelines</p>
+        <p class="bd-lead">Guidelines and best practices for contributing to the Provisioner project</p>
         
       </div>
 
@@ -381,8 +380,35 @@
           <div class="collapse bd-toc-collapse" id="tocContents">
             <nav id="TableOfContents">
   <ul>
-    <li><a href="#guidelines">Guidelines</a></li>
-    <li><a href="#how-to-contribute">How to Contribute?</a></li>
+    <li><a href="#contribution-guidelines">Contribution Guidelines</a>
+      <ul>
+        <li><a href="#types-of-contributions">Types of Contributions</a></li>
+        <li><a href="#development-standards">Development Standards</a>
+          <ul>
+            <li><a href="#code-quality">Code Quality</a></li>
+            <li><a href="#testing">Testing</a></li>
+            <li><a href="#documentation">Documentation</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#contribution-process">Contribution Process</a>
+      <ul>
+        <li><a href="#1-prepare-your-environment">1. Prepare Your Environment</a></li>
+        <li><a href="#2-create-a-branch">2. Create a Branch</a></li>
+        <li><a href="#3-make-your-changes">3. Make Your Changes</a></li>
+        <li><a href="#4-submit-a-pull-request-on-forked-repository">4. Submit a Pull Request on Forked Repository</a></li>
+        <li><a href="#5-code-review-process">5. Code Review Process</a></li>
+      </ul>
+    </li>
+    <li><a href="#best-practices">Best Practices</a>
+      <ul>
+        <li><a href="#keep-prs-focused">Keep PRs Focused</a></li>
+        <li><a href="#communication">Communication</a></li>
+        <li><a href="#dependencies">Dependencies</a></li>
+      </ul>
+    </li>
+    <li><a href="#getting-help">Getting Help</a></li>
   </ul>
 </nav>
           </div>
@@ -392,21 +418,133 @@
       <div class="bd-content ps-lg-2">
         
 
-        <h2 id="guidelines">Guidelines <a class="anchor-link" href="#guidelines" aria-label="Link to this section: Guidelines"></a></h2>
+        <h2 id="contribution-guidelines">Contribution Guidelines <a class="anchor-link" href="#contribution-guidelines" aria-label="Link to this section: Contribution Guidelines"></a></h2>
+<p>Provisioner is an open-source project that welcomes contributions from the community. This guide will help you understand how to contribute effectively and ensure your contributions align with the project&rsquo;s standards.</p>
+<h3 id="types-of-contributions">Types of Contributions <a class="anchor-link" href="#types-of-contributions" aria-label="Link to this section: Types of Contributions"></a></h3>
+<p>We welcome several types of contributions:</p>
 <ul>
-<li>PRs need to have a clear description of the problem they are solving</li>
-<li>PRs should be small</li>
-<li>Code without tests is not accepted, PRs must not reduce tests coverage</li>
-<li>Contributions must not add additional dependencies</li>
-<li>Before creating a PR, make sure your code is well formatted, abstractions are named properly and design is simple</li>
-<li>In case your contribution can&rsquo;t comply with any of the above please start a GitHub issue for discussion</li>
+<li><strong>Bug fixes</strong>: Addressing issues in the existing codebase</li>
+<li><strong>Feature enhancements</strong>: Improving existing functionality</li>
+<li><strong>Documentation</strong>: Clarifying or expanding documentation</li>
+<li><strong>Tests</strong>: Improving test coverage and test utilities</li>
 </ul>
-<h2 id="how-to-contribute">How to Contribute? <a class="anchor-link" href="#how-to-contribute" aria-label="Link to this section: How to Contribute?"></a></h2>
+<h3 id="development-standards">Development Standards <a class="anchor-link" href="#development-standards" aria-label="Link to this section: Development Standards"></a></h3>
+<p>All contributions should adhere to these standards:</p>
+<h4 id="code-quality">Code Quality <a class="anchor-link" href="#code-quality" aria-label="Link to this section: Code Quality"></a></h4>
+<ul>
+<li>Follow PEP 8 style guidelines</li>
+<li>Maintain consistent code styling (use <code>make fmt</code> to format code)</li>
+<li>Write self-documenting code with clear naming</li>
+<li>Keep functions focused and modular</li>
+<li>Limit complexity in individual functions</li>
+</ul>
+<h4 id="testing">Testing <a class="anchor-link" href="#testing" aria-label="Link to this section: Testing"></a></h4>
+<ul>
+<li>Maintain or increase test coverage</li>
+<li>Include unit tests for new functionality</li>
+<li>Add integration tests for component interactions</li>
+<li>Include E2E tests for user-facing features</li>
+<li>Run the full test suite before submitting a PR</li>
+</ul>
+<h4 id="documentation">Documentation <a class="anchor-link" href="#documentation" aria-label="Link to this section: Documentation"></a></h4>
+<ul>
+<li>Update relevant documentation for any code changes</li>
+<li>Document public APIs and interfaces</li>
+<li>Provide clear examples for new functionality</li>
+</ul>
+<h2 id="contribution-process">Contribution Process <a class="anchor-link" href="#contribution-process" aria-label="Link to this section: Contribution Process"></a></h2>
+<h3 id="1-prepare-your-environment">1. Prepare Your Environment <a class="anchor-link" href="#1-prepare-your-environment" aria-label="Link to this section: 1. Prepare Your Environment"></a></h3>
+<p>Before contributing, set up your development environment:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"># Fork this repository in GitHub
+
+# Clone the repository
+git clone https://github.com/YourUserName/provisioner.git
+cd provisioner
+
+# Initialize plugins submodule
+make plugins-init
+
+# Switch to development mode
+make dev-mode
+
+# Install dependencies
+make deps-install
+
+# Run tests to ensure everything works
+make test-all-in-container
+</code></pre></div><h3 id="2-create-a-branch">2. Create a Branch <a class="anchor-link" href="#2-create-a-branch" aria-label="Link to this section: 2. Create a Branch"></a></h3>
+<p>Create a branch for your contribution:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">git checkout -b feature/your-feature-name
+</code></pre></div><p>Use descriptive branch names that reflect your changes:</p>
+<ul>
+<li><code>feature/</code> for new features</li>
+<li><code>fix/</code> for bug fixes</li>
+<li><code>docs/</code> for documentation changes</li>
+<li><code>test/</code> for test-related changes</li>
+</ul>
+<h3 id="3-make-your-changes">3. Make Your Changes <a class="anchor-link" href="#3-make-your-changes" aria-label="Link to this section: 3. Make Your Changes"></a></h3>
+<p>As you develop, follow these practices:</p>
+<ul>
+<li>Make focused, logically atomic commits</li>
+<li>Write clear commit messages that explain the &ldquo;why&rdquo; not just the &ldquo;what&rdquo;</li>
+<li>Run tests frequently to catch issues early</li>
+<li>Format your code using <code>make fmt</code></li>
+<li>Check style compliance with <code>make fmtcheck</code></li>
+</ul>
+<h3 id="4-submit-a-pull-request-on-forked-repository">4. Submit a Pull Request on Forked Repository <a class="anchor-link" href="#4-submit-a-pull-request-on-forked-repository" aria-label="Link to this section: 4. Submit a Pull Request on Forked Repository"></a></h3>
+<p>When you&rsquo;re ready to submit your changes:</p>
 <ol>
-<li>Fork this repository</li>
-<li>Create a PR on the forked repository</li>
-<li>Send a pull request to the upstream repository</li>
+<li>Push your branch to your fork</li>
+<li>Create a pull request against the main repository</li>
+<li>Fill out the pull request template thoroughly</li>
+<li>Link any relevant issues</li>
 </ol>
+<p>Your PR description should:</p>
+<ul>
+<li>Clearly explain what the changes are</li>
+<li>Describe why the changes are valuable</li>
+<li>Note any potential side effects or limitations</li>
+</ul>
+<h3 id="5-code-review-process">5. Code Review Process <a class="anchor-link" href="#5-code-review-process" aria-label="Link to this section: 5. Code Review Process"></a></h3>
+<p>After submitting a PR:</p>
+<ol>
+<li>Automated tests will run to verify your changes</li>
+<li>Maintainers will review your code</li>
+<li>Address any feedback or requested changes</li>
+</ol>
+<h2 id="best-practices">Best Practices <a class="anchor-link" href="#best-practices" aria-label="Link to this section: Best Practices"></a></h2>
+<h3 id="keep-prs-focused">Keep PRs Focused <a class="anchor-link" href="#keep-prs-focused" aria-label="Link to this section: Keep PRs Focused"></a></h3>
+<p>Small, focused PRs are easier to review and more likely to be merged quickly. If you&rsquo;re working on a large feature, consider breaking it down into smaller, logically separate PRs.</p>
+<h3 id="communication">Communication <a class="anchor-link" href="#communication" aria-label="Link to this section: Communication"></a></h3>
+<p>If you&rsquo;re planning a significant contribution, consider:</p>
+<ul>
+<li>Opening an issue first to discuss your approach</li>
+<li>Engaging with the community on GitHub Discussions</li>
+<li>Sharing early drafts for feedback</li>
+</ul>
+<h3 id="dependencies">Dependencies <a class="anchor-link" href="#dependencies" aria-label="Link to this section: Dependencies"></a></h3>
+<p>Avoid adding new dependencies unless absolutely necessary. If a new dependency is essential:</p>
+<ul>
+<li>Explain why it&rsquo;s needed in your PR</li>
+<li>Consider the license compatibility</li>
+<li>Evaluate maintenance status and community support</li>
+</ul>
+<!-- ## Creating Plugins
+
+Plugins are a powerful way to extend Provisioner's functionality. If you're creating a new plugin:
+
+1. Use the examples plugin as a reference
+2. Follow the plugin interface specifications
+3. Include comprehensive tests and documentation
+4. Consider packaging and distribution requirements
+
+For detailed guidance on plugin development, see the [Plugin Development Guide](../framework/plugins.md). -->
+<h2 id="getting-help">Getting Help <a class="anchor-link" href="#getting-help" aria-label="Link to this section: Getting Help"></a></h2>
+<p>If you need assistance while contributing:</p>
+<ul>
+<li>Check existing documentation</li>
+<li>Look for similar issues in the issue tracker</li>
+</ul>
 
       </div>
     </main>

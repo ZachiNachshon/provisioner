@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="Available assertions in use in the testing framework">
+<meta name="description" content="Learn about assertion utilities and best practices for testing in the Provisioner project.">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>Available assertions in use · Provisioner vlatest</title>
+<title>Test Assertions · Provisioner vlatest</title>
 
 <link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/testing/assertions/">
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="Available assertions in use">
-<meta name="twitter:description" content="Available assertions in use in the testing framework">
+<meta name="twitter:title" content="Test Assertions">
+<meta name="twitter:description" content="Learn about assertion utilities and best practices for testing in the Provisioner project.">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
 <meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/testing/assertions/">
-<meta property="og:title" content="Available assertions in use">
-<meta property="og:description" content="Available assertions in use in the testing framework">
+<meta property="og:title" content="Test Assertions">
+<meta property="og:description" content="Learn about assertion utilities and best practices for testing in the Provisioner project.">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -364,18 +363,291 @@
           <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/testing/assertions.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">Available assertions in use</h1>
+          <h1 class="bd-title mb-0" id="content">Test Assertions</h1>
         </div>
-        <p class="bd-lead">Available assertions in use in the testing framework</p>
+        <p class="bd-lead">Learn about assertion utilities and best practices for testing in the Provisioner project.</p>
         
       </div>
 
+      
+        <div class="bd-toc mt-3 mb-5 my-lg-0 ps-xl-3 mb-lg-5 text-muted">
+          <button class="btn btn-link link-dark p-md-0 mb-2 mb-md-0 text-decoration-none bd-toc-toggle d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#tocContents" aria-expanded="false" aria-controls="tocContents">
+            On this page
+            <svg class="bi d-md-none ms-2" aria-hidden="true"><use xlink:href="#chevron-expand"></use></svg>
+          </button>
+          <strong class="d-none d-md-block h6 my-2">On this page</strong>
+          <hr class="d-none d-md-block my-2">
+          <div class="collapse bd-toc-collapse" id="tocContents">
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#test-assertions-in-provisioner">Test Assertions in Provisioner</a></li>
+    <li><a href="#standard-assertions">Standard Assertions</a>
+      <ul>
+        <li><a href="#basic-assertions">Basic Assertions</a></li>
+        <li><a href="#string-assertions">String Assertions</a></li>
+      </ul>
+    </li>
+    <li><a href="#custom-assertion-utilities">Custom Assertion Utilities</a>
+      <ul>
+        <li><a href="#cli-output-assertions">CLI Output Assertions</a></li>
+        <li><a href="#file-system-assertions">File System Assertions</a></li>
+      </ul>
+    </li>
+    <li><a href="#best-practices">Best Practices</a></li>
+    <li><a href="#examples-from-real-tests">Examples from Real Tests</a></li>
+    <li><a href="#custom-assertion-utilities-1">Custom Assertion Utilities</a></li>
+    <li><a href="#available-assertion-methods">Available Assertion Methods</a>
+      <ul>
+        <li><a href="#expect_call_argument">expect_call_argument</a></li>
+        <li><a href="#expect_exists">expect_exists</a></li>
+        <li><a href="#expect_call_arguments">expect_call_arguments</a></li>
+        <li><a href="#expect_raised_failure">expect_raised_failure</a></li>
+        <li><a href="#expect_output">expect_output</a></li>
+        <li><a href="#expect_outputs">expect_outputs</a></li>
+        <li><a href="#expect_success">expect_success</a></li>
+        <li><a href="#expect_equal_objects">expect_equal_objects</a></li>
+      </ul>
+    </li>
+    <li><a href="#handling-ansi-color-codes">Handling ANSI Color Codes</a></li>
+    <li><a href="#using-assertions-in-e2e-tests">Using Assertions in E2E Tests</a></li>
+    <li><a href="#best-practices-1">Best Practices</a></li>
+  </ul>
+</nav>
+          </div>
+        </div>
       
 
       <div class="bd-content ps-lg-2">
         
 
-        <p>// TBD: expect_call_argument, expect_exists etc&hellip;</p>
+        <h2 id="test-assertions-in-provisioner">Test Assertions in Provisioner <a class="anchor-link" href="#test-assertions-in-provisioner" aria-label="Link to this section: Test Assertions in Provisioner"></a></h2>
+<p>Assertions are vital components of effective tests. The Provisioner project uses Python&rsquo;s unittest framework along with custom assertion utilities to make tests more readable and maintainable.</p>
+<h2 id="standard-assertions">Standard Assertions <a class="anchor-link" href="#standard-assertions" aria-label="Link to this section: Standard Assertions"></a></h2>
+<p>The unittest framework provides many powerful assertion methods:</p>
+<h3 id="basic-assertions">Basic Assertions <a class="anchor-link" href="#basic-assertions" aria-label="Link to this section: Basic Assertions"></a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># Test equality</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">actual</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertNotEqual</span><span class="p">(</span><span class="n">unexpected</span><span class="p">,</span> <span class="n">actual</span><span class="p">)</span>
+
+<span class="c1"># Test boolean values</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+
+<span class="c1"># Test for None/not None</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertIsNotNone</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</code></pre></div><h3 id="string-assertions">String Assertions <a class="anchor-link" href="#string-assertions" aria-label="Link to this section: String Assertions"></a></h3>
+<p>When testing CLI outputs, string assertions are particularly useful:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># Test that string contains a substring</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;expected text&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertNotIn</span><span class="p">(</span><span class="s2">&#34;unexpected text&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+
+<span class="c1"># Test string equality</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&#34;expected string&#34;</span><span class="p">,</span> <span class="n">actual_string</span><span class="p">)</span>
+
+<span class="c1"># Test regex patterns</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertRegex</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&#34;regex_pattern&#34;</span><span class="p">)</span>
+</code></pre></div><h2 id="custom-assertion-utilities">Custom Assertion Utilities <a class="anchor-link" href="#custom-assertion-utilities" aria-label="Link to this section: Custom Assertion Utilities"></a></h2>
+<p>The Provisioner framework includes custom assertion utilities to simplify common testing scenarios.</p>
+<h3 id="cli-output-assertions">CLI Output Assertions <a class="anchor-link" href="#cli-output-assertions" aria-label="Link to this section: CLI Output Assertions"></a></h3>
+<p>When testing CLI command outputs, you can use these patterns:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">provisioner_shared.test_lib.test_cli_runner</span> <span class="kn">import</span> <span class="n">TestCliRunner</span>
+
+<span class="c1"># Run a CLI command and assert on its output</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">TestCliRunner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+    <span class="n">root_menu</span><span class="p">,</span>
+    <span class="p">[</span><span class="s2">&#34;single-board&#34;</span><span class="p">,</span> <span class="s2">&#34;raspberry-pi&#34;</span><span class="p">,</span> <span class="s2">&#34;node&#34;</span><span class="p">,</span> <span class="s2">&#34;configure&#34;</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="c1"># Assert configuration was successful</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Mock raspi-config: do_boot_behaviour B1&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Configuration completed successfully&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+</code></pre></div><h3 id="file-system-assertions">File System Assertions <a class="anchor-link" href="#file-system-assertions" aria-label="Link to this section: File System Assertions"></a></h3>
+<p>For tests that interact with the file system:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># Check if a file was created</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">))</span>
+
+<span class="c1"># Check file content</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;expected content&#34;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+</code></pre></div><h2 id="best-practices">Best Practices <a class="anchor-link" href="#best-practices" aria-label="Link to this section: Best Practices"></a></h2>
+<p>When writing assertions in your tests, follow these best practices:</p>
+<ol>
+<li>
+<p><strong>Be specific</strong>: Test exactly what you need to, no more, no less</p>
+</li>
+<li>
+<p><strong>Clear failure messages</strong>: Use custom failure messages to make debugging easier</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="s2">&#34;Failure message with context&#34;</span><span class="p">)</span>
+</code></pre></div></li>
+<li>
+<p><strong>Test one thing per test</strong>: Each test method should verify a single aspect of behavior</p>
+</li>
+<li>
+<p><strong>Consider edge cases</strong>: Don&rsquo;t just test the &ldquo;happy path&rdquo;; test edge cases and error conditions</p>
+</li>
+<li>
+<p><strong>Use appropriate assertions</strong>: Choose the most appropriate assertion for your needs (e.g., use <code>assertIn</code> for substring checks instead of regex when possible)</p>
+</li>
+</ol>
+<h2 id="examples-from-real-tests">Examples from Real Tests <a class="anchor-link" href="#examples-from-real-tests" aria-label="Link to this section: Examples from Real Tests"></a></h2>
+<p>Here are examples of assertions from the Raspberry Pi E2E tests:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># From configure_cmd_e2e_test.py</span>
+<span class="k">def</span> <span class="nf">test_e2e_install_anchor_on_remote_successfully</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">TestCliRunner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+        <span class="n">root_menu</span><span class="p">,</span>
+        <span class="p">[</span>
+            <span class="s2">&#34;single-board&#34;</span><span class="p">,</span>
+            <span class="s2">&#34;raspberry-pi&#34;</span><span class="p">,</span>
+            <span class="s2">&#34;node&#34;</span><span class="p">,</span>
+            <span class="c1"># ... other arguments ...</span>
+            <span class="s2">&#34;configure&#34;</span><span class="p">,</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Mock raspi-config: do_boot_behaviour B1&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Mock raspi-config: do_ssh 0&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Mock raspi-config: do_camera 1&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Mock raspi-config: do_spi 1&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Mock raspi-config: do_i2c 1&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Mock raspi-config: do_serial 1&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># From network_cmd_e2e_test.py</span>
+<span class="k">def</span> <span class="nf">test_e2e_configure_network_settings_successfully</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">TestCliRunner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+        <span class="n">root_menu</span><span class="p">,</span>
+        <span class="p">[</span>
+            <span class="s2">&#34;single-board&#34;</span><span class="p">,</span>
+            <span class="s2">&#34;raspberry-pi&#34;</span><span class="p">,</span>
+            <span class="s2">&#34;node&#34;</span><span class="p">,</span>
+            <span class="c1"># ... other arguments ...</span>
+            <span class="s2">&#34;network&#34;</span><span class="p">,</span>
+            <span class="s2">&#34;--static-ip-address&#34;</span><span class="p">,</span> <span class="s2">&#34;1.1.1.200&#34;</span><span class="p">,</span>
+            <span class="s2">&#34;--gw-ip-address&#34;</span><span class="p">,</span> <span class="s2">&#34;1.1.1.1&#34;</span><span class="p">,</span>
+            <span class="s2">&#34;--dns-ip-address&#34;</span><span class="p">,</span> <span class="s2">&#34;192.168.1.1&#34;</span><span class="p">,</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Verify the configuration commands were executed</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Mock raspi-config: do_hostname test-node&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Mock raspi-config: do_wifi_country IL&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+</code></pre></div><h2 id="custom-assertion-utilities-1">Custom Assertion Utilities <a class="anchor-link" href="#custom-assertion-utilities-1" aria-label="Link to this section: Custom Assertion Utilities"></a></h2>
+<p>The Provisioner project includes a set of custom assertion utilities in the <code>provisioner_shared/test_lib/assertions.py</code> file that simplify common testing patterns. These utilities are designed to make tests more readable, maintainable, and expressive.</p>
+<h2 id="available-assertion-methods">Available Assertion Methods <a class="anchor-link" href="#available-assertion-methods" aria-label="Link to this section: Available Assertion Methods"></a></h2>
+<h3 id="expect_call_argument">expect_call_argument <a class="anchor-link" href="#expect_call_argument" aria-label="Link to this section: expect_call_argument"></a></h3>
+<p>Verifies that a mocked method was called with a specific argument value:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">provisioner_shared.test_lib.assertions</span> <span class="kn">import</span> <span class="n">Assertion</span>
+<span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">mock</span>
+
+<span class="c1"># Setup a mock</span>
+<span class="n">mock_object</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">MagicMock</span><span class="p">()</span>
+<span class="n">mock_object</span><span class="o">.</span><span class="n">some_method</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&#34;test&#34;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="c1"># Verify argument value</span>
+<span class="n">Assertion</span><span class="o">.</span><span class="n">expect_call_argument</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_object</span><span class="o">.</span><span class="n">some_method</span><span class="p">,</span> <span class="s2">&#34;name&#34;</span><span class="p">,</span> <span class="s2">&#34;test&#34;</span><span class="p">)</span>
+<span class="n">Assertion</span><span class="o">.</span><span class="n">expect_call_argument</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_object</span><span class="o">.</span><span class="n">some_method</span><span class="p">,</span> <span class="s2">&#34;value&#34;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
+</code></pre></div><h3 id="expect_exists">expect_exists <a class="anchor-link" href="#expect_exists" aria-label="Link to this section: expect_exists"></a></h3>
+<p>Verifies that a particular argument was provided in a method call:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># Using the same mock from previous example</span>
+<span class="n">Assertion</span><span class="o">.</span><span class="n">expect_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_object</span><span class="o">.</span><span class="n">some_method</span><span class="p">,</span> <span class="s2">&#34;name&#34;</span><span class="p">)</span>
+</code></pre></div><h3 id="expect_call_arguments">expect_call_arguments <a class="anchor-link" href="#expect_call_arguments" aria-label="Link to this section: expect_call_arguments"></a></h3>
+<p>Applies a custom verification function to a method call argument:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">custom_validation</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&#34;Value must be positive&#34;</span>
+
+<span class="n">Assertion</span><span class="o">.</span><span class="n">expect_call_arguments</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span> 
+    <span class="n">mock_object</span><span class="o">.</span><span class="n">some_method</span><span class="p">,</span> 
+    <span class="s2">&#34;value&#34;</span><span class="p">,</span> 
+    <span class="n">custom_validation</span>
+<span class="p">)</span>
+</code></pre></div><h3 id="expect_raised_failure">expect_raised_failure <a class="anchor-link" href="#expect_raised_failure" aria-label="Link to this section: expect_raised_failure"></a></h3>
+<p>Verifies that a method raises a specific exception type:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">method_that_fails</span><span class="p">():</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&#34;Test error&#34;</span><span class="p">)</span>
+
+<span class="n">Assertion</span><span class="o">.</span><span class="n">expect_raised_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="n">method_that_fails</span><span class="p">)</span>
+</code></pre></div><p>For testing Click commands that fail:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">run_failing_command</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">TestCliRunner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">root_menu</span><span class="p">,</span> <span class="p">[</span><span class="s2">&#34;command&#34;</span><span class="p">,</span> <span class="s2">&#34;--invalid-option&#34;</span><span class="p">])</span>
+
+<span class="n">Assertion</span><span class="o">.</span><span class="n">expect_raised_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="ne">SystemExit</span><span class="p">,</span> <span class="n">run_failing_command</span><span class="p">)</span>
+</code></pre></div><h3 id="expect_output">expect_output <a class="anchor-link" href="#expect_output" aria-label="Link to this section: expect_output"></a></h3>
+<p>Verifies that a method&rsquo;s output contains an expected string, cleaning any ANSI color codes:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">run_command</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">TestCliRunner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">root_menu</span><span class="p">,</span> <span class="p">[</span><span class="s2">&#34;command&#34;</span><span class="p">,</span> <span class="s2">&#34;--option&#34;</span><span class="p">,</span> <span class="s2">&#34;value&#34;</span><span class="p">])</span>
+
+<span class="n">Assertion</span><span class="o">.</span><span class="n">expect_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&#34;Expected output text&#34;</span><span class="p">,</span> <span class="n">run_command</span><span class="p">)</span>
+</code></pre></div><h3 id="expect_outputs">expect_outputs <a class="anchor-link" href="#expect_outputs" aria-label="Link to this section: expect_outputs"></a></h3>
+<p>Similar to <code>expect_output</code> but verifies multiple expected strings in the output:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="n">expected_outputs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&#34;First expected text&#34;</span><span class="p">,</span>
+    <span class="s2">&#34;Second expected text&#34;</span><span class="p">,</span>
+    <span class="s2">&#34;Third expected text&#34;</span>
+<span class="p">]</span>
+
+<span class="n">Assertion</span><span class="o">.</span><span class="n">expect_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expected_outputs</span><span class="p">,</span> <span class="n">run_command</span><span class="p">)</span>
+</code></pre></div><h3 id="expect_success">expect_success <a class="anchor-link" href="#expect_success" aria-label="Link to this section: expect_success"></a></h3>
+<p>Verifies that a method executes without raising exceptions:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">method_that_should_succeed</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s2">&#34;success&#34;</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">Assertion</span><span class="o">.</span><span class="n">expect_success</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method_that_should_succeed</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&#34;success&#34;</span><span class="p">)</span>  <span class="c1"># Can use the returned value</span>
+</code></pre></div><h3 id="expect_equal_objects">expect_equal_objects <a class="anchor-link" href="#expect_equal_objects" aria-label="Link to this section: expect_equal_objects"></a></h3>
+<p>Compares two objects for equality by converting them to JSON:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">TestObject</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+
+<span class="n">obj1</span> <span class="o">=</span> <span class="n">TestObject</span><span class="p">(</span><span class="s2">&#34;test&#34;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
+<span class="n">obj2</span> <span class="o">=</span> <span class="n">TestObject</span><span class="p">(</span><span class="s2">&#34;test&#34;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
+<span class="n">obj3</span> <span class="o">=</span> <span class="n">TestObject</span><span class="p">(</span><span class="s2">&#34;different&#34;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Should pass</span>
+<span class="n">Assertion</span><span class="o">.</span><span class="n">expect_equal_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj1</span><span class="p">,</span> <span class="n">obj2</span><span class="p">)</span>
+
+<span class="c1"># Should fail</span>
+<span class="n">Assertion</span><span class="o">.</span><span class="n">expect_equal_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj1</span><span class="p">,</span> <span class="n">obj3</span><span class="p">)</span>
+</code></pre></div><p>This is particularly useful for comparing complex objects or objects that don&rsquo;t implement <code>__eq__</code>.</p>
+<h2 id="handling-ansi-color-codes">Handling ANSI Color Codes <a class="anchor-link" href="#handling-ansi-color-codes" aria-label="Link to this section: Handling ANSI Color Codes"></a></h2>
+<p>The assertion utilities automatically handle ANSI color codes in command outputs, making it easier to test colorized console output:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># This works even if the output contains ANSI color codes</span>
+<span class="k">def</span> <span class="nf">run_colorized_command</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">TestCliRunner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">root_menu</span><span class="p">,</span> <span class="p">[</span><span class="s2">&#34;command&#34;</span><span class="p">,</span> <span class="s2">&#34;--colorized&#34;</span><span class="p">])</span>
+
+<span class="n">Assertion</span><span class="o">.</span><span class="n">expect_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&#34;Expected plain text&#34;</span><span class="p">,</span> <span class="n">run_colorized_command</span><span class="p">)</span>
+</code></pre></div><h2 id="using-assertions-in-e2e-tests">Using Assertions in E2E Tests <a class="anchor-link" href="#using-assertions-in-e2e-tests" aria-label="Link to this section: Using Assertions in E2E Tests"></a></h2>
+<p>End-to-end tests often need to verify CLI output. Here&rsquo;s an example from a Raspberry Pi network configuration test:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">test_e2e_configure_network_settings_successfully</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">run_cmd</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">TestCliRunner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">root_menu</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s2">&#34;single-board&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;raspberry-pi&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;node&#34;</span><span class="p">,</span>
+                <span class="c1"># ... other arguments ...</span>
+                <span class="s2">&#34;network&#34;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+    
+    <span class="n">expected_outputs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&#34;Mock raspi-config: do_hostname test-node&#34;</span><span class="p">,</span>
+        <span class="s2">&#34;Mock raspi-config: do_wifi_country IL&#34;</span><span class="p">,</span>
+    <span class="p">]</span>
+    
+    <span class="n">Assertion</span><span class="o">.</span><span class="n">expect_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expected_outputs</span><span class="p">,</span> <span class="n">run_cmd</span><span class="p">)</span>
+</code></pre></div><h2 id="best-practices-1">Best Practices <a class="anchor-link" href="#best-practices-1" aria-label="Link to this section: Best Practices"></a></h2>
+<p>When using these custom assertions:</p>
+<ol>
+<li><strong>Choose the most specific assertion</strong>: Use the most specific assertion method for your test case</li>
+<li><strong>Error messages</strong>: The assertions provide detailed error messages when they fail</li>
+<li><strong>Mock verification</strong>: For mocks, verify both that methods were called and with the correct arguments</li>
+<li><strong>Object comparison</strong>: Use <code>expect_equal_objects</code> for complex object comparison instead of direct equality checks</li>
+<li><strong>Command output</strong>: Use <code>expect_output</code> or <code>expect_outputs</code> when testing CLI commands</li>
+</ol>
 
       </div>
     </main>

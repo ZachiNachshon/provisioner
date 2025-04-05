@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="Give provisioner a try by using the examples plugin">
+<meta name="description" content="Explore Provisioner features through practical examples">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>Playground · Provisioner vlatest</title>
+<title>Interactive Playground · Provisioner vlatest</title>
 
 <link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/getting-started/playground/">
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="Playground">
-<meta name="twitter:description" content="Give provisioner a try by using the examples plugin">
+<meta name="twitter:title" content="Interactive Playground">
+<meta name="twitter:description" content="Explore Provisioner features through practical examples">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
 <meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/getting-started/playground/">
-<meta property="og:title" content="Playground">
-<meta property="og:description" content="Give provisioner a try by using the examples plugin">
+<meta property="og:title" content="Interactive Playground">
+<meta property="og:description" content="Explore Provisioner features through practical examples">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -364,9 +363,9 @@
           <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/getting-started/playground.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">Playground</h1>
+          <h1 class="bd-title mb-0" id="content">Interactive Playground</h1>
         </div>
-        <p class="bd-lead">Give <code>provisioner</code> a try by using the examples plugin</p>
+        <p class="bd-lead">Explore <code>Provisioner</code> features through practical examples</p>
         
       </div>
 
@@ -381,8 +380,19 @@
           <div class="collapse bd-toc-collapse" id="tocContents">
             <nav id="TableOfContents">
   <ul>
-    <li><a href="#instructions">Instructions</a></li>
-    <li><a href="#dry-run">Dry Run</a></li>
+    <li><a href="#the-examples-plugin">The Examples Plugin</a></li>
+    <li><a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#exploring-commands">Exploring Commands</a></li>
+      </ul>
+    </li>
+    <li><a href="#running-example-commands">Running Example Commands</a>
+      <ul>
+        <li><a href="#basic-ansible-example">Basic Ansible Example</a></li>
+      </ul>
+    </li>
+    <li><a href="#using-dry-run-mode">Using Dry Run Mode</a></li>
   </ul>
 </nav>
           </div>
@@ -392,31 +402,78 @@
       <div class="bd-content ps-lg-2">
         
 
-        <h2 id="instructions">Instructions <a class="anchor-link" href="#instructions" aria-label="Link to this section: Instructions"></a></h2>
-<p>Follow these steps to install the examples plugin and run <strong>no-op</strong> commands just to get the feel of using provisioner, its plugins and overall user experience.</p>
-<ol>
-<li>
-<p>Install the playground</p>
+        <h2 id="the-examples-plugin">The Examples Plugin <a class="anchor-link" href="#the-examples-plugin" aria-label="Link to this section: The Examples Plugin"></a></h2>
+<p>The Examples plugin provides a safe, interactive environment to explore Provisioner&rsquo;s capabilities without making any system changes. It demonstrates the framework&rsquo;s user interface patterns, command structures, and interactive features.</p>
+<h2 id="getting-started">Getting Started <a class="anchor-link" href="#getting-started" aria-label="Link to this section: Getting Started"></a></h2>
+<h3 id="installation">Installation <a class="anchor-link" href="#installation" aria-label="Link to this section: Installation"></a></h3>
+<p>First, install the Examples plugin:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">pip install provisioner-examples-plugin
-</code></pre></div></li>
-<li>
-<p>List the available Ansible example commands</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner examples ansible
-</code></pre></div></li>
-<li>
-<p>Run an example Ansible no-op local command</p>
+</code></pre></div><p>This plugin adds several demonstration commands to your Provisioner installation, all designed to be completely safe to run.</p>
+<h3 id="exploring-commands">Exploring Commands <a class="anchor-link" href="#exploring-commands" aria-label="Link to this section: Exploring Commands"></a></h3>
+<p>After installation, explore the available example commands:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner examples --help
+</code></pre></div><p>You&rsquo;ll see several command groups:</p>
+<ul>
+<li><code>ansible</code> - Demonstrates localhost Ansible integration patterns</li>
+<li><code>anchor</code> - Interact with an OSS tool</li>
+</ul>
+<h2 id="running-example-commands">Running Example Commands <a class="anchor-link" href="#running-example-commands" aria-label="Link to this section: Running Example Commands"></a></h2>
+<h3 id="basic-ansible-example">Basic Ansible Example <a class="anchor-link" href="#basic-ansible-example" aria-label="Link to this section: Basic Ansible Example"></a></h3>
+<p>Try the &ldquo;hello&rdquo; command to see a basic Ansible integration example:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner examples ansible hello
-</code></pre></div></li>
-</ol>
-<br>
+</code></pre></div><p>This command simulates an Ansible execution without actually modifying your system. It demonstrates:</p>
+<ul>
+<li>Command parameter handling</li>
+<li>Execution workflow visualization</li>
+<li>Success/failure reporting</li>
+</ul>
+<!-- ### Interactive Demos
+
+To experience Provisioner's interactive capabilities:
+
+```bash
+# TODO: Maybe add dummy commands to the examples plugin instead of a full blown RPi command
+provisioner single-board raspberry-pi node configure
+```
+
+This command demonstrates:
+
+- Dynamic menu generation
+- User input handling
+- Parameter validation
+- Contextual help -->
+<h2 id="using-dry-run-mode">Using Dry Run Mode <a class="anchor-link" href="#using-dry-run-mode" aria-label="Link to this section: Using Dry Run Mode"></a></h2>
+<p>Provisioner includes a powerful &ldquo;dry run&rdquo; mode that shows what a command would do without actually executing it. This is especially useful for understanding complex commands before running them.</p>
+<p>To use dry run mode, add the <code>--dry-run</code> flag (or <code>-d</code> for short):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner examples ansible hello --dry-run
+</code></pre></div><p>For more detailed output, combine with the verbose flag:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner examples ansible hello --dry-run --verbose
+</code></pre></div><p>This will display:</p>
+<ul>
+<li>Command hierarchy and structure</li>
+<li>Parameter values and sources</li>
+<li>Mock execution steps</li>
+<li>Validation checks</li>
+</ul>
 <div class="bd-callout bd-callout-info">
-This is a quick overview just to get a grasp of how simple it is to use <code>provisioner</code>.<br>For more information, please see the <a href="https://zachinachshon.com/provisioner/docs/latest/usage/structure">usage section</a>.
+Dry run mode is available for all Provisioner commands, not just examples. It&rsquo;s a safe way to explore commands in production environments before execution.
 </div>
 
-<h2 id="dry-run">Dry Run <a class="anchor-link" href="#dry-run" aria-label="Link to this section: Dry Run"></a></h2>
-<p>Using <code>provisioner</code>, every command is a playground.</p>
-<p>Use the <code>--dry-run</code> (short: <code>-d</code>) to check command exeuction breakdown, you can also add the <code>--verbose</code> (short: <code>-v</code>) flag to read DEBUG information.</p>
-<p><em>All dry-run actions are no-op, you can safely run them as they only print to stdout.</em></p>
+<!-- ## Experiment Safely
+
+The Examples plugin is designed for experimentation and learning. Feel free to try different command combinations, flags, and options to understand how Provisioner's command system works.
+
+Some interesting commands to try:
+
+```bash
+# TODO (Zachi): Implement the following examples:
+
+# Try the remote execution simulation
+
+# Explore the progress reporting features
+
+# See how validation works
+``` -->
 
       </div>
     </main>

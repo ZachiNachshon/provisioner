@@ -10,9 +10,6 @@
     <loc>https://zachinachshon.com/provisioner/docs/latest/framework/auto-completion/</loc>
   </url>
   <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/testing/assertions/</loc>
-  </url>
-  <url>
     <loc>https://zachinachshon.com/provisioner/docs/latest/framework/cli-commands/</loc>
   </url>
   <url>
@@ -31,6 +28,9 @@
     <loc>https://zachinachshon.com/provisioner/docs/latest/bootstrap/create-a-new-plugin/</loc>
   </url>
   <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/overview/</loc>
+  </url>
+  <url>
     <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/development/</loc>
   </url>
   <url>
@@ -46,25 +46,13 @@
     <loc>https://zachinachshon.com/provisioner/docs/latest/bootstrap/start-here/</loc>
   </url>
   <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/testing/overview/</loc>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/playground/</loc>
   </url>
   <url>
     <loc>https://zachinachshon.com/provisioner/docs/latest/about/license/</loc>
   </url>
   <url>
     <loc>https://zachinachshon.com/provisioner/docs/latest/framework/os-image-burner/</loc>
-  </url>
-  <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/overview/</loc>
-  </url>
-  <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/repository-structure/</loc>
-  </url>
-  <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/playground/</loc>
-  </url>
-  <url>
-    <loc>https://zachinachshon.com/provisioner/docs/latest/plugins/examples/</loc>
   </url>
   <url>
     <loc>https://zachinachshon.com/provisioner/docs/latest/plugins/installers/</loc>
@@ -82,7 +70,16 @@
     <loc>https://zachinachshon.com/provisioner/docs/latest/framework/remote-connector/</loc>
   </url>
   <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/getting-started/repository-structure/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/testing/assertions/</loc>
+  </url>
+  <url>
     <loc>https://zachinachshon.com/provisioner/docs/latest/testing/utilities/</loc>
+  </url>
+  <url>
+    <loc>https://zachinachshon.com/provisioner/docs/latest/testing/overview/</loc>
   </url>
   <url>
     <loc>https://zachinachshon.com/provisioner/docs/versions/</loc>

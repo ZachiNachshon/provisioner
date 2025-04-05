@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="All aspects of managing a provisioner application and plugin">
+<meta name="description" content="Learn about the testing framework used in the Provisioner project.">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>How to start with provisioner · Provisioner vlatest</title>
+<title>Testing Overview · Provisioner vlatest</title>
 
 <link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/testing/overview/">
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="How to start with provisioner">
-<meta name="twitter:description" content="All aspects of managing a provisioner application and plugin">
+<meta name="twitter:title" content="Testing Overview">
+<meta name="twitter:description" content="Learn about the testing framework used in the Provisioner project.">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
 <meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/testing/overview/">
-<meta property="og:title" content="How to start with provisioner">
-<meta property="og:description" content="All aspects of managing a provisioner application and plugin">
+<meta property="og:title" content="Testing Overview">
+<meta property="og:description" content="Learn about the testing framework used in the Provisioner project.">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -364,18 +363,129 @@
           <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/testing/overview.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">How to start with provisioner</h1>
+          <h1 class="bd-title mb-0" id="content">Testing Overview</h1>
         </div>
-        <p class="bd-lead">All aspects of managing a provisioner application and plugin</p>
+        <p class="bd-lead">Learn about the testing framework used in the Provisioner project.</p>
         
       </div>
 
+      
+        <div class="bd-toc mt-3 mb-5 my-lg-0 ps-xl-3 mb-lg-5 text-muted">
+          <button class="btn btn-link link-dark p-md-0 mb-2 mb-md-0 text-decoration-none bd-toc-toggle d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#tocContents" aria-expanded="false" aria-controls="tocContents">
+            On this page
+            <svg class="bi d-md-none ms-2" aria-hidden="true"><use xlink:href="#chevron-expand"></use></svg>
+          </button>
+          <strong class="d-none d-md-block h6 my-2">On this page</strong>
+          <hr class="d-none d-md-block my-2">
+          <div class="collapse bd-toc-collapse" id="tocContents">
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#test-types">Test Types</a>
+      <ul>
+        <li><a href="#unit-tests">Unit Tests</a></li>
+        <li><a href="#integration-tests">Integration Tests</a></li>
+        <li><a href="#end-to-end-e2e-tests">End-to-End (E2E) Tests</a></li>
+      </ul>
+    </li>
+    <li><a href="#running-tests">Running Tests</a>
+      <ul>
+        <li><a href="#basic-usage">Basic Usage</a></li>
+        <li><a href="#docker-based-testing">Docker-based Testing</a></li>
+        <li><a href="#running-e2e-tests">Running E2E Tests</a></li>
+        <li><a href="#coverage-reports">Coverage Reports</a></li>
+      </ul>
+    </li>
+    <li><a href="#writing-tests">Writing Tests</a>
+      <ul>
+        <li><a href="#example-test">Example Test</a></li>
+      </ul>
+    </li>
+    <li><a href="#docker-test-environments">Docker Test Environments</a></li>
+  </ul>
+</nav>
+          </div>
+        </div>
       
 
       <div class="bd-content ps-lg-2">
         
 
-        <p>// TBD</p>
+        <h2 id="introduction">Introduction <a class="anchor-link" href="#introduction" aria-label="Link to this section: Introduction"></a></h2>
+<p>The Provisioner project uses a comprehensive testing approach that includes unit tests, integration tests, and end-to-end (E2E) tests. This documentation will guide you through the testing framework and how to run tests effectively.</p>
+<h2 id="test-types">Test Types <a class="anchor-link" href="#test-types" aria-label="Link to this section: Test Types"></a></h2>
+<h3 id="unit-tests">Unit Tests <a class="anchor-link" href="#unit-tests" aria-label="Link to this section: Unit Tests"></a></h3>
+<p>Unit tests focus on testing individual components in isolation. These tests are quick to run and should be the most numerous in the codebase.</p>
+<h3 id="integration-tests">Integration Tests <a class="anchor-link" href="#integration-tests" aria-label="Link to this section: Integration Tests"></a></h3>
+<p>Integration tests verify that different components work correctly together. They typically test the interaction between two or more units.</p>
+<h3 id="end-to-end-e2e-tests">End-to-End (E2E) Tests <a class="anchor-link" href="#end-to-end-e2e-tests" aria-label="Link to this section: End-to-End (E2E) Tests"></a></h3>
+<p>E2E tests validate the entire application workflow from start to finish. These tests often involve spinning up Docker containers to simulate remote environments, such as Raspberry Pi nodes.</p>
+<h2 id="running-tests">Running Tests <a class="anchor-link" href="#running-tests" aria-label="Link to this section: Running Tests"></a></h2>
+<p>The project includes a dedicated test runner script that simplifies running tests across the codebase.</p>
+<h3 id="basic-usage">Basic Usage <a class="anchor-link" href="#basic-usage" aria-label="Link to this section: Basic Usage"></a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># Run a specific test</span>
+./run_tests.py path/to/test.py
+
+<span class="c1"># Run all tests</span>
+./run_tests.py --all
+</code></pre></div><h3 id="docker-based-testing">Docker-based Testing <a class="anchor-link" href="#docker-based-testing" aria-label="Link to this section: Docker-based Testing"></a></h3>
+<p>Tests can be run in Docker containers to provide consistent environments:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># Run specific test in a container</span>
+./run_tests.py path/to/test.py --container
+
+<span class="c1"># Run all tests in container</span>
+./run_tests.py --all --container
+</code></pre></div><h3 id="running-e2e-tests">Running E2E Tests <a class="anchor-link" href="#running-e2e-tests" aria-label="Link to this section: Running E2E Tests"></a></h3>
+<p>End-to-end tests are marked with <code>@pytest.mark.e2e</code> and can be run selectively:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># Run only E2E tests</span>
+./run_tests.py --all --only-e2e
+
+<span class="c1"># Skip E2E tests</span>
+./run_tests.py --all --skip-e2e
+</code></pre></div><p>For example, to run a specific E2E test for the Raspberry Pi network configuration:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">./run_tests.py plugins/provisioner_single_board_plugin/provisioner_single_board_plugin/src/raspberry_pi/node/network_cmd_e2e_test.py
+</code></pre></div><h3 id="coverage-reports">Coverage Reports <a class="anchor-link" href="#coverage-reports" aria-label="Link to this section: Coverage Reports"></a></h3>
+<p>Generate test coverage reports to identify areas that need more testing:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># Generate HTML coverage report</span>
+./run_tests.py --all --report html
+
+<span class="c1"># Generate XML coverage report</span>
+./run_tests.py --all --report xml
+</code></pre></div><h2 id="writing-tests">Writing Tests <a class="anchor-link" href="#writing-tests" aria-label="Link to this section: Writing Tests"></a></h2>
+<p>When writing tests for the Provisioner project, follow these guidelines:</p>
+<ol>
+<li>Unit tests should be placed in the same directory as the code they test, with a <code>_test.py</code> suffix</li>
+<li>Mark E2E tests with the <code>@pytest.mark.e2e</code> decorator</li>
+<li>Use the provided test fixtures and utilities from <code>provisioner_shared.test_lib</code></li>
+</ol>
+<h3 id="example-test">Example Test <a class="anchor-link" href="#example-test" aria-label="Link to this section: Example Test"></a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+<span class="kn">from</span> <span class="nn">provisioner.main</span> <span class="kn">import</span> <span class="n">root_menu</span>
+<span class="kn">from</span> <span class="nn">provisioner_shared.test_lib.test_cli_runner</span> <span class="kn">import</span> <span class="n">TestCliRunner</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">e2e</span>  <span class="c1"># Mark as an E2E test</span>
+<span class="k">class</span> <span class="nc">MyFeatureE2ETestShould</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">test_my_feature_works_correctly</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">TestCliRunner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">root_menu</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s2">&#34;my-command&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--option1&#34;</span><span class="p">,</span> <span class="s2">&#34;value1&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--option2&#34;</span><span class="p">,</span> <span class="s2">&#34;value2&#34;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Expected output&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+</code></pre></div><h2 id="docker-test-environments">Docker Test Environments <a class="anchor-link" href="#docker-test-environments" aria-label="Link to this section: Docker Test Environments"></a></h2>
+<p>The E2E tests use Docker containers to simulate real environments:</p>
+<ul>
+<li><code>provisioner-poetry-e2e</code> - Used for running Python tests</li>
+<li><code>provisioner-remote-ssh</code> - Used for testing SSH-based interactions</li>
+<li><code>provisioner-rpi-os-e2e</code> - Used for simulating Raspberry Pi OS environments</li>
+</ul>
+<p>These Docker images are automatically built and cached for optimal performance.</p>
 
       </div>
     </main>

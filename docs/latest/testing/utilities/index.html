@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="Test environment, fakes and data">
+<meta name="description" content="Helper utilities to streamline the testing process in the Provisioner project.">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>Test environment, fakes and data · Provisioner vlatest</title>
+<title>Test Utilities · Provisioner vlatest</title>
 
 <link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/testing/utilities/">
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="Test environment, fakes and data">
-<meta name="twitter:description" content="Test environment, fakes and data">
+<meta name="twitter:title" content="Test Utilities">
+<meta name="twitter:description" content="Helper utilities to streamline the testing process in the Provisioner project.">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
 <meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/testing/utilities/">
-<meta property="og:title" content="Test environment, fakes and data">
-<meta property="og:description" content="Test environment, fakes and data">
+<meta property="og:title" content="Test Utilities">
+<meta property="og:description" content="Helper utilities to streamline the testing process in the Provisioner project.">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -364,18 +363,208 @@
           <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/testing/utilities.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">Test environment, fakes and data</h1>
+          <h1 class="bd-title mb-0" id="content">Test Utilities</h1>
         </div>
-        <p class="bd-lead">Test environment, fakes and data</p>
+        <p class="bd-lead">Helper utilities to streamline the testing process in the Provisioner project.</p>
         
       </div>
 
+      
+        <div class="bd-toc mt-3 mb-5 my-lg-0 ps-xl-3 mb-lg-5 text-muted">
+          <button class="btn btn-link link-dark p-md-0 mb-2 mb-md-0 text-decoration-none bd-toc-toggle d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#tocContents" aria-expanded="false" aria-controls="tocContents">
+            On this page
+            <svg class="bi d-md-none ms-2" aria-hidden="true"><use xlink:href="#chevron-expand"></use></svg>
+          </button>
+          <strong class="d-none d-md-block h6 my-2">On this page</strong>
+          <hr class="d-none d-md-block my-2">
+          <div class="collapse bd-toc-collapse" id="tocContents">
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#test-utilities-in-provisioner">Test Utilities in Provisioner</a></li>
+    <li><a href="#core-testing-utilities">Core Testing Utilities</a>
+      <ul>
+        <li><a href="#testenv">TestEnv</a></li>
+        <li><a href="#testclirunner">TestCliRunner</a></li>
+      </ul>
+    </li>
+    <li><a href="#docker-based-testing-utilities">Docker-Based Testing Utilities</a>
+      <ul>
+        <li><a href="#remoterpioscontainer">RemoteRPiOsContainer</a></li>
+        <li><a href="#remotesshcontainer">RemoteSSHContainer</a></li>
+        <li><a href="#using-containers-in-tests">Using Containers in Tests</a></li>
+      </ul>
+    </li>
+    <li><a href="#running-e2e-tests">Running E2E Tests</a></li>
+    <li><a href="#best-practices">Best Practices</a></li>
+  </ul>
+</nav>
+          </div>
+        </div>
       
 
       <div class="bd-content ps-lg-2">
         
 
-        <p>// TBD: TestFakes and TestEnv and test_data</p>
+        <h2 id="test-utilities-in-provisioner">Test Utilities in Provisioner <a class="anchor-link" href="#test-utilities-in-provisioner" aria-label="Link to this section: Test Utilities in Provisioner"></a></h2>
+<p>The Provisioner project provides several test utilities to make writing and running tests easier and more efficient. These utilities help simulate real-world environments, run CLI commands, and manage test state.</p>
+<h2 id="core-testing-utilities">Core Testing Utilities <a class="anchor-link" href="#core-testing-utilities" aria-label="Link to this section: Core Testing Utilities"></a></h2>
+<h3 id="testenv">TestEnv <a class="anchor-link" href="#testenv" aria-label="Link to this section: TestEnv"></a></h3>
+<p><code>TestEnv</code> creates and manages the test environment configuration:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">provisioner_shared.test_lib.test_env</span> <span class="kn">import</span> <span class="n">TestEnv</span>
+
+<span class="k">class</span> <span class="nc">MyTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">TestEnv</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">test_something</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Use the test environment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">is_ready</span><span class="p">())</span>
+</code></pre></div><h3 id="testclirunner">TestCliRunner <a class="anchor-link" href="#testclirunner" aria-label="Link to this section: TestCliRunner"></a></h3>
+<p><code>TestCliRunner</code> simplifies running CLI commands and capturing their output:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">provisioner_shared.test_lib.test_cli_runner</span> <span class="kn">import</span> <span class="n">TestCliRunner</span>
+<span class="kn">from</span> <span class="nn">provisioner.main</span> <span class="kn">import</span> <span class="n">root_menu</span>
+
+<span class="k">class</span> <span class="nc">MyCliTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">test_cli_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">TestCliRunner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">root_menu</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s2">&#34;command&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--option1&#34;</span><span class="p">,</span> <span class="s2">&#34;value1&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--option2&#34;</span><span class="p">,</span> <span class="s2">&#34;value2&#34;</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Expected output&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+</code></pre></div><h2 id="docker-based-testing-utilities">Docker-Based Testing Utilities <a class="anchor-link" href="#docker-based-testing-utilities" aria-label="Link to this section: Docker-Based Testing Utilities"></a></h2>
+<h3 id="remoterpioscontainer">RemoteRPiOsContainer <a class="anchor-link" href="#remoterpioscontainer" aria-label="Link to this section: RemoteRPiOsContainer"></a></h3>
+<p><code>RemoteRPiOsContainer</code> simulates a Raspberry Pi OS environment for end-to-end tests:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">provisioner_shared.test_lib.rpi_os_container</span> <span class="kn">import</span> <span class="n">RemoteRPiOsContainer</span>
+
+<span class="k">class</span> <span class="nc">RaspberryPiE2ETest</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">setUpClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">RemoteRPiOsContainer</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">tearDownClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">container</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="kc">None</span>
+            
+    <span class="k">def</span> <span class="nf">test_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Test interacting with the container</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">is_running</span><span class="p">())</span>
+</code></pre></div><p>The container exposes several useful properties:</p>
+<ul>
+<li><code>container</code>: The underlying Docker container object</li>
+<li><code>ssh_port</code>: The mapped SSH port for connecting to the container</li>
+<li><code>container_id</code>: The ID of the running container</li>
+</ul>
+<h3 id="remotesshcontainer">RemoteSSHContainer <a class="anchor-link" href="#remotesshcontainer" aria-label="Link to this section: RemoteSSHContainer"></a></h3>
+<p><code>RemoteSSHContainer</code> provides a lightweight SSH server environment for testing remote connections and SSH-based operations:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">provisioner_shared.test_lib.ssh_container</span> <span class="kn">import</span> <span class="n">RemoteSSHContainer</span>
+
+<span class="k">class</span> <span class="nc">SSHConnectionTest</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">setUpClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">RemoteSSHContainer</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">tearDownClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">container</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="kc">None</span>
+            
+    <span class="k">def</span> <span class="nf">test_ssh_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Test connecting to the SSH container</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">TestCliRunner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">root_menu</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s2">&#34;remote&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--connect-mode&#34;</span><span class="p">,</span> <span class="s2">&#34;Flags&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--username&#34;</span><span class="p">,</span> <span class="s2">&#34;user&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--password&#34;</span><span class="p">,</span> <span class="s2">&#34;password&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--host&#34;</span><span class="p">,</span> <span class="s2">&#34;127.0.0.1&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--port&#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">ssh_port</span><span class="p">),</span>
+                <span class="s2">&#34;command&#34;</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Connection successful&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+</code></pre></div><p>Key features of the <code>RemoteSSHContainer</code>:</p>
+<ul>
+<li>Standard SSH server with preconfigured credentials</li>
+<li>Pre-mapped port for SSH connections (accessible via <code>ssh_port</code> property)</li>
+<li>Designed for testing remote connection workflows</li>
+<li>Simpler than the RPi container when you only need SSH capabilities</li>
+<li>Faster startup times for tests that only require basic SSH functionality</li>
+</ul>
+<p>The <code>RemoteSSHContainer</code> supports the same core methods as other container utilities:</p>
+<ul>
+<li><code>start()</code>: Starts the container and waits for SSH to be ready</li>
+<li><code>stop()</code>: Stops and removes the container</li>
+<li><code>is_running()</code>: Checks if the container is currently running</li>
+</ul>
+<h3 id="using-containers-in-tests">Using Containers in Tests <a class="anchor-link" href="#using-containers-in-tests" aria-label="Link to this section: Using Containers in Tests"></a></h3>
+<p>For end-to-end tests, the containers allow you to:</p>
+<ol>
+<li>Simulate remote environments without requiring actual hardware</li>
+<li>Test SSH connections and command execution</li>
+<li>Verify configuration changes in a controlled environment</li>
+</ol>
+<p>Example E2E test with container:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">e2e</span>
+<span class="k">class</span> <span class="nc">RaspberryPiNodeNetworkE2ETestShould</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">TestEnv</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">setUpClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">RemoteRPiOsContainer</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">tearDownClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">container</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">test_e2e_configure_network_settings_successfully</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">TestCliRunner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">root_menu</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s2">&#34;single-board&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;raspberry-pi&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;node&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--environment&#34;</span><span class="p">,</span> <span class="s2">&#34;Remote&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--connect-mode&#34;</span><span class="p">,</span> <span class="s2">&#34;Flags&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--node-username&#34;</span><span class="p">,</span> <span class="s2">&#34;pi&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--node-password&#34;</span><span class="p">,</span> <span class="s2">&#34;raspberry&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--ip-address&#34;</span><span class="p">,</span> <span class="s2">&#34;127.0.0.1&#34;</span><span class="p">,</span>
+                <span class="s2">&#34;--port&#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">ssh_port</span><span class="p">),</span>
+                <span class="c1"># ... other options</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Assert on expected output</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&#34;Configuration successful&#34;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+</code></pre></div><h2 id="running-e2e-tests">Running E2E Tests <a class="anchor-link" href="#running-e2e-tests" aria-label="Link to this section: Running E2E Tests"></a></h2>
+<p>To run E2E tests, use the test runner script with the appropriate flags:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># Run all E2E tests</span>
+./run_tests.py --all --only-e2e
+
+<span class="c1"># Run a specific E2E test</span>
+./run_tests.py plugins/provisioner_single_board_plugin/provisioner_single_board_plugin/src/raspberry_pi/node/network_cmd_e2e_test.py
+</code></pre></div><h2 id="best-practices">Best Practices <a class="anchor-link" href="#best-practices" aria-label="Link to this section: Best Practices"></a></h2>
+<p>When using test utilities, follow these best practices:</p>
+<ol>
+<li><strong>Clean up resources</strong>: Always clean up container resources in <code>tearDownClass</code> to avoid resource leaks</li>
+<li><strong>Isolate tests</strong>: Make each test independent to prevent test interdependencies</li>
+<li><strong>Use appropriate utilities</strong>: Choose the right utilities for your testing needs</li>
+<li><strong>Handle errors</strong>: Add proper error handling in setup and teardown methods</li>
+<li><strong>Be mindful of performance</strong>: Docker-based tests are more resource-intensive, so use them judiciously</li>
+</ol>
 
       </div>
     </main>

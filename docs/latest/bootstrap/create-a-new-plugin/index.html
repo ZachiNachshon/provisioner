@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="How to quickly bootstrap a new plugin using the provisioner framework">
+<meta name="description" content="Step-by-step guide to developing a custom plugin for the Provisioner framework">
 <meta name="author" content="Zachi Nachshon">
 <meta name="generator" content="Hugo 0.86.0">
 
-<title>Create a new provisioner plugin · Provisioner vlatest</title>
+<title>Create a New Provisioner Plugin · Provisioner vlatest</title>
 
 <link rel="canonical" href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/create-a-new-plugin/">
 
@@ -30,14 +30,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@zachinachshon">
 <meta name="twitter:creator" content="@zachinachshon">
-<meta name="twitter:title" content="Create a new provisioner plugin">
-<meta name="twitter:description" content="How to quickly bootstrap a new plugin using the provisioner framework">
+<meta name="twitter:title" content="Create a New Provisioner Plugin">
+<meta name="twitter:description" content="Step-by-step guide to developing a custom plugin for the Provisioner framework">
 <meta name="twitter:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 
 <!-- Facebook -->
 <meta property="og:url" content="https://zachinachshon.com/provisioner/docs/latest/bootstrap/create-a-new-plugin/">
-<meta property="og:title" content="Create a new provisioner plugin">
-<meta property="og:description" content="How to quickly bootstrap a new plugin using the provisioner framework">
+<meta property="og:title" content="Create a New Provisioner Plugin">
+<meta property="og:description" content="Step-by-step guide to developing a custom plugin for the Provisioner framework">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://zachinachshon.com/docs/latest/assets/brand/provisioner-social.png">
 <meta property="og:image:type" content="image/png">
@@ -324,7 +324,7 @@
 
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/start-here/" class="bd-links-link d-inline-block rounded">Start Here</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/create-a-new-plugin/" class="bd-links-link d-inline-block rounded">Create a New Plugin</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/create-a-new-plugin/" class="bd-links-link d-inline-block rounded active" aria-current="page">Create a New Plugin</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/application-lifecycle/" class="bd-links-link d-inline-block rounded">Application Lifecycle</a></li>
         </ul>
       </li>
@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -364,18 +363,207 @@
           <a class="btn btn-sm btn-bd-light mb-3 mb-md-0 rounded-2" href="https://github.com/ZachiNachshon/provisioner/blob/master/docs-site/site/content/docs/latest/bootstrap/create-a-new-plugin.md" title="View and edit this file on GitHub" target="_blank" rel="noopener">
             View on GitHub
           </a>
-          <h1 class="bd-title mb-0" id="content">Create a new provisioner plugin</h1>
+          <h1 class="bd-title mb-0" id="content">Create a New Provisioner Plugin</h1>
         </div>
-        <p class="bd-lead">How to quickly bootstrap a new plugin using the provisioner framework</p>
+        <p class="bd-lead">Step-by-step guide to developing a custom plugin for the Provisioner framework</p>
         
       </div>
 
+      
+        <div class="bd-toc mt-3 mb-5 my-lg-0 ps-xl-3 mb-lg-5 text-muted">
+          <button class="btn btn-link link-dark p-md-0 mb-2 mb-md-0 text-decoration-none bd-toc-toggle d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#tocContents" aria-expanded="false" aria-controls="tocContents">
+            On this page
+            <svg class="bi d-md-none ms-2" aria-hidden="true"><use xlink:href="#chevron-expand"></use></svg>
+          </button>
+          <strong class="d-none d-md-block h6 my-2">On this page</strong>
+          <hr class="d-none d-md-block my-2">
+          <div class="collapse bd-toc-collapse" id="tocContents">
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction-to-plugin-development">Introduction to Plugin Development</a></li>
+    <li><a href="#plugin-structure-overview">Plugin Structure Overview</a></li>
+    <li><a href="#step-by-step-plugin-creation">Step-by-Step Plugin Creation</a>
+      <ul>
+        <li><a href="#1-set-up-the-package-structure">1. Set Up the Package Structure</a></li>
+        <li><a href="#2-define-package-metadata">2. Define Package Metadata</a></li>
+        <li><a href="#3-implement-the-plugin-interface">3. Implement the Plugin Interface</a></li>
+        <li><a href="#4-create-configuration-file">4. Create Configuration File</a></li>
+        <li><a href="#5-implement-command-registration">5. Implement Command Registration</a></li>
+        <li><a href="#6-build-and-install-your-plugin">6. Build and Install Your Plugin</a></li>
+      </ul>
+    </li>
+    <li><a href="#plugin-development-best-practices">Plugin Development Best Practices</a>
+      <ul>
+        <li><a href="#command-organization">Command Organization</a></li>
+        <li><a href="#error-handling">Error Handling</a></li>
+        <li><a href="#testing">Testing</a></li>
+      </ul>
+    </li>
+    <li><a href="#examples-from-existing-plugins">Examples from Existing Plugins</a>
+      <ul>
+        <li><a href="#configuration-validation">Configuration Validation</a></li>
+      </ul>
+    </li>
+    <li><a href="#next-steps">Next Steps</a></li>
+  </ul>
+</nav>
+          </div>
+        </div>
       
 
       <div class="bd-content ps-lg-2">
         
 
-        <p>// TBD</p>
+        <h2 id="introduction-to-plugin-development">Introduction to Plugin Development <a class="anchor-link" href="#introduction-to-plugin-development" aria-label="Link to this section: Introduction to Plugin Development"></a></h2>
+<p>Provisioner&rsquo;s plugin architecture allows you to extend the framework with custom functionality while leveraging the core infrastructure. This guide will walk you through creating a new plugin from scratch.</p>
+<h2 id="plugin-structure-overview">Plugin Structure Overview <a class="anchor-link" href="#plugin-structure-overview" aria-label="Link to this section: Plugin Structure Overview"></a></h2>
+<p>A Provisioner plugin is a Python package that follows these conventions:</p>
+<ul>
+<li>Package name starts with <code>provisioner_</code> and ends with <code>_plugin</code></li>
+<li>Contains a <code>main.py</code> file that implements the plugin interface</li>
+<li>Includes a <code>resources/config.yaml</code> file for plugin-specific configuration</li>
+<li>Structured to register commands with the CLI</li>
+</ul>
+<h2 id="step-by-step-plugin-creation">Step-by-Step Plugin Creation <a class="anchor-link" href="#step-by-step-plugin-creation" aria-label="Link to this section: Step-by-Step Plugin Creation"></a></h2>
+<h3 id="1-set-up-the-package-structure">1. Set Up the Package Structure <a class="anchor-link" href="#1-set-up-the-package-structure" aria-label="Link to this section: 1. Set Up the Package Structure"></a></h3>
+<p>Start by creating the basic file structure for your plugin:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text">mkdir -p provisioner_myplugin_plugin/provisioner_myplugin_plugin/resources
+mkdir -p provisioner_myplugin_plugin/provisioner_myplugin_plugin/src
+touch provisioner_myplugin_plugin/pyproject.toml
+touch provisioner_myplugin_plugin/provisioner_myplugin_plugin/main.py
+touch provisioner_myplugin_plugin/provisioner_myplugin_plugin/resources/config.yaml
+</code></pre></div><h3 id="2-define-package-metadata">2. Define Package Metadata <a class="anchor-link" href="#2-define-package-metadata" aria-label="Link to this section: 2. Define Package Metadata"></a></h3>
+<p>Create a <code>pyproject.toml</code> file with your plugin&rsquo;s metadata:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-toml" data-lang="toml"><span class="p">[</span><span class="nx">tool</span><span class="p">.</span><span class="nx">poetry</span><span class="p">]</span>
+<span class="nx">name</span> <span class="p">=</span> <span class="s2">&#34;provisioner-myplugin-plugin&#34;</span>
+<span class="nx">version</span> <span class="p">=</span> <span class="s2">&#34;0.1.0&#34;</span>
+<span class="nx">description</span> <span class="p">=</span> <span class="s2">&#34;My custom plugin for Provisioner&#34;</span>
+<span class="nx">authors</span> <span class="p">=</span> <span class="p">[</span><span class="s2">&#34;Your Name &lt;your.email@example.com&gt;&#34;</span><span class="p">]</span>
+<span class="nx">readme</span> <span class="p">=</span> <span class="s2">&#34;README.md&#34;</span>
+<span class="nx">packages</span> <span class="p">=</span> <span class="p">[{</span><span class="nx">include</span> <span class="p">=</span> <span class="s2">&#34;provisioner_myplugin_plugin&#34;</span><span class="p">}]</span>
+
+<span class="p">[</span><span class="nx">tool</span><span class="p">.</span><span class="nx">poetry</span><span class="p">.</span><span class="nx">dependencies</span><span class="p">]</span>
+<span class="nx">python</span> <span class="p">=</span> <span class="s2">&#34;^3.8&#34;</span>
+<span class="nx">provisioner-shared</span> <span class="p">=</span> <span class="s2">&#34;^0.1.0&#34;</span>
+
+<span class="p">[</span><span class="nx">build-system</span><span class="p">]</span>
+<span class="nx">requires</span> <span class="p">=</span> <span class="p">[</span><span class="s2">&#34;poetry-core&#34;</span><span class="p">]</span>
+<span class="nx">build-backend</span> <span class="p">=</span> <span class="s2">&#34;poetry.core.masonry.api&#34;</span>
+</code></pre></div><h3 id="3-implement-the-plugin-interface">3. Implement the Plugin Interface <a class="anchor-link" href="#3-implement-the-plugin-interface" aria-label="Link to this section: 3. Implement the Plugin Interface"></a></h3>
+<p>Edit your <code>main.py</code> file to implement the required plugin interface:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="ch">#!/usr/bin/env python3</span>
+<span class="kn">import</span> <span class="nn">pathlib</span>
+
+<span class="kn">import</span> <span class="nn">click</span>
+
+<span class="kn">from</span> <span class="nn">provisioner_shared.components.runtime.cli.cli_modifiers</span> <span class="kn">import</span> <span class="n">cli_modifiers</span>
+<span class="kn">from</span> <span class="nn">provisioner_shared.components.runtime.cli.menu_format</span> <span class="kn">import</span> <span class="n">CustomGroup</span>
+<span class="kn">from</span> <span class="nn">provisioner_shared.components.runtime.cli.version</span> <span class="kn">import</span> <span class="n">append_version_cmd_to_cli</span>
+<span class="kn">from</span> <span class="nn">provisioner_shared.components.runtime.config.manager.config_manager</span> <span class="kn">import</span> <span class="n">ConfigManager</span>
+
+<span class="c1"># Define plugin constants</span>
+<span class="n">PLUGIN_NAME</span> <span class="o">=</span> <span class="s2">&#34;myplugin&#34;</span>
+<span class="n">MYPLUGIN_ROOT_PATH</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+<span class="n">CONFIG_INTERNAL_PATH</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&#34;</span><span class="si">{</span><span class="n">MYPLUGIN_ROOT_PATH</span><span class="si">}</span><span class="s2">/resources/config.yaml&#34;</span>
+
+<span class="c1"># Create config class for your plugin</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">provisioner_shared.components.runtime.config.domain.config</span> <span class="kn">import</span> <span class="n">BaseConfig</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">MyPluginConfig</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
+    <span class="n">some_setting</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1"># Required function to load plugin configuration</span>
+<span class="k">def</span> <span class="nf">load_config</span><span class="p">():</span>
+    <span class="n">ConfigManager</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">load_plugin_config</span><span class="p">(</span><span class="n">PLUGIN_NAME</span><span class="p">,</span> <span class="n">CONFIG_INTERNAL_PATH</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MyPluginConfig</span><span class="p">)</span>
+
+<span class="c1"># Required function to register plugin commands with the CLI</span>
+<span class="k">def</span> <span class="nf">append_to_cli</span><span class="p">(</span><span class="n">root_menu</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+    <span class="c1"># Get plugin config</span>
+    <span class="n">myplugin_cfg</span> <span class="o">=</span> <span class="n">ConfigManager</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">get_plugin_config</span><span class="p">(</span><span class="n">PLUGIN_NAME</span><span class="p">)</span>
+    
+    <span class="c1"># Create a top-level command group for your plugin</span>
+    <span class="nd">@root_menu</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">invoke_without_command</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">no_args_is_help</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">CustomGroup</span><span class="p">)</span>
+    <span class="nd">@cli_modifiers</span>
+    <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
+    <span class="k">def</span> <span class="nf">myplugin</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+        <span class="s2">&#34;&#34;&#34;My custom functionality for Provisioner&#34;&#34;&#34;</span>
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">invoked_subcommand</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">get_help</span><span class="p">())</span>
+    
+    <span class="c1"># Add version command to your plugin&#39;s command group</span>
+    <span class="n">append_version_cmd_to_cli</span><span class="p">(</span>
+        <span class="n">root_menu</span><span class="o">=</span><span class="n">myplugin</span><span class="p">,</span>
+        <span class="n">root_package</span><span class="o">=</span><span class="n">MYPLUGIN_ROOT_PATH</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&#34;Print myplugin version&#34;</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Register your plugin&#39;s commands</span>
+    <span class="c1"># register_my_commands(cli_group=myplugin, myplugin_cfg=myplugin_cfg)</span>
+</code></pre></div><h3 id="4-create-configuration-file">4. Create Configuration File <a class="anchor-link" href="#4-create-configuration-file" aria-label="Link to this section: 4. Create Configuration File"></a></h3>
+<p>Set up your plugin&rsquo;s configuration in <code>resources/config.yaml</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="w"></span><span class="nt">some_setting</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;default value&#34;</span><span class="w">
+</span></code></pre></div><h3 id="5-implement-command-registration">5. Implement Command Registration <a class="anchor-link" href="#5-implement-command-registration" aria-label="Link to this section: 5. Implement Command Registration"></a></h3>
+<p>Create a new file to register your plugin&rsquo;s commands. For example, create <code>src/commands.py</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">from</span> <span class="nn">provisioner_shared.components.runtime.cli.cli_modifiers</span> <span class="kn">import</span> <span class="n">cli_modifiers</span>
+
+<span class="k">def</span> <span class="nf">register_my_commands</span><span class="p">(</span><span class="n">cli_group</span><span class="p">,</span> <span class="n">myplugin_cfg</span><span class="p">):</span>
+    <span class="nd">@cli_group</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+    <span class="nd">@cli_modifiers</span>
+    <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
+    <span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+        <span class="s2">&#34;&#34;&#34;Print a hello message&#34;&#34;&#34;</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&#34;Hello from my custom plugin!&#34;</span><span class="p">)</span>
+</code></pre></div><p>Then modify your <code>main.py</code> to import and use this function:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">provisioner_myplugin_plugin.src.commands</span> <span class="kn">import</span> <span class="n">register_my_commands</span>
+
+<span class="c1"># In your append_to_cli function:</span>
+<span class="n">register_my_commands</span><span class="p">(</span><span class="n">cli_group</span><span class="o">=</span><span class="n">myplugin</span><span class="p">,</span> <span class="n">myplugin_cfg</span><span class="o">=</span><span class="n">myplugin_cfg</span><span class="p">)</span>
+</code></pre></div><h3 id="6-build-and-install-your-plugin">6. Build and Install Your Plugin <a class="anchor-link" href="#6-build-and-install-your-plugin" aria-label="Link to this section: 6. Build and Install Your Plugin"></a></h3>
+<p>Build your plugin package:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">make pip-install-plugin myplugin
+</code></pre></div><p>This will install the plugin to local pip, used for development or testing.</p>
+<h2 id="plugin-development-best-practices">Plugin Development Best Practices <a class="anchor-link" href="#plugin-development-best-practices" aria-label="Link to this section: Plugin Development Best Practices"></a></h2>
+<h3 id="command-organization">Command Organization <a class="anchor-link" href="#command-organization" aria-label="Link to this section: Command Organization"></a></h3>
+<p>Organize your commands logically:</p>
+<ul>
+<li>Group related commands under meaningful subcommands</li>
+<li>Use consistent naming conventions for commands</li>
+<li>Follow the pattern used in existing plugins</li>
+</ul>
+<h3 id="error-handling">Error Handling <a class="anchor-link" href="#error-handling" aria-label="Link to this section: Error Handling"></a></h3>
+<p>Implement robust error handling:</p>
+<ul>
+<li>Validate user input and configuration</li>
+<li>Provide meaningful error messages</li>
+<li>Return appropriate exit codes</li>
+</ul>
+<h3 id="testing">Testing <a class="anchor-link" href="#testing" aria-label="Link to this section: Testing"></a></h3>
+<p>Write comprehensive tests for your plugin:</p>
+<ul>
+<li>Unit tests for individual components</li>
+<li>Integration tests for command execution</li>
+<li>Test both successful and error cases</li>
+</ul>
+<h2 id="examples-from-existing-plugins">Examples from Existing Plugins <a class="anchor-link" href="#examples-from-existing-plugins" aria-label="Link to this section: Examples from Existing Plugins"></a></h2>
+<p>Study these patterns from existing plugins:</p>
+<h3 id="configuration-validation">Configuration Validation <a class="anchor-link" href="#configuration-validation" aria-label="Link to this section: Configuration Validation"></a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">append_to_cli</span><span class="p">(</span><span class="n">root_menu</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+    <span class="n">plugin_cfg</span> <span class="o">=</span> <span class="n">ConfigManager</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">get_plugin_config</span><span class="p">(</span><span class="n">PLUGIN_NAME</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plugin_cfg</span><span class="o">.</span><span class="n">required_setting</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&#34;Required setting is missing from plugin configuration&#34;</span><span class="p">)</span>
+</code></pre></div><h2 id="next-steps">Next Steps <a class="anchor-link" href="#next-steps" aria-label="Link to this section: Next Steps"></a></h2>
+<p>After creating your plugin:</p>
+<ul>
+<li>Test it thoroughly with different inputs and scenarios</li>
+<li>Document your plugin&rsquo;s functionality and configuration</li>
+<li>Consider publishing it to PyPI for wider usage</li>
+</ul>
+<p>For more detailed information, refer to the <a href="../framework/plugins.md">Plugin Architecture Guide</a>.</p>
 
       </div>
     </main>

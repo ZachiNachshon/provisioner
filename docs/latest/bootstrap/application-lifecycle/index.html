@@ -325,7 +325,7 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/start-here/" class="bd-links-link d-inline-block rounded">Start Here</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/create-a-new-plugin/" class="bd-links-link d-inline-block rounded">Create a New Plugin</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/application-lifecycle/" class="bd-links-link d-inline-block rounded">Application Lifecycle</a></li>
+            <li><a href="https://zachinachshon.com/provisioner/docs/latest/bootstrap/application-lifecycle/" class="bd-links-link d-inline-block rounded active" aria-current="page">Application Lifecycle</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -337,7 +337,6 @@
         <ul class="list-unstyled fw-normal pb-2 small">
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/installers/" class="bd-links-link d-inline-block rounded">Installers</a></li>
             <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/single-board/" class="bd-links-link d-inline-block rounded">Single Board</a></li>
-            <li><a href="https://zachinachshon.com/provisioner/docs/latest/plugins/examples/" class="bd-links-link d-inline-block rounded">Examples</a></li>
         </ul>
       </li>
       <li class="bd-links-group py-2">
@@ -371,11 +370,191 @@
       </div>
 
       
+        <div class="bd-toc mt-3 mb-5 my-lg-0 ps-xl-3 mb-lg-5 text-muted">
+          <button class="btn btn-link link-dark p-md-0 mb-2 mb-md-0 text-decoration-none bd-toc-toggle d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#tocContents" aria-expanded="false" aria-controls="tocContents">
+            On this page
+            <svg class="bi d-md-none ms-2" aria-hidden="true"><use xlink:href="#chevron-expand"></use></svg>
+          </button>
+          <strong class="d-none d-md-block h6 my-2">On this page</strong>
+          <hr class="d-none d-md-block my-2">
+          <div class="collapse bd-toc-collapse" id="tocContents">
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#application-lifecycle-overview">Application Lifecycle Overview</a></li>
+    <li><a href="#startup-sequence">Startup Sequence</a>
+      <ul>
+        <li><a href="#1-command-invocation">1. Command Invocation</a></li>
+        <li><a href="#2-core-initialization">2. Core Initialization</a></li>
+        <li><a href="#3-configuration-loading">3. Configuration Loading</a></li>
+        <li><a href="#4-core-command-registration">4. Core Command Registration</a></li>
+        <li><a href="#5-plugin-discovery-and-loading">5. Plugin Discovery and Loading</a></li>
+        <li><a href="#6-command-execution">6. Command Execution</a></li>
+      </ul>
+    </li>
+    <li><a href="#application-lifecycle-flowchart">Application Lifecycle Flowchart</a></li>
+    <li><a href="#key-components-in-the-lifecycle">Key Components in the Lifecycle</a>
+      <ul>
+        <li><a href="#configuration-manager">Configuration Manager</a></li>
+        <li><a href="#cli-modifiers">CLI Modifiers</a></li>
+        <li><a href="#plugin-integration-points">Plugin Integration Points</a></li>
+      </ul>
+    </li>
+    <li><a href="#customization-points">Customization Points</a></li>
+    <li><a href="#next-steps">Next Steps</a></li>
+  </ul>
+</nav>
+          </div>
+        </div>
+      
 
       <div class="bd-content ps-lg-2">
         
 
-        <p>// TBD</p>
+        <h2 id="application-lifecycle-overview">Application Lifecycle Overview <a class="anchor-link" href="#application-lifecycle-overview" aria-label="Link to this section: Application Lifecycle Overview"></a></h2>
+<p>The Provisioner application follows a well-defined lifecycle from the moment you execute the CLI command until your requested action is performed. Understanding this flow helps you troubleshoot issues and develop plugins that integrate seamlessly with the framework.</p>
+<h2 id="startup-sequence">Startup Sequence <a class="anchor-link" href="#startup-sequence" aria-label="Link to this section: Startup Sequence"></a></h2>
+<p>When you run a Provisioner command, the application follows this sequence:</p>
+<h3 id="1-command-invocation">1. Command Invocation <a class="anchor-link" href="#1-command-invocation" aria-label="Link to this section: 1. Command Invocation"></a></h3>
+<p>The process begins when you execute the <code>provisioner</code> command with arguments:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">provisioner <span class="o">[</span>global-flags<span class="o">]</span> <span class="o">[</span>command<span class="o">]</span> <span class="o">[</span>command-args<span class="o">]</span>
+</code></pre></div><h3 id="2-core-initialization">2. Core Initialization <a class="anchor-link" href="#2-core-initialization" aria-label="Link to this section: 2. Core Initialization"></a></h3>
+<p>The application initializes the core infrastructure:</p>
+<ul>
+<li>Creates an empty context object</li>
+<li>Sets up core collaborators (logging, package loading, etc.)</li>
+<li>Establishes the root CLI menu structure</li>
+</ul>
+<h3 id="3-configuration-loading">3. Configuration Loading <a class="anchor-link" href="#3-configuration-loading" aria-label="Link to this section: 3. Configuration Loading"></a></h3>
+<p>Configuration is loaded from two sources:</p>
+<ul>
+<li><strong>Internal configuration</strong>: Default settings packaged with Provisioner (<code>resources/config.yaml</code>)</li>
+<li><strong>User configuration</strong>: Custom settings in the user&rsquo;s home directory (<code>~/.provisioner/config.yaml</code>)</li>
+</ul>
+<p>User settings override internal defaults, allowing for customization while maintaining required base configuration.</p>
+<h3 id="4-core-command-registration">4. Core Command Registration <a class="anchor-link" href="#4-core-command-registration" aria-label="Link to this section: 4. Core Command Registration"></a></h3>
+<p>The application registers built-in commands:</p>
+<ul>
+<li><code>version</code>: Shows version information</li>
+<li><code>config</code>: Manages configuration settings</li>
+<li><code>plugins</code>: Lists and manages installed plugins</li>
+</ul>
+<h3 id="5-plugin-discovery-and-loading">5. Plugin Discovery and Loading <a class="anchor-link" href="#5-plugin-discovery-and-loading" aria-label="Link to this section: 5. Plugin Discovery and Loading"></a></h3>
+<p>Provisioner dynamically discovers and loads plugins:</p>
+<ol>
+<li>Scans installed Python packages matching the &ldquo;provisioner&rdquo; pattern</li>
+<li>For each plugin:
+<ul>
+<li>Loads plugin-specific configuration</li>
+<li>Registers plugin commands with the CLI</li>
+</ul>
+</li>
+</ol>
+<h3 id="6-command-execution">6. Command Execution <a class="anchor-link" href="#6-command-execution" aria-label="Link to this section: 6. Command Execution"></a></h3>
+<p>Finally, the application:</p>
+<ol>
+<li>Processes arguments to identify the requested command</li>
+<li>Sets up the execution context with relevant flags</li>
+<li>Executes the command&rsquo;s implementation</li>
+<li>Returns the result and exit code</li>
+</ol>
+<h2 id="application-lifecycle-flowchart">Application Lifecycle Flowchart <a class="anchor-link" href="#application-lifecycle-flowchart" aria-label="Link to this section: Application Lifecycle Flowchart"></a></h2>
+<pre><code>┌─────────────────────────────┐
+│    User Invokes Command     │
+│ provisioner [cmd] [args]    │
+└───────────────┬─────────────┘
+                ▼
+┌─────────────────────────────┐
+│    Initialize Core System   │
+│    Create Empty Context     │
+└───────────────┬─────────────┘
+                ▼
+┌─────────────────────────────┐
+│    Create CLI Structure     │
+│    Set Up Command Backbone  │
+└───────────────┬─────────────┘
+                ▼
+┌─────────────────────────────┐
+│  Load Configuration         │◄────┐
+│  Internal + User Config     │     │
+└───────────────┬─────────────┘     │
+                ▼                   │
+┌─────────────────────────────┐     │
+│  Register Core Commands     │     │
+│  version, config, plugins   │     │
+└───────────────┬─────────────┘     │
+                ▼                   │
+┌─────────────────────────────┐     │
+│    Discover Pip Packages    │     │
+│    Filter &quot;provisioner*&quot;    │     │
+└───────────────┬─────────────┘     │
+                ▼                   │
+┌─────────────────────────────┐     │
+│       For Each Plugin       │     │
+└───────────────┬─────────────┘     │
+                ▼                   │
+┌─────────────────────────────┐     │
+│    Load Plugin Config       ├─────┘
+│                             │
+└───────────────┬─────────────┘
+                ▼
+┌─────────────────────────────┐
+│  Register Plugin Commands   │
+│      with CLI Menu          │
+└───────────────┬─────────────┘
+                ▼
+┌─────────────────────────────┐
+│   Process User Command      │
+│   Validate Arguments        │
+└───────────────┬─────────────┘
+                ▼
+┌─────────────────────────────┐
+│      Execute Command        │
+│                             │
+└───────────────┬─────────────┘
+                ▼
+┌─────────────────────────────┐
+│     Return Result/Exit      │
+│                             │
+└─────────────────────────────┘
+</code></pre><h2 id="key-components-in-the-lifecycle">Key Components in the Lifecycle <a class="anchor-link" href="#key-components-in-the-lifecycle" aria-label="Link to this section: Key Components in the Lifecycle"></a></h2>
+<h3 id="configuration-manager">Configuration Manager <a class="anchor-link" href="#configuration-manager" aria-label="Link to this section: Configuration Manager"></a></h3>
+<p>The <code>ConfigManager</code> is a singleton that:</p>
+<ul>
+<li>Loads internal and user configuration</li>
+<li>Validates configuration against schema</li>
+<li>Provides access to config values</li>
+<li>Manages plugin-specific configuration</li>
+</ul>
+<h3 id="cli-modifiers">CLI Modifiers <a class="anchor-link" href="#cli-modifiers" aria-label="Link to this section: CLI Modifiers"></a></h3>
+<p>CLI modifiers affect how commands are executed:</p>
+<ul>
+<li><code>--dry-run (-d)</code> : Simulates command execution without making changes</li>
+<li><code>--verbose (-v)</code> : Enables verbose logging</li>
+</ul>
+<h3 id="plugin-integration-points">Plugin Integration Points <a class="anchor-link" href="#plugin-integration-points" aria-label="Link to this section: Plugin Integration Points"></a></h3>
+<p>Plugins integrate at specific points in the lifecycle:</p>
+<ol>
+<li>During discovery, when the package loader finds them</li>
+<li>During configuration loading, when plugin-specific settings are loaded</li>
+<li>During CLI registration, when plugin commands are added to the menu</li>
+<li>During command execution, when plugin-provided commands are invoked</li>
+</ol>
+<h2 id="customization-points">Customization Points <a class="anchor-link" href="#customization-points" aria-label="Link to this section: Customization Points"></a></h2>
+<p>The Provisioner lifecycle can be customized at several points:</p>
+<ol>
+<li><strong>User Configuration</strong>: Override default settings in <code>~/.provisioner/config.yaml</code></li>
+<li><strong>Command-Line Flags</strong>: Modify behavior with global flags</li>
+<li><strong>Environment Variables</strong>: Configure certain aspects via environment</li>
+<li><strong>Plugin Loading</strong>: Control which plugins are loaded and their order</li>
+<li><strong>Command Implementation</strong>: Plugins can implement custom commands with unique behavior</li>
+</ol>
+<h2 id="next-steps">Next Steps <a class="anchor-link" href="#next-steps" aria-label="Link to this section: Next Steps"></a></h2>
+<p>Now that you understand the application lifecycle, you can:</p>
+<ul>
+<li><a href="create-a-new-plugin.md">Create a New Plugin</a> to extend Provisioner</li>
+<li>Learn about <a href="../framework/plugins.md">Plugin Development</a> in depth</li>
+<li>Explore the <a href="../framework/configuration.md">Configuration System</a></li>
+</ul>
 
       </div>
     </main>
