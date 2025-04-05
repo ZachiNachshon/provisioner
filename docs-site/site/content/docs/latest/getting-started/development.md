@@ -44,7 +44,7 @@ Docs site is using npm scripts to build the documentation and compile source fil
 1. Run tests suite
 
    ```bash
-   make test
+   make test-all-in-container
    ```
 
 1. Run any CLI command directly from sources
@@ -97,7 +97,7 @@ Running tests locally allows you to have short validation cycles instead of wait
 
 **How to run a test suite?**
 
-Use either `make test` or the full command `poetry run coverage run -m pytest`.
+Use either `make test-all-in-container` or use the dedicated test script full command `./run_tests.py -h`.
 
 There are two methods to export tests coverge data:
 
@@ -110,12 +110,12 @@ There are two methods to export tests coverge data:
 
 In order to run a specific tests class, a root relative path should be used, for example:
 
-```bash
-# Running a shared component single test
-poetry run coverage run -m pytest provisioner_shared/components/remote/remote_connector_test.py
+```text
+# Running a single test class
+./run_tests.py plugins/provisioner_single_board_plugin/provisioner_single_board_plugin/src/config/domain/config_test.py
 
-# Running a plugin single test
-poetry run coverage run -m pytest plugins/provisioner_single_board_plugin/provisioner_single_board_plugin/src/config/domain/config_test.py
+# Running a specific test method
+./run_tests.py provisioner_shared/components/remote/remote_connector_test.py::TestClassName::test_method_name
 ```
 
 ## Documentation Scripts

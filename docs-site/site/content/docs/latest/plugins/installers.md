@@ -8,19 +8,15 @@ toc: true
 
 ## Overview
 
-The installers plugin is designed to install any type of software, package, or application quickly and easily in a one-liner command.
+The Installers plugin simplifies software installation with one-line commands, eliminating the need to navigate multiple documentation sources. It supports installing:
 
-Remove the hassle of going through multiple READMEs and/or documentation sites just to get the software installed.
+- CLI tools with specific version targeting
+- K3s Kubernetes (server or agent)
+- System packages and utilities
 
-{{< callout info >}}
-**Important !** <br>
-Installation can be performed either locally on the host machine or on a remote machine.
+Installation can be performed either locally or on remote machines via SSH.
 
-For local installations, an interactive flow will be initiated using a TUI (Terminal UI).
-To install on a remote machine without triggering the interactive flow, use the Remote-Only flags to provide the remote machine details. Environment variables (ENV VARs) are also supported for this purpose.
-{{< /callout >}}
-
-## Quickstart
+## Installation
 
 ```text
 # Interactive mode
@@ -32,73 +28,155 @@ $ pip install provisioner-installers-plugin
 
 ## Usage
 
-Print a list of available installables
+### List Available Installables
+
+To see all installation options:
 
 ```bash
-provisioner install 
+provisioner install
 ```
 
-{{< callout info >}}
-Currently, the following installables are supported:
-* CLI applications
-* K3s server/agent
-{{< /callout >}}
+### Install CLI Tools
 
-#### CLI
+```bash
+# List available CLI tools
+provisioner install cli
 
-Install any supported CLI tool
+# Install a CLI tool (latest version)
+provisioner install cli helm
 
-```text
-# List avaialble CLI installables 
-$ provisioner install cli
-
-# Install a specific installable
-$ provisioner install cli <app-name>
+# Install a specific version
+provisioner install cli helm@v3.14.1
 ```
 
-#### K3s
+<!-- Supported version formats:
+- Specific version: `@v3.14.1`, `@3.14.1`, `@latest`
+- Version constraints: `@^3.0.0` (any 3.x.x version) -->
 
-K3s is fully compliant lightweight Kubernetes distribution (https://k3s.io).<br>
-Provisioner allows installing either the k3s server or agent.
+### Install K3s
 
-```text
-# List avaialble k3s installables 
-$ provisioner install k3s
+```bash
+# List K3s installation options
+provisioner install k3s
 
-# List avaialble CLI installables 
-$ provisioner install k3s <server/agent>
+# Install K3s server
+provisioner install k3s server
+
+# Install K3s agent
+provisioner install k3s agent
+```
+
+### Install System Packages
+
+```bash
+# List system package options
+provisioner install system
+
+# Install a specific package
+provisioner install system docker
+```
+
+## Installation Modes
+
+The plugin supports two installation modes:
+
+### Interactive Mode (Default)
+
+When run without additional flags, the plugin launches an interactive Terminal UI (TUI) that guides you through the installation process with step-by-step prompts.
+
+```bash
+provisioner install cli
+```
+
+### Non-Interactive Mode
+
+For scripting or automation, you can specify all parameters directly:
+
+```bash
+provisioner install cli helm@v3.14.1
 ```
 
 ## Remote Installation
 
-When choosing a remote installation without an interactive flow, the necessary flags should be provided to allow the CLI command to run as a single-line command.
+To install software on remote machines:
 
-{{< bs-table >}}
+```text
+# Basic syntax
+provisioner install --environment Remote [options] COMMAND
+
+# Example with explicit flags
+provisioner install \
+  --environment Remote \
+  --connect-mode Flags \
+  --node-username pi \
+  --ssh-private-key-file-path ~/.ssh/id_rsa \
+  --ip-address 1.2.3.4 \
+  --port 22 \
+  --hostname rpi-01 \
+  --verbosity Verbose \
+  cli kubectl@v1.28.4
+```
+
+### Remote Configuration Options
+
 | Remote Flag | Env Var | Description |
-| --- | --- | --- |
-| `--hostname` | `PROV_HOSTNAME` | Remote node host name |
+|-------------|---------|-------------|
+| `--hostname` | `PROV_HOSTNAME` | Remote node hostname |
 | `--ip-address` | `PROV_IP_ADDRESS` | Remote node IP address |
 | `--node-username` | `PROV_NODE_USERNAME` | Remote node username |
 | `--node-password` | `PROV_NODE_PASSWORD` | (Optional) Remote node password |
-| `--ssh-private-key-file-path` | `PROV_SSH_PRIVATE_KEY_FILE_PATH` | (Recommended) Private SSH key local file path |
-{{< /bs-table >}}
+| `--ssh-private-key-file-path` | `PROV_SSH_PRIVATE_KEY_FILE_PATH` | (Recommended) SSH private key path |
+| `--port` | `PROV_PORT` | SSH port (default: 22) |
 
-Example:
+### Using Environment Variables
 
-```text
-# Using CLI flags
+You can use environment variables instead of flags:
+
+```bash
+PROV_NODE_USERNAME=admin \
+PROV_SSH_PRIVATE_KEY_FILE_PATH=~/.ssh/id_rsa \
+provisioner install --environment Remote cli helm@v3.11.0
+```
+
+## Additional Options
+
+- `--dry-run (-d)` : Simulates command execution without making changes
+- `--verbose (-v)` : Enables verbose logging
+
+## Examples
+
+### Install Latest `kubectl` Locally
+
+```bash
+provisioner install cli kubectl
+```
+
+### Install Specific `helm` Version Remotely
+
+```bash
+PROV_NODE_USERNAME=admin \
+PROV_SSH_PRIVATE_KEY_FILE_PATH=~/.ssh/id_rsa \
 provisioner install \
   --environment Remote \
-  --hostname rpi-01 \
+  --connect-mode Flags \
   --ip-address 1.2.3.4 \
-  --node-username pi \
-  --ssh-private-key-file-path /path/to/pkey \
-  cli helm
+  --port 22 \
+  --hostname rpi-01 \
+  --verbosity Verbose \
+  cli helm@v3.11.2
+```
 
-# Using Env Vars 
-PROV_HOSTNAME=rpi-01 \
-PROV_IP_ADDRESS=1.2.3.4 \
-PROV_NODE_USERNAME=pi \
-PROV_SSH_PRIVATE_KEY_FILE_PATH=/path/to/pkey \
-provisioner install --environment Remote cli helm
+### Deploy `k3s` Server to Remote Machine
+
+```bash
+provisioner install \
+  --environment Remote \
+  --connect-mode Flags \
+  --node-username pi \
+  --ssh-private-key-file-path ~/.ssh/id_rsa \
+  --ip-address 1.2.3.4 \
+  --port 22 \
+  --hostname rpi-01 \
+  --verbosity Verbose \
+  k3s server
 ```

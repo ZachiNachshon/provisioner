@@ -39,7 +39,7 @@
         {{ highlight (printf (`provisioner plugins install --name provisioner-examples-plugin`)) "sh" "" }}
       </p>
       <p>
-        For the full list of available plugins <a href="/docs/{{ .Site.Params.docs_version }}/plugins/provisioner-runtime/#quickstart">check the following section</a>.
+        For the full list of available plugins <a href="/docs/{{ .Site.Params.docs_version }}/plugins/installers/">check the following section</a>.
       </p>
     </div>
   </section>
@@ -53,7 +53,7 @@
       Provisioner Python CLI framework supports a wide range of common utilities, interactive terminal and core capabilities such as config-management, flag modifiers (verbose, dry-run, auto-prompt) and much more...
     </p>
     <p class="d-flex justify-content-start lead fw-normal">
-      <a href="/docs/{{ .Site.Params.docs_version }}/plugins/provisioner-runtime#framework" class="icon-link fw-semibold">
+      <a href="/docs/{{ .Site.Params.docs_version }}/framework/core" class="icon-link fw-semibold">
         Learn more about the provisioner Python framework
         <svg class="bi"><use xlink:href="#arrow-right-short"></use></svg>
       </a>
@@ -84,7 +84,7 @@
         <p>Install anything anywhere on any OS/Arch either on a local or remote machine.<br>
           <br>This plugin is designed to install any type of software, package, or application quickly and easily in a one-liner command.<br>
           <br>Remove the hassle of going through multiple READMEs and/or documentation sites just to get the software installed.<br>
-          <br>For additional information please head to the <a href="/docs/{{ .Site.Params.docs_version }}/plugins/plugin-installers/">Plugin: Installers</a> section.
+          <br>For additional information please head to the <a href="/docs/{{ .Site.Params.docs_version }}/plugins/installers/">Plugin: Installers</a> section.
         </p>
         {{ highlight (printf `# Print a list of available installables
 $ provisioner install 
@@ -93,16 +93,19 @@ $ provisioner install
 $ provisioner install cli helm
 
 # Install Helm CLI locally (Non-interactive)
-$ provisioner install --environment=Local cli helm
+$ provisioner install --environment=Local cli helm@v3.14.1
 
 # Install K3s server remotely (Non-interactive)
 $ provisioner install \
   --environment Remote \
-  --hostname rpi-01 \
-  --ip-address 1.2.3.4 \
+  --connect-mode Flags \
   --node-username pi \
   --ssh-private-key-file-path /path/to/pkey \
-  cli helm`) "text" "" }}
+  --ip-address 1.2.3.4 \
+  --port 22 \
+  --hostname rpi-01 \
+  --verbosity Verbose \
+  cli helm@v3.14.1`) "text" "" }}
         <!-- <img class="img-fluid mt-1 mx-auto" src="/docs/{{ .Site.Params.docs_version }}/assets/img/provisioner-build-bazel-example.svg"
                                           alt="provisioner Build Bazel" width="700" height="600" loading="lazy"> -->
       </div>
@@ -112,7 +115,7 @@ $ provisioner install \
         <p>Single boards management as simple as it gets.<br>
           <br>Manage small single-board computers such as <b><i>Raspberry Pi</i></b> using interactive CLI commands.<br>
           <br>Focus on safe, secure and remotely possible provisioning, starting from the initial OS/Network set-up and configuration towards on-going maintenance.<br>
-          <br>For additional information please head to the <a href="/docs/{{ .Site.Params.docs_version }}/plugins/plugin-single-board/">Plugin: Single Board</a> section.
+          <br>For additional information please head to the <a href="/docs/{{ .Site.Params.docs_version }}/plugins/single-board/">Plugin: Single Board</a> section.
         </p>
         {{ highlight (printf `# Select an available local block device to burn a Raspbian OS image (SD-Card / HDD)
 $ provisioner single-board raspberry-pi os burn-image
