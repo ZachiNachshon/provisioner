@@ -2,7 +2,8 @@
 
 import os
 import re
-import sys
+import tempfile
+import threading
 import time
 from typing import List, Optional
 
@@ -66,6 +67,7 @@ ENV_VARS = {
 }
 
 REMOTE_MACHINE_LOCAL_BIN_FOLDER = "~/.local/bin"
+
 
 class AnsiblePlaybook:
     __name: str
@@ -386,30 +388,66 @@ class AnsibleRunnerLocal:
         if self._dry_run:
             return f"name: {playbook.get_name()}\ncontent:\n{playbook_content_escaped}\ncommand:\nansible-playbook {' '.join(map(str, ansible_playbook_args_reducted))}"
 
-        # Run ansible/generic commands in interactive mode locally
-        out, err, rc = ansible_runner.run_command(
-            private_data_dir=ProvisionerAnsibleProjectPath,
-            executable_cmd="ansible-playbook", 
-            cmdline_args=ansible_playbook_args,
-            runner_mode="subprocess",
-            envvars=ENV_VARS,
-            quiet=False,
-            input_fd=sys.stdin,
-            output_fd=sys.stdout,
-            error_fd=sys.stderr
-        )
+        try:
+            stdout_fd, stderr_fd, stdout_path, stderr_path, ansible_done, reader_thread = (
+                self.prepare_file_descriptors()
+            )
+            # Run ansible/generic commands in interactive mode locally
+            out, err, rc = ansible_runner.run_command(
+                private_data_dir=ProvisionerAnsibleProjectPath,
+                executable_cmd="ansible-playbook",
+                cmdline_args=ansible_playbook_args,
+                runner_mode="subprocess",
+                envvars=ENV_VARS,
+                quiet=False,
+                # output_fd=stdout_log,
+                # error_fd=stderr_log
+                # input_fd=sys.stdin,
+                output_fd=stdout_fd,
+                error_fd=stderr_fd,
+            )
+
+            # Signal that ansible has completed
+            ansible_done.set()
+
+            # Wait for reader thread to finish
+            reader_thread.join(timeout=2)
+
+            # Read the full output for return values
+            with open(stdout_path, "r") as f:
+                out = f.read()
+            with open(stderr_path, "r") as f:
+                err = f.read()
+
+        except Exception as e:
+            logger.error(f"Error running ansible-playbook: {e}")
+
+        finally:
+            # Close file descriptors
+            stdout_fd.close()
+            stderr_fd.close()
+
+            # Clean up temp files
+            try:
+                os.unlink(stdout_path)
+                os.unlink(stderr_path)
+            except Exception as e:
+                logger.error(f"Error cleaning up temp files: {e}")
 
         # Handle non-zero return codes
         if rc != 0:
             message = err if err else out
-            
+
             # Check if this is a Python interpreter discovery warning or other benign warning
-            python_interpreter_warning = any([
-                "[WARNING]: Platform linux on host" in message and "using the discovered Python interpreter" in message,
-                "[WARNING]: Python interpreter discovery" in message,
-                "but future installation of another Python interpreter could change" in message
-            ])
-            
+            python_interpreter_warning = any(
+                [
+                    "[WARNING]: Platform linux on host" in message
+                    and "using the discovered Python interpreter" in message,
+                    "[WARNING]: Python interpreter discovery" in message,
+                    "but future installation of another Python interpreter could change" in message,
+                ]
+            )
+
             if python_interpreter_warning:
                 logger.warning("Python interpreter discovery warning detected, but continuing execution")
             else:
@@ -417,11 +455,59 @@ class AnsibleRunnerLocal:
                 if not err and not self._verbose:
                     message = self._try_extract_stderr_message(message)
                 raise AnsiblePlaybookRunnerException(message)
-                
+
         if self._verbose:
             return str(out)
         else:
             return self._try_extract_stdout_message(out)
+
+    def prepare_file_descriptors(self):
+        # Create temp files for stdout and stderr
+        stdout_file = tempfile.NamedTemporaryFile(mode="w+", delete=False)
+        stderr_file = tempfile.NamedTemporaryFile(mode="w+", delete=False)
+
+        stdout_path = stdout_file.name
+        stderr_path = stderr_file.name
+
+        # Close the file objects so ansible_runner can open them for writing
+        stdout_file.close()
+        stderr_file.close()
+
+        # Create file objects for ansible_runner
+        stdout_fd = open(stdout_path, "w")
+        stderr_fd = open(stderr_path, "w")
+
+        # Thread function to read and filter task names
+        def read_and_filter(file_path):
+            with open(file_path, "r") as f:
+                # Go to end of file
+                f.seek(0, os.SEEK_END)
+
+                while True:
+                    line = f.readline()
+                    if not line:
+                        # If ansible_runner process has completed, exit
+                        if ansible_done.is_set():
+                            break
+                        # Otherwise wait for more content
+                        time.sleep(0.1)
+                        continue
+
+                    # Extract task names
+                    task_match = re.search(r"TASK \[.*?: (.*?)\]", line)
+                    if task_match:
+                        task_name = task_match.group(1)
+                        print(f"Running task: {task_name}")
+
+        # Flag to signal when ansible has completed
+        ansible_done = threading.Event()
+
+        # Start reader thread
+        reader_thread = threading.Thread(target=read_and_filter, args=(stdout_path,))
+        reader_thread.daemon = True
+        reader_thread.start()
+
+        return stdout_fd, stderr_fd, stdout_path, stderr_path, ansible_done, reader_thread
 
     def is_password_was_used_in_hosts(self, selected_hosts: List[AnsibleHost]) -> bool:
         for selected_host in selected_hosts:

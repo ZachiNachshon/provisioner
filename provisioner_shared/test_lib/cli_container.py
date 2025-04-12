@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
+import hashlib
 import json
 import os
 import pathlib
 import time
-import hashlib
-from typing import List, Dict
+from typing import Dict, List
 
 import docker
 import paramiko
@@ -24,16 +24,22 @@ DEFAULT_REMOTE_SSH_HASH_FILE = f"{PROJECT_ROOT_PATH}/dockerfiles/remote_ssh/.doc
 #  docker run -v ~/.ssh:/root/.ssh -p 2222:22 -d -it --name "z-provisioner-remote-ssh-e2e" "provisioner-remote-ssh-e2e"
 #
 class RemoteSSHContainer(DockerContainer):
-    def __init__(self, image="provisioner-remote-ssh-e2e", custom_flags: List[str] = None, network_name: str = None, ports: Dict[int, int] = None):
+    def __init__(
+        self,
+        image="provisioner-remote-ssh-e2e",
+        custom_flags: List[str] = None,
+        network_name: str = None,
+        ports: Dict[int, int] = None,
+    ):
         super().__init__(image)
         self.with_exposed_ports(22)  # Ensure SSH is exposed
-        
+
         # Store port mappings (container_port -> host_port)
         self.ports = ports or {}
         # Add any ports from the dictionary to exposed ports
         for container_port in self.ports.keys():
             self.with_exposed_ports(container_port)
-            
+
         self.custom_flags = custom_flags or []
         self.maybe_network_name = network_name
         self.network_created = False
@@ -58,16 +64,16 @@ class RemoteSSHContainer(DockerContainer):
 
         # Bind SSH port
         self.with_bind_ports(22, ssh_port)
-        
+
         # Bind additional ports if specified
         for container_port, host_port in self.ports.items():
             self.with_bind_ports(container_port, host_port)
-        
+
         # Apply container options before starting
         if self.container_options:
             for key, value in self.container_options.items():
                 setattr(self, key, value)
-            
+
         super().start()
         time.sleep(3)  # Give SSH time to initialize
 
@@ -82,16 +88,16 @@ class RemoteSSHContainer(DockerContainer):
     def _apply_custom_flags(self):
         """Apply custom Docker flags to container options"""
         for flag in self.custom_flags:
-            if flag.startswith('--'):
+            if flag.startswith("--"):
                 # Remove the leading '--' from the flag
                 flag_name = flag[2:]
-                
+
                 # Convert flag to container option
                 # For boolean flags (no value), set to True
                 # For flags with values, they should be passed as --flag=value
-                if '=' in flag_name:
+                if "=" in flag_name:
                     # Handle flags with values
-                    key, value = flag_name.split('=', 1)
+                    key, value = flag_name.split("=", 1)
                     self.container_options[key] = value
                 else:
                     # Handle boolean flags
@@ -156,23 +162,25 @@ class RemoteSSHContainer(DockerContainer):
         """Build the Docker image locally using Dockerfile content hash for caching"""
         client = docker.from_env()
         image_exist = self._image_exists(client, DEFAULT_REMOTE_SSH_IMAGE_NAME)
-        
+
         # Calculate Dockerfile hash
         dockerfile_hash = self._get_dockerfile_hash(DEFAULT_REMOTE_SSH_DOCKERFILE_PATH)
         print(f"Image {DEFAULT_REMOTE_SSH_IMAGE_NAME} Dockerfile hash: {dockerfile_hash}")
-        
+
         # Check if hash has changed
         hash_changed = self._has_dockerfile_hash_changed(dockerfile_hash, DEFAULT_REMOTE_SSH_HASH_FILE)
-        
+
         if image_exist and not hash_changed:
-            print(f"Image {DEFAULT_REMOTE_SSH_IMAGE_NAME} already exists with current Dockerfile hash, skipping build...")
+            print(
+                f"Image {DEFAULT_REMOTE_SSH_IMAGE_NAME} already exists with current Dockerfile hash, skipping build..."
+            )
             return
         else:
             if hash_changed:
                 print("Dockerfile has changed since last build, rebuilding image...")
             else:
                 print("Image doesn't exist, building it...")
-                
+
             print("\nBuilding Docker image for E2E tests...")
             print(f"Dockerfile Path: {DEFAULT_REMOTE_SSH_DOCKERFILE_PATH}")
             print(f"Build Context: {PROJECT_ROOT_PATH}\n")
@@ -193,7 +201,7 @@ class RemoteSSHContainer(DockerContainer):
                             print(log_line["stream"].strip())
                     except json.JSONDecodeError:
                         print(log.decode("utf-8").strip())
-                
+
                 # Save the new hash after successful build
                 self._save_dockerfile_hash(dockerfile_hash, DEFAULT_REMOTE_SSH_HASH_FILE)
 
@@ -206,8 +214,8 @@ class RemoteSSHContainer(DockerContainer):
         if not os.path.exists(dockerfile_path):
             print(f"Warning: Dockerfile not found at {dockerfile_path}")
             return "no-dockerfile-found"
-            
-        with open(dockerfile_path, 'rb') as f:
+
+        with open(dockerfile_path, "rb") as f:
             return hashlib.md5(f.read()).hexdigest()
 
     def _has_dockerfile_hash_changed(self, current_hash, hash_file_path):
@@ -215,18 +223,18 @@ class RemoteSSHContainer(DockerContainer):
         # If hash file doesn't exist, consider it as changed
         if not os.path.exists(hash_file_path):
             return True
-            
-        with open(hash_file_path, 'r') as f:
+
+        with open(hash_file_path, "r") as f:
             stored_hash = f.read().strip()
-            
+
         return stored_hash != current_hash
 
     def _save_dockerfile_hash(self, hash_value, hash_file_path):
         """Save Dockerfile hash for future comparison"""
         # Ensure directory exists
         os.makedirs(os.path.dirname(hash_file_path), exist_ok=True)
-        
-        with open(hash_file_path, 'w') as f:
+
+        with open(hash_file_path, "w") as f:
             f.write(hash_value)
 
     def get_ssh_port(self):
@@ -235,10 +243,10 @@ class RemoteSSHContainer(DockerContainer):
     def get_port(self, container_port):
         """
         Get the host port that maps to the specified container port.
-        
+
         Args:
             container_port: The container port to get the mapping for
-            
+
         Returns:
             The host port mapped to the container port
         """
@@ -247,7 +255,7 @@ class RemoteSSHContainer(DockerContainer):
     def get_container_id(self):
         """
         Get the ID of the container.
-        
+
         Returns:
             str: The ID of the container
         """
@@ -256,24 +264,21 @@ class RemoteSSHContainer(DockerContainer):
     def exec_run(self, cmd, detach=False):
         """
         Execute a command in the container.
-        
+
         Args:
             cmd: The command to run
             detach: Whether to run the command in detached mode
-            
+
         Returns:
             The result of the command
         """
         container = self.get_wrapped_container()
-        exec_id = self.docker_client.api.exec_create(
-            container.id, 
-            cmd
-        )['Id']
-        
+        exec_id = self.docker_client.api.exec_create(container.id, cmd)["Id"]
+
         if detach:
             self.docker_client.api.exec_start(exec_id, detach=True)
-            return type('ExecResult', (), {'exit_code': 0, 'output': b''})
+            return type("ExecResult", (), {"exit_code": 0, "output": b""})
         else:
             output = self.docker_client.api.exec_start(exec_id)
-            exit_code = self.docker_client.api.exec_inspect(exec_id)['ExitCode']
-            return type('ExecResult', (), {'exit_code': exit_code, 'output': output})
+            exit_code = self.docker_client.api.exec_inspect(exec_id)["ExitCode"]
+            return type("ExecResult", (), {"exit_code": exit_code, "output": output})

@@ -129,7 +129,7 @@ class AnsibleRunnerTestShould(unittest.TestCase):
                 "hosts: selected_hosts",
                 "role: DRY_RUN_RESPONSE/roles/hello_world",
                 "tags: ['hello']",
-                f"ansible-playbook -i {os.path.expanduser('~/.config/provisioner/ansible/hosts')} DRY_RUN_RESPONSE -e local_bin_folder='~/.local/bin' -e dry_run=True -e {ANSIBLE_VAR_1} -e {ANSIBLE_VAR_2} --tags {ANSIBLE_TAG_1},{ANSIBLE_TAG_2},TEST_OS -vvvv",
+                f"ansible-playbook -i {os.path.expanduser('~/.config/provisioner/ansible/hosts')} DRY_RUN_RESPONSE -e local_bin_folder='~/.local/bin' -e dry_run=True -e {ANSIBLE_VAR_1} -e {ANSIBLE_VAR_2} --tags {ANSIBLE_TAG_1},{ANSIBLE_TAG_2},TEST_OS -v",
             ],
         )
 
@@ -160,7 +160,7 @@ class AnsibleRunnerTestShould(unittest.TestCase):
                 "VERBOSE: True",
                 "SILENT: True",
                 "tags: ['hello']",
-                f"ansible-playbook -i {os.path.expanduser('~/.config/provisioner/ansible/hosts')} DRY_RUN_RESPONSE -e local_bin_folder='~/.local/bin' -e dry_run=True -e {ANSIBLE_VAR_1} -e {ANSIBLE_VAR_2} --tags {ANSIBLE_TAG_1},{ANSIBLE_TAG_2},TEST_OS -vvvv",
+                f"ansible-playbook -i {os.path.expanduser('~/.config/provisioner/ansible/hosts')} DRY_RUN_RESPONSE -e local_bin_folder='~/.local/bin' -e dry_run=True -e {ANSIBLE_VAR_1} -e {ANSIBLE_VAR_2} --tags {ANSIBLE_TAG_1},{ANSIBLE_TAG_2},TEST_OS -v",
             ],
         )
 
@@ -187,6 +187,6 @@ class AnsibleRunnerTestShould(unittest.TestCase):
                 "hosts: selected_hosts",
                 "role: DRY_RUN_RESPONSE/roles/hello_world",
                 "tags: ['hello']",
-                f"ansible-playbook -i {os.path.expanduser('~/.config/provisioner/ansible/hosts')} DRY_RUN_RESPONSE -e local_bin_folder='~/.local/bin' -e dry_run=True -e {ANSIBLE_SENSITIVE_VAR_1_RESOLVED} -e {ANSIBLE_SENSITIVE_VAR_2_RESOLVED} --tags {ANSIBLE_TAG_1},{ANSIBLE_TAG_2},TEST_OS -vvvv",
+                f"ansible-playbook -i {os.path.expanduser('~/.config/provisioner/ansible/hosts')} DRY_RUN_RESPONSE -e local_bin_folder='~/.local/bin' -e dry_run=True -e {ANSIBLE_SENSITIVE_VAR_1_RESOLVED} -e {ANSIBLE_SENSITIVE_VAR_2_RESOLVED} --tags {ANSIBLE_TAG_1},{ANSIBLE_TAG_2},TEST_OS -v",
             ],
         )

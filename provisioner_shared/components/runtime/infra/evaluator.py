@@ -63,14 +63,14 @@ class Evaluator:
             if call is None:
                 logger.critical("Call function is None")
                 raise ValueError("Call function cannot be None")
-                
+
             response = call()
             logger.debug(f"call executed successfully, response: {response}")
-            
+
             # Verify the response
             if response is None:
                 logger.debug(f"Response from {name} is None, but no exception was raised")
-                
+
         except StepEvaluationFailure as sef:
             is_failure = True
             logger.critical(f"StepEvaluationFailure: {str(sef)}")
@@ -96,13 +96,13 @@ class Evaluator:
                 error_msg += f", message: {str(raised)}"
             else:
                 error_msg += ", message: <No error message available>"
-            
+
             logger.critical(error_msg)
-            
+
             # If raised is None, create a descriptive exception
             if raised is None:
                 raised = Exception(f"Unknown error occurred during {name}. Check logs for details.")
-                
+
             raise CliApplicationException(raised)
         elif is_failure:
             # logger.error(f"name: {name}, exception: {raised.__class__.__name__}, message: {str(raised)}")
@@ -111,7 +111,7 @@ class Evaluator:
                 error_msg += f"{raised.__class__.__name__}, message: {str(raised)}"
             else:
                 error_msg += "Unknown, message: <No error message available>"
-                
+
             raise click.ClickException(error_msg)
 
     # if verbose and (is_failure or not response):

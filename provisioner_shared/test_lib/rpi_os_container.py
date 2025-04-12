@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
+import hashlib
 import json
 import logging
 import os
 import pathlib
 import time
-import hashlib
 
 import docker
 import paramiko
@@ -79,14 +79,14 @@ class RemoteRPiOsContainer(DockerContainer):
         """Build the Docker image locally using Dockerfile content hash for caching."""
         client = docker.from_env()
         image_exist = self._image_exists(client, DEFAULT_RPI_OS_IMAGE_NAME)
-        
+
         # Calculate Dockerfile hash
         dockerfile_hash = self._get_dockerfile_hash(DEFAULT_RPI_OS_DOCKERFILE_PATH)
         print(f"Image {DEFAULT_RPI_OS_IMAGE_NAME} Dockerfile hash: {dockerfile_hash}")
-        
+
         # Check if hash has changed
         hash_changed = self._has_dockerfile_hash_changed(dockerfile_hash, DEFAULT_RPI_OS_HASH_FILE)
-        
+
         if image_exist and not hash_changed:
             print(f"Image {DEFAULT_RPI_OS_IMAGE_NAME} already exists with current Dockerfile hash, skipping build...")
             return
@@ -95,7 +95,7 @@ class RemoteRPiOsContainer(DockerContainer):
                 print("Dockerfile has changed since last build, rebuilding image...")
             else:
                 print("Image doesn't exist, building it...")
-                
+
             print("\nBuilding Docker image for E2E tests...")
             print(f"Dockerfile Path: {DEFAULT_RPI_OS_DOCKERFILE_PATH}")
             print(f"Build Context: {PROJECT_ROOT_PATH}\n")
@@ -116,7 +116,7 @@ class RemoteRPiOsContainer(DockerContainer):
                             print(log_line["stream"].strip())
                     except json.JSONDecodeError:
                         print(log.decode("utf-8").strip())
-                
+
                 # Save the new hash after successful build
                 self._save_dockerfile_hash(dockerfile_hash, DEFAULT_RPI_OS_HASH_FILE)
 
@@ -129,8 +129,8 @@ class RemoteRPiOsContainer(DockerContainer):
         if not os.path.exists(dockerfile_path):
             print(f"Warning: Dockerfile not found at {dockerfile_path}")
             return "no-dockerfile-found"
-            
-        with open(dockerfile_path, 'rb') as f:
+
+        with open(dockerfile_path, "rb") as f:
             return hashlib.md5(f.read()).hexdigest()
 
     def _has_dockerfile_hash_changed(self, current_hash, hash_file_path):
@@ -138,18 +138,18 @@ class RemoteRPiOsContainer(DockerContainer):
         # If hash file doesn't exist, consider it as changed
         if not os.path.exists(hash_file_path):
             return True
-            
-        with open(hash_file_path, 'r') as f:
+
+        with open(hash_file_path, "r") as f:
             stored_hash = f.read().strip()
-            
+
         return stored_hash != current_hash
 
     def _save_dockerfile_hash(self, hash_value, hash_file_path):
         """Save Dockerfile hash for future comparison"""
         # Ensure directory exists
         os.makedirs(os.path.dirname(hash_file_path), exist_ok=True)
-        
-        with open(hash_file_path, 'w') as f:
+
+        with open(hash_file_path, "w") as f:
             f.write(hash_value)
 
     def get_ssh_port(self) -> int:
