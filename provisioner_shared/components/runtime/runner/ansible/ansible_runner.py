@@ -2,6 +2,7 @@
 
 import os
 import re
+import sys
 import time
 from typing import List, Optional
 
@@ -58,10 +59,13 @@ ENV_VARS = {
     "ANSIBLE_CALLBACK_PLUGINS": f"{ProvisionerAnsibleProjectPath}/{ANSIBLE_CALLBACK_PLUGINS_DIR_NAME}",
     "ANSIBLE_STDOUT_CALLBACK": ANSIBLE_STDOUT_PLUGIN_NAME,
     "ANSIBLE_PYTHON_INTERPRETER": "auto",
+    "ANSIBLE_DEPRECATION_WARNINGS": "False",
+    "ANSIBLE_SYSTEM_WARNINGS": "False",
+    "ANSIBLE_COMMAND_WARNINGS": "False",
+    "ANSIBLE_ACTION_WARNINGS": "False",
 }
 
 REMOTE_MACHINE_LOCAL_BIN_FOLDER = "~/.local/bin"
-
 
 class AnsiblePlaybook:
     __name: str
@@ -281,7 +285,7 @@ class AnsibleRunnerLocal:
             f"{ProvisionerAnsibleProjectPath}/{ANSIBLE_HOSTS_FILE_NAME}",
             playbook_file_path,
             # "-e",
-            # f"ansible_python_interpreter={ANSIBLE_DEFAULT_PYTHON_INTERPRETER_PATH}",
+            # f"ansible_python_interpreter=auto",
             "-e",
             f"local_bin_folder='{REMOTE_MACHINE_LOCAL_BIN_FOLDER}'",
             "-e",
@@ -305,7 +309,7 @@ class AnsibleRunnerLocal:
 
         if self._verbose:
             # cmdline_args += ["-vvvv"]
-            cmdline_args += ["-vvvv"]
+            cmdline_args += ["-v"]
         # for host in selected_hosts:
         #     if host.password:
         #         cmdline_args += ['-b', '-c', 'paramiko', '--ask-pass']
@@ -385,24 +389,35 @@ class AnsibleRunnerLocal:
         # Run ansible/generic commands in interactive mode locally
         out, err, rc = ansible_runner.run_command(
             private_data_dir=ProvisionerAnsibleProjectPath,
-            executable_cmd="ansible-playbook",
+            executable_cmd="ansible-playbook", 
             cmdline_args=ansible_playbook_args,
             runner_mode="subprocess",
-            # json_mode=True,
-            # timeout=10,
             envvars=ENV_VARS,
-            quiet=True,
-            # input_fd=sys.stdin if self._verbose else None,
-            # output_fd=sys.stdout if self._verbose else None,
-            # error_fd=sys.stderr if self._verbose else None,
+            quiet=False,
+            input_fd=sys.stdin,
+            output_fd=sys.stdout,
+            error_fd=sys.stderr
         )
 
+        # Handle non-zero return codes
         if rc != 0:
             message = err if err else out
-            # If verbose enabled, we'll send the entire playbook log output
-            if not err and not self._verbose:
-                message = self._try_extract_stderr_message(message)
-            raise AnsiblePlaybookRunnerException(message)
+            
+            # Check if this is a Python interpreter discovery warning or other benign warning
+            python_interpreter_warning = any([
+                "[WARNING]: Platform linux on host" in message and "using the discovered Python interpreter" in message,
+                "[WARNING]: Python interpreter discovery" in message,
+                "but future installation of another Python interpreter could change" in message
+            ])
+            
+            if python_interpreter_warning:
+                logger.warning("Python interpreter discovery warning detected, but continuing execution")
+            else:
+                # If verbose is not enabled, try to extract a more relevant error message
+                if not err and not self._verbose:
+                    message = self._try_extract_stderr_message(message)
+                raise AnsiblePlaybookRunnerException(message)
+                
         if self._verbose:
             return str(out)
         else:

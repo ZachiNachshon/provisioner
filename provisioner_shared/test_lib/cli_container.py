@@ -5,6 +5,7 @@ import os
 import pathlib
 import time
 import hashlib
+from typing import List, Dict
 
 import docker
 import paramiko
@@ -14,7 +15,6 @@ DEFAULT_REMOTE_SSH_IMAGE_NAME = "provisioner-remote-ssh-e2e"
 
 # Define the root path of the project (absolute path)
 PROJECT_ROOT_PATH = str(pathlib.Path(__file__).parent.parent.parent.resolve())
-# TEST_DOCKER_ROOT_PATH = str(pathlib.Path(__file__).parent.resolve())
 DEFAULT_REMOTE_SSH_DOCKERFILE_PATH = f"{PROJECT_ROOT_PATH}/dockerfiles/remote_ssh/Dockerfile"
 DEFAULT_REMOTE_SSH_HASH_FILE = f"{PROJECT_ROOT_PATH}/dockerfiles/remote_ssh/.dockerfile_hash"
 
@@ -24,15 +24,50 @@ DEFAULT_REMOTE_SSH_HASH_FILE = f"{PROJECT_ROOT_PATH}/dockerfiles/remote_ssh/.doc
 #  docker run -v ~/.ssh:/root/.ssh -p 2222:22 -d -it --name "z-provisioner-remote-ssh-e2e" "provisioner-remote-ssh-e2e"
 #
 class RemoteSSHContainer(DockerContainer):
-    def __init__(self, image="provisioner-remote-ssh-e2e"):
+    def __init__(self, image="provisioner-remote-ssh-e2e", custom_flags: List[str] = None, network_name: str = None, ports: Dict[int, int] = None):
         super().__init__(image)
         self.with_exposed_ports(22)  # Ensure SSH is exposed
+        
+        # Store port mappings (container_port -> host_port)
+        self.ports = ports or {}
+        # Add any ports from the dictionary to exposed ports
+        for container_port in self.ports.keys():
+            self.with_exposed_ports(container_port)
+            
+        self.custom_flags = custom_flags or []
+        self.maybe_network_name = network_name
+        self.network_created = False
+        self.docker_client = docker.from_env()
+        self.network = None
+        self.container_options = {}
 
-    def start(self):
+    def start(self, ssh_port: int = 2222):
         # Build the Docker image first
         self.build_image()
 
-        self.with_bind_ports(22, 2222)
+        # Create network if it doesn't exist
+        if self.maybe_network_name:
+            self._ensure_network_exists()
+
+        # Apply custom flags
+        self._apply_custom_flags()
+
+        # Connect to the network
+        if self.maybe_network_name and self.network:
+            self.with_network(self.network)
+
+        # Bind SSH port
+        self.with_bind_ports(22, ssh_port)
+        
+        # Bind additional ports if specified
+        for container_port, host_port in self.ports.items():
+            self.with_bind_ports(container_port, host_port)
+        
+        # Apply container options before starting
+        if self.container_options:
+            for key, value in self.container_options.items():
+                setattr(self, key, value)
+            
         super().start()
         time.sleep(3)  # Give SSH time to initialize
 
@@ -43,6 +78,53 @@ class RemoteSSHContainer(DockerContainer):
         # Wait for SSH to be responsive
         self._wait_for_ssh()
         return self
+
+    def _apply_custom_flags(self):
+        """Apply custom Docker flags to container options"""
+        for flag in self.custom_flags:
+            if flag.startswith('--'):
+                # Remove the leading '--' from the flag
+                flag_name = flag[2:]
+                
+                # Convert flag to container option
+                # For boolean flags (no value), set to True
+                # For flags with values, they should be passed as --flag=value
+                if '=' in flag_name:
+                    # Handle flags with values
+                    key, value = flag_name.split('=', 1)
+                    self.container_options[key] = value
+                else:
+                    # Handle boolean flags
+                    self.container_options[flag_name] = True
+
+    def stop(self):
+        """Stop the container and clean up resources"""
+        super().stop()
+        # Clean up network if we created it
+        if self.network_created and self.network:
+            try:
+                self.network.remove()
+                print(f"Removed network: {self.maybe_network_name}")
+            except docker.errors.NotFound:
+                # Network already removed
+                pass
+            except Exception as e:
+                print(f"Warning: Failed to remove network {self.maybe_network_name}: {str(e)}")
+
+    def _ensure_network_exists(self):
+        """Create the network if it doesn't exist"""
+        try:
+            # Check if network exists
+            self.network = self.docker_client.networks.get(self.maybe_network_name)
+            print(f"Network {self.maybe_network_name} already exists")
+        except docker.errors.NotFound:
+            # Network doesn't exist, create it
+            # self.network = self.docker_client.networks.create(self.maybe_network_name, driver="bridge")
+            self.network = self.docker_client.networks.create(self.maybe_network_name, driver="host")
+            self.network_created = True
+            print(f"Created network: {self.maybe_network_name}")
+        except Exception as e:
+            print(f"Warning: Failed to check/create network {self.maybe_network_name}: {str(e)}")
 
     def _wait_for_ssh(self):
         """Ensure SSH is ready before proceeding."""
@@ -147,315 +229,51 @@ class RemoteSSHContainer(DockerContainer):
         with open(hash_file_path, 'w') as f:
             f.write(hash_value)
 
-
-#     def __init__(self, core_cols: CoreCollaborators, allow_logging=False):
-#         self.core_cols = core_cols
-#         self.allow_logging = allow_logging
-#         git_root_folder = self.find_git_root()
-
-#         if not git_root_folder:
-#             raise RuntimeError("No git root folder found")
-
-#         # Build the Docker image first
-#         self.build_image()
-
-#         logger.info(f"Using remote SSH container from image: {DEFAULT_REMOTE_SSH_IMAGE_NAME}")
-
-#         self.stop_existing_containers()
-
-#         super().__init__(DEFAULT_REMOTE_SSH_IMAGE_NAME)
-#         self._container = None  # Store container instance
-
-#         self.disable_ryuk()
-#         env_file_path = str(pathlib.Path(DEFAULT_REMOTE_SSH_DOCKERFILE_PATH).parent) + "/.env"
-#         self._env_file_path = env_file_path  # Store for later use
-#         self.copy_env_file(env_file_path)
-
-#         env_file = self.load_env_file(env_file_path)
-#         self.log_env_file(env_file)
-#         # self.set_env_vars(env_file)
-#         self.set_volume_mounts()
-#         self.set_ports_mapping(env_file)
-#         # self.set_network(env_file)
-
-#     def find_git_root(self):
-#         return self.core_cols.io_utils().find_git_repo_root_abs_path_fn(clazz=RemoteSSHContainer)
-
-#     def _wait_until_started(self):
-
-#         # Function to check if the port is open
-#         def is_port_open():
-#             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-#                 s.settimeout(60)
-#                 return s.connect_ex(("localhost", int(2222))) == 0
-
-#         self.exec("service ssh status")
-
-#         def stream_logs(container):
-#             """ Continuously print logs from the container """
-#             for line in container.get_wrapped_container().logs(stream=True, follow=True):
-#                 print(line.decode("utf-8"), end="")  # Decode bytes to readable text
-
-#         # Start a background thread to stream logs
-#         log_thread = threading.Thread(target=stream_logs, args=(self,), daemon=True)
-#         log_thread.start()
-
-#         # Wait for SSH service to open the port (timeout set to 180 seconds)
-#         wait_for(is_port_open)
-
-#     def copy_env_file(self, env_file_path):
-#         logger.info(f"Using .env file: {env_file_path}")
-#         # Using volume mapping for the env file
-#         self.with_volume_mapping(env_file_path, "/etc/provisioner/.env")
-#         self.with_env("PROVISIONER_ENV_FILE", "/etc/provisioner/.env")
-
-#     def start(self):
-#         # Call parent's start method
-#         container = super().start()
-#         if not self._container:
-#             raise RuntimeError("Container failed to start.")
-
-#         # Setup environment after container starts
-#         # self.setup_environment()
-
-#         port = self.get_exposed_port(22)
-#         print("================================")
-#         print(f"Container exposed port: {port}")
-#         print("================================")
-
-#         container._wait_until_started()
-
-#         return container
-
-#     def stop_existing_containers(self):
-#         client = docker.from_env()
-
-#         # Find all running containers using this image
-#         for container in client.containers.list(filters={"ancestor": DEFAULT_REMOTE_SSH_IMAGE_NAME}):
-#             print(f"Stopping and removing container: {container.name}")
-#             container.stop()
-#             container.remove()
-
-#     def setup_environment(self):
-#         """Setup environment after container has started"""
-#         if not hasattr(self, '_env_file_path'):
-#             logger.warning("No env file path stored, skipping environment setup")
-#             return
-
-#         # Create directory and copy env file content
-#         self.exec("mkdir -p /etc/provisioner")
-#         with open(self._env_file_path, 'r') as f:
-#             content = f.read()
-
-#         # Escape single quotes in content
-#         content = content.replace("'", "'\\''")
-#         self.exec(f"echo '{content}' > /etc/provisioner/.env")
-#         self.exec("chmod 644 /etc/provisioner/.env")
-
-#     def load_env_file(self, env_file_path):
-#         env_map = EnvFileMappers().envFile().fromFile(str(env_file_path))
-#         return {
-#             "NAMESPACE": env_map.get("NAMESPACE", "Missing"),
-#             "SERVICE_NAME": env_map.get("SERVICE_NAME", "Missing"),
-#             "PORT": env_map.get("PORT", "Missing"),
-#             "VERSION": env_map.get("VERSION", "Missing"),
-#             "DOCKER_NETWORK": env_map.get("DOCKER_NETWORK", "Missing")
-#         }
-
-#     def log_env_file(self, env_file):
-#         for key, value in env_file.items():
-#             logger.info(f"{key}: {value}")
-
-#     def set_env_vars(self, env_file):
-#         pass
-
-#     def set_volume_mounts(self):
-#         self.with_volume_mapping(os.path.expanduser("~/.ssh"), os.path.expanduser("/root/.ssh"))
-
-#     def set_ports_mapping(self, env_file):
-#         # port = int(env_file['PORT'])
-#         # self.with_exposed_ports(port)
-#         # self.with_bind_ports(port, port)
-#         # self.with_exposed_ports(22)
-#         # Bind port 22 -> 2222
-#         # self.with_bind_ports(22, 2222)
-
-#         self.with_exposed_ports(2222)
-#         self.with_bind_ports(22, 2222)
-
-
-#     def disable_ryuk(self):
-#         logger.info("Disabling Ryuk for automatic cleanup")
-#         os.environ["TESTCONTAINERS_RYUK_DISABLED"] = "true"
-#         os.environ["testcontainers.ryuk.disabled"] = "true"
-
-#     def exec(self, command):
-#         """Execute a command in the container"""
-#         if not self._container:
-#             logger.error("Attempted to execute a command before starting the container!")
-#             return None
-
-#         container = self.get_wrapped_container()  # Get actual container instance
-#         if container:
-#             try:
-#                 result = container.exec_run(command)  # Execute command inside container
-#                 if result.exit_code != 0:
-#                     logger.warning(f"Command '{command}' failed with exit code {result.exit_code}")
-#                     logger.warning(f"Output: {result.output.decode('utf-8')}")
-#                 return result
-#             except Exception as e:
-#                 logger.error(f"Failed to execute command: {command}. Error: {e}")
-#         return None
-
-#     def build_image(self):
-#         """Build the Docker image locally"""
-#         logger.info(f"Building Docker image from: {DEFAULT_REMOTE_SSH_DOCKERFILE_PATH}")
-#         try:
-#             client = docker.from_env()
-
-#             # Check if image already exists
-#             try:
-#                 client.images.get(DEFAULT_REMOTE_SSH_IMAGE_NAME)
-#                 logger.info(f"Image {DEFAULT_REMOTE_SSH_IMAGE_NAME} already exists")
-#                 return
-#             except docker.errors.ImageNotFound:
-#                 pass
-
-#             # Build the image
-#             build_logs = client.api.build(
-#                 path=PROJECT_ROOT_PATH,
-#                 dockerfile=DEFAULT_REMOTE_SSH_DOCKERFILE_PATH,
-#                 tag=DEFAULT_REMOTE_SSH_IMAGE_NAME,
-#                 rm=True
-#             )
-
-#             # Stream build logs
-#             for log in build_logs:
-#                 try:
-#                     log_line = json.loads(log.decode('utf-8'))
-#                     if 'stream' in log_line:
-#                         logger.info(log_line['stream'].strip())
-#                 except json.JSONDecodeError:
-#                     logger.info(log.decode('utf-8').strip())
-
-#         except Exception as e:
-#             logger.error(f"Failed to build Docker image: {str(e)}")
-#             raise RuntimeError(f"Failed to build Docker image: {str(e)}")
-
-# # Usage Example:
-# #
-# # def setUp(self):
-# #         self.container = RemoteSSHContainer(CoreCollaborators(Context.create_empty()))
-# #         self.container.start()
-
-# # def tearDown(self):
-# #     if self.container:
-# #         self.container.stop()
-
-# # Usage Example:
-# # kafka_container = KafkaContainer(core_cols).start()
-# # try:
-# #     # Run tests
-# # finally:
-# #     kafka_container.stop()
-
-
-# #
-# # TODO: Move from here to a dedicated collaborator
-# #
-# class EnvFileMapper:
-#     @staticmethod
-#     def fromFile(file_path: str) -> Dict[str, str]:
-#         """
-#         Reads an .env file and returns its contents as a dictionary.
-
-#         Args:
-#             file_path (str): Path to the .env file
-
-#         Returns:
-#             Dict[str, str]: Dictionary containing environment variables
-
-#         Raises:
-#             FileNotFoundError: If the .env file doesn't exist
-#             IOError: If there's an error reading the file
-#         """
-#         env_map = {}
-
-#         # Check if file exists
-#         if not os.path.exists(file_path):
-#             raise FileNotFoundError(f"Environment file not found: {file_path}")
-
-#         try:
-#             with open(file_path, 'r') as file:
-#                 for line in file:
-#                     # Skip empty lines and comments
-#                     line = line.strip()
-#                     if not line or line.startswith('#'):
-#                         continue
-
-#                     # Handle both = and export KEY=value formats
-#                     if line.startswith('export '):
-#                         line = line.replace('export ', '', 1)
-
-#                     # Split on first = only
-#                     if '=' in line:
-#                         key, value = line.split('=', 1)
-#                         key = key.strip()
-#                         value = value.strip()
-
-#                         # Remove quotes if present
-#                         if value.startswith('"') and value.endswith('"'):
-#                             value = value[1:-1]
-#                         elif value.startswith("'") and value.endswith("'"):
-#                             value = value[1:-1]
-
-#                         env_map[key] = value
-
-#         except Exception as e:
-#             raise IOError(f"Error reading environment file: {str(e)}")
-
-#         return env_map
-
-# # Example usage:
-# class EnvFileMappers:
-#     def envFile(self) -> EnvFileMapper:
-#         return EnvFileMapper()
-
-# # class Mappers:
-# #     def envFile(self) -> EnvFileMapper:
-# #         return EnvFileMapper()
-
-
-# def ensure_network_exists(self, network_name):
-#     client = docker.from_env()
-#     try:
-#         client.networks.get(network_name)
-#         print(f"Network {network_name} already exists.")
-#     except docker.errors.NotFound:
-#         print(f"Creating network: {network_name}")
-#         client.networks.create(network_name, driver="bridge")
-
-# def set_network(self, env_file):
-#     """
-#     Set network configuration for the container using available methods in testcontainers 4.9.1
-#     """
-#     container_name = f"{env_file['NAMESPACE']}-{env_file['SERVICE_NAME']}"
-
-#     self.with_network(Network(docker_network_kw={
-#         'network': 'bridge',
-#         'network_mode': 'bridge',
-#         'name': container_name,
-#         'hostname': container_name
-#     }))
-
-#     self.ensure_network_exists(container_name)
-#     self.with_network_aliases(container_name)
-
-#     # Alternative approach using environment variables for network configuration
-#     self.with_env('CONTAINER_NAME', container_name)
-#     self.with_env('HOSTNAME', container_name)
-
-# def set_network(self, env_file):
-#     container_name = f"{env_file['NAMESPACE']}-{env_file['SERVICE_NAME']}"
-#     self.with_network_mode("bridge")
-#     self.with_network_alias(container_name)
+    def get_ssh_port(self):
+        return self.get_exposed_port(22)
+
+    def get_port(self, container_port):
+        """
+        Get the host port that maps to the specified container port.
+        
+        Args:
+            container_port: The container port to get the mapping for
+            
+        Returns:
+            The host port mapped to the container port
+        """
+        return self.get_exposed_port(container_port)
+
+    def get_container_id(self):
+        """
+        Get the ID of the container.
+        
+        Returns:
+            str: The ID of the container
+        """
+        return self.get_wrapped_container().id
+
+    def exec_run(self, cmd, detach=False):
+        """
+        Execute a command in the container.
+        
+        Args:
+            cmd: The command to run
+            detach: Whether to run the command in detached mode
+            
+        Returns:
+            The result of the command
+        """
+        container = self.get_wrapped_container()
+        exec_id = self.docker_client.api.exec_create(
+            container.id, 
+            cmd
+        )['Id']
+        
+        if detach:
+            self.docker_client.api.exec_start(exec_id, detach=True)
+            return type('ExecResult', (), {'exit_code': 0, 'output': b''})
+        else:
+            output = self.docker_client.api.exec_start(exec_id)
+            exit_code = self.docker_client.api.exec_inspect(exec_id)['ExitCode']
+            return type('ExecResult', (), {'exit_code': exit_code, 'output': output})

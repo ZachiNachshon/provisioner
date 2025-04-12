@@ -44,8 +44,8 @@ class GitHub:
         response = self.http_client.get_fn(url=url)
         if response.raw_res:
             json = response.raw_res.json()
-            if "name" in json:
-                version = json["name"]
+            if "tag_name" in json:
+                version = json["tag_name"]
             return version
         return version
 

@@ -53,31 +53,70 @@ class Evaluator:
 
     @staticmethod
     def eval_installer_cli_entrypoint_pyfn_step(name: str, call: Callable, verbose: bool = False) -> None:
-        raised: Exception = None
+        logger.debug(f"starting eval_installer_cli_entrypoint_pyfn_step: {name}")
         is_failure = False
+        response = None
+        raised = None
+
         try:
-            call()
+            # Add additional validation
+            if call is None:
+                logger.critical("Call function is None")
+                raise ValueError("Call function cannot be None")
+                
+            response = call()
+            logger.debug(f"call executed successfully, response: {response}")
+            
+            # Verify the response
+            if response is None:
+                logger.debug(f"Response from {name} is None, but no exception was raised")
+                
         except StepEvaluationFailure as sef:
             is_failure = True
+            logger.critical(f"StepEvaluationFailure: {str(sef)}")
             print(str(sef))
+        except TypeError as te:
+            is_failure = True
+            logger.critical(f"TypeError: {str(te)}")
+            if "NoneType" in str(te):
+                logger.critical("NoneType error detected, likely an unexpected None value was returned or accessed")
+            if verbose:
+                traceback.print_exc()
+            raised = te
         except Exception as ex:
             is_failure = True
+            logger.critical(f"Exception occurred: {ex.__class__.__name__}, {str(ex)}")
             if verbose:
                 traceback.print_exc()
             raised = ex
 
         if verbose and is_failure:
-            logger.critical(
-                f"Failed to install CLI utility. name: {name}, ex: {raised.__class__.__name__}, message: {str(raised)}"
-            )
+            error_msg = f"Failed to install CLI utility. name: {name}, ex: {raised.__class__.__name__}"
+            if raised is not None:
+                error_msg += f", message: {str(raised)}"
+            else:
+                error_msg += ", message: <No error message available>"
+            
+            logger.critical(error_msg)
+            
+            # If raised is None, create a descriptive exception
+            if raised is None:
+                raised = Exception(f"Unknown error occurred during {name}. Check logs for details.")
+                
             raise CliApplicationException(raised)
         elif is_failure:
             # logger.error(f"name: {name}, exception: {raised.__class__.__name__}, message: {str(raised)}")
-            raise click.ClickException(f"name: {name}, exception: {raised.__class__.__name__}, message: {str(raised)}")
+            error_msg = f"name: {name}, exception: "
+            if raised is not None:
+                error_msg += f"{raised.__class__.__name__}, message: {str(raised)}"
+            else:
+                error_msg += "Unknown, message: <No error message available>"
+                
+            raise click.ClickException(error_msg)
 
-        # if verbose and (is_failure or not response):
-        #     logger.critical(
-        #         f"Failed to install CLI utility. name: {name}, ex: {raised.__class__.__name__}, message: {str(raised)}"
-        #     )
-        #     if should_re_raise and verbose:
-        #         raise CliApplicationException(raised)
+    # if verbose and (is_failure or not response):
+    #     logger.critical(
+    #         f"Failed to install CLI utility. name: {name}, ex: {raised.__class__.__name__}, message: {str(raised)}"
+    #     )
+    #     if should_re_raise and verbose:
+    #         raise CliApplicationException(raised)

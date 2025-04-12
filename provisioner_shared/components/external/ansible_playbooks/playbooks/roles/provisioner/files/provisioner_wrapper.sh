@@ -13,8 +13,8 @@ source "${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
 
 PIP_LIST_FLAGS="--no-python-downloads"
 PIP_INSTALL_SUPPRESS_FLAGS="${PIP_LIST_FLAGS}"
-# UV_TEMP_VENV_PATH="/tmp/uv-venv"
-UV_TEMP_VENV_PATH="/opt/venv"
+# UV_TEMP_VENV_PATH="/opt/venv"
+UV_TEMP_VENV_PATH="/$HOME/.provisioner/uv/venv"
 PROV_TESTING_ARCHIVES_PATH="$HOME/.ansible/tmp/provisioner_scripts/"
 
 should_install_using_pip() {
@@ -139,6 +139,7 @@ create_provisioner_entrypoint() {
   if ! is_directory_exist "${ENV_LOCAL_BIN_FOLDER_PATH}"; then
     cmd_run "mkdir -p ${ENV_LOCAL_BIN_FOLDER_PATH}"
   fi
+  new_line
   log_info "Creating a provisioner entrypoint. path: ${entrypoint}"
   echo "#!${python_ver}
 # -*- coding: utf-8 -*-
@@ -273,6 +274,7 @@ main() {
     echo -e "========= Running ${prov_binary_path} Command =========\n" >&1
   fi
 
+  new_line
   log_info "Printing menu:"
   cmd_run "${ENV_PROVISIONER_BINARY} ${maybe_non_default_pkg_mgr}"
 

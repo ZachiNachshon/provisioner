@@ -10,3 +10,23 @@ k3s_additional_cli_args: null
 local_bin_folder: "~/.local/bin"
 remote_kube_config_path: /etc/rancher/k3s/k3s.yaml
 local_kube_config_path: ~/.kube/k3s/config
+
+
+
+
+
+
+
+# 
+# 
+# 
+# 
+# 
+# 
+# CONVERT THE K3S INSTALL VIA ANSIBLE TO AN INSTALLER CALLBACK
+# 
+# 
+# 
+# 
+# 
+# 

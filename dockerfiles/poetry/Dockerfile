@@ -13,7 +13,7 @@
 FROM python:3.11-alpine
 
 # Enable testing mode for provisioner Ansible based tests
-ENV PROVISIONER_TESTING_MODE_ENABLED="true" \
+ENV PROVISIONER_INSTALLER_PLUGIN_TEST="true" \
     TEST_SDSIT_OUTPUTS_HOST_PATH="dists/*.tar.gz" \
     TEST_SDIST_OUTPUTS_CONTAINER_PATH="/tmp/provisioner-sdists/" \
     POETRY_VERSION=1.8.4 \

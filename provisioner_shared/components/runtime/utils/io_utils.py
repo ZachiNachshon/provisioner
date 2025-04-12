@@ -113,10 +113,24 @@ class IOUtils:
     def _write_symlink(self, file_path: str, symlink_path: str) -> str:
         if self._dry_run:
             return symlink_path
-        if not os.path.exists(symlink_path):
-            symlink_dir_path = os.path.dirname(symlink_path)
+
+        # Check if symlink exists and points to the same file
+        if os.path.exists(symlink_path) and os.path.islink(symlink_path):
+            existing_target = os.readlink(symlink_path)
+            if existing_target == file_path:
+                logger.warning("Symlink already exists and points to correct file. path: {}".format(symlink_path))
+                return symlink_path
+
+        # Create parent directory if needed
+        symlink_dir_path = os.path.dirname(symlink_path)
+        if not os.path.exists(symlink_dir_path):
             logger.debug("Symlink folder path does not exist. creating path at: {}".format(symlink_dir_path))
             os.makedirs(symlink_dir_path, exist_ok=True)
+
+        # Remove existing symlink if it points to a different file
+        if os.path.exists(symlink_path):
+            os.remove(symlink_path)
+
         os.symlink(src=file_path, dst=symlink_path)
         logger.debug("Created symlink. path: {}".format(symlink_path))
         return symlink_path
