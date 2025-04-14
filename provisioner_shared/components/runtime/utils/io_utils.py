@@ -3,6 +3,7 @@
 import inspect
 import os
 import pathlib
+import shutil
 import stat
 import tarfile
 import tempfile
@@ -54,6 +55,14 @@ class IOUtils:
         if self._dry_run:
             return None
         copytree(from_path, to_path, dirs_exist_ok=True)
+
+    def _delete_directory(self, directory_path: str) -> None:
+        if self._dry_run:
+            return None
+        if os.path.isdir(directory_path):
+            shutil.rmtree(directory_path)
+        else:
+            logger.warning("Directory does not exist, cannot delete. path: {}", directory_path)
 
     def _write_file(
         self, content: str, file_name: str, dir_path: Optional[str] = None, executable: Optional[bool] = False
@@ -258,6 +267,7 @@ class IOUtils:
     create_directory_fn = _create_directory
     copy_file_fn = _copy_file
     copy_directory_fn = _copy_directory
+    delete_directory_fn = _delete_directory
     write_file_fn = _write_file
     delete_file_fn = _delete_file
     read_file_safe_fn = _read_file_safe
