@@ -140,7 +140,7 @@ create_provisioner_entrypoint() {
     cmd_run "mkdir -p ${ENV_LOCAL_BIN_FOLDER_PATH}"
   fi
   new_line
-  log_info "Creating a provisioner entrypoint. path: ${entrypoint}"
+  log_debug "Creating a provisioner entrypoint. path: ${entrypoint}"
   echo "#!${python_ver}
 # -*- coding: utf-8 -*-
 import re
@@ -253,7 +253,11 @@ main() {
   if should_install_from_local_dev; then
     cd "${UV_TEMP_VENV_PATH}" || exit
     local prov_archives=$(get_provisioner_e2e_tests_archives_host_path)
-    cmd_run "ls -lah ${prov_archives}"
+    if is_verbose; then
+      new_line
+      log_debug "Listing provisioner archives:"
+      cmd_run "ls -lah ${prov_archives}"
+    fi
     log_debug "Installing provisioner shared/runtime/installers-plugin from archives to local pip."
     cmd_run "uv pip install ${prov_archives}/provisioner_shared*.tar.gz --quiet"
     cmd_run "uv pip install ${prov_archives}/provisioner_runtime*.tar.gz --quiet"
@@ -266,17 +270,20 @@ main() {
   create_provisioner_entrypoint
 
   # Enable to debug the installed packages  
-  cmd_run "uv pip list --no-color ${PIP_LIST_FLAGS} | grep prov"  
+  if is_verbose; then
+    new_line
+    log_debug "Listing installed provisioner packages:"
+    cmd_run "uv pip list --no-color ${PIP_LIST_FLAGS} | grep prov"  
+  fi
 
   local prov_binary_path=$(get_binary_path)
   if is_verbose; then
     new_line
     echo -e "========= Running ${prov_binary_path} Command =========\n" >&1
+    new_line
+    # Print provisioner menu
+    cmd_run "${ENV_PROVISIONER_BINARY} ${maybe_non_default_pkg_mgr}"
   fi
-
-  new_line
-  log_info "Printing menu:"
-  cmd_run "${ENV_PROVISIONER_BINARY} ${maybe_non_default_pkg_mgr}"
 
   cmd_run "${prov_binary_path} ${ENV_PROVISIONER_COMMAND} ${maybe_non_default_pkg_mgr}"
 }

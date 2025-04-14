@@ -124,7 +124,12 @@ class CoreCollaborators:
         def create_ansible_runner():
             if not self.__ansible_runner:
                 self.__ansible_runner = AnsibleRunnerLocal.create(
-                    self.__ctx, self.io_utils(), self.paths(), self.process(), self.progress_indicator()
+                    self.__ctx,
+                    self.io_utils(),
+                    self.paths(),
+                    self.process(),
+                    self.progress_indicator(),
+                    self.printer(),
                 )
             return self.__ansible_runner
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from enum import Enum
 from typing import Optional
 
 from loguru import logger
@@ -12,6 +13,9 @@ from provisioner_shared.components.runtime.infra.context import Context
 
 FIXED_CONSOLE_WIDTH = 100
 
+class LeadingIcon(Enum):
+    CHECKMARK = "✔"
+    CROSSMARK = "✘"
 
 class Printer:
 
@@ -31,9 +35,15 @@ class Printer:
         logger.debug(f"Creating output printer (dry_run: {dry_run}, verbose: {verbose})...")
         return Printer(dry_run, verbose)
 
-    def _print(self, message: str) -> "Printer":
+    def _print(self, message: str, maybe_icon: Optional[LeadingIcon] = None) -> "Printer":
         if self._dry_run and message:
             message = f"{colors.BOLD}{colors.MAGENTA}[DRY-RUN]{colors.NONE} {message}"
+
+        if maybe_icon:
+            if maybe_icon == LeadingIcon.CHECKMARK:
+                message = f"{colors.GREEN}{maybe_icon.value} {message}{colors.NONE}"
+            elif maybe_icon == LeadingIcon.CROSSMARK:
+                message = f"{colors.RED}{maybe_icon.value} {message}{colors.NONE}"
 
         print(message)
         return self

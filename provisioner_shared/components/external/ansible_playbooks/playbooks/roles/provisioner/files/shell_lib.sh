@@ -286,7 +286,7 @@ read_python_version() {
 append_to_path() {
   local value=$1
   if [[ -n "${value}" ]]; then
-    log_info "Appending to PATH: ${value}"
+    log_debug "Appending to PATH: ${value}"
     eval value="$value"  # Expands both $HOME and ~
     PATH="${value}:${PATH}"
   fi
@@ -295,7 +295,7 @@ append_to_path() {
 refresh_bashrc() {
   # Check if exists
   if is_file_exist "${HOME}/.bashrc"; then
-    log_info "Refreshing bashrc..."
+    log_debug "Refreshing bashrc..."
     source "${HOME}/.bashrc"
   fi
 }

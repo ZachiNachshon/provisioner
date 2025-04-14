@@ -3,6 +3,7 @@
 import os
 import unittest
 
+from provisioner_shared.components.runtime.utils.printer import Printer
 from provisioner_shared.components.runtime.errors.cli_errors import InvalidAnsibleHostPair
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
@@ -100,6 +101,7 @@ class AnsibleRunnerTestShould(unittest.TestCase):
                 paths=Paths.create(ctx),
                 process=Process.create(ctx),
                 progress=ProgressIndicator.create(ctx, IOUtils.create(ctx)),
+                printer=Printer.create(ctx),
             ).run_fn(
                 selected_hosts=[AnsibleHost("localhost", None)],
                 playbook=ANSIBLE_DUMMY_PLAYBOOK,
@@ -117,6 +119,7 @@ class AnsibleRunnerTestShould(unittest.TestCase):
                 paths=Paths.create(ctx),
                 process=Process.create(ctx),
                 progress=ProgressIndicator.create(ctx, IOUtils.create(ctx)),
+                printer=Printer.create(ctx),
             ).run_fn(
                 selected_hosts=ANSIBLE_HOSTS,
                 playbook=ANSIBLE_DUMMY_PLAYBOOK_WITH_REMOTE_CTX,
@@ -144,6 +147,7 @@ class AnsibleRunnerTestShould(unittest.TestCase):
                 paths=Paths.create(ctx),
                 process=Process.create(ctx),
                 progress=ProgressIndicator.create(ctx, IOUtils.create(ctx)),
+                printer=Printer.create(ctx),
             ).run_fn(
                 selected_hosts=ANSIBLE_HOSTS,
                 playbook=ANSIBLE_DUMMY_PLAYBOOK_WITH_REMOTE_CTX,
@@ -175,6 +179,7 @@ class AnsibleRunnerTestShould(unittest.TestCase):
                 paths=Paths.create(ctx),
                 process=Process.create(ctx),
                 progress=ProgressIndicator.create(ctx, IOUtils.create(ctx)),
+                printer=Printer.create(ctx),
             ).run_fn(
                 selected_hosts=ANSIBLE_HOSTS,
                 playbook=ANSIBLE_DUMMY_PLAYBOOK_WITH_REMOTE_CTX,

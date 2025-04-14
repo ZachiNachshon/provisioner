@@ -16,7 +16,7 @@ from provisioner_shared.test_lib.faker import TestFakes
 class FakeAnsibleRunnerLocal(TestFakes, AnsibleRunnerLocal):
     def __init__(self, ctx: Context) -> None:
         TestFakes.__init__(self)
-        AnsibleRunnerLocal.__init__(self, io_utils=None, paths=None, process=None, progress=None, ctx=ctx)
+        AnsibleRunnerLocal.__init__(self, io_utils=None, paths=None, process=None, progress=None, printer=None, ctx=ctx)
 
     @staticmethod
     def create(ctx: Context) -> "FakeAnsibleRunnerLocal":
