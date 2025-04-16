@@ -1,19 +1,20 @@
 ---
 - name: Set default facts
   set_fact:
-    dry_run: False
+    become_root: False
+    reboot_required: False
   tags: ['configure_rpi_network']
 
 - name: Display facts values
   debug:
     msg: |
-      dry_run: {{ dry_run }}
+      become_root: {{ become_root }}
   tags: ['configure_rpi_network']
 
 - name: Copy shell scripts library to remote host
   copy:
     src: "{{ role_path }}/files/shell_lib.sh"
-    dest: "$HOME/.ansible/tmp/shell_lib.sh"
+    dest: "/tmp/shell_lib.sh"
   tags: ['configure_rpi_network']
 
 - name: Configure RPi network settings
@@ -22,7 +23,7 @@
   async: 0
   poll: 0
   ignore_errors: false
-  become: "{{ not dry_run }}"
+  become: "{{ become_root }}"
   environment:
     HOST_NAME: "{{ host_name | mandatory }}"
     WIFI_COUNTRY: "{{ wifi_country | default('') }}"

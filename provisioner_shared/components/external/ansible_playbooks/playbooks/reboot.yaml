@@ -1,8 +1,15 @@
 ---
+- name: Set default facts
+  set_fact:
+    become_root: False
+    reboot_required: False
+  tags: ['reboot']
+
 - name: Display facts values
   debug:
     msg: |
-      dry_run: {{ dry_run }}
+      become_root: {{ become_root }}
+      reboot_required: {{ reboot_required }}
   tags: ['reboot']
 
 - name: Reboot a remote node
@@ -10,16 +17,14 @@
   shell: 'sleep 2 && shutdown -r now "Ansible reboot triggered"'
   async: 1
   poll: 0
-  become: "{{ not dry_run }}"
+  become: "{{ become_root }}"
   become_method: sudo
   ignore_errors: true
-  when: 
-    - not dry_run
+  when: reboot_required | bool
 
 - name: Wait for the reboot to complete
   tags: ['reboot']
-  when: 
-    - not dry_run
+  when: reboot_required | bool
   wait_for_connection:
     connect_timeout: 10
     sleep: 5
@@ -30,8 +35,7 @@
   tags: ['reboot']
   shell: "uptime"
   register: Uptime
-  when: 
-    - not dry_run
+  when: reboot_required | bool
 
 - debug: var=Uptime
   tags: ['reboot']

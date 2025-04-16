@@ -229,14 +229,35 @@ verify_supported_os() {
 
 # Need to update cgroups on RPI (https://docs.k3s.io/advanced#raspberry-pi)
 maybe_update_cgroups() {
-  log_info "Updating cgroup module in iptables"
-  if ! is_dry_run && ! is_file_contain "${RASPI_BOOT_CMDLINE}" "${CGROUP_MEMORY}"; then
-    cmd_run "echo ${CGROUP_MEMORY} >> ${RASPI_BOOT_CMDLINE}"
-    log_indicator_good "Added ${CGROUP_MEMORY} to ${RASPI_BOOT_CMDLINE}"
-  fi
-  if ! is_dry_run && ! is_file_contain "${RASPI_BOOT_CMDLINE}" "${CGROUP_ENABLE}"; then
-    cmd_run "echo ${CGROUP_ENABLE} >> ${RASPI_BOOT_CMDLINE}"
-    log_indicator_good "Added ${CGROUP_ENABLE} to ${RASPI_BOOT_CMDLINE}"
+  log_info "Updating cgroup parameters in boot command line"
+  local modified=false
+  
+  if ! is_dry_run; then
+    # Read current cmdline content
+    local cmdline_content=$(cat ${RASPI_BOOT_CMDLINE})
+    
+    # Check and add cgroup_memory parameter if not present
+    if ! echo "$cmdline_content" | grep -q "${CGROUP_MEMORY}"; then
+      cmdline_content="${cmdline_content} ${CGROUP_MEMORY}"
+      modified=true
+      log_indicator_good "Will add ${CGROUP_MEMORY} to boot command line"
+    fi
+    
+    # Check and add cgroup_enable parameter if not present
+    if ! echo "$cmdline_content" | grep -q "${CGROUP_ENABLE}"; then
+      cmdline_content="${cmdline_content} ${CGROUP_ENABLE}"
+      modified=true
+      log_indicator_good "Will add ${CGROUP_ENABLE} to boot command line"
+    fi
+    
+    # Write updated content back to file if modified
+    if [ "$modified" = true ]; then
+      echo "$cmdline_content" > ${RASPI_BOOT_CMDLINE}
+      log_warning "Boot command line updated. A system reboot is required before these changes take effect."
+      log_warning "Please reboot the system using: sudo reboot"
+    else
+      log_info "Cgroup parameters already present in boot command line"
+    fi
   fi
 }
 

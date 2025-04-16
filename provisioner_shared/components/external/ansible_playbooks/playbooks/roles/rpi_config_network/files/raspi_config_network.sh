@@ -6,7 +6,7 @@
 # Description   Run RPi settings that affects network configurations
 #==============================================================================
 CURRENT_FOLDER_ABS_PATH=$(dirname "${BASH_SOURCE[0]}")
-ANSIBLE_TEMP_FOLDER_PATH="$HOME/.ansible/tmp"
+ANSIBLE_TEMP_FOLDER_PATH="/tmp"
 SHELL_SCRIPTS_LIB_IMPORT_PATH="${ANSIBLE_TEMP_FOLDER_PATH}/shell_lib.sh" 
 
 source "${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
@@ -39,7 +39,7 @@ configure_network_settings() {
 
   if is_wifi_country; then
     cmd_run "${RASPI_CONFIG_BINARY} nonint ${WIFI_COUNTRY}"
-    log_indicator_good "Set wifi country as Israel"
+    log_indicator_good "Set wifi country as ${WIFI_COUNTRY}"
   fi
 
   if is_wifi_ssid_passphrase; then

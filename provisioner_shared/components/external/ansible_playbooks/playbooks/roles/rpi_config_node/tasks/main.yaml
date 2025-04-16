@@ -2,12 +2,13 @@
 - name: Collecting configuration values
   set_fact:
     become_root: False
+    reboot_required: False
   tags: ['configure_remote_node']
 
 - name: Display flags in use during remote execution
   debug:
     msg: |
-      dry_run: {{ dry_run }}
+      become_root: {{ become_root }}
   tags: ['configure_remote_node']
 
 - name: Copy shell scripts library to remote host
