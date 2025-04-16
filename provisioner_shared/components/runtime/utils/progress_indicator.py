@@ -110,7 +110,7 @@ class ProgressIndicator:
             console = Console(log_path=False)
             return Progress(
                 TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
-                BarColumn(bar_width=70),
+                BarColumn(bar_width=50),
                 "[progress.percentage]{task.percentage:>3.1f}%",
                 "•",
                 DownloadColumn(),
