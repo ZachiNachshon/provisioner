@@ -120,6 +120,10 @@ class CallbackModule(Default):
 
         # if we already have stdout, we don't need stdout_lines
         if "stdout" in abridged_result and "stdout_lines" in abridged_result:
+            abridged_result["stdout"] = """<omitted> use the following Ansible task to see the output: 
+            
+- debug: msg={{ scriptOut.stdout }}
+  tags: ['provisioner_wrapper']\n\n"""
             abridged_result["stdout_lines"] = "<omitted>"
 
         # if we already have stderr, we don't need stderr_lines

@@ -74,7 +74,7 @@ class Evaluator:
             
         except StepEvaluationFailure as sef:
             # Print evaluation failure directly to user
-            print(str(sef))
+            # print(str(sef))
             error = sef
         except TypeError as te:
             # Special handling for TypeError (common with None values)

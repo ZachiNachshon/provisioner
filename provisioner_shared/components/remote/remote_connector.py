@@ -7,7 +7,7 @@ from loguru import logger
 
 from provisioner_shared.components.remote.domain.config import RemoteConnectMode
 from provisioner_shared.components.remote.remote_opts import RemoteOpts
-from provisioner_shared.components.runtime.errors.cli_errors import CliApplicationException, MissingCliArgument
+from provisioner_shared.components.runtime.errors.cli_errors import CliApplicationException, MissingCliArgument, StepEvaluationFailure
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.evaluator import Evaluator
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
@@ -181,7 +181,8 @@ class RemoteMachineConnector:
             )
 
         logger.error("Failed to resolve network device selection method")
-        return None
+        raise StepEvaluationFailure("Failed to resolve network device selection method")
+        # return None
 
     def collect_dhcpcd_configuration_info(
         self,

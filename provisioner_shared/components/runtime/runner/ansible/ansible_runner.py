@@ -526,7 +526,8 @@ class AnsibleRunnerLocal:
                     task_match = re.search(r"TASK \[.*?: (.*?)\]", line)
                     if task_match:
                         task_name = task_match.group(1)
-                        print(f"Running task: {task_name}")
+                        if task_name != "debug":
+                            print(f"Running task: {task_name}")
 
         # Flag to signal when ansible has completed
         ansible_done = threading.Event()

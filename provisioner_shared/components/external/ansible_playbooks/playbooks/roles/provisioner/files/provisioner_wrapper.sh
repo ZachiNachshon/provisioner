@@ -258,6 +258,7 @@ main() {
       log_debug "Listing provisioner archives:"
       cmd_run "ls -lah ${prov_archives}"
     fi
+    new_line
     log_debug "Installing provisioner shared/runtime/installers-plugin from archives to local pip."
     cmd_run "uv pip install ${prov_archives}/provisioner_shared*.tar.gz --quiet"
     cmd_run "uv pip install ${prov_archives}/provisioner_runtime*.tar.gz --quiet"
