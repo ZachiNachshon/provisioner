@@ -133,6 +133,8 @@ def cli_modifiers(func: Callable) -> Callable:
 
         # Logger Manager Initialization (only once)
         if "_logger_initialized" not in ctx.obj:
+            if modifiers.verbose:
+                click.echo(f"Initializing logger manager (verbose: {modifiers.verbose}, dry_run: {modifiers.dry_run})")
             logger_mgr = LoggerManager()
             logger_mgr.initialize(modifiers.verbose, modifiers.dry_run)
             ctx.obj["_logger_initialized"] = True  # Ensure it's only done once
