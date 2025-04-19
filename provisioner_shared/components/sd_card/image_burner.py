@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 
+import gzip
+import lzma
+import os
+import shutil
+import tempfile
+import zipfile
 
 from loguru import logger
 
+from provisioner_shared.components.runtime.colors import colors
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.evaluator import Evaluator
-from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
+from provisioner_shared.components.runtime.shared.collaborators import \
+    CoreCollaborators
 from provisioner_shared.components.runtime.utils.checks import Checks
 from provisioner_shared.components.runtime.utils.prompter import PromptLevel
 
@@ -32,13 +40,11 @@ class ImageBurnerCmdRunner:
     def _prerequisites(self, ctx: Context, checks: Checks) -> None:
         if ctx.os_arch.is_linux():
             checks.check_tool_fn("lsblk")
-            checks.check_tool_fn("unzip")
             checks.check_tool_fn("dd")
             checks.check_tool_fn("sync")
 
         elif ctx.os_arch.is_darwin():
             checks.check_tool_fn("diskutil")
-            checks.check_tool_fn("unzip")
             checks.check_tool_fn("dd")
 
         elif ctx.os_arch.is_windows():
@@ -115,10 +121,9 @@ class ImageBurnerCmdRunner:
 
     def _prompt_for_block_device_name(self, collaborators: CoreCollaborators) -> str:
         logger.debug("Prompting user to select a block device name")
-        collaborators.printer().print_fn("Please select a block device:")
         collaborators.printer().new_line_fn()
         return collaborators.prompter().prompt_user_input_fn(
-            message="Type block device name",
+            message="Please type the block device name",
             post_user_input_message="Selected block device ",
         )
 
@@ -192,23 +197,29 @@ class ImageBurnerCmdRunner:
         burn_image_file_path: str,
         collaborators: CoreCollaborators,
     ):
-
         logger.debug(
             f"About to format device and copy image to SD-Card. device: {block_device_name}, image: {burn_image_file_path}"
         )
 
-        collaborators.printer().print_fn("Formatting block device and burning a new image...")
-        collaborators.process().run_fn(
-            allow_single_shell_command_str=True,
-            args=[f"unzip -p {burn_image_file_path} | dd of={block_device_name} bs=4M conv=fsync status=progress"],
-        )
+        extracted_file_path, temp_dir = self._extract_image_file(burn_image_file_path, collaborators)
+        
+        try:
+            collaborators.printer().print_fn("Formatting block device and burning image...")
+            collaborators.process().run_fn(
+                allow_single_shell_command_str=True,
+                args=[f"dd if={extracted_file_path} of={block_device_name} bs=4M conv=fsync status=progress"],
+            )
 
-        collaborators.printer().print_fn("Flushing write-cache...")
-        collaborators.process().run_fn(args=["sync"])
+            collaborators.printer().print_fn("Flushing write-cache...")
+            collaborators.process().run_fn(args=["sync"])
 
-        # TODO: allow SSH access and eject disk on Linux
+            # TODO: allow SSH access and eject disk on Linux
 
-        collaborators.printer().print_fn("It is now safe to remove the SD-Card !")
+            collaborators.printer().print_fn("It is now safe to remove the SD-Card !")
+        finally:
+            # Clean up temporary files if we created any
+            if extracted_file_path != burn_image_file_path and temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
 
     def _burn_image_darwin(
         self,
@@ -216,7 +227,6 @@ class ImageBurnerCmdRunner:
         burn_image_file_path: str,
         collaborators: CoreCollaborators,
     ):
-
         logger.debug(
             f"About to format device and copy image to SD-Card. device: {block_device_name}, image: {burn_image_file_path}"
         )
@@ -232,31 +242,150 @@ class ImageBurnerCmdRunner:
         collaborators.printer().print_fn("Unmounting selected block device (SD-Card)...")
         collaborators.process().run_fn(args=["diskutil", "unmountDisk", block_device_name])
 
-        collaborators.printer().print_fn(
-            "Formatting block device and burning a new image (Press Ctrl+T to show progress)..."
-        )
+        extracted_file_path, temp_dir = self._extract_image_file(burn_image_file_path, collaborators)
+        
+        try:
+            collaborators.printer().print_fn(
+                "Formatting block device and burning a new image (Press Ctrl+T to show progress)..."
+            )
+            collaborators.printer().print_fn(
+                colors.color_text("Password is required for this step for sudo access !", colors.YELLOW)
+            )
 
-        blk_device_name = raw_block_device_name if raw_block_device_name else block_device_name
-        format_bs_cmd = [f"unzip -p {burn_image_file_path} | sudo dd of={blk_device_name} bs=1m"]
-        collaborators.process().run_fn(
-            allow_single_shell_command_str=True,
-            args=format_bs_cmd,
-        )
+            blk_device_name = raw_block_device_name if raw_block_device_name else block_device_name
+            collaborators.process().run_fn(
+                allow_single_shell_command_str=True,
+                args=[f"sudo dd if={extracted_file_path} of={blk_device_name} bs=1m"],
+            )
 
-        collaborators.printer().print_fn("Flushing write-cache to block device...")
-        collaborators.process().run_fn(args=["sync"])
+            collaborators.printer().print_fn("Flushing write-cache to block device...")
+            collaborators.process().run_fn(args=["sync"])
 
-        collaborators.printer().print_fn(f"Remounting block device {block_device_name}...")
-        collaborators.process().run_fn(args=["diskutil", "unmountDisk", block_device_name])
-        collaborators.process().run_fn(args=["diskutil", "mountDisk", block_device_name])
+            collaborators.printer().print_fn(f"Remounting block device {block_device_name}...")
+            collaborators.process().run_fn(args=["diskutil", "unmountDisk", block_device_name])
+            collaborators.process().run_fn(args=["diskutil", "mountDisk", block_device_name])
 
-        collaborators.printer().print_fn("Allowing SSH access...")
-        collaborators.process().run_fn(args=["sudo", "touch", "/Volumes/boot/ssh"])
+            collaborators.printer().print_fn("Creating boot partition...")
+            collaborators.process().run_fn(args=["sudo", "mkdir", "-p", "/Volumes/boot"])
 
-        collaborators.printer().print_fn(f"Ejecting block device {block_device_name}...")
-        collaborators.process().run_fn(args=["diskutil", "eject", block_device_name])
+            collaborators.printer().print_fn("Allowing SSH access...")
+            collaborators.process().run_fn(args=["sudo", "touch", "/Volumes/boot/ssh"])
 
-        collaborators.printer().print_fn("It is now safe to remove the SD-Card !")
+            collaborators.printer().print_fn(f"Ejecting block device {block_device_name}...")
+            collaborators.process().run_fn(args=["diskutil", "eject", block_device_name])
+
+            collaborators.printer().print_fn("It is now safe to remove the SD-Card !")
+        finally:
+            # Clean up temporary files if we created any
+            if extracted_file_path != burn_image_file_path and temp_dir and os.path.exists(temp_dir):
+                collaborators.io_utils().delete_directory_fn(temp_dir)
+    
+    def _extract_image_file(self, image_file_path: str, collaborators: CoreCollaborators) -> tuple[str, str]:
+        """
+        Extract or decompress image file based on its extension.
+        
+        Args:
+            image_file_path: Path to the compressed/archived image file
+            collaborators: CoreCollaborators instance
+            
+        Returns:
+            tuple: (extracted_file_path, temp_dir) where:
+                - extracted_file_path is the path to the extracted/decompressed file
+                - temp_dir is the path to temporary directory (or None if no extraction needed)
+        """
+        collaborators.printer().print_fn("Checking image file type...")
+        file_ext = os.path.splitext(image_file_path)[1].lower()
+        
+        # If it's already an image file, just use it directly
+        if file_ext in ['.img', '.iso', '.raw']:
+            return image_file_path, None
+            
+        # Create temporary directory for extraction
+        temp_dir = tempfile.mkdtemp()
+        extracted_file_path = ""
+        
+        try:
+            if file_ext == '.zip':
+                collaborators.printer().print_fn("Extracting ZIP file...")
+                with zipfile.ZipFile(image_file_path, 'r') as zip_ref:
+                    # Get list of all files in the archive
+                    files = zip_ref.namelist()
+                    
+                    # Look for image files in the archive
+                    image_files = [f for f in files if any(f.lower().endswith(ext) for ext in ['.img', '.iso', '.raw'])]
+                    
+                    if image_files:
+                        # Extract the first image file found
+                        file_to_extract = image_files[0]
+                        collaborators.printer().print_fn(f"Found image file in archive: {file_to_extract}")
+                        extracted_file_path = os.path.join(temp_dir, file_to_extract)
+                        zip_ref.extract(file_to_extract, temp_dir)
+                    else:
+                        error_msg = "No image files found in the ZIP archive"
+                        logger.error(error_msg)
+                        raise ValueError(error_msg)
+                    
+            elif file_ext == '.gz':
+                collaborators.printer().print_fn("Extracting GZIP file...")
+                base_name = os.path.basename(image_file_path)
+                # If it's a .tar.gz file, handle differently
+                if base_name.endswith('.tar.gz'):
+                    import tarfile
+                    collaborators.printer().print_fn("Detected .tar.gz file, extracting archive...")
+                    with tarfile.open(image_file_path, 'r:gz') as tar:
+                        # Look for image files in the tar archive
+                        image_files = [f for f in tar.getnames() if any(f.lower().endswith(ext) for ext in ['.img', '.iso', '.raw'])]
+                        if image_files:
+                            # Extract the first image file found
+                            tar.extract(image_files[0], path=temp_dir)
+                            extracted_file_path = os.path.join(temp_dir, image_files[0])
+                        else:
+                            error_msg = "No image files found in the TAR.GZ archive"
+                            logger.error(error_msg)
+                            raise ValueError(error_msg)
+                else:
+                    # Regular .gz file
+                    extracted_file_path = os.path.join(temp_dir, base_name[:-3])  # Remove .gz
+                    with gzip.open(image_file_path, 'rb') as f_in:
+                        with open(extracted_file_path, 'wb') as f_out:
+                            shutil.copyfileobj(f_in, f_out)
+                        
+            elif file_ext == '.xz':
+                collaborators.printer().print_fn("Extracting XZ file...")
+                base_name = os.path.basename(image_file_path)
+                # If it's a .tar.xz file, handle differently
+                if base_name.endswith('.tar.xz'):
+                    import tarfile
+                    collaborators.printer().print_fn("Detected .tar.xz file, extracting archive...")
+                    with tarfile.open(image_file_path, 'r:xz') as tar:
+                        # Look for image files in the tar archive
+                        image_files = [f for f in tar.getnames() if any(f.lower().endswith(ext) for ext in ['.img', '.iso', '.raw'])]
+                        if image_files:
+                            # Extract the first image file found
+                            tar.extract(image_files[0], path=temp_dir)
+                            extracted_file_path = os.path.join(temp_dir, image_files[0])
+                        else:
+                            error_msg = "No image files found in the TAR.XZ archive"
+                            logger.error(error_msg)
+                            raise ValueError(error_msg)
+                else:
+                    # Regular .xz file
+                    extracted_file_path = os.path.join(temp_dir, base_name[:-3])  # Remove .xz
+                    with lzma.open(image_file_path, 'rb') as f_in:
+                        with open(extracted_file_path, 'wb') as f_out:
+                            shutil.copyfileobj(f_in, f_out)
+                        
+            else:
+                error_msg = f"Unsupported file format: {file_ext}"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+                
+            return extracted_file_path, temp_dir
+            
+        except Exception as e:
+            # Clean up temporary directory in case of any errors
+            collaborators.io_utils().delete_directory_fn(temp_dir)
+            raise e
 
     def _print_pre_run_instructions(self, collaborators: CoreCollaborators):
         collaborators.printer().print_fn(generate_logo_image_burner())

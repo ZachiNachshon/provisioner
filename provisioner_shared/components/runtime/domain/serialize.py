@@ -46,13 +46,17 @@ class SerializationBase:
         Try to get the value from a nested dictionary by a sequence of keys.
 
         :param keys: A dot-separated string of keys.
-        :return: The value if it exists, None otherwise.
+        :return: The primitive value if it exists, None otherwise.
         """
         temp_dict = self.dict_obj
         dict_path = dict_path.split(".")
         for key in dict_path:
             if isinstance(temp_dict, dict) and key in temp_dict:
                 temp_dict = temp_dict[key]
-            elif temp_dict is not None:
-                return temp_dict
+            else:
+                return None
+        
+        # Only return if it's a primitive value
+        if isinstance(temp_dict, (str, int, float, bool)) or temp_dict is None:
+            return temp_dict
         return None
