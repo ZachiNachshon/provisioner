@@ -27,7 +27,7 @@ def global_poetry_container():
         # Cleanup installers plugin Unit/It test artifacts to prevent from multiple versions collision of the same package
         shutil.rmtree(f"{tests_unit_it_sdists_path}")
 
-    tests_e2e_sdists_path = f"{PROJECT_ROOT_PATH}/tests-outputs/installers-plugin/dist"
+    tests_e2e_sdists_path = f"{PROJECT_ROOT_PATH}/tests-outputs/provisioner-wrapper-plugins/dist"
     if os.path.exists(f"{tests_e2e_sdists_path}"):
         print(f"Cleaning up E2E tests artifacts in {tests_e2e_sdists_path}")
         # Cleanup installers plugin E2E test artifacts to prevent from multiple versions collision of the same package

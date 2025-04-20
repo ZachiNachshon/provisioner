@@ -22,10 +22,14 @@ class ImageBurnerArgs:
 
     image_download_url: str
     image_download_path: str
+    first_boot_username: str
+    first_boot_password: str
 
-    def __init__(self, image_download_url: str, image_download_path: str) -> None:
+    def __init__(self, image_download_url: str, image_download_path: str, first_boot_username: str, first_boot_password: str) -> None:
         self.image_download_url = image_download_url
         self.image_download_path = image_download_path
+        self.first_boot_username = first_boot_username
+        self.first_boot_password = first_boot_password
 
 
 class ImageBurnerCmdRunner:
@@ -35,7 +39,7 @@ class ImageBurnerCmdRunner:
         self._print_pre_run_instructions(collaborators)
         block_device_name = self._select_block_device(ctx, collaborators)
         image_file_path = self._download_image(ctx, args.image_download_url, args.image_download_path, collaborators)
-        self._burn_image_by_os(ctx, block_device_name, image_file_path, collaborators)
+        self._burn_image_by_os(ctx, block_device_name, image_file_path, collaborators, args)
 
     def _prerequisites(self, ctx: Context, checks: Checks) -> None:
         if ctx.os_arch.is_linux():
@@ -155,15 +159,16 @@ class ImageBurnerCmdRunner:
         block_device_name: str,
         burn_image_file_path: str,
         collaborators: CoreCollaborators,
+        args: ImageBurnerArgs,
     ):
 
         if ctx.os_arch.is_linux():
             self._run_pre_burn_approval_flow(ctx, block_device_name, collaborators)
-            self._burn_image_linux(block_device_name, burn_image_file_path, collaborators)
+            self._burn_image_linux(block_device_name, burn_image_file_path, collaborators, args)
 
         elif ctx.os_arch.is_darwin():
             self._run_pre_burn_approval_flow(ctx, block_device_name, collaborators)
-            self._burn_image_darwin(block_device_name, burn_image_file_path, collaborators)
+            self._burn_image_darwin(block_device_name, burn_image_file_path, collaborators, args)
 
         elif ctx.os_arch.is_windows():
             raise NotImplementedError("Windows is not supported")
@@ -196,6 +201,7 @@ class ImageBurnerCmdRunner:
         block_device_name: str,
         burn_image_file_path: str,
         collaborators: CoreCollaborators,
+        args: ImageBurnerArgs,
     ):
         logger.debug(
             f"About to format device and copy image to SD-Card. device: {block_device_name}, image: {burn_image_file_path}"
@@ -213,7 +219,18 @@ class ImageBurnerCmdRunner:
             collaborators.printer().print_fn("Flushing write-cache...")
             collaborators.process().run_fn(args=["sync"])
 
-            # TODO: allow SSH access and eject disk on Linux
+            collaborators.printer().print_fn("Creating boot partition...")
+            collaborators.process().run_fn(args=["sudo", "mkdir", "-p", "/Volumes/boot"])
+
+            collaborators.printer().print_fn("Allowing SSH access...")
+            collaborators.process().run_fn(args=["sudo", "touch", "/Volumes/boot/ssh"])
+
+            collaborators.printer().print_fn("Setting first boot user...")
+            collaborators.process().run_fn(args=["sudo", "touch", "/Volumes/boot/userconf"])
+            collaborators.process().run_fn(
+                allow_single_shell_command_str=True,
+                args=[f"echo '{args.first_boot_username}:{args.first_boot_password}' | sudo tee -a /Volumes/boot/userconf"]
+            )
 
             collaborators.printer().print_fn("It is now safe to remove the SD-Card !")
         finally:
@@ -226,6 +243,7 @@ class ImageBurnerCmdRunner:
         block_device_name: str,
         burn_image_file_path: str,
         collaborators: CoreCollaborators,
+        args: ImageBurnerArgs,
     ):
         logger.debug(
             f"About to format device and copy image to SD-Card. device: {block_device_name}, image: {burn_image_file_path}"
@@ -270,6 +288,13 @@ class ImageBurnerCmdRunner:
 
             collaborators.printer().print_fn("Allowing SSH access...")
             collaborators.process().run_fn(args=["sudo", "touch", "/Volumes/boot/ssh"])
+
+            collaborators.printer().print_fn("Setting first boot user...")
+            collaborators.process().run_fn(args=["sudo", "touch", "/Volumes/boot/userconf"])
+            collaborators.process().run_fn(
+                allow_single_shell_command_str=True,
+                args=[f"echo '{args.first_boot_username}:{args.first_boot_password}' | sudo tee -a /Volumes/boot/userconf"]
+            )
 
             collaborators.printer().print_fn(f"Ejecting block device {block_device_name}...")
             collaborators.process().run_fn(args=["diskutil", "eject", block_device_name])
