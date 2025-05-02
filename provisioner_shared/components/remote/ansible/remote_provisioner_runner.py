@@ -4,11 +4,11 @@ from typing import List
 
 from loguru import logger
 
+from provisioner_shared.components.remote.remote_connector import SSHConnectionInfo
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsiblePlaybook
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
-from provisioner_shared.components.remote.remote_connector import SSHConnectionInfo
 
 # Define the Ansible playbook template for running provisioner remotely
 ANSIBLE_PLAYBOOK_REMOTE_PROVISIONER_WRAPPER = """
@@ -22,6 +22,7 @@ ANSIBLE_PLAYBOOK_REMOTE_PROVISIONER_WRAPPER = """
     - role: {ansible_playbooks_path}/roles/provisioner
       tags: ['provisioner_wrapper']
 """
+
 
 class RemoteProvisionerRunnerArgs:
     """Arguments for running provisioner commands remotely"""
@@ -38,7 +39,7 @@ class RemoteProvisionerRunnerArgs:
     ) -> None:
         """
         Initialize RemoteProvisionerRunnerArgs.
-        
+
         Args:
             provisioner_command: The provisioner command to run on the remote machine
             remote_context: Context for remote execution
@@ -62,15 +63,19 @@ class RemoteProvisionerRunner:
 
     def run(self, ctx: Context, args: RemoteProvisionerRunnerArgs, collaborators: CoreCollaborators) -> str:
         logger.debug(f"Running provisioner command remotely: {args.provisioner_command}")
-        
-        return collaborators.progress_indicator().get_status().long_running_process_fn(
-            call=lambda: self._execute_remote_ansible_provisioner_wrapper_playbook(
-                ctx=ctx,
-                args=args,
-                collaborators=collaborators,
-            ),
-            desc_run="Running Ansible playbook remotely (Provisioner Wrapper)",
-            desc_end="Ansible playbook finished remotely (Provisioner Wrapper).",
+
+        return (
+            collaborators.progress_indicator()
+            .get_status()
+            .long_running_process_fn(
+                call=lambda: self._execute_remote_ansible_provisioner_wrapper_playbook(
+                    ctx=ctx,
+                    args=args,
+                    collaborators=collaborators,
+                ),
+                desc_run="Running Ansible playbook remotely (Provisioner Wrapper)",
+                desc_end="Ansible playbook finished remotely (Provisioner Wrapper).",
+            )
         )
 
     def _execute_remote_ansible_provisioner_wrapper_playbook(
@@ -80,7 +85,7 @@ class RemoteProvisionerRunner:
         runner = collaborators.ansible_runner()
         ansible_vars = self._prepare_ansible_vars(args, collaborators)
         ansible_tags = self._prepare_ansible_tags(args, collaborators)
-        
+
         return runner.run_fn(
             selected_hosts=args.ssh_connection_info.ansible_hosts,
             playbook=AnsiblePlaybook(
@@ -95,28 +100,28 @@ class RemoteProvisionerRunner:
     def _prepare_ansible_tags(self, args: RemoteProvisionerRunnerArgs, collaborators: CoreCollaborators) -> List[str]:
         """Determine which Ansible tags to use."""
         ansible_tags = ["provisioner_wrapper"]
-        
+
         if self._test_only_is_installer_run_from_local_sdists(collaborators):
             ansible_tags.append("provisioner_testing")
-            
+
         ansible_tags.extend(args.ansible_tags)
 
         return ansible_tags
-    
+
     def _prepare_ansible_vars(self, args: RemoteProvisionerRunnerArgs, collaborators: CoreCollaborators) -> List[str]:
         """Prepare Ansible variables for the remote execution."""
         # Log the exact command that will be executed remotely for debugging
         logger.debug(f"Remote provisioner command: {args.provisioner_command}")
-        
+
         # Start with required vars
         ansible_vars = [
             f"provisioner_command='{args.provisioner_command}'",
             f"required_plugins={args.required_plugins}",
         ]
-        
+
         # Add install method
         ansible_vars.append(f"install_method='{args.install_method}'")
-        
+
         # Add any additional vars
         ansible_vars.extend(args.ansible_vars)
 
@@ -124,37 +129,41 @@ class RemoteProvisionerRunner:
         if self._test_only_is_installer_run_from_local_sdists(collaborators):
             test_vars = self._prepare_testing_ansible_vars(collaborators, args)
             ansible_vars.extend(test_vars)
-        
-        return ansible_vars 
-    
-    def _prepare_testing_ansible_vars(self, collaborators: CoreCollaborators, args: RemoteProvisionerRunnerArgs) -> List[str]:
+
+        return ansible_vars
+
+    def _prepare_testing_ansible_vars(
+        self, collaborators: CoreCollaborators, args: RemoteProvisionerRunnerArgs
+    ) -> List[str]:
         """Prepare Ansible variables for testing mode."""
         print("\n\n================================================================")
         print("\n===== Running Ansible Provisioner Wrapper in testing mode ======")
         print("\n================================================================\n")
-        
+
         # Build sdists for testing
         temp_folder_path = self._test_only_prepare_test_artifacts(collaborators, args)
-        
+
         # Return test-specific vars
         return [
             "install_method='testing'",
             "provisioner_testing=True",
             f"provisioner_e2e_tests_archives_host_path='{temp_folder_path}'",
-            "ansible_python_interpreter='auto'"
+            "ansible_python_interpreter='auto'",
         ]
-        
+
     def _test_only_is_installer_run_from_local_sdists(self, collaborators: CoreCollaborators) -> bool:
         return collaborators.checks().is_env_var_equals_fn("PROVISIONER_INSTALLER_PLUGIN_TEST", "true")
 
-    def _test_only_prepare_test_artifacts(self, collaborators: CoreCollaborators, args: RemoteProvisionerRunnerArgs) -> str:
+    def _test_only_prepare_test_artifacts(
+        self, collaborators: CoreCollaborators, args: RemoteProvisionerRunnerArgs
+    ) -> str:
         project_git_root = collaborators.io_utils().find_git_repo_root_abs_path_fn(clazz=RemoteProvisionerRunner)
         sdist_output_path = f"{project_git_root}/tests-outputs/provisioner-wrapper-plugins/dist"
         sdist_input_paths = [
             f"{project_git_root}/provisioner",
             f"{project_git_root}/provisioner_shared",
         ]
-        
+
         for plugin in args.required_plugins:
             sdist_input_paths.append(f"{project_git_root}/plugins/{plugin}")
 

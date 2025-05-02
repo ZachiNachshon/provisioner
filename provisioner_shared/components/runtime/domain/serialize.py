@@ -55,7 +55,7 @@ class SerializationBase:
                 temp_dict = temp_dict[key]
             else:
                 return None
-        
+
         # Only return if it's a primitive value
         if isinstance(temp_dict, (str, int, float, bool)) or temp_dict is None:
             return temp_dict

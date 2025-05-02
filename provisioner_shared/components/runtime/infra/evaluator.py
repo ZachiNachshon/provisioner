@@ -9,7 +9,6 @@ from loguru import logger
 from provisioner_shared.components.runtime.errors.cli_errors import (
     CliApplicationException,
     StepEvaluationFailure,
-    AnsiblePlaybookRunnerException,
 )
 from provisioner_shared.components.runtime.infra.context import Context
 
@@ -52,26 +51,26 @@ class Evaluator:
     @staticmethod
     def eval_installer_cli_entrypoint_pyfn_step(name: str, call: Callable, verbose: bool = False) -> None:
         """Execute a CLI command and handle errors appropriately.
-        
+
         Args:
             name: Name of the command for error reporting
             call: The callable function to execute
             verbose: Whether to provide detailed error information
         """
         logger.debug(f"Starting CLI step: {name}")
-        
+
         try:
             # Validate input
             if call is None:
                 raise ValueError("Call function cannot be None")
-                
+
             # Execute the call
             response = call()
             logger.debug(f"Command executed successfully, response: {response}")
-            
+
             # Success case - return
             return
-            
+
         except StepEvaluationFailure as sef:
             # Print evaluation failure directly to user
             # print(str(sef))
@@ -86,24 +85,27 @@ class Evaluator:
             # General exception handling
             logger.critical(f"Exception occurred: {ex.__class__.__name__}, {str(ex)}")
             error = ex
-        
+
         # At this point, we've caught an exception and stored it in 'error'
-        
+
         # Display traceback in verbose mode
         if verbose:
             traceback.print_exc()
-            
+
             # Raise a CLI application exception with the original error
-            error_msg = f"Failed to install CLI utility. name: {name}, ex: {error.__class__.__name__}, message: {str(error)}"
+            error_msg = (
+                f"Failed to install CLI utility. name: {name}, ex: {error.__class__.__name__}, message: {str(error)}"
+            )
             logger.critical(error_msg)
             raise CliApplicationException(error)
         else:
             # For non-verbose mode, provide a user-friendly error without traceback
             error_msg = f"name: {name}, exception: {error.__class__.__name__}, message: {str(error)}"
-            error_msg += f"""\n\nPlease check the logs for more details, or run with --verbose (-v) flag.
+            error_msg += """\n\nPlease check the logs for more details, or run with --verbose (-v) flag.
 For remote execution, please use flag --verbosity Verbose to see remote host logs."""
             raise click.ClickException(error_msg)
-        
+
+
 #     @staticmethod
 #     def eval_installer_cli_entrypoint_pyfn_step(name: str, call: Callable, verbose: bool = False) -> None:
 #         logger.debug(f"starting eval_installer_cli_entrypoint_pyfn_step: {name}")
@@ -169,9 +171,9 @@ For remote execution, please use flag --verbosity Verbose to see remote host log
 # For remote execution, please use flag --verbosity Verbose to see remote host logs."""
 #             raise click.ClickException(error_msg)
 
-    # if verbose and (is_failure or not response):
-    #     logger.critical(
-    #         f"Failed to install CLI utility. name: {name}, ex: {raised.__class__.__name__}, message: {str(raised)}"
-    #     )
-    #     if should_re_raise and verbose:
-    #         raise CliApplicationException(raised)
+# if verbose and (is_failure or not response):
+#     logger.critical(
+#         f"Failed to install CLI utility. name: {name}, ex: {raised.__class__.__name__}, message: {str(raised)}"
+#     )
+#     if should_re_raise and verbose:
+#         raise CliApplicationException(raised)

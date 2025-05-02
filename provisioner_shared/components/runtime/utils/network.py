@@ -105,16 +105,16 @@ class NetworkUtil:
             desc_run="Running fast LAN host discovery",
             desc_end="Fast LAN host discovery finished",
         )
-        
+
         result_dict.update(self._extract_valid_scanned_items(fast_scan_result_dict))
-        
+
         # If we need hostnames for hosts that were found but don't have names yet,
         # do a targeted DNS resolution scan on just those hosts
         hosts_needing_names = []
         for ip_addr, host_info in result_dict.items():
             if host_info["hostname"] == "unknown" and host_info["status"] == "up":
                 hosts_needing_names.append(ip_addr)
-        
+
         if hosts_needing_names:
             # Join IPs with comma for nmap to scan them as a group
             targeted_hosts = ",".join(hosts_needing_names)
@@ -123,9 +123,9 @@ class NetworkUtil:
                 desc_run="Running hostname resolution",
                 desc_end="Hostname resolution finished",
             )
-            
+
             hostname_results = self._extract_valid_scanned_items(hostname_scan_result_dict)
-            
+
             # Update hostnames for any hosts that we now have names for
             for ip_addr, host_info in hostname_results.items():
                 if ip_addr in result_dict and host_info["hostname"] != "unknown":

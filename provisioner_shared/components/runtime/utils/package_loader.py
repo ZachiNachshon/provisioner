@@ -181,7 +181,7 @@ class PackageLoader:
         match self._pkg_mgr:
             case PackageManager.PIP:
                 logger.debug("Using pip as package manager")
-                return ["python3", "-m", "pip", "--no-python-version-warning", "--disable-pip-version-check"]
+                return ["python3", "-m", "pip", "--disable-pip-version-check"]
             case PackageManager.UV:
                 logger.debug("Using uv as package manager")
                 return ["uv", "pip", "--no-python-downloads"]

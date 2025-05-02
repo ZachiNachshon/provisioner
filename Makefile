@@ -17,6 +17,13 @@ PLUGINS_ROOT_FOLDER=plugins
 #  3. On the GitHub workflow use is as:
 #     - token: ${{ secrets.MY_REPO_ACCESS_TOKEN }}
 
+.PHONY: init
+init: ## Initialize project using uv package manager
+	@uv venv
+	@source .venv/bin/activate
+	@uv pip install pip
+	@poetry self add poetry-multiproject-plugin
+
 .PHONY: prod-mode
 prod-mode: ## Enable production mode for packaging and distribution
 	@poetry self add poetry-multiproject-plugin
@@ -35,17 +42,17 @@ deps-install: ## Update and install pyproject.toml dependencies on all virtual e
 	@poetry install --with dev --sync -v
 	@poetry lock
 	
-.PHONY: dev-mode-pip-sdists
-dev-mode-pip-sdists: ## Enable local development from built sdists into project .venv
-	@rm -rf provisioner_shared/dist
-	@cd provisioner_shared; poetry build-project -f sdist; cd ..
-	@mv provisioner_shared/dist/provisioner_shared*.tar.gz dockerfiles/poetry/dists/
-	@rm -rf provisioner/dist
-	$(MAKE) pip-install-runtime
-	@mv provisioner/dist/provisioner*.tar.gz dockerfiles/poetry/dists/
-	@rm -rf plugins/provisioner_installers_plugin/dist
-	@cd plugins/provisioner_installers_plugin; poetry build-project -f sdist; cd ../..
-	@mv plugins/provisioner_installers_plugin/dist/provisioner_*_plugin*.tar.gz dockerfiles/poetry/dists/
+# .PHONY: dev-mode-pip-sdists
+# dev-mode-pip-sdists: ## Enable local development from built sdists into project .venv
+# 	@rm -rf provisioner_shared/dist
+# 	@cd provisioner_shared; poetry build-project -f sdist; cd ..
+# 	@mv provisioner_shared/dist/provisioner_shared*.tar.gz dockerfiles/poetry/dists/
+# 	@rm -rf provisioner/dist
+# 	$(MAKE) pip-install-runtime
+# 	@mv provisioner/dist/provisioner*.tar.gz dockerfiles/poetry/dists/
+# 	@rm -rf plugins/provisioner_installers_plugin/dist
+# 	@cd plugins/provisioner_installers_plugin; poetry build-project -f sdist; cd ../..
+# 	@mv plugins/provisioner_installers_plugin/dist/provisioner_*_plugin*.tar.gz dockerfiles/poetry/dists/
 
 # $(MAKE) prod-mode
 # @./.venv/bin/pip3 install provisioner_shared/dist/provisioner_shared*.tar.gz

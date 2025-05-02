@@ -13,9 +13,11 @@ from provisioner_shared.components.runtime.infra.context import Context
 
 FIXED_CONSOLE_WIDTH = 100
 
+
 class LeadingIcon(Enum):
     CHECKMARK = "✔"
     CROSSMARK = "✘"
+
 
 class Printer:
 

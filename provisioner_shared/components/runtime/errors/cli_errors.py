@@ -44,6 +44,7 @@ class FailedToSerializeConfiguration(Exception):
 class InvalidAnsibleHostPair(Exception):
     pass
 
+
 class StepEvaluationFailure(Exception):
     pass
 

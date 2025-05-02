@@ -34,6 +34,8 @@ from provisioner_shared.components.runtime.utils.progress_indicator import Progr
 from provisioner_shared.components.runtime.utils.progress_indicator_fakes import FakeProgressIndicator
 from provisioner_shared.components.runtime.utils.prompter import Prompter
 from provisioner_shared.components.runtime.utils.prompter_fakes import FakePrompter
+from provisioner_shared.components.runtime.utils.randomizer import Randomizer
+from provisioner_shared.components.runtime.utils.randomizer_fakes import FakeRandomizer
 from provisioner_shared.components.runtime.utils.summary import Summary
 from provisioner_shared.components.runtime.utils.summary_fakes import FakeSummary
 
@@ -58,6 +60,7 @@ class FakeCoreCollaborators(CoreCollaborators):
         self.__http_client: HttpClient = None
         self.__editor: Editor = None
         self.__package_loader: PackageLoader = None
+        self.__randomizer: Randomizer = None
 
     def _lock_and_get(self, callback: Callable) -> Any:
         # TODO: Fix me, do not lock in here
@@ -235,5 +238,16 @@ class FakeCoreCollaborators(CoreCollaborators):
 
         return self._lock_and_get(callback=create_package_loader)
 
-    def override_package_loader(self, package_loader: FakePackageLoader) -> None:
+    def override_package_loader(self, package_loader: PackageLoader) -> None:
         self.__package_loader = package_loader
+
+    def randomizer(self) -> FakeRandomizer:
+        def create_randomizer():
+            if not self.__randomizer:
+                self.__randomizer = FakeRandomizer.create(self.__ctx)
+            return self.__randomizer
+
+        return self._lock_and_get(callback=create_randomizer)
+
+    def override_randomizer(self, randomizer: Randomizer) -> None:
+        self.__randomizer = randomizer

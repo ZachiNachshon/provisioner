@@ -3,7 +3,6 @@
 import os
 import unittest
 
-from provisioner_shared.components.runtime.utils.printer import Printer
 from provisioner_shared.components.runtime.errors.cli_errors import InvalidAnsibleHostPair
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.infra.remote_context import RemoteContext
@@ -15,6 +14,7 @@ from provisioner_shared.components.runtime.runner.ansible.ansible_runner import 
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
 from provisioner_shared.components.runtime.utils.os import OsArch
 from provisioner_shared.components.runtime.utils.paths import Paths
+from provisioner_shared.components.runtime.utils.printer import Printer
 from provisioner_shared.components.runtime.utils.process import Process
 from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
 from provisioner_shared.test_lib.assertions import Assertion
