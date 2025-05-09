@@ -120,6 +120,9 @@ def cli_modifiers(func: Callable) -> Callable:
                 modifiers.os_arch = os_arch
                 click.echo(f"OS_Arch updated to: {os_arch}")
 
+            # TODO (Fix me):
+            # If the package manager is defined at the end of the command, it prints as expected
+            # if it is being used on any other command places, it prints the wrong value i.e. pip
             if (
                 pkg_mgr
                 and modifiers.pkg_mgr

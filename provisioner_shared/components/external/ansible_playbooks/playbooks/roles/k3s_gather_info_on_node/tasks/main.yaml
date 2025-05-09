@@ -1,0 +1,32 @@
+---
+- name: Collecting configuration values
+  set_fact:
+    become_root: False
+    reboot_required: False
+  tags: ['k3s_gather_info_on_node']
+
+- name: Display flags in use during remote execution
+  debug:
+    msg: |
+      become_root: {{ become_root }}
+  tags: ['k3s_gather_info_on_node']
+
+- name: Copy shell scripts library to remote host
+  copy:
+    src: "{{ role_path }}/files/shell_lib.sh"
+    # dest: "$HOME/.ansible/tmp/shell_lib.sh"
+    dest: "/tmp/shell_lib.sh"
+    mode: '0755'
+  tags: ['k3s_gather_info_on_node']
+
+- name: 'Gather K3s information'
+  tags: ['k3s_gather_info_on_node']
+  script: k3s_gather_info.sh
+  register: scriptOut
+  async: 0
+  poll: 0
+  ignore_errors: false
+  become: "{{ become_root }}"
+
+- debug: msg={{ scriptOut.stdout }}
+  tags: ['k3s_gather_info_on_node']
