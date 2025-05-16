@@ -1,48 +1,49 @@
 ---
-- name: Set default facts
+- name: Collecting configuration values
   set_fact:
-    dry_run: False
+    become_root: False
+    reboot_required: False
   tags: ['configure_remote_node']
 
-- name: Display facts values
+- name: Display flags in use during remote execution
   debug:
     msg: |
-      dry_run: {{ dry_run }}
+      become_root: {{ become_root }}
   tags: ['configure_remote_node']
 
 - name: Copy shell scripts library to remote host
   copy:
     src: "{{ role_path }}/files/shell_lib.sh"
-    dest: "$HOME/.ansible/tmp/shell_lib.sh"
+    # dest: "$HOME/.ansible/tmp/shell_lib.sh"
+    dest: "/tmp/shell_lib.sh"
+    mode: '0755'
   tags: ['configure_remote_node']
 
 - name: 'Configure RPi node hardware and system'
   tags: ['configure_remote_node']
-  script: raspi_configure_node.sh
+  script: "{{ role_path }}/files/raspi_configure_node.sh"
   register: scriptOut
   async: 0
   poll: 0
   ignore_errors: false
-  become: "{{ not dry_run }}"
+  become: "{{ become_root }}"
   environment:
     HOST_NAME: "{{ host_name | mandatory }}"
-    BOOT_WAIT: "{{ boot_wait | default('') }}"
     BOOT_SPLASH: "{{ boot_splash | default('') }}"
     OVERSCAN: "{{ overscan | default('') }}"
-    CAMERA: "{{ camera | default('') }}"
-    SSH: "{{ ssh | default('') }}"
     SPI: "{{ spi | default('') }}"
-    MEMORY_SPLIT: "{{ memory_split | default('') }}"
     I2C: "{{ i2c | default('') }}"
-    SERIAL_BUS: "{{ serial_bus | default('') }}"
-    BOOT_BEHAVIOUR: "{{ boot_behaviour | default('') }}"
+    BOOT_BEHAVIOUR: "{{ boot_behaviour | default('') }}" # Force boot to CLI & require login
     ONEWIRE: "{{ onewire | default('') }}"
     AUDIO: "{{ audio | default('') }}"
-    GLDRIVER: "{{ gldriver | default('') }}"
     RGPIO: "{{ rgpio | default('') }}"
-    CONFIGURE_KEYBOARD: "{{ configure_keyboard | default('') }}"
-    CHANGE_TIMEZONE: "{{ change_timezone | default('') }}"
-    CHANGE_LOCALE: "{{ change_locale | default('') }}"
+    CONFIGURE_KEYBOARD: "{{ configure_keyboard | default('') }}" # Force US keyboard
+    CHANGE_TIMEZONE: "{{ change_timezone | default('') }}" # Force UTC timezone
+    CHANGE_LOCALE: "{{ change_locale | default('') }}" # Force en_US.UTF-8 locale
+
+- name: Rebooting and waiting for completion
+  include_tasks: "../../reboot.yaml"
+  tags: ['reboot']
 
 - debug: msg={{ scriptOut.stdout }}
   tags: ['configure_remote_node']

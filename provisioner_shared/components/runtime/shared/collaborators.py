@@ -19,6 +19,7 @@ from provisioner_shared.components.runtime.utils.printer import Printer
 from provisioner_shared.components.runtime.utils.process import Process
 from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
 from provisioner_shared.components.runtime.utils.prompter import Prompter
+from provisioner_shared.components.runtime.utils.randomizer import Randomizer
 from provisioner_shared.components.runtime.utils.summary import Summary
 from provisioner_shared.components.runtime.utils.yaml_util import YamlUtil
 
@@ -44,6 +45,7 @@ class CoreCollaborators:
         self.__editor: Editor = None
         self.__package_loader: PackageLoader = None
         self.__yaml_util: YamlUtil = None
+        self.__randomizer: Randomizer = None
 
     # def run_in_sequence(*func):
     #     def compose(f, g):
@@ -124,7 +126,12 @@ class CoreCollaborators:
         def create_ansible_runner():
             if not self.__ansible_runner:
                 self.__ansible_runner = AnsibleRunnerLocal.create(
-                    self.__ctx, self.io_utils(), self.paths(), self.process(), self.progress_indicator()
+                    self.__ctx,
+                    self.io_utils(),
+                    self.paths(),
+                    self.process(),
+                    self.progress_indicator(),
+                    self.printer(),
                 )
             return self.__ansible_runner
 
@@ -198,3 +205,11 @@ class CoreCollaborators:
             return self.__yaml_util
 
         return self._lock_and_get(callback=create_yaml_util)
+
+    def randomizer(self) -> Randomizer:
+        def create_randomizer():
+            if not self.__randomizer:
+                self.__randomizer = Randomizer.create(self.__ctx)
+            return self.__randomizer
+
+        return self._lock_and_get(callback=create_randomizer)

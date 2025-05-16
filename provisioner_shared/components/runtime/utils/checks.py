@@ -28,7 +28,6 @@ class Checks:
     def _is_tool_exist(self, name: str) -> bool:
         if self._dry_run:
             return False
-
         return which(name) is not None
 
     def _check_tool(self, name: str) -> None:

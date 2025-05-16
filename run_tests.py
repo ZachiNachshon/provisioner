@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
+import hashlib
 import os
 import pathlib
 import shutil
 import subprocess
 import sys
 import tarfile
-import hashlib
 from pathlib import Path
 from typing import List, Optional, Set, Tuple
 
@@ -321,8 +321,8 @@ def get_dockerfile_hash(dockerfile_path):
     if not os.path.exists(dockerfile_path):
         print(f"Warning: Dockerfile not found at {dockerfile_path}")
         return "no-dockerfile-found"
-        
-    with open(dockerfile_path, 'rb') as f:
+
+    with open(dockerfile_path, "rb") as f:
         return hashlib.md5(f.read()).hexdigest()
 
 
@@ -331,10 +331,10 @@ def has_dockerfile_hash_changed(current_hash, hash_file_path):
     # If hash file doesn't exist, consider it as changed
     if not os.path.exists(hash_file_path):
         return True
-        
-    with open(hash_file_path, 'r') as f:
+
+    with open(hash_file_path, "r") as f:
         stored_hash = f.read().strip()
-        
+
     return stored_hash != current_hash
 
 
@@ -342,8 +342,8 @@ def save_dockerfile_hash(hash_value, hash_file_path):
     """Save Dockerfile hash for future comparison"""
     # Ensure directory exists
     os.makedirs(os.path.dirname(hash_file_path), exist_ok=True)
-    
-    with open(hash_file_path, 'w') as f:
+
+    with open(hash_file_path, "w") as f:
         f.write(hash_value)
 
 
@@ -357,17 +357,17 @@ def build_docker_image(image_name: str, image_path: str):
     ]
     exit_code, output = run_docker_command(images_find_cmd)
     image_exists = exit_code == 0 and output.strip()
-    
+
     # Calculate Dockerfile hash
     dockerfile_hash = get_dockerfile_hash(image_path)
     print(f"Image {image_name} Dockerfile hash: {dockerfile_hash}")
-    
+
     # Define hash file path
-    hash_file_path = os.path.join(os.path.dirname(image_path), '.dockerfile_hash')
-    
+    hash_file_path = os.path.join(os.path.dirname(image_path), ".dockerfile_hash")
+
     # Check if hash has changed
     hash_changed = has_dockerfile_hash_changed(dockerfile_hash, hash_file_path)
-    
+
     if image_exists and not hash_changed:
         print(f"\n✅ Image {image_name} already exists with current Dockerfile hash, skipping build...")
         return
@@ -393,7 +393,9 @@ def build_docker_image(image_name: str, image_path: str):
             sys.exit(1)
 
 
-def run_docker_tests(test_path: Optional[str] = None, only_e2e: bool = True, report_type: str = None, skip_e2e: bool = False):
+def run_docker_tests(
+    test_path: Optional[str] = None, only_e2e: bool = True, report_type: str = None, skip_e2e: bool = False
+):
     """Run tests in Docker container."""
     build_docker_image(DEFAULT_POETRY_IMAGE_NAME, DEFAULT_POETRY_DOCKERFILE_FILE_PATH)
 

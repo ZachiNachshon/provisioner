@@ -1,27 +1,8 @@
 #!/usr/bin/env python3
 
 
-import typing
-
 import click
 from loguru import logger
-
-
-class NameVersionTuple(typing.NamedTuple):
-    name: str = None
-    version: str = None
-
-
-def try_extract_name_version_tuple(command_arg: str) -> NameVersionTuple:
-    """Extract name and version from the target argument"""
-    version = "latest"
-    if "@" in command_arg:
-        name, version = command_arg.split("@", 1)
-    else:
-        name = command_arg
-        version = "latest"
-
-    return NameVersionTuple(name=name, version=version)
 
 
 def append_version_cmd_to_cli(root_menu: click.Group, root_package: str, description: str = "Print runtime version"):

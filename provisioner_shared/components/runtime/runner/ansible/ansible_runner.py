@@ -2,8 +2,10 @@
 
 import os
 import re
+import tempfile
+import threading
 import time
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 import ansible_runner
 import paramiko
@@ -20,6 +22,7 @@ from provisioner_shared.components.runtime.infra.remote_context import RemoteCon
 from provisioner_shared.components.runtime.utils.io_utils import IOUtils
 from provisioner_shared.components.runtime.utils.os import OsArch
 from provisioner_shared.components.runtime.utils.paths import Paths
+from provisioner_shared.components.runtime.utils.printer import LeadingIcon, Printer
 from provisioner_shared.components.runtime.utils.process import Process
 from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
 
@@ -58,6 +61,11 @@ ENV_VARS = {
     "ANSIBLE_CALLBACK_PLUGINS": f"{ProvisionerAnsibleProjectPath}/{ANSIBLE_CALLBACK_PLUGINS_DIR_NAME}",
     "ANSIBLE_STDOUT_CALLBACK": ANSIBLE_STDOUT_PLUGIN_NAME,
     "ANSIBLE_PYTHON_INTERPRETER": "auto",
+    "ANSIBLE_DEPRECATION_WARNINGS": "False",
+    "ANSIBLE_SYSTEM_WARNINGS": "False",
+    "ANSIBLE_COMMAND_WARNINGS": "False",
+    "ANSIBLE_ACTION_WARNINGS": "False",
+    "ANSIBLE_FORCE_COLOR": "false",
 }
 
 REMOTE_MACHINE_LOCAL_BIN_FOLDER = "~/.local/bin"
@@ -176,6 +184,31 @@ class AnsibleHost:
         )
 
 
+class AnsibleStdFileDescriptors:
+    stdout_fd: int
+    stderr_fd: int
+    stdout_path: str
+    stderr_path: str
+    ansible_done: threading.Event
+    reader_thread: threading.Thread
+
+    def __init__(
+        self,
+        stdout_fd: int,
+        stderr_fd: int,
+        stdout_path: str,
+        stderr_path: str,
+        ansible_done: threading.Event,
+        reader_thread: threading.Thread,
+    ):
+        self.stdout_fd = stdout_fd
+        self.stderr_fd = stderr_fd
+        self.stdout_path = stdout_path
+        self.stderr_path = stderr_path
+        self.ansible_done = ansible_done
+        self.reader_thread = reader_thread
+
+
 class AnsibleRunnerLocal:
 
     _os_arch: OsArch = None
@@ -185,6 +218,7 @@ class AnsibleRunnerLocal:
     _io_utils: IOUtils = None
     _process: Process = None
     _progress: ProgressIndicator = None
+    _printer: Printer = None
 
     def __init__(
         self,
@@ -192,6 +226,7 @@ class AnsibleRunnerLocal:
         paths: Paths,
         process: Process,
         progress: ProgressIndicator,
+        printer: Printer,
         ctx: Context,
     ) -> None:
 
@@ -199,17 +234,18 @@ class AnsibleRunnerLocal:
         self._paths = paths
         self._process = process
         self._progress = progress
+        self._printer = printer
         self._dry_run = ctx.is_dry_run()
         self._verbose = ctx.is_verbose()
         self._os_arch = ctx.os_arch
 
     @staticmethod
     def create(
-        ctx: Context, io_utils: IOUtils, paths: Paths, process: Process, progress: ProgressIndicator
+        ctx: Context, io_utils: IOUtils, paths: Paths, process: Process, progress: ProgressIndicator, printer: Printer
     ) -> "AnsibleRunnerLocal":
 
         logger.debug(f"Creating Ansible runner (dry_run: {ctx.is_dry_run()}, verbose: {ctx.is_verbose()})...")
-        return AnsibleRunnerLocal(io_utils, paths, process, progress, ctx)
+        return AnsibleRunnerLocal(io_utils, paths, process, progress, printer, ctx)
 
     def _prepare_ansible_host_items(self, ansible_hosts: List[AnsibleHost]) -> List[str]:
         result = []
@@ -281,7 +317,7 @@ class AnsibleRunnerLocal:
             f"{ProvisionerAnsibleProjectPath}/{ANSIBLE_HOSTS_FILE_NAME}",
             playbook_file_path,
             # "-e",
-            # f"ansible_python_interpreter={ANSIBLE_DEFAULT_PYTHON_INTERPRETER_PATH}",
+            # f"ansible_python_interpreter=auto",
             "-e",
             f"local_bin_folder='{REMOTE_MACHINE_LOCAL_BIN_FOLDER}'",
             "-e",
@@ -305,7 +341,7 @@ class AnsibleRunnerLocal:
 
         if self._verbose:
             # cmdline_args += ["-vvvv"]
-            cmdline_args += ["-vvvv"]
+            cmdline_args += ["-v"]
         # for host in selected_hosts:
         #     if host.password:
         #         cmdline_args += ['-b', '-c', 'paramiko', '--ask-pass']
@@ -382,31 +418,140 @@ class AnsibleRunnerLocal:
         if self._dry_run:
             return f"name: {playbook.get_name()}\ncontent:\n{playbook_content_escaped}\ncommand:\nansible-playbook {' '.join(map(str, ansible_playbook_args_reducted))}"
 
-        # Run ansible/generic commands in interactive mode locally
-        out, err, rc = ansible_runner.run_command(
-            private_data_dir=ProvisionerAnsibleProjectPath,
-            executable_cmd="ansible-playbook",
-            cmdline_args=ansible_playbook_args,
-            runner_mode="subprocess",
-            # json_mode=True,
-            # timeout=10,
-            envvars=ENV_VARS,
-            quiet=True,
-            # input_fd=sys.stdin if self._verbose else None,
-            # output_fd=sys.stdout if self._verbose else None,
-            # error_fd=sys.stderr if self._verbose else None,
+        file_descriptors = self.prepare_file_descriptors(self._verbose)
+        out, err, rc = self._run_and_capture_ansible_output(
+            file_descriptors,
+            lambda: ansible_runner.run_command(
+                private_data_dir=ProvisionerAnsibleProjectPath,
+                executable_cmd="ansible-playbook",
+                cmdline_args=ansible_playbook_args,
+                runner_mode="subprocess",
+                envvars=ENV_VARS,
+                quiet=False,
+                # input_fd=sys.stdin,
+                output_fd=file_descriptors.stdout_fd,
+                error_fd=file_descriptors.stderr_fd,
+            ),
         )
 
+        # Handle non-zero return codes
         if rc != 0:
-            message = err if err else out
-            # If verbose enabled, we'll send the entire playbook log output
-            if not err and not self._verbose:
-                message = self._try_extract_stderr_message(message)
-            raise AnsiblePlaybookRunnerException(message)
+            self.handle_failure_exit_code(out, err)
+
         if self._verbose:
             return str(out)
         else:
-            return self._try_extract_stdout_message(out)
+            return self.extract_ansible_msg_content(out)
+
+    def handle_failure_exit_code(self, out: str, err: str) -> None:
+        message = err if err else out
+
+        # Check if this is a Python interpreter discovery warning or other benign warning
+        python_interpreter_warning = any(
+            [
+                "[WARNING]: Platform linux on host" in message and "using the discovered Python interpreter" in message,
+                "[WARNING]: Python interpreter discovery" in message,
+                "but future installation of another Python interpreter could change" in message,
+            ]
+        )
+
+        if python_interpreter_warning:
+            logger.warning("Python interpreter discovery warning detected, but continuing execution")
+        else:
+            # If verbose is not enabled, try to extract a more relevant error message
+            if not err and not self._verbose:
+                message = self._try_extract_stderr_message(message)
+            raise AnsiblePlaybookRunnerException(message)
+
+    def _run_and_capture_ansible_output(
+        self, file_descriptors: AnsibleStdFileDescriptors, ansible_runner_call: Callable[..., tuple[str, str, int]]
+    ) -> tuple[str, str, int]:
+        out = ""
+        err = ""
+        rc = 0
+
+        try:
+            # Return tuple (out, err, rc), we ignore out and err
+            # and use the file descriptors to read the output
+            _, _, rc = ansible_runner_call()
+
+            # Signal that ansible has completed
+            file_descriptors.ansible_done.set()
+
+            # Wait for reader thread to finish
+            file_descriptors.reader_thread.join(timeout=2)
+
+            # Read the full output for return values
+            with open(file_descriptors.stdout_path, "r") as f:
+                out = f.read()
+            with open(file_descriptors.stderr_path, "r") as f:
+                err = f.read()
+
+        except Exception as e:
+            logger.error(f"Error running ansible-playbook: {e}")
+
+        finally:
+            # Close file descriptors
+            file_descriptors.stdout_fd.close()
+            file_descriptors.stderr_fd.close()
+
+            # Clean up temp files
+            try:
+                os.unlink(file_descriptors.stdout_path)
+                os.unlink(file_descriptors.stderr_path)
+            except Exception as e:
+                logger.error(f"Error cleaning up temp files: {e}")
+
+        return out, err, rc
+
+    def prepare_file_descriptors(self, is_verbose: bool) -> AnsibleStdFileDescriptors:
+        # Create temp files for stdout and stderr
+        stdout_file = tempfile.NamedTemporaryFile(mode="w+", delete=False)
+        stderr_file = tempfile.NamedTemporaryFile(mode="w+", delete=False)
+
+        stdout_path = stdout_file.name
+        stderr_path = stderr_file.name
+
+        # Close the file objects so ansible_runner can open them for writing
+        stdout_file.close()
+        stderr_file.close()
+
+        # Create file objects for ansible_runner
+        stdout_fd = open(stdout_path, "w")
+        stderr_fd = open(stderr_path, "w")
+
+        # Thread function to read and filter task names
+        def read_and_filter(file_path):
+            with open(file_path, "r") as f:
+                # Go to end of file
+                f.seek(0, os.SEEK_END)
+
+                while True:
+                    line = f.readline()
+                    if not line:
+                        # If ansible_runner process has completed, exit
+                        if ansible_done.is_set():
+                            break
+                        # Otherwise wait for more content
+                        time.sleep(0.1)
+                        continue
+
+                    # Extract task names
+                    task_match = re.search(r"TASK \[.*?: (.*?)\]", line)
+                    if task_match:
+                        task_name = task_match.group(1)
+                        if task_name != "debug":
+                            print(f"Running task: {task_name}")
+
+        # Flag to signal when ansible has completed
+        ansible_done = threading.Event()
+
+        # Start reader thread
+        reader_thread = threading.Thread(target=read_and_filter, args=(stdout_path,))
+        reader_thread.daemon = True
+        reader_thread.start()
+
+        return AnsibleStdFileDescriptors(stdout_fd, stderr_fd, stdout_path, stderr_path, ansible_done, reader_thread)
 
     def is_password_was_used_in_hosts(self, selected_hosts: List[AnsibleHost]) -> bool:
         for selected_host in selected_hosts:
@@ -423,15 +568,40 @@ class AnsibleRunnerLocal:
             logger.debug("Could not find Ansible stderr in playbook output")
         return extracted_text
 
-    def _try_extract_stdout_message(self, ansible_run_output: str) -> str:
-        # match = re.search(r'msg: \|-\s+(.*?)\s+PLAY RECAP', ansible_run_output, re.DOTALL)
-        match = re.search(r"(?<=msg: \|2-)(.*?)(?=PLAY RECAP)", ansible_run_output, re.DOTALL)
-        extracted_text = ansible_run_output
-        if match:
-            extracted_text = match.group(1)
-        else:
-            logger.debug("Could not find Ansible stdout in playbook output")
-        return extracted_text
+    def extract_ansible_msg_content(self, ansible_output: str) -> str:
+        """
+        Extract content between 'msg:' and the next Ansible section (TASK, PLAY, etc.)
+
+        Args:
+            ansible_output: Raw Ansible output text
+
+        Returns:
+            Extracted message contents with all leading spaces removed
+        """
+        if not ansible_output:
+            return ""
+
+        # Pattern to match 'msg:' content blocks
+        pattern = r"(?:^|\n)\s*msg: (?:\|-|\|2-)?\s*\n(.*?)(?=\n\s*(?:TASK|PLAY|RUNNING|ok:|changed:|fatal:|skipped:|failed:)|\Z)"
+
+        # Find all matches in the text
+        matches = re.finditer(pattern, ansible_output, re.DOTALL | re.MULTILINE)
+
+        # Extract and clean up each match
+        extracted_messages = []
+        for match in matches:
+            # Process each line to forcibly remove ALL leading spaces
+            lines = match.group(1).splitlines()
+            cleaned_lines = []
+
+            for line in lines:
+                # Strip all leading spaces for every line
+                cleaned_lines.append(line.lstrip())
+
+            # Join back and add to results
+            extracted_messages.append("\n".join(cleaned_lines).strip())
+
+        return "\n".join(extracted_messages)
 
     def _check_ssh_conn_on_hosts(self, ansible_hosts: List[AnsibleHost]) -> None:
         for selected_host in ansible_hosts:
@@ -456,12 +626,12 @@ class AnsibleRunnerLocal:
                         username=host.username,
                         key_filename=host.ssh_private_key_file_path,
                     )
-                    # TODO: Replace with prompter
-                print("✅ SSH Connection Successful")
+                # print("✅ SSH Connection Successful")
+                self._printer.print_fn("SSH Connection Successful", LeadingIcon.CHECKMARK)
                 client.close()
                 return
             except Exception:
-                print(f"🔄 Waiting for SSH... ({attempt + 1}/{max_attempts})")
+                self._printer.print_fn(f"🔄 Waiting for SSH... ({attempt + 1}/{max_attempts})")
                 time.sleep(2)
                 attempt += 1
         raise AnsibleRunnerNoHostSSHAccessException(

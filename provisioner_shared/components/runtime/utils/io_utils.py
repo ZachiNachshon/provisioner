@@ -3,6 +3,7 @@
 import inspect
 import os
 import pathlib
+import shutil
 import stat
 import tarfile
 import tempfile
@@ -54,6 +55,14 @@ class IOUtils:
         if self._dry_run:
             return None
         copytree(from_path, to_path, dirs_exist_ok=True)
+
+    def _delete_directory(self, directory_path: str) -> None:
+        if self._dry_run:
+            return None
+        if os.path.isdir(directory_path):
+            shutil.rmtree(directory_path)
+        else:
+            logger.warning("Directory does not exist, cannot delete. path: {}", directory_path)
 
     def _write_file(
         self, content: str, file_name: str, dir_path: Optional[str] = None, executable: Optional[bool] = False
@@ -113,10 +122,24 @@ class IOUtils:
     def _write_symlink(self, file_path: str, symlink_path: str) -> str:
         if self._dry_run:
             return symlink_path
-        if not os.path.exists(symlink_path):
-            symlink_dir_path = os.path.dirname(symlink_path)
+
+        # Check if symlink exists and points to the same file
+        if os.path.exists(symlink_path) and os.path.islink(symlink_path):
+            existing_target = os.readlink(symlink_path)
+            if existing_target == file_path:
+                logger.warning("Symlink already exists and points to correct file. path: {}".format(symlink_path))
+                return symlink_path
+
+        # Create parent directory if needed
+        symlink_dir_path = os.path.dirname(symlink_path)
+        if not os.path.exists(symlink_dir_path):
             logger.debug("Symlink folder path does not exist. creating path at: {}".format(symlink_dir_path))
             os.makedirs(symlink_dir_path, exist_ok=True)
+
+        # Remove existing symlink if it points to a different file
+        if os.path.exists(symlink_path):
+            os.remove(symlink_path)
+
         os.symlink(src=file_path, dst=symlink_path)
         logger.debug("Created symlink. path: {}".format(symlink_path))
         return symlink_path
@@ -244,6 +267,7 @@ class IOUtils:
     create_directory_fn = _create_directory
     copy_file_fn = _copy_file
     copy_directory_fn = _copy_directory
+    delete_directory_fn = _delete_directory
     write_file_fn = _write_file
     delete_file_fn = _delete_file
     read_file_safe_fn = _read_file_safe

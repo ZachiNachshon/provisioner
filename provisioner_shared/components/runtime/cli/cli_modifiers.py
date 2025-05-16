@@ -120,6 +120,9 @@ def cli_modifiers(func: Callable) -> Callable:
                 modifiers.os_arch = os_arch
                 click.echo(f"OS_Arch updated to: {os_arch}")
 
+            # TODO (Fix me):
+            # If the package manager is defined at the end of the command, it prints as expected
+            # if it is being used on any other command places, it prints the wrong value i.e. pip
             if (
                 pkg_mgr
                 and modifiers.pkg_mgr
@@ -133,6 +136,8 @@ def cli_modifiers(func: Callable) -> Callable:
 
         # Logger Manager Initialization (only once)
         if "_logger_initialized" not in ctx.obj:
+            if modifiers.verbose:
+                click.echo(f"Initializing logger manager (verbose: {modifiers.verbose}, dry_run: {modifiers.dry_run})")
             logger_mgr = LoggerManager()
             logger_mgr.initialize(modifiers.verbose, modifiers.dry_run)
             ctx.obj["_logger_initialized"] = True  # Ensure it's only done once

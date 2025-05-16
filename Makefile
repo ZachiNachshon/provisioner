@@ -1,4 +1,5 @@
 default: help
+PYTHON_VERSION=3.11
 POETRY_DEV=external/shell_scripts_lib/python/poetry_dev.sh
 POETRY_PIP_RELEASER=external/shell_scripts_lib/python/poetry_pip_releaser.sh
 PLUGINS_ROOT_FOLDER=plugins
@@ -9,13 +10,21 @@ PLUGINS_ROOT_FOLDER=plugins
 #     - Generate new token on the classic mode with full 'repo' scope
 #     - Copy the GitHub PAT secret
 #  2. Add the private key as a secret in the repository running the workflow:
-#     - Go to the repository’s settings page on GitHub.
-#     - Click on “Secrets and variables” in the left sidebar and then "Actions".
-#     - Click on “New repository secret”.
-#     - Enter a name for the secret, such as MY_REPO_ACCESS_TOKEN, and paste the contents of the private key file into the “Value” field.
-#     - Click on “Add secret”.
+#     - Go to the repository's settings page on GitHub.
+#     - Click on "Secrets and variables" in the left sidebar and then "Actions".
+#     - Click on "New repository secret".
+#     - Enter a name for the secret, such as MY_REPO_ACCESS_TOKEN, and paste the contents of the private key file into the "Value" field.
+#     - Click on "Add secret".
 #  3. On the GitHub workflow use is as:
 #     - token: ${{ secrets.MY_REPO_ACCESS_TOKEN }}
+
+.PHONY: init
+init: ## Initialize project using uv package manager
+	@uv venv --python $(PYTHON_VERSION)
+	@source .venv/bin/activate
+	@source .venv/bin/python -m ensurepip --upgrade
+	@source .venv/bin/pip3 install --upgrade pip setuptools wheel
+	@poetry self add poetry-multiproject-plugin
 
 .PHONY: prod-mode
 prod-mode: ## Enable production mode for packaging and distribution
@@ -35,17 +44,17 @@ deps-install: ## Update and install pyproject.toml dependencies on all virtual e
 	@poetry install --with dev --sync -v
 	@poetry lock
 	
-.PHONY: dev-mode-pip-sdists
-dev-mode-pip-sdists: ## Enable local development from built sdists into project .venv
-	@rm -rf provisioner_shared/dist
-	@cd provisioner_shared; poetry build-project -f sdist; cd ..
-	@mv provisioner_shared/dist/provisioner_shared*.tar.gz dockerfiles/poetry/dists/
-	@rm -rf provisioner/dist
-	$(MAKE) pip-install-runtime
-	@mv provisioner/dist/provisioner*.tar.gz dockerfiles/poetry/dists/
-	@rm -rf plugins/provisioner_installers_plugin/dist
-	@cd plugins/provisioner_installers_plugin; poetry build-project -f sdist; cd ../..
-	@mv plugins/provisioner_installers_plugin/dist/provisioner_*_plugin*.tar.gz dockerfiles/poetry/dists/
+# .PHONY: dev-mode-pip-sdists
+# dev-mode-pip-sdists: ## Enable local development from built sdists into project .venv
+# 	@rm -rf provisioner_shared/dist
+# 	@cd provisioner_shared; poetry build-project -f sdist; cd ..
+# 	@mv provisioner_shared/dist/provisioner_shared*.tar.gz dockerfiles/poetry/dists/
+# 	@rm -rf provisioner/dist
+# 	$(MAKE) pip-install-runtime
+# 	@mv provisioner/dist/provisioner*.tar.gz dockerfiles/poetry/dists/
+# 	@rm -rf plugins/provisioner_installers_plugin/dist
+# 	@cd plugins/provisioner_installers_plugin; poetry build-project -f sdist; cd ../..
+# 	@mv plugins/provisioner_installers_plugin/dist/provisioner_*_plugin*.tar.gz dockerfiles/poetry/dists/
 
 # $(MAKE) prod-mode
 # @./.venv/bin/pip3 install provisioner_shared/dist/provisioner_shared*.tar.gz
@@ -98,31 +107,32 @@ test-coverage-html: ## Run tests suite on runtime and all plugins (output: HTML 
 test-coverage-xml: ## Run tests suite on runtime and all plugins NO E2E (output: XML report)
 	./run_tests.py --all --skip-e2e --report xml
 
-.PHONY: pip-install-runtime
-pip-install-runtime: ## [LOCAL] Install provisioner runtime to local pip
+.PHONY: pip-install-runtime-to-venv
+pip-install-runtime-to-venv: ## [LOCAL] Install provisioner runtime to local pip
 	@echo "\n========= PROJECT: provisioner_shared ==============\n"; \
-	pip3 uninstall -y provisioner_shared; \
+	uv pip uninstall provisioner_shared; \
 	cd provisioner_shared; poetry build-project -f wheel; cd ..; \
-	pip3 install provisioner_shared/dist/provisioner_shared*.whl; \
+	uv pip install provisioner_shared/dist/provisioner_shared*.whl; \
 	echo "\n========= PROJECT: provisioner ==============\n"; \
-	pip3 uninstall -y provisioner; \
+	uv pip uninstall provisioner; \
 	cd provisioner; poetry build-project -f wheel; cd ..; \
-	pip3 install provisioner/dist/provisioner_*.whl
+	uv pip install provisioner/dist/provisioner_*.whl;
 
+# @./scripts/install_to_global_pip.sh
 # @cd provisioner; poetry build-project -f sdist; cd ..
 # @pip3 install provisioner/dist/provisioner_*.tar.gz	
 
-.PHONY: pip-install-plugin
-pip-install-plugin: ## [LOCAL] Install any plugin to local pip (make pip-install-plugin examples)
+.PHONY: pip-install-plugin-to-venv
+pip-install-plugin-to-venv: ## [LOCAL] Install any plugin to local pip (make pip-install-plugin examples)
 	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
 		echo "Error: plugin name is required. Usage: make pip-install-plugin <plugin_name>"; \
 		exit 1; \
 	fi
 	@PLUGIN=$(word 2, $(MAKECMDGOALS)); \
 	echo "\n========= PLUGIN: $$PLUGIN ==============\n"; \
-	pip3 uninstall -y provisioner_$${PLUGIN}_plugin; \
+	uv pip uninstall provisioner_$${PLUGIN}_plugin; \
 	cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f wheel; cd ../..; \
-	pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.whl;
+	uv pip install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.whl;
 
 # cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f sdist; cd ../..; \
 # pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.tar.gz;
@@ -130,7 +140,7 @@ pip-install-plugin: ## [LOCAL] Install any plugin to local pip (make pip-install
 .PHONY: pip-uninstall-runtime
 pip-uninstall-runtime: ## [LOCAL] Uninstall provisioner from local pip
 	@echo "\n========= PROJECT: provisioner ==============\n"
-	@cd provisioner; pip3 uninstall -y provisioner_shared provisioner_runtime; cd ..
+	@cd provisioner; uv pip uninstall provisioner_shared provisioner_runtime; cd ..
 
 .PHONY: pip-uninstall-plugin
 pip-uninstall-plugin: ## [LOCAL] Uninstall any plugins source distributions from local pip (make pip-uninstall-plugin example)
@@ -140,7 +150,7 @@ pip-uninstall-plugin: ## [LOCAL] Uninstall any plugins source distributions from
 	fi
 	@PLUGIN=$(word 2, $(MAKECMDGOALS)); \
 	echo "\n========= PLUGIN: $$PLUGIN ==============\n"; \
-	pip3 uninstall -y provisioner_$${PLUGIN}_plugin;
+	uv pip uninstall provisioner_$${PLUGIN}_plugin;
 
 .PHONY: clear-project
 clear-project: ## Clear Poetry virtual environments and clear Python cache

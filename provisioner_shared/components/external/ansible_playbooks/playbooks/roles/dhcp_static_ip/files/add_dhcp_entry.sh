@@ -6,7 +6,7 @@
 # Description   Define a static IP on the DHCP clietn deamon
 #==============================================================================
 CURRENT_FOLDER_ABS_PATH=$(dirname "${BASH_SOURCE[0]}")
-ANSIBLE_TEMP_FOLDER_PATH="$HOME/.ansible/tmp"
+ANSIBLE_TEMP_FOLDER_PATH="/tmp"
 SHELL_SCRIPTS_LIB_IMPORT_PATH="${ANSIBLE_TEMP_FOLDER_PATH}/shell_lib.sh" 
 
 source "${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
@@ -16,16 +16,16 @@ DHCPCD_NAME=dhcpcd
 DHCPCD_SERVICE_NAME=dhcpcd.service
 DHCPCD_CONFIG_FILEPATH=/etc/dhcpcd.conf
 
-is_static_ip() {
-  [[ -n "${STATIC_IP}" ]]
+get_static_ip() {
+  echo "${STATIC_IP}"
 }
 
-is_gateway_address() {
-  [[ -n "${GATEWAY_ADDRESS}" ]]
+get_gateway_address() {
+  echo "${GATEWAY_ADDRESS}"
 }
 
-is_dns_address() {
-  [[ -n "${DNS_ADDRESS}" ]]
+get_dns_address() {
+  echo "${DNS_ADDRESS}"
 }
 
 maybe_start_dhcpcd_service() {
@@ -47,20 +47,25 @@ maybe_start_dhcpcd_service() {
 }
 
 configure_static_ip_address() {
+  local static_ip_address=$(get_static_ip)
+  local gateway_address=$(get_gateway_address)
+  local dns_address=$(get_dns_address)
+
   local eth0_static_ip_section="
 interface eth0
-static ip_address=${ENV_STATIC_IP}/24
-static routers=${ENV_GATEWAY_ADDRESS}
-static domain_name_servers=${ENV_DNS_ADDRESS}
+static ip_address=${static_ip_address}/24
+static routers=${gateway_address}
+static domain_name_servers=${dns_address}
 "
-
-  if ! is_dry_run && grep -q -w "ip_address=${ENV_STATIC_IP}" "${DHCPCD_CONFIG_FILEPATH}"; then
-    log_info "Entry '${ENV_STATIC_IP}' already exists in ${DHCPCD_CONFIG_FILEPATH}"
-  else
-    cmd_run "printf '${eth0_static_ip_section}' >> ${DHCPCD_CONFIG_FILEPATH}"
-    log_indicator_good "Updated DHCP client daemon config file. path: ${DHCPCD_CONFIG_FILEPATH}"
-#    touch /tmp/test.conf
-#    printf "${eth0_static_ip_section}" >> /tmp/test.conf
+  
+  if ! is_dry_run; then
+    # Just check if the IP address is already defined and not commented out
+    if grep -q "static ip_address=${static_ip_address}/24" "${DHCPCD_CONFIG_FILEPATH}" && ! grep -q "^#.*static ip_address=${static_ip_address}/24" "${DHCPCD_CONFIG_FILEPATH}"; then
+      log_info "IP address ${static_ip_address} is already defined in ${DHCPCD_CONFIG_FILEPATH}, skipping..."
+    else
+      cmd_run "printf '${eth0_static_ip_section}' >> ${DHCPCD_CONFIG_FILEPATH}"
+      log_indicator_good "Updated DHCP client daemon config file. path: ${DHCPCD_CONFIG_FILEPATH}"
+    fi
   fi
 }
 
@@ -85,15 +90,15 @@ verify_mandatory_variables() {
     log_fatal "Missing mandatory RPi utility. path: ${RASPI_CONFIG_BINARY}"
   fi
 
-  if ! is_static_ip; then
+  if [[ -z "${STATIC_IP}" ]]; then
     log_fatal "Missing mandatory parameter. name: STATIC_IP"
   fi
 
-  if ! is_gateway_address; then
+  if [[ -z "${GATEWAY_ADDRESS}" ]]; then
     log_fatal "Missing mandatory parameter. name: GATEWAY_ADDRESS"
   fi
 
-  if ! is_dns_address; then
+  if [[ -z "${DNS_ADDRESS}" ]]; then
     log_fatal "Missing mandatory parameter. name: DNS_ADDRESS"
   fi
 }

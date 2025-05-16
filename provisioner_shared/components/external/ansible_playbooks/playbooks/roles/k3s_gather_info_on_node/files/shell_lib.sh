@@ -53,7 +53,6 @@ exit_on_error() {
   if [ $exit_code -ne 0 ]; then
     #        >&1 echo "\"${message}\" command failed with exit code ${exit_code}."
     # >&1 echo "\"${message}\""
-    # printf "${COLOR_RED}Error: ${message}${COLOR_NONE}\n" >&1
     exit $exit_code
   fi
 }
@@ -280,22 +279,7 @@ github_download_release_asset() {
 #   read_python_version
 #######################################
 read_python_version() {
-  python3 --version 2>/dev/null | awk '{print $2}'
-}
-
-append_to_path() {
-  local value=$1
-  if [[ -n "${value}" ]]; then
-    log_debug "Appending to PATH: ${value}"
-    eval value="$value"  # Expands both $HOME and ~
-    PATH="${value}:${PATH}"
-  fi
-}
-
-refresh_bashrc() {
-  # Check if exists
-  if is_file_exist "${HOME}/.bashrc"; then
-    log_debug "Refreshing bashrc..."
-    source "${HOME}/.bashrc"
-  fi
+  cmd_run "python3 --version 2>/dev/null | awk '{print $2}'"
+  # local version=$(cmd_run "python3 --version 2>/dev/null | tr -d '\n'")
+  # echo "${version}"
 }

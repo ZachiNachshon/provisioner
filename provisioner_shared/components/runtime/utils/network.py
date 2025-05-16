@@ -98,23 +98,38 @@ class NetworkUtil:
         if self._dry_run:
             return result_dict
 
-        port_scan_result_dict = None
-        port_scan_result_dict = self._progress_indicator.get_status().long_running_process_fn(
+        # First do a fast host discovery scan
+        # nmap_no_portscan is already optimized for quick host discovery
+        fast_scan_result_dict = self._progress_indicator.get_status().long_running_process_fn(
             call=lambda: self._host_discovery.nmap_no_portscan(target=ip_range),
-            desc_run="Running LAN port scanning",
-            desc_end="LAN port scanning finished",
+            desc_run="Running fast LAN host discovery",
+            desc_end="Fast LAN host discovery finished",
         )
 
-        result_dict.update(self._extract_valid_scanned_items(port_scan_result_dict))
+        result_dict.update(self._extract_valid_scanned_items(fast_scan_result_dict))
 
-        list_scan_result_dict = None
-        list_scan_result_dict = self._progress_indicator.get_status().long_running_process_fn(
-            call=lambda: self._nmap.nmap_list_scan(target=ip_range),
-            desc_run="Running LAN list scanning",
-            desc_end="LAN list scanning finished",
-        )
+        # If we need hostnames for hosts that were found but don't have names yet,
+        # do a targeted DNS resolution scan on just those hosts
+        hosts_needing_names = []
+        for ip_addr, host_info in result_dict.items():
+            if host_info["hostname"] == "unknown" and host_info["status"] == "up":
+                hosts_needing_names.append(ip_addr)
 
-        result_dict.update(self._extract_valid_scanned_items(list_scan_result_dict))
+        if hosts_needing_names:
+            # Join IPs with comma for nmap to scan them as a group
+            targeted_hosts = ",".join(hosts_needing_names)
+            hostname_scan_result_dict = self._progress_indicator.get_status().long_running_process_fn(
+                call=lambda: self._nmap.nmap_list_scan(target=targeted_hosts),
+                desc_run="Running hostname resolution",
+                desc_end="Hostname resolution finished",
+            )
+
+            hostname_results = self._extract_valid_scanned_items(hostname_scan_result_dict)
+
+            # Update hostnames for any hosts that we now have names for
+            for ip_addr, host_info in hostname_results.items():
+                if ip_addr in result_dict and host_info["hostname"] != "unknown":
+                    result_dict[ip_addr]["hostname"] = host_info["hostname"]
 
         return result_dict
 
