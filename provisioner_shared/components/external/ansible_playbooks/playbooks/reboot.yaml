@@ -12,7 +12,7 @@
       reboot_required: {{ reboot_required }}
   tags: ['reboot']
 
-- name: Reboot a remote node
+- name: Reboot the remote server
   tags: ['reboot']
   shell: 'sleep 2 && shutdown -r now "Ansible reboot triggered"'
   async: 1
@@ -31,7 +31,7 @@
     delay: 5
     timeout: 300
 
-- name: Check the Uptime of the servers
+- name: Check the server is up
   tags: ['reboot']
   shell: "uptime"
   register: Uptime
