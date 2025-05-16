@@ -1,4 +1,7 @@
 #!/bin/bash
+# Force unbuffered output to prevent hanging appearance
+exec 1>/dev/stdout
+exec 2>/dev/stderr
 
 CURRENT_FOLDER_ABS_PATH=$(dirname "${BASH_SOURCE[0]}")
 ANSIBLE_TEMP_FOLDER_PATH="/tmp"
@@ -6,18 +9,19 @@ SHELL_SCRIPTS_LIB_IMPORT_PATH="${ANSIBLE_TEMP_FOLDER_PATH}/shell_lib.sh"
 
 source "${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
 
-RASPI_CONFIG_BINARY=/usr/bin/raspi-config
-RASPI_BOOT_CMDLINE=/boot/cmdline.txt
+# Add debugging output to help diagnose issues
+echo "Script started, sourced shell lib from: ${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
+echo "Current user: $(whoami)"
+echo "Current directory: $(pwd)"
+
+RASPI_BOOT_CMDLINE=/boot/firmware/cmdline.txt
+RASPI_CONFIG_TXT="/boot/firmware/config.txt"
 
 CGROUP_MEMORY="cgroup_memory=1"
 CGROUP_ENABLE="cgroup_enable=memory"
 
 has_host_name() {
   [[ -n "${HOST_NAME}" ]]
-}
-
-is_boot_wait() {
-  [[ -n "${BOOT_WAIT}" ]]
 }
 
 is_boot_splash() {
@@ -32,16 +36,8 @@ is_camera() {
   [[ -n "${CAMERA}" ]]
 }
 
-is_ssh() {
-  [[ -n "${SSH}" ]]
-}
-
 is_spi() {
   [[ -n "${SPI}" ]]
-}
-
-is_memory_split() {
-  [[ -n "${MEMORY_SPLIT}" ]]
 }
 
 is_i2c() {
@@ -84,106 +80,204 @@ is_change_locale() {
   [[ -n "${CHANGE_LOCALE}" ]]
 }
 
+run_raspi_config() {
+  local command=$1
+  local message=$2
+  
+  echo "Executing configuration command: ${command}"
+  
+  # Extract the operation from the command
+  local operation=$(echo "$command" | awk '{print $1}')
+  
+  case "$operation" in
+    "do_boot_splash")
+      if [[ "$command" == *"1"* ]]; then
+        echo "Disabling splash screen in config.txt"
+        grep -q "^disable_splash=" ${RASPI_CONFIG_TXT} && sed -i 's/^disable_splash=.*/disable_splash=1/' ${RASPI_CONFIG_TXT} || echo "disable_splash=1" >> ${RASPI_CONFIG_TXT}
+      else
+        echo "Enabling splash screen in config.txt"
+        grep -q "^disable_splash=" ${RASPI_CONFIG_TXT} && sed -i 's/^disable_splash=.*/disable_splash=0/' ${RASPI_CONFIG_TXT} || echo "disable_splash=0" >> ${RASPI_CONFIG_TXT}
+      fi
+      ;;
+    "do_overscan")
+      if [[ "$command" == *"1"* ]]; then
+        echo "Disabling overscan in config.txt"
+        grep -q "^disable_overscan=" ${RASPI_CONFIG_TXT} && sed -i 's/^disable_overscan=.*/disable_overscan=1/' ${RASPI_CONFIG_TXT} || echo "disable_overscan=1" >> ${RASPI_CONFIG_TXT}
+      else
+        echo "Enabling overscan in config.txt"
+        grep -q "^disable_overscan=" ${RASPI_CONFIG_TXT} && sed -i 's/^disable_overscan=.*/disable_overscan=0/' ${RASPI_CONFIG_TXT} || echo "disable_overscan=0" >> ${RASPI_CONFIG_TXT}
+      fi
+      ;;
+    "do_camera")
+      if [[ "$command" == *"1"* ]]; then
+        echo "Disabling camera in config.txt"
+        grep -q "^camera_auto_detect=" ${RASPI_CONFIG_TXT} && sed -i 's/^camera_auto_detect=.*/camera_auto_detect=0/' ${RASPI_CONFIG_TXT} || echo "camera_auto_detect=0" >> ${RASPI_CONFIG_TXT}
+      else
+        echo "Enabling camera in config.txt"
+        grep -q "^camera_auto_detect=" ${RASPI_CONFIG_TXT} && sed -i 's/^camera_auto_detect=.*/camera_auto_detect=1/' ${RASPI_CONFIG_TXT} || echo "camera_auto_detect=1" >> ${RASPI_CONFIG_TXT}
+      fi
+      ;;
+    "do_spi")
+      if [[ "$command" == *"1"* ]]; then
+        echo "Disabling SPI in config.txt"
+        grep -q "^dtparam=spi=" ${RASPI_CONFIG_TXT} && sed -i 's/^dtparam=spi=.*/dtparam=spi=off/' ${RASPI_CONFIG_TXT} || echo "dtparam=spi=off" >> ${RASPI_CONFIG_TXT}
+      else
+        echo "Enabling SPI in config.txt"
+        grep -q "^dtparam=spi=" ${RASPI_CONFIG_TXT} && sed -i 's/^dtparam=spi=.*/dtparam=spi=on/' ${RASPI_CONFIG_TXT} || echo "dtparam=spi=on" >> ${RASPI_CONFIG_TXT}
+      fi
+      ;;
+    "do_i2c")
+      if [[ "$command" == *"1"* ]]; then
+        echo "Disabling I2C in config.txt"
+        grep -q "^dtparam=i2c_arm=" ${RASPI_CONFIG_TXT} && sed -i 's/^dtparam=i2c_arm=.*/dtparam=i2c_arm=off/' ${RASPI_CONFIG_TXT} || echo "dtparam=i2c_arm=off" >> ${RASPI_CONFIG_TXT}
+      else
+        echo "Enabling I2C in config.txt"
+        grep -q "^dtparam=i2c_arm=" ${RASPI_CONFIG_TXT} && sed -i 's/^dtparam=i2c_arm=.*/dtparam=i2c_arm=on/' ${RASPI_CONFIG_TXT} || echo "dtparam=i2c_arm=on" >> ${RASPI_CONFIG_TXT}
+      fi
+      ;;
+    "do_onewire")
+      if [[ "$command" == *"1"* ]]; then
+        echo "Disabling OneWire in config.txt"
+        sed -i '/^dtoverlay=w1-gpio/d' ${RASPI_CONFIG_TXT}
+      else
+        echo "Enabling OneWire in config.txt"
+        grep -q "^dtoverlay=w1-gpio" ${RASPI_CONFIG_TXT} || echo "dtoverlay=w1-gpio,gpiopin=4" >> ${RASPI_CONFIG_TXT}
+      fi
+      ;;
+    "do_audio")
+      if [[ "$command" == *"0"* ]]; then
+        echo "Setting audio to auto in config.txt"
+        grep -q "^dtparam=audio=" ${RASPI_CONFIG_TXT} && sed -i 's/^dtparam=audio=.*/dtparam=audio=on/' ${RASPI_CONFIG_TXT} || echo "dtparam=audio=on" >> ${RASPI_CONFIG_TXT}
+      elif [[ "$command" == *"1"* ]]; then
+        echo "Setting audio to 3.5mm jack in config.txt"
+        grep -q "^dtparam=audio=" ${RASPI_CONFIG_TXT} && sed -i 's/^dtparam=audio=.*/dtparam=audio=1/' ${RASPI_CONFIG_TXT} || echo "dtparam=audio=1" >> ${RASPI_CONFIG_TXT}
+      elif [[ "$command" == *"2"* ]]; then
+        echo "Setting audio to HDMI in config.txt"
+        grep -q "^dtparam=audio=" ${RASPI_CONFIG_TXT} && sed -i 's/^dtparam=audio=.*/dtparam=audio=2/' ${RASPI_CONFIG_TXT} || echo "dtparam=audio=2" >> ${RASPI_CONFIG_TXT}
+      fi
+      ;;
+    "do_boot_behaviour")
+      # Force boot to CLI with login - B1 only
+      echo "Setting boot to CLI with login"
+      systemctl set-default multi-user.target
+      # Disable autologin if enabled
+      if [ -f /etc/systemd/system/getty@tty1.service.d/autologin.conf ]; then
+        rm /etc/systemd/system/getty@tty1.service.d/autologin.conf
+      fi
+      ;;
+    "do_configure_keyboard")
+      echo "Setting keyboard layout to US"
+      cat > /etc/default/keyboard << EOF
+XKBMODEL="pc105"
+XKBLAYOUT="us"
+XKBVARIANT=""
+XKBOPTIONS=""
+BACKSPACE="guess"
+EOF
+      # Apply the settings
+      dpkg-reconfigure -f noninteractive keyboard-configuration
+      ;;
+    "do_change_timezone")
+      echo "Setting timezone to UTC"
+      ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+      ;;
+    "do_change_locale")
+      echo "Setting locale to en_US.UTF-8"
+      sed -i 's/^# *en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
+      locale-gen
+      update-locale LANG=en_US.UTF-8
+      ;;
+    "do_gldriver")
+      if [[ "$command" == *"G1"* ]]; then
+        echo "Enabling Full KMS OpenGL Driver"
+        grep -q "^dtoverlay=vc4-kms-v3d" ${RASPI_CONFIG_TXT} || echo "dtoverlay=vc4-kms-v3d" >> ${RASPI_CONFIG_TXT}
+      elif [[ "$command" == *"G2"* ]]; then
+        echo "Enabling Fake KMS OpenGL Driver"
+        grep -q "^dtoverlay=vc4-fkms-v3d" ${RASPI_CONFIG_TXT} || echo "dtoverlay=vc4-fkms-v3d" >> ${RASPI_CONFIG_TXT}
+      elif [[ "$command" == *"G3"* ]]; then
+        echo "Disabling OpenGL Driver"
+        sed -i '/^dtoverlay=vc4-kms-v3d/d' ${RASPI_CONFIG_TXT}
+        sed -i '/^dtoverlay=vc4-fkms-v3d/d' ${RASPI_CONFIG_TXT}
+      fi
+      ;;
+    "do_rgpio")
+      if [[ "$command" == *"0"* ]]; then
+        echo "Enabling GPIO server"
+        systemctl enable pigpiod
+      else
+        echo "Disabling GPIO server"
+        systemctl disable pigpiod
+      fi
+      ;;
+    *)
+      echo "WARNING: Unsupported operation: $operation. Cannot process this configuration."
+      ;;
+  esac
+  
+  log_indicator_good "${message}"
+  new_line
+  return 0
+}
+
 configure_node_system() {
-  log_info "Configuring remote RPi node system. name: ${HOST_NAME}"
+  echo "==== Configuring remote RPi node system. name: ${HOST_NAME} ===="
+  new_line
 
   if is_configure_keyboard; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${CONFIGURE_KEYBOARD}"
-    log_indicator_good "Specify US Keyboard"
+    run_raspi_config "${CONFIGURE_KEYBOARD}" "US Keyboard successfully configured"
   fi
 
   if is_change_timezone; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${CHANGE_TIMEZONE}"
-    log_indicator_good "Change timezone to Asia Jerusalem"
+    run_raspi_config "${CHANGE_TIMEZONE}" "Timezone successfully changed to Asia Jerusalem"
   fi
 
   if is_change_locale; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${CHANGE_LOCALE}"
-    log_indicator_good "Set language to en_US English"
+    run_raspi_config "${CHANGE_LOCALE}" "Locale successfully set to en_US.UTF-8"
   fi
 }
 
 configure_node_hardware() {
   log_info "Configuring remote RPi node hardware. name: ${HOST_NAME}"
 
-  if is_boot_wait; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${BOOT_WAIT}"
-    log_indicator_good "Do not wait for network before booting"
-  fi
-
   if is_boot_splash; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${BOOT_SPLASH}"
-    log_indicator_good "Disable the splash screen"
+    run_raspi_config "${BOOT_SPLASH}" "Splash screen successfully disabled"
   fi
 
   if is_overscan; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${OVERSCAN}"
-    log_indicator_good "Disable overscan"
+    run_raspi_config "${OVERSCAN}" "Overscan successfully disabled"
   fi
 
   if is_camera; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${CAMERA}"
-    log_indicator_good "Disable the camera"
-  fi
-
-  if is_ssh; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${SSH}"
-    log_indicator_good "Enable remote ssh login"
+    run_raspi_config "${CAMERA}" "Camera successfully disabled"
   fi
 
   if is_spi; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${SPI}"
-    log_indicator_good "Disable spi bus"
-  fi
-
-  if is_memory_split; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${MEMORY_SPLIT}"
-    log_indicator_good "Set the GPU memory limit to minimum (16MB)"
+    run_raspi_config "${SPI}" "SPI bus successfully disabled"
   fi
 
   if is_i2c; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${I2C}"
-    log_indicator_good "Disable the i2c bus"
+    run_raspi_config "${I2C}" "I2C bus successfully disabled"
   fi
 
   if is_serial_bus; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${SERIAL_BUS}"
-    log_indicator_good "Disable the RS232 serial bus"
+    run_raspi_config "${SERIAL_BUS}" "RS232 serial bus successfully disabled"
   fi
 
   if is_boot_behaviour; then
-    if [[ "${BOOT_BEHAVIOUR}" == "do_boot_behaviour B1" ]]; then
-      cmd_run "${RASPI_CONFIG_BINARY} nonint ${BOOT_BEHAVIOUR}"
-      log_indicator_good "Boot to CLI & require login"
-    elif [[ "${BOOT_BEHAVIOUR}" == "do_boot_behaviour B2" ]]; then
-      cmd_run "${RASPI_CONFIG_BINARY} nonint ${BOOT_BEHAVIOUR}"
-      log_indicator_good "Boot to CLI & auto login as pi user"
-    elif [[ "${BOOT_BEHAVIOUR}" == "do_boot_behaviour B3" ]]; then
-      cmd_run "${RASPI_CONFIG_BINARY} nonint ${BOOT_BEHAVIOUR}"
-      log_indicator_good "Boot to Graphical & require login"
-    elif [[ "${BOOT_BEHAVIOUR}" == "do_boot_behaviour B4" ]]; then
-      cmd_run "${RASPI_CONFIG_BINARY} nonint ${BOOT_BEHAVIOUR}"
-      log_indicator_good "Boot to Graphical & auto login as pi user"
-    else
-      log_warning "Invalid boot behavior value ${BOOT_BEHAVIOUR}. options: B1/B1/B3/B4"
-    fi
+    run_raspi_config "${BOOT_BEHAVIOUR}" "Boot to CLI & require login"
   fi
 
   if is_onewire; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${ONEWIRE}"
-    log_indicator_good "Disable onewire on GPIO4"
+    run_raspi_config "${ONEWIRE}" "Onewire on GPIO4 disabled"
   fi
 
   if is_audio; then
     if [[ "${AUDIO}" == "do_audio 0" ]]; then
-      cmd_run "${RASPI_CONFIG_BINARY} nonint ${AUDIO}"
-      log_indicator_good "Auto select audio output device"
+      run_raspi_config "${AUDIO}" "Audio output device auto selected"
     elif [[ "${AUDIO}" == "do_audio 1" ]]; then
-      cmd_run "${RASPI_CONFIG_BINARY} nonint ${AUDIO}"
-      log_indicator_good "Force audio output through 3.5mm analogue jack"
+      run_raspi_config "${AUDIO}" "Audio output through 3.5mm analogue jack"
     elif [[ "${AUDIO}" == "do_audio 2" ]]; then
-      cmd_run "${RASPI_CONFIG_BINARY} nonint ${AUDIO}"
-      log_indicator_good "Force audio output through HDMI digital interface"
+      run_raspi_config "${AUDIO}" "Audio output through HDMI digital interface"
     else
       log_warning "Invalid audio value ${AUDIO}. options: 0/1/2"
     fi
@@ -191,32 +285,24 @@ configure_node_hardware() {
 
   if is_gldriver; then
     if [[ "${GLDRIVER}" == "do_gldriver G1" ]]; then
-      cmd_run "${RASPI_CONFIG_BINARY} nonint ${GLDRIVER}"
-      log_indicator_good "Enable Full KMS Opengl Driver - must install deb package first"
+      run_raspi_config "${GLDRIVER}" "Enable Full KMS Opengl Driver - must install deb package first"
     elif [[ "${GLDRIVER}" == "do_gldriver G2" ]]; then
-      cmd_run "${RASPI_CONFIG_BINARY} nonint ${GLDRIVER}"
-      log_indicator_good "Enable Fake KMS Opengl Driver - must install deb package first"
+      run_raspi_config "${GLDRIVER}" "Enable Fake KMS Opengl Driver - must install deb package first"
     elif [[ "${GLDRIVER}" == "do_gldriver G3" ]]; then
-      cmd_run "${RASPI_CONFIG_BINARY} nonint ${GLDRIVER}"
-      log_indicator_good "Disable opengl driver (default)"
+      run_raspi_config "${GLDRIVER}" "OpenGL driver disabled"
     else
       log_warning "Invalid audio value ${GLDRIVER}. options: G1/G2/G3"
     fi
   fi
 
   if is_rgpio; then
-    log_indicator_good "Disable gpio server - must install deb package first"
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${RGPIO}"
+    run_raspi_config "${RGPIO}" "GPIO server disabled"
   fi
 }
 
 verify_mandatory_variables() {
   if ! has_host_name; then
     log_fatal "Missing mandatory env var. name: HOST_NAME"
-  fi
-
-  if ! is_dry_run && ! is_file_exist "${RASPI_CONFIG_BINARY}"; then
-    log_fatal "Missing mandatory RPi utility. path: ${RASPI_CONFIG_BINARY}"
   fi
 }
 
@@ -262,6 +348,7 @@ maybe_update_cgroups() {
 }
 
 main() {
+  echo "Starting main function"
   evaluate_run_mode
   verify_supported_os
   verify_mandatory_variables
@@ -279,6 +366,8 @@ Instructions:
   configure_node_system
   new_line
   maybe_update_cgroups
+  
+  echo "Script completed successfully"
 }
 
 main "$@"

@@ -21,32 +21,28 @@
 
 - name: 'Configure RPi node hardware and system'
   tags: ['configure_remote_node']
-  script: raspi_configure_node.sh
+  script: "{{ role_path }}/files/raspi_configure_node.sh"
   register: scriptOut
   async: 0
   poll: 0
   ignore_errors: false
   become: "{{ become_root }}"
-  # become: true
   environment:
     HOST_NAME: "{{ host_name | mandatory }}"
-    BOOT_WAIT: "{{ boot_wait | default('') }}"
     BOOT_SPLASH: "{{ boot_splash | default('') }}"
     OVERSCAN: "{{ overscan | default('') }}"
     CAMERA: "{{ camera | default('') }}"
-    SSH: "{{ ssh | default('') }}"
     SPI: "{{ spi | default('') }}"
-    MEMORY_SPLIT: "{{ memory_split | default('') }}"
     I2C: "{{ i2c | default('') }}"
     SERIAL_BUS: "{{ serial_bus | default('') }}"
-    BOOT_BEHAVIOUR: "{{ boot_behaviour | default('') }}"
+    BOOT_BEHAVIOUR: "{{ boot_behaviour | default('') }}" # Force boot to CLI & require login
     ONEWIRE: "{{ onewire | default('') }}"
     AUDIO: "{{ audio | default('') }}"
     GLDRIVER: "{{ gldriver | default('') }}"
     RGPIO: "{{ rgpio | default('') }}"
-    CONFIGURE_KEYBOARD: "{{ configure_keyboard | default('') }}"
-    CHANGE_TIMEZONE: "{{ change_timezone | default('') }}"
-    CHANGE_LOCALE: "{{ change_locale | default('') }}"
+    CONFIGURE_KEYBOARD: "{{ configure_keyboard | default('') }}" # Force US keyboard
+    CHANGE_TIMEZONE: "{{ change_timezone | default('') }}" # Force UTC timezone
+    CHANGE_LOCALE: "{{ change_locale | default('') }}" # Force en_US.UTF-8 locale
 
 - debug: msg={{ scriptOut.stdout }}
   tags: ['configure_remote_node']
