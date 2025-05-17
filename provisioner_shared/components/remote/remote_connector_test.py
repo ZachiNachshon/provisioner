@@ -7,7 +7,7 @@ from unittest import mock
 
 from provisioner_shared.components.remote.domain.config import RemoteConfig, RemoteConnectMode
 from provisioner_shared.components.remote.remote_connector import (
-    DHCPCDConfigurationInfo,
+    NetworkConfigurationInfo,
     NetworkDeviceAuthenticationMethod,
     NetworkDeviceSelectionMethod,
     RemoteMachineConnector,
@@ -174,7 +174,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         )
         self.assertIsNone(response)
 
-    def test_collect_dhcpcd_configuration_info(self) -> None:
+    def test_collect_network_configuration_info(self) -> None:
         env = TestEnv.create()
         env.get_collaborators().printer().on("print_with_rich_table_fn", str, str).side_effect = None
 
@@ -203,7 +203,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             level: PromptLevel,
             post_user_input_message: str,
         ):
-            self.assertEqual(message, "Enter the gateway address")
+            self.assertEqual(message, "Enter the gateway address (example: 192.168.1.1)")
             self.assertEqual(post_user_input_message, "Selected gateway address ")
             return TestDataRemoteConnector.TEST_DATA_DHCP_GW_IP_ADDRESS
 
@@ -218,7 +218,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             level: PromptLevel,
             post_user_input_message: str,
         ):
-            self.assertEqual(message, "Enter the DNS resolver address")
+            self.assertEqual(message, "Enter the DNS resolver address (example: 192.168.1.1)")
             self.assertEqual(post_user_input_message, "Selected remote DNS resolver IP address ")
             return TestDataRemoteConnector.TEST_DATA_DHCP_DNS_IP_ADDRESS
 
@@ -226,14 +226,14 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
         ).side_effect = dns_assertion_callback
 
-        response = RemoteMachineConnector(env.get_collaborators()).collect_dhcpcd_configuration_info(
+        response = RemoteMachineConnector(env.get_collaborators()).collect_network_configuration_info(
             env.get_context(), TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS
         )
 
         Assertion.expect_equal_objects(
             self,
             response,
-            DHCPCDConfigurationInfo(
+            NetworkConfigurationInfo(
                 TestDataRemoteConnector.TEST_DATA_DHCP_GW_IP_ADDRESS,
                 TestDataRemoteConnector.TEST_DATA_DHCP_DNS_IP_ADDRESS,
                 TestDataRemoteConnector.TEST_DATA_DHCP_STATIC_IP_ADDRESS,

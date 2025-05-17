@@ -15,7 +15,7 @@
 - name: Copy shell scripts library to remote host
   copy:
     src: "{{ role_path }}/files/shell_lib.sh"
-    dest: "$HOME/.ansible/tmp/shell_lib.sh"
+    dest: "/tmp/shell_lib.sh"
   tags: ['define_static_ip']
 
 - name: Configure RPi node network (static IP and hostname)

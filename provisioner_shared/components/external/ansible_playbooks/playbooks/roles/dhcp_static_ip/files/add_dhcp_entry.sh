@@ -11,11 +11,6 @@ SHELL_SCRIPTS_LIB_IMPORT_PATH="${ANSIBLE_TEMP_FOLDER_PATH}/shell_lib.sh"
 
 source "${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
 
-RASPI_CONFIG_BINARY=/usr/bin/raspi-config
-DHCPCD_NAME=dhcpcd
-DHCPCD_SERVICE_NAME=dhcpcd.service
-DHCPCD_CONFIG_FILEPATH=/etc/dhcpcd.conf
-
 get_static_ip() {
   echo "${STATIC_IP}"
 }
@@ -28,54 +23,66 @@ get_dns_address() {
   echo "${DNS_ADDRESS}"
 }
 
-maybe_start_dhcpcd_service() {
-  local status=$(cmd_run "systemctl show -p SubState ${DHCPCD_NAME}")
-  if ! is_dry_run && [[ "${status}" != *"running"* ]]; then
-    log_warning "DHCP client daemon is not running, starting service..."
-    cmd_run "systemctl start ${DHCPCD_NAME}"
-  else
-    log_indicator_good "DHCP client daemon is running"
-  fi
+get_connection_name_for_device() {
+  local device_name="$1"
+  # Get the connection name associated with the device
+  local connection_name=$(nmcli -t -f NAME,DEVICE con show | grep ":${device_name}$" | cut -d: -f1)
+  echo "${connection_name}"
+}
 
-  local active_state=$(cmd_run "systemctl show -p ActiveState ${DHCPCD_NAME}")
-  if ! is_dry_run && [[ "${active_state}" != *"active"* ]]; then
-    log_warning "DHCP client daemon is not set as active, activating service..."
-    cmd_run "systemctl enable ${DHCPCD_NAME}"
-  else
-    log_indicator_good "DHCP client daemon is enabled"
-  fi
+print_network_info() {
+  new_line
+  echo "=== nmcli con show ==="
+  nmcli con show
+  new_line
+  new_line
+  echo "=== nmcli dev status ==="
+  nmcli dev status
 }
 
 configure_static_ip_address() {
   local static_ip_address=$(get_static_ip)
   local gateway_address=$(get_gateway_address)
   local dns_address=$(get_dns_address)
-
-  local eth0_static_ip_section="
-interface eth0
-static ip_address=${static_ip_address}/24
-static routers=${gateway_address}
-static domain_name_servers=${dns_address}
-"
+  local device_name="eth0"
+  local connection_name=$(get_connection_name_for_device "${device_name}")
   
-  if ! is_dry_run; then
-    # Just check if the IP address is already defined and not commented out
-    if grep -q "static ip_address=${static_ip_address}/24" "${DHCPCD_CONFIG_FILEPATH}" && ! grep -q "^#.*static ip_address=${static_ip_address}/24" "${DHCPCD_CONFIG_FILEPATH}"; then
-      log_info "IP address ${static_ip_address} is already defined in ${DHCPCD_CONFIG_FILEPATH}, skipping..."
-    else
-      cmd_run "printf '${eth0_static_ip_section}' >> ${DHCPCD_CONFIG_FILEPATH}"
-      log_indicator_good "Updated DHCP client daemon config file. path: ${DHCPCD_CONFIG_FILEPATH}"
-    fi
-  fi
+  log_info "Using connection name '${connection_name}' for device ${device_name}"
+
+  # Configure IP Address
+  log_info "Configuring static IP address: ${static_ip_address}"
+  nmcli con mod "${connection_name}" ipv4.addresses ${static_ip_address}/24
+
+  # Configure default gateway
+  log_info "Configuring gateway address: ${gateway_address}"
+  nmcli con mod "${connection_name}" ipv4.gateway ${gateway_address}
+
+  # Configure DNS address
+  log_info "Configuring DNS address: ${dns_address}"
+  nmcli con mod "${connection_name}" ipv4.dns ${dns_address}
+
+  # Change the addressing from DHCP to static
+  nmcli con mod "${connection_name}" ipv4.method manual
+
+  # Save changes
+  log_info "Bringing up network interface: ${device_name}"
+  nmcli con up "${connection_name}"
 }
 
-verify_dhcpcd_system_service() {
-  local dhcpcd_exists=$(cmd_run "systemctl list-units --full -all | grep -i '${DHCPCD_SERVICE_NAME}'")
-  if ! is_dry_run && [[ -z "${dhcpcd_exists}" ]]; then
-    log_fatal "Cannot find mandatory DHCP client daemon service. name: ${DHCPCD_SERVICE_NAME}"
-  else
-    log_info "Found DHCP client daemon service. name: ${DHCPCD_SERVICE_NAME}"
+verify_network_interface() {
+  local static_ip_address=$(get_static_ip)
+  local ip_addr_output=$(ip addr)
+  if ! echo "${ip_addr_output}" | grep -q "${static_ip_address}"; then
+    log_fatal "Static IP address ${static_ip_address} not found in network interfaces"
   fi
+  log_indicator_good "Static IP address ${static_ip_address} found in network interfaces"
+}
+
+verify_nmcli_utility() {
+  if ! is_tool_exist "nmcli"; then
+    log_fatal "nmcli is not installed, cannot configure static IP address"
+  fi
+  log_info "Found nmcli utility (NetworkManager Command Line Tool). name: nmcli"
 }
 
 verify_supported_os() {
@@ -86,10 +93,6 @@ verify_supported_os() {
 }
 
 verify_mandatory_variables() {
-  if ! is_dry_run && ! is_file_exist "${RASPI_CONFIG_BINARY}"; then
-    log_fatal "Missing mandatory RPi utility. path: ${RASPI_CONFIG_BINARY}"
-  fi
-
   if [[ -z "${STATIC_IP}" ]]; then
     log_fatal "Missing mandatory parameter. name: STATIC_IP"
   fi
@@ -107,10 +110,13 @@ main() {
   evaluate_run_mode
   verify_supported_os
   verify_mandatory_variables
-  verify_dhcpcd_system_service
+  verify_nmcli_utility
 
-  maybe_start_dhcpcd_service
+  print_network_info
+  new_line
   configure_static_ip_address
+  new_line
+  verify_network_interface
   new_line
 }
 

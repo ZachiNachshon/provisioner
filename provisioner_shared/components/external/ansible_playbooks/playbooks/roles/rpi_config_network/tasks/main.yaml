@@ -30,5 +30,9 @@
     WIFI_SSID_PASSPHRASE: "{{ wifi_ssid_passphrase | default('') }}"
   tags: ['configure_rpi_network']
 
+- name: Rebooting and waiting for completion
+  include_tasks: "../../reboot.yaml"
+  tags: ['reboot']
+
 - debug: msg={{ scriptOut.stdout }}
   tags: ['configure_rpi_network']

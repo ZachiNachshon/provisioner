@@ -283,3 +283,12 @@ read_python_version() {
   # local version=$(cmd_run "python3 --version 2>/dev/null | tr -d '\n'")
   # echo "${version}"
 }
+
+append_to_path() {
+  local value=$1
+  if [[ -n "${value}" ]]; then
+    log_debug "Appending to PATH: ${value}"
+    eval value="$value"  # Expands both $HOME and ~
+    PATH="${value}:${PATH}"
+  fi
+}

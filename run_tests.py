@@ -11,7 +11,7 @@ import tarfile
 from pathlib import Path
 from typing import List, Optional, Set, Tuple
 
-import tomlkit
+import tomllib
 
 # Docker-related constants
 PROJECT_ROOT_PATH = str(pathlib.Path(__file__).parent.resolve())
@@ -66,8 +66,8 @@ def get_dependencies(project: str) -> Set[str]:
     pyproject_path = project_path / "pyproject.toml"
 
     try:
-        with open(pyproject_path, "r") as f:
-            pyproject = tomlkit.parse(f.read())
+        with open(pyproject_path, "rb") as f:
+            pyproject = tomllib.load(f)
 
         dependencies = pyproject.get("tool", {}).get("poetry", {}).get("dependencies", {})
 

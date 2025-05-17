@@ -2,7 +2,7 @@
 
 
 from provisioner_shared.components.remote.remote_connector import (
-    DHCPCDConfigurationInfo,
+    NetworkConfigurationInfo,
     SSHConnectionInfo,
 )
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
@@ -49,8 +49,8 @@ class TestDataRemoteConnector:
         return SSHConnectionInfo(ansible_hosts=TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS)
 
     @staticmethod
-    def create_fake_get_dhcpcd_configure_info() -> DHCPCDConfigurationInfo:
-        return DHCPCDConfigurationInfo(
+    def create_fake_get_network_configure_info() -> NetworkConfigurationInfo:
+        return NetworkConfigurationInfo(
             gw_ip_address=TestDataRemoteConnector.TEST_DATA_DHCP_GW_IP_ADDRESS,
             dns_ip_address=TestDataRemoteConnector.TEST_DATA_DHCP_DNS_IP_ADDRESS,
             static_ip_address=TestDataRemoteConnector.TEST_DATA_DHCP_STATIC_IP_ADDRESS,

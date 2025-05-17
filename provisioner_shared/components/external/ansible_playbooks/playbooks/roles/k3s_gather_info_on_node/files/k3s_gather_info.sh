@@ -16,6 +16,9 @@ if [[ -f "${SHELL_SCRIPTS_LIB_IMPORT_PATH}" ]]; then
     source "${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
 fi
 
+LOCAL_BIN_FOLDER_PATH="${HOME}/.local/bin"
+append_to_path "${LOCAL_BIN_FOLDER_PATH}"
+
 #######################################
 # Check if K3s service is running
 # Outputs:
@@ -117,6 +120,7 @@ function get_agent_token() {
         echo 'not found'
     fi
 }
+
 # Get K3s server URL from agent service
 # Outputs:
 #   Server URL to stdout
@@ -124,9 +128,18 @@ function get_agent_token() {
 function get_server_url() {
     local service_file="/etc/systemd/system/k3s-agent.service"
     if [[ -f "${service_file}" ]]; then
-        grep -o 'K3S_URL=[^ ]*' "${service_file}" | cut -d= -f2 || echo 'not found'
+        local url=$(grep -o 'K3S_URL=[^ ]*' "${service_file}" | cut -d= -f2)
+        if [[ -n "$url" ]]; then
+            echo "$url"
+        else
+            # Use local IP if K3S_URL not found in service file
+            local ip_address=$(hostname -I | awk '{print $1}')
+            echo "https://${ip_address}:6443"
+        fi
     else
-        echo 'not applicable'
+        # Use local IP if service file doesn't exist
+        local ip_address=$(hostname -I | awk '{print $1}')
+        echo "https://${ip_address}:6443"
     fi
 }
 
@@ -180,6 +193,18 @@ function print_connection_info() {
 }
 
 #######################################
+# Print debug information
+#######################################
+function print_debug_info() {
+    echo 
+    echo "--- Debug Information ---"
+    echo "To read the server logs, use:"
+    echo "systemctl status k3s.service or journalctl -u k3s.service"
+    echo 
+    echo "To read the agent logs, use:"
+    echo "systemctl status k3s-agent.service or journalctl -u k3s-agent.service"
+}
+
 # Main function to collect and display K3s information
 #######################################
 function main() {
@@ -202,20 +227,20 @@ function main() {
     echo "K3s Config Path: ${config_path}"
     
     # Get and display token path
-    local token_path=$(get_server_token_path)
-    echo "K3s Server Token Path: ${token_path}"
+    local server_token_path=$(get_server_token_path)
+    echo "K3s Server Token Path: ${server_token_path}"
     
     # Get and display token
-    local token=$(get_server_token)
-    echo "K3s Server Token: ${token}"
+    local server_token=$(get_server_token)
+    echo "K3s Server Token: ${server_token}"
     
     # Get and display token path
-    local token_path=$(get_agent_token_path)
-    echo "K3s Agent Token Path: ${token_path}"
+    local agent_token_path=$(get_agent_token_path)
+    echo "K3s Agent Token Path: ${agent_token_path}"
     
     # Get and display token
-    local token=$(get_agent_token)
-    echo "K3s Agent Token: ${token}"
+    local agent_token=$(get_agent_token)
+    echo "K3s Agent Token: ${agent_token}"
 
     # Get and display server URL
     local server_url=$(get_server_url)
@@ -230,7 +255,8 @@ function main() {
     echo "Node Count: ${node_count}"
     
     # Print connection info if applicable
-    print_connection_info "${role}" "${token}"
+    print_debug_info
+    print_connection_info "${role}" "${server_token}"
 }
 
 # Execute main function
