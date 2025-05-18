@@ -17,7 +17,6 @@ if [[ -f "${SHELL_SCRIPTS_LIB_IMPORT_PATH}" ]]; then
 fi
 
 LOCAL_BIN_FOLDER_PATH="${HOME}/.local/bin"
-append_to_path "${LOCAL_BIN_FOLDER_PATH}"
 
 #######################################
 # Check if K3s service is running
@@ -46,12 +45,56 @@ function get_node_role() {
 }
 
 #######################################
-# Get K3s version
+# Get K3s version, the script exec as root.
+# We need to find the user who is running the k3s service
+# and use the k3s binary.
 # Outputs:
 #   Version to stdout
 #######################################
 function get_version() {
-    k3s --version 2>/dev/null || echo 'not installed'
+    # Try to find k3s in multiple ways
+    local k3s_path=""
+    
+    # First check if it's in root's PATH
+    k3s_path=$(command -v "k3s" 2>/dev/null)
+    
+    # If not found, check common locations and other users' paths
+    if [ -z "$k3s_path" ]; then
+        # Check for k3s service to find actual binary
+        if [ -f "/etc/systemd/system/k3s.service" ]; then
+            k3s_path=$(grep -o "ExecStart=.*k3s" /etc/systemd/system/k3s.service | sed 's/ExecStart=//')
+            k3s_path=$(echo "$k3s_path" | awk '{print $1}')
+        fi
+        
+        # If still not found, check common installation paths
+        if [ -z "$k3s_path" ]; then
+            for path in /usr/local/bin/k3s /var/lib/rancher/k3s/bin/k3s /opt/bin/k3s; do
+                if [ -x "$path" ]; then
+                    k3s_path="$path"
+                    break
+                fi
+            done
+        fi
+        
+        # Last resort: find it by looking at running processes
+        if [ -z "$k3s_path" ]; then
+            pid=$(pgrep -f "k3s server" | head -1)
+            if [ -n "$pid" ]; then
+                k3s_user=$(ps -o user= -p "$pid")
+                # Try to get the path from the user who's running it
+                if [ -n "$k3s_user" ] && [ "$k3s_user" != "root" ]; then
+                    k3s_path=$(sudo -u "$k3s_user" bash -c 'command -v k3s' 2>/dev/null)
+                fi
+            fi
+        fi
+    fi
+    
+    # Check if we found k3s and get its version
+    if [ -n "$k3s_path" ]; then
+        "$k3s_path" --version || echo 'found but unable to execute'
+    else
+        echo 'not installed'
+    fi
 }
 
 #######################################
@@ -184,8 +227,9 @@ function print_connection_info() {
     local token="$2"
     
     if [[ "${role}" == "server" && "${token}" != "not available" ]]; then
-        echo
+        new_line
         echo "--- Connection Information ---"
+        new_line
         echo "To join an agent to this server, use:"
         local ip_address=$(hostname -I | awk '{print $1}')
         echo "--k3s-url https://${ip_address}:6443 --k3s-token ${token}"
@@ -196,8 +240,9 @@ function print_connection_info() {
 # Print debug information
 #######################################
 function print_debug_info() {
-    echo 
+    new_line
     echo "--- Debug Information ---"
+    new_line
     echo "To read the server logs, use:"
     echo "systemctl status k3s.service or journalctl -u k3s.service"
     echo 
@@ -209,6 +254,7 @@ function print_debug_info() {
 #######################################
 function main() {
     echo "--- K3s Information ---"
+    new_line
     
     # Get and display service status
     local service_status=$(get_service_status)
@@ -225,6 +271,14 @@ function main() {
     # Get and display config path
     local config_path=$(get_config_path)
     echo "K3s Config Path: ${config_path}"
+
+    # Get and display CLI arguments
+    local cli_args=$(get_cli_args)
+    echo "K3s Args: ${cli_args}"
+    
+    new_line
+    echo "--- K3s Server Information ---"
+    new_line
     
     # Get and display token path
     local server_token_path=$(get_server_token_path)
@@ -233,7 +287,19 @@ function main() {
     # Get and display token
     local server_token=$(get_server_token)
     echo "K3s Server Token: ${server_token}"
+
+    # Get and display server URL
+    local server_url=$(get_server_url)
+    echo "K3s Server URL: ${server_url}"
+
+    # Get and display node count
+    local node_count=$(get_node_count)
+    echo "Node Count: ${node_count}"
     
+    new_line
+    echo "--- K3s Agent Information ---"
+    new_line
+
     # Get and display token path
     local agent_token_path=$(get_agent_token_path)
     echo "K3s Agent Token Path: ${agent_token_path}"
@@ -241,18 +307,6 @@ function main() {
     # Get and display token
     local agent_token=$(get_agent_token)
     echo "K3s Agent Token: ${agent_token}"
-
-    # Get and display server URL
-    local server_url=$(get_server_url)
-    echo "K3s Server URL: ${server_url}"
-    
-    # Get and display CLI arguments
-    local cli_args=$(get_cli_args)
-    echo "K3s Args: ${cli_args}"
-    
-    # Get and display node count
-    local node_count=$(get_node_count)
-    echo "Node Count: ${node_count}"
     
     # Print connection info if applicable
     print_debug_info
