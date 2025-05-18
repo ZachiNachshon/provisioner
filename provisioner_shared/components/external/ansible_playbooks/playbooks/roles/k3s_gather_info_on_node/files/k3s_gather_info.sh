@@ -11,12 +11,7 @@ CURRENT_FOLDER_ABS_PATH=$(dirname "${BASH_SOURCE[0]}")
 ANSIBLE_TEMP_FOLDER_PATH="/tmp"
 SHELL_SCRIPTS_LIB_IMPORT_PATH="${ANSIBLE_TEMP_FOLDER_PATH}/shell_lib.sh" 
 
-# Source shell library if available
-if [[ -f "${SHELL_SCRIPTS_LIB_IMPORT_PATH}" ]]; then
-    source "${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
-fi
-
-LOCAL_BIN_FOLDER_PATH="${HOME}/.local/bin"
+source "${SHELL_SCRIPTS_LIB_IMPORT_PATH}"
 
 #######################################
 # Check if K3s service is running
@@ -215,6 +210,30 @@ function get_node_count() {
 }
 
 #######################################
+# Print a section header with formatting
+# Arguments:
+#   $1 - Section title
+#######################################
+function print_section_header() {
+    local title="$1"
+    # echo -e "\n${TEXT_BOLD}${TEXT_UNDERLINE}${title}${COLOR_RESET}"
+    echo -e "\n${title}"
+    echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+}
+
+#######################################
+# Print a key-value pair with formatting
+# Arguments:
+#   $1 - Key/label
+#   $2 - Value
+#######################################
+function print_info() {
+    local key="$1"
+    local value="$2"
+    echo "  $key: $value"
+}
+
+#######################################
 # Print connection information for server nodes
 # Arguments:
 #   $1 - Node role
@@ -227,12 +246,10 @@ function print_connection_info() {
     local token="$2"
     
     if [[ "${role}" == "server" && "${token}" != "not available" ]]; then
-        new_line
-        echo "--- Connection Information ---"
-        new_line
-        echo "To join an agent to this server, use:"
+        print_section_header "CONNECTION INFORMATION"
+        echo "  To join an agent to this server, use:"
         local ip_address=$(hostname -I | awk '{print $1}')
-        echo "--k3s-url https://${ip_address}:6443 --k3s-token ${token}"
+        echo "  k3s agent --server https://${ip_address}:6443 --token ${token}"
     fi
 }
 
@@ -240,77 +257,93 @@ function print_connection_info() {
 # Print debug information
 #######################################
 function print_debug_info() {
-    new_line
-    echo "--- Debug Information ---"
-    new_line
-    echo "To read the server logs, use:"
-    echo "systemctl status k3s.service or journalctl -u k3s.service"
+    print_section_header "DEBUG INFORMATION"
+    echo "  Server Logs:"
+    echo "  systemctl status k3s.service"
+    echo "  journalctl -u k3s.service"
     echo 
-    echo "To read the agent logs, use:"
-    echo "systemctl status k3s-agent.service or journalctl -u k3s-agent.service"
+    echo "  Agent Logs:"
+    echo "  systemctl status k3s-agent.service"
+    echo "  journalctl -u k3s-agent.service"
 }
 
 # Main function to collect and display K3s information
 #######################################
 function main() {
-    echo "--- K3s Information ---"
-    new_line
+    echo -e "╔══════════════════════════════════════════════════════╗"
+    echo -e "║                K3S CLUSTER INFORMATION               ║"
+    echo -e "╚══════════════════════════════════════════════════════╝"
+    
+    # GENERAL SECTION
+    print_section_header "GENERAL INFORMATION"
     
     # Get and display service status
     local service_status=$(get_service_status)
-    echo "K3s Service Status: ${service_status}"
+    print_info "Service Status" "${service_status}"
     
     # Get and display node role
     local role=$(get_node_role)
-    echo "K3s Role: ${role}"
+    print_info "Node Role" "${role}"
     
     # Get and display version
     local version=$(get_version)
-    echo "K3s Version: ${version}"
+    print_info "Version" "${version}"
     
     # Get and display config path
     local config_path=$(get_config_path)
-    echo "K3s Config Path: ${config_path}"
+    print_info "Config Path" "${config_path}"
 
     # Get and display CLI arguments
     local cli_args=$(get_cli_args)
-    echo "K3s Args: ${cli_args}"
+    print_info "Command Arguments" "${cli_args}"
     
-    new_line
-    echo "--- K3s Server Information ---"
-    new_line
+    # SERVER SECTION - Only display detailed info if this is a server
+    print_section_header "SERVER INFORMATION"
     
-    # Get and display token path
-    local server_token_path=$(get_server_token_path)
-    echo "K3s Server Token Path: ${server_token_path}"
-    
-    # Get and display token
-    local server_token=$(get_server_token)
-    echo "K3s Server Token: ${server_token}"
+    if [[ "$role" == "server" ]]; then
+        # Get and display token path
+        local server_token_path=$(get_server_token_path)
+        print_info "Token Path" "${server_token_path}"
+        
+        # Get and display token
+        local server_token=$(get_server_token)
+        print_info "Token" "${server_token}"
 
-    # Get and display server URL
-    local server_url=$(get_server_url)
-    echo "K3s Server URL: ${server_url}"
+        # Get and display server URL
+        local server_url=$(get_server_url)
+        print_info "URL" "${server_url}"
 
-    # Get and display node count
-    local node_count=$(get_node_count)
-    echo "Node Count: ${node_count}"
+        # Get and display node count
+        local node_count=$(get_node_count)
+        print_info "Connected Nodes" "${node_count}"
+    else
+        echo "  No server running on this node"
+    fi
     
-    new_line
-    echo "--- K3s Agent Information ---"
-    new_line
-
-    # Get and display token path
-    local agent_token_path=$(get_agent_token_path)
-    echo "K3s Agent Token Path: ${agent_token_path}"
+    # AGENT SECTION - Only display detailed info if this is an agent
+    print_section_header "AGENT INFORMATION"
     
-    # Get and display token
-    local agent_token=$(get_agent_token)
-    echo "K3s Agent Token: ${agent_token}"
+    if [[ "$role" == "agent" ]]; then
+        # Get and display token path
+        local agent_token_path=$(get_agent_token_path)
+        print_info "Token Path" "${agent_token_path}"
+        
+        # Get and display token
+        local agent_token=$(get_agent_token)
+        print_info "Token" "${agent_token}"
+        
+        # Get and display server URL
+        local server_url=$(get_server_url)
+        print_info "Server URL" "${server_url}"
+    else
+        echo "  No agent running on this node"
+    fi
     
-    # Print connection info if applicable
+    # Print debug and connection info
     print_debug_info
     print_connection_info "${role}" "${server_token}"
+    
+    echo -e "\nReport generated on $(date)"
 }
 
 # Execute main function
