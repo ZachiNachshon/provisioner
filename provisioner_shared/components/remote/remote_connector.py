@@ -165,6 +165,11 @@ class RemoteMachineConnector:
                         if cli_remote_opts.get_scan_flags()
                         else None
                     ),
+                    dns_server=(
+                        cli_remote_opts.get_scan_flags().dns_server
+                        if cli_remote_opts.get_scan_flags()
+                        else None
+                    ),
                     force_single_conn_info=force_single_conn_info,
                 ),
                 ctx=ctx,
@@ -272,7 +277,7 @@ class RemoteMachineConnector:
         )
         return NetworkDeviceAuthenticationMethod(network_device_auth_method) if network_device_auth_method else None
 
-    def _run_scan_lan_host_selection(self, ip_discovery_range: str, force_single_conn_info: bool) -> List[AnsibleHost]:
+    def _run_scan_lan_host_selection(self, ip_discovery_range: str, dns_server: str, force_single_conn_info: bool) -> List[AnsibleHost]:
         if ip_discovery_range and len(ip_discovery_range) > 0:
             if self.collaborators.prompter().prompt_yes_no_fn(
                 message=f"Scan LAN network for IP addresses at range {ip_discovery_range}",
@@ -281,6 +286,7 @@ class RemoteMachineConnector:
             ):
                 return self._run_lan_scan_host_selection(
                     ip_discovery_range=ip_discovery_range,
+                    dns_server=dns_server,
                     force_single_conn_info=force_single_conn_info,
                 )
         return None
@@ -406,13 +412,13 @@ class RemoteMachineConnector:
             force_single_conn_info=force_single_conn_info,
         )
 
-    def _run_lan_scan_host_selection(self, ip_discovery_range: str, force_single_conn_info: bool) -> List[AnsibleHost]:
+    def _run_lan_scan_host_selection(self, ip_discovery_range: str, dns_server: str, force_single_conn_info: bool) -> List[AnsibleHost]:
         if not self.collaborators.checks().is_tool_exist_fn("nmap"):
             logger.error("Missing mandatory utility. name: nmap")
             return None
 
-        self.collaborators.printer().print_with_rich_table_fn(generate_instructions_network_scan())
-        scan_dict = self.collaborators.network_util().get_all_lan_network_devices_fn(ip_range=ip_discovery_range)
+        self.collaborators.printer().print_with_rich_table_fn(generate_instructions_network_scan(dns_server=dns_server))
+        scan_dict = self.collaborators.network_util().get_all_lan_network_devices_fn(ip_range=ip_discovery_range, dns_server=dns_server)
         self.collaborators.printer().new_line_fn()
 
         options_list: List[str] = []
@@ -459,8 +465,12 @@ class RemoteMachineConnector:
         return cli_remote_opts and cli_remote_opts.get_conn_flags() and not cli_remote_opts.get_conn_flags().is_empty()
 
 
-def generate_instructions_network_scan() -> str:
-    return """
+def generate_instructions_network_scan(dns_server: str) -> str:
+    dns_server_str = ""
+    if dns_server and len(dns_server) > 0:
+        dns_server_str = f"\n  [yellow]DNS server: {dns_server}[/yellow]"
+
+    return f"""
   Required mandatory locally installed utility: [yellow]nmap[/yellow].
   [yellow]Elevated user permissions are required for this step ![/yellow]
 
@@ -468,6 +478,7 @@ def generate_instructions_network_scan() -> str:
 
     • IP Address
     • Device Name
+  {dns_server_str}
 """
 
 

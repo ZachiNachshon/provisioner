@@ -101,7 +101,7 @@ if [[ "$ACTION" == "install" ]]; then
   # Install packages
   if [[ "$INSTALL_TYPE" == "runtime" ]]; then
     install_package "provisioner_shared" "provisioner_shared"
-    install_package "provisioner" "provisioner"
+    install_package "provisioner" "provisioner_runtime"
   else
     # Install plugin
     plugin_path="plugins/provisioner_${PLUGIN_NAME}_plugin"
@@ -111,7 +111,7 @@ if [[ "$ACTION" == "install" ]]; then
 else
   # Uninstall packages
   if [[ "$INSTALL_TYPE" == "runtime" ]]; then
-    uninstall_package "provisioner"
+    uninstall_package "provisioner_runtime"
     uninstall_package "provisioner_shared"
   else
     # Uninstall plugin

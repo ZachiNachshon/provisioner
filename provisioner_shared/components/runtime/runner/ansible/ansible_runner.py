@@ -604,6 +604,9 @@ class AnsibleRunnerLocal:
         return "\n".join(extracted_messages)
 
     def _check_ssh_conn_on_hosts(self, ansible_hosts: List[AnsibleHost]) -> None:
+        if self._dry_run:
+            return
+        
         for selected_host in ansible_hosts:
             if selected_host.ip_address == ANSIBLE_LOCAL_CONNECTION:
                 continue

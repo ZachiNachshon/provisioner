@@ -16,3 +16,7 @@ Streaming Ansible logs
 Add GitHub tags to the README
 Add terraform atlantis setup to provisioner install plugin (https://www.runatlantis.io/guide)
 Charts creation via https://github.com/chartdb/chartdb
+
+
+Add a git commit message creator based on pre-defined rules.
+

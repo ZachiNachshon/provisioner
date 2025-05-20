@@ -305,6 +305,10 @@ class ImageBurnerCmdRunner:
         collaborators.printer().print_fn("Copying configuration files to boot partition...")
 
         # Copy all files from source directory to boot partition
+        # - cmdline.txt
+        # - config.txt
+        # - firstrun.sh - this script enables SSH on first boot and sets up the required configuration
+        # - issue.txt
         for item in os.listdir(source_dir):
             source_item = os.path.join(source_dir, item)
             target_item = os.path.join(boot_path, item)
