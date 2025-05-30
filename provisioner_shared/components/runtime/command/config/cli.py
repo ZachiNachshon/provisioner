@@ -79,7 +79,7 @@ def flush_config(force: Optional[bool], collaboratos: CoreCollaborators) -> None
         return
 
     cfg_yaml = _get_user_facing_config_yaml(collaboratos)
-    collaboratos.io_utils().write_file_fn(
+    collaboratos.io_utils().write_file_safe_fn(
         content=cfg_yaml, file_name=os.path.basename(CONFIG_USER_PATH), dir_path=os.path.dirname(CONFIG_USER_PATH)
     )
 

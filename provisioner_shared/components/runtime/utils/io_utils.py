@@ -64,7 +64,10 @@ class IOUtils:
         else:
             logger.warning("Directory does not exist, cannot delete. path: {}", directory_path)
 
-    def _write_file(
+    def _write_file(self, content: str, file_path: str) -> str:
+        return self._write_file_safe(content, os.path.basename(file_path), os.path.dirname(file_path))
+
+    def _write_file_safe(
         self, content: str, file_name: str, dir_path: Optional[str] = None, executable: Optional[bool] = False
     ) -> str:
         if self._dry_run:
@@ -268,6 +271,7 @@ class IOUtils:
     copy_file_fn = _copy_file
     copy_directory_fn = _copy_directory
     delete_directory_fn = _delete_directory
+    write_file_safe_fn = _write_file_safe
     write_file_fn = _write_file
     delete_file_fn = _delete_file
     read_file_safe_fn = _read_file_safe

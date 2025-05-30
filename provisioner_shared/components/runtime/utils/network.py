@@ -4,8 +4,7 @@ from typing import Optional
 
 import nmap3
 from loguru import logger
-from nmap3 import NmapHostDiscovery
-from nmap3 import NmapScanTechniques
+from nmap3 import NmapHostDiscovery, NmapScanTechniques
 
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.utils.printer import Printer
@@ -69,7 +68,9 @@ class NetworkUtil:
                     response[ip_addr] = self._generate_scanned_item_desc(ip_addr, hostname, status)
         return response
 
-    def _get_all_lan_network_devices(self, ip_range: str, dns_server: Optional[str] = None, filter_str: Optional[str] = None) -> dict[str, dict]:
+    def _get_all_lan_network_devices(
+        self, ip_range: str, dns_server: Optional[str] = None, filter_str: Optional[str] = None
+    ) -> dict[str, dict]:
         """
         Every nmap response dict structure is as follows:
         {
