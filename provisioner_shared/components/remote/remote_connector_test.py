@@ -31,6 +31,7 @@ from provisioner_shared.components.runtime.utils.prompter import PromptLevel
 from provisioner_shared.test_lib import faker
 from provisioner_shared.test_lib.assertions import Assertion
 from provisioner_shared.test_lib.test_env import TestEnv
+from provisioner_shared.components.runtime.errors.cli_errors import StepEvaluationFailure
 
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner_shared/components/remote/remote_connector_test.py
@@ -174,10 +175,11 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         self, device_selection_call: mock.MagicMock
     ) -> None:
         env = TestEnv.create()
-        response = RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
-            env.get_context(), RemoteOpts()
-        )
-        self.assertIsNone(response)
+        with self.assertRaises(StepEvaluationFailure) as context:
+            RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
+                env.get_context(), RemoteOpts()
+            )
+        self.assertEqual(str(context.exception), "Failed to resolve network device selection method")
 
     def test_collect_network_configuration_info(self) -> None:
         env = TestEnv.create()
@@ -573,13 +575,13 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         env.get_collaborators().checks().on("is_tool_exist_fn", str).return_value = True
         env.get_collaborators().printer().on("print_with_rich_table_fn", str, str).side_effect = None
 
-        def get_all_lan_assertion_callback(ip_range: str, dns_server: str, filter_str: str):
+        def get_all_lan_assertion_callback(ip_range: str, dns_server: str, filter_str=None):
             self.assertEqual(ip_range, ARG_IP_DISCOVERY_RANGE)
             self.assertEqual(dns_server, ARG_IP_DISCOVERY_DNS_SERVER)
             return HOST_SELECTION_OPTIONS_DICT
 
         env.get_collaborators().network_util().on(
-            "get_all_lan_network_devices_fn", str, faker.Anything
+            "get_all_lan_network_devices_fn", str, str, faker.Anything
         ).side_effect = get_all_lan_assertion_callback
         env.get_collaborators().printer().on("new_line_fn", int).side_effect = None
 

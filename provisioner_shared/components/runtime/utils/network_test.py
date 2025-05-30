@@ -66,27 +66,19 @@ class NetworkTestShould(unittest.TestCase):
         fake_p_indicator = FakeProgressIndicator.create(env.get_context())
 
         def long_running_process_fn_call_1(call, desc_run, desc_end):
-            self.assertEqual(desc_run, "Running LAN port scanning")
-            self.assertEqual(desc_end, "LAN port scanning finished")
+            self.assertEqual(desc_run, "Running fast LAN host discovery")
+            self.assertEqual(desc_end, "Fast LAN host discovery finished")
             return call()
 
         fake_p_indicator.get_status().on(
             "long_running_process_fn", Callable, str, str
         ).side_effect = long_running_process_fn_call_1
 
-        def long_running_process_fn_call_2(call, desc_run, desc_end):
-            self.assertEqual(desc_run, "Running LAN list scanning")
-            self.assertEqual(desc_end, "LAN list scanning finished")
-            return call()
-
-        fake_p_indicator.get_status().on(
-            "long_running_process_fn", Callable, str, str
-        ).side_effect = long_running_process_fn_call_2
-
         network_util: NetworkUtil = NetworkUtil.create(env.get_context(), fake_printer, fake_p_indicator)
         devices_result_dict = network_util.get_all_lan_network_devices_fn(EXPECTED_IP_RANGE)
 
-        Assertion.expect_call_argument(self, nmap_list_scan_call, arg_name="target", expected_value=EXPECTED_IP_RANGE)
+        # nmap_list_scan should not be called since the test data host already has a hostname
+        # Assertion.expect_call_argument(self, nmap_list_scan_call, arg_name="target", expected_value=EXPECTED_IP_RANGE)
         Assertion.expect_call_argument(self, nmap_no_portscan_call, arg_name="target", expected_value=EXPECTED_IP_RANGE)
 
         # Compare two dictionaries after merge
