@@ -144,15 +144,18 @@ create_provisioner_entrypoint() {
   fi
   new_line
   log_debug "Creating a provisioner entrypoint. path: ${entrypoint}"
+
+# uv venv ${UV_VENV_PATH}
+
   echo "#!/bin/bash
 # Provisioner entrypoint wrapper
 
 # Activate the uv venv
 export PATH=\"$HOME/.local/bin:\$PATH\"
-cd \"${UV_VENV_PATH}\" || exit 1
+source ${UV_VENV_PATH}/bin/activate
 
 # Execute the provisioner with the venv python
-\"${UV_VENV_PATH}/.venv/bin/python\" -c 'import sys; from provisioner_runtime.main import main; sys.exit(main())' \"\$@\"
+\"${UV_VENV_PATH}/bin/python\" -c 'import sys; from provisioner_runtime.main import main; sys.exit(main())' \"\$@\"
 " > "${entrypoint}"
 
   cmd_run "chmod +x ${entrypoint}"
@@ -241,7 +244,9 @@ maybe_create_uv_venv() {
   log_debug "Checking if 'uv' venv exists"
   if ! is_directory_exist "${UV_VENV_PATH}"; then
     cmd_run "mkdir -p ${UV_VENV_PATH}"
-    cmd_run "uv venv ${UV_VENV_PATH}"
+  fi
+  if ! is_directory_exist "${UV_VENV_PATH}/.venv"; then
+    cmd_run "uv venv ${UV_VENV_PATH} --python ${ENV_PROVISIONER_PYTHON_VERSION}"
   fi
 }
 

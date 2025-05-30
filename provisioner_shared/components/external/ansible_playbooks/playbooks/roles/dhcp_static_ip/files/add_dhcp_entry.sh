@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Title         Add a DHCP static IP entry
+# Title         Define a static IP address
 # Author        Zachi Nachshon <zachi.nachshon@gmail.com>
 # Supported OS  Linux
-# Description   Define a static IP on the DHCP clietn deamon
+# Description   Define a static IP address
 #==============================================================================
 CURRENT_FOLDER_ABS_PATH=$(dirname "${BASH_SOURCE[0]}")
 ANSIBLE_TEMP_FOLDER_PATH="/tmp"

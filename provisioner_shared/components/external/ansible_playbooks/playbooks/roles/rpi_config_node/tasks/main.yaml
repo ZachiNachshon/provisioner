@@ -39,7 +39,7 @@
     RGPIO: "{{ rgpio | default('') }}"
     CONFIGURE_KEYBOARD: "{{ configure_keyboard | default('') }}" # Force US keyboard
     CHANGE_TIMEZONE: "{{ change_timezone | default('') }}" # Force UTC timezone
-    CHANGE_LOCALE: "{{ change_locale | default('') }}" # Force en_US.UTF-8 locale
+    LOCALE: "{{ locale | default('') }}" # Force en_US.UTF-8 locale
 
 - name: Rebooting and waiting for completion
   include_tasks: "../../reboot.yaml"
