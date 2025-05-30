@@ -98,7 +98,7 @@ test-e2e: ## Run only E2E tests in a Docker container
 
 .PHONY: test-coverage-html
 test-coverage-html: ## Run tests suite on runtime and all plugins (output: HTML report)
-	./run_tests.py --all --container --report html
+	@./run_tests.py --all --container --report html
 
 # This is the command used by GitHub Actions to run the tests
 # It must fail the GitHub action step if any of the tests fail
@@ -168,5 +168,5 @@ plugins-fetch: ## Prompt for Provisioner Plugins commit-hash to update the sub-m
 
 .PHONY: help
 help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
