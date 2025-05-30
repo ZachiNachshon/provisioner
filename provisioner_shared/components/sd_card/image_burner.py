@@ -229,6 +229,7 @@ class ImageBurnerCmdRunner:
             )
 
             blk_device_name = raw_block_device_name if raw_block_device_name else block_device_name
+            
             collaborators.process().run_fn(
                 allow_single_shell_command_str=True,
                 args=[f"sudo dd if={extracted_file_path} of={blk_device_name} bs=1m conv=sync status=progress"],
@@ -268,6 +269,7 @@ class ImageBurnerCmdRunner:
 
         try:
             collaborators.printer().print_fn("Formatting block device and burning image...")
+            
             collaborators.process().run_fn(
                 allow_single_shell_command_str=True,
                 args=[f"dd if={extracted_file_path} of={block_device_name} bs=4M conv=fsync status=progress"],
@@ -294,38 +296,35 @@ class ImageBurnerCmdRunner:
 
         # Step 2: Copy all files from the raspberrypi directory
         source_dir = args.maybe_resources_path
-        if not source_dir:
-            logger.debug("No resources path provided, skipping configuration files copy")
-            return
+        if source_dir and os.path.exists(source_dir):
+            collaborators.printer().print_fn("Copying configuration files to boot partition...")
 
-        if not os.path.exists(source_dir):
-            collaborators.printer().print_fn(f"Warning: Source directory not found. path: {source_dir}")
-            return
+            # Copy all files from source directory to boot partition
+            # - cmdline.txt
+            # - config.txt
+            # - firstrun.sh - this script enables SSH on first boot and sets up the required configuration
+            # - issue.txt
+            for item in os.listdir(source_dir):
+                source_item = os.path.join(source_dir, item)
+                target_item = os.path.join(boot_path, item)
 
-        collaborators.printer().print_fn("Copying configuration files to boot partition...")
+                if os.path.isfile(source_item):
+                    collaborators.process().run_fn(args=["sudo", "cp", source_item, target_item])
+                    collaborators.printer().print_fn(f"Copied {item} to boot partition")
 
-        # Copy all files from source directory to boot partition
-        # - cmdline.txt
-        # - config.txt
-        # - firstrun.sh - this script enables SSH on first boot and sets up the required configuration
-        # - issue.txt
-        for item in os.listdir(source_dir):
-            source_item = os.path.join(source_dir, item)
-            target_item = os.path.join(boot_path, item)
+            # Clean up any macOS metadata files
+            collaborators.printer().print_fn("Cleaning up macOS metadata files...")
+            collaborators.process().run_fn(
+                allow_single_shell_command_str=True,
+                args=[f"sudo find {boot_path} -name '._*' -type f -print -delete 2>/dev/null || true"],
+            )
 
-            if os.path.isfile(source_item):
-                collaborators.process().run_fn(args=["sudo", "cp", source_item, target_item])
-                collaborators.printer().print_fn(f"Copied {item} to boot partition")
-
-        # Clean up any macOS metadata files
-        collaborators.printer().print_fn("Cleaning up macOS metadata files...")
-        collaborators.process().run_fn(
-            allow_single_shell_command_str=True,
-            args=[f"sudo find {boot_path} -name '._*' -type f -print -delete 2>/dev/null || true"],
-        )
-
-        collaborators.printer().print_fn("SSH access configured with user: pi")
-        collaborators.printer().print_fn("First time boot password set to: provisioner")
+            collaborators.printer().print_fn("SSH access configured with user: pi")
+            collaborators.printer().print_fn("First time boot password set to: provisioner")
+        else:
+            # If no resources directory, just enable SSH by creating the ssh file
+            logger.debug("No resources path provided, creating SSH enable file only")
+            collaborators.process().run_fn(args=["sudo", "touch", f"{boot_path}/ssh"])
 
     def _find_raspberry_pi_boot_partition(self, collaborators: CoreCollaborators) -> str:
         """
@@ -378,6 +377,7 @@ class ImageBurnerCmdRunner:
                 - temp_dir is the path to temporary directory (or None if no extraction needed)
         """
         collaborators.printer().print_fn("Checking image file type...")
+        
         file_ext = os.path.splitext(image_file_path)[1].lower()
 
         # If it's already an image file, just use it directly
