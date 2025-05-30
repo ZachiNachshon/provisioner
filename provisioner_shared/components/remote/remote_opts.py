@@ -46,7 +46,7 @@ class RemoteOptsFromScanFlags:
 
         self.ip_discovery_range = ip_discovery_range
         self.dns_server = dns_server
-        
+
     def print(self) -> None:
         logger.debug(
             "RemoteOptsFromScanFlags: \n"

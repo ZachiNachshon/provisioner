@@ -128,13 +128,17 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         env = TestEnv.create()
         remote_opts = RemoteOpts(
             connect_mode=RemoteConnectMode.ScanLAN,
-            scan_flags=RemoteOptsFromScanFlags(ip_discovery_range=ARG_IP_DISCOVERY_RANGE, dns_server=ARG_IP_DISCOVERY_DNS_SERVER),
+            scan_flags=RemoteOptsFromScanFlags(
+                ip_discovery_range=ARG_IP_DISCOVERY_RANGE, dns_server=ARG_IP_DISCOVERY_DNS_SERVER
+            ),
         )
         RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
             ctx=env.get_context(), cli_remote_opts=remote_opts, force_single_conn_info=True
         )
         host_selection_call.assert_called_once_with(
-            ip_discovery_range=ARG_IP_DISCOVERY_RANGE, dns_server=ARG_IP_DISCOVERY_DNS_SERVER, force_single_conn_info=True
+            ip_discovery_range=ARG_IP_DISCOVERY_RANGE,
+            dns_server=ARG_IP_DISCOVERY_DNS_SERVER,
+            force_single_conn_info=True,
         )
         collect_auth_info_call.assert_called_once()
 
@@ -404,7 +408,9 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             "prompt_yes_no_fn", str, PromptLevel, str, str
         ).side_effect = assertion_callback
         response = RemoteMachineConnector(env.get_collaborators())._run_scan_lan_host_selection(
-            ip_discovery_range=ARG_IP_DISCOVERY_RANGE, dns_server=ARG_IP_DISCOVERY_DNS_SERVER, force_single_conn_info=False
+            ip_discovery_range=ARG_IP_DISCOVERY_RANGE,
+            dns_server=ARG_IP_DISCOVERY_DNS_SERVER,
+            force_single_conn_info=False,
         )
         Assertion.expect_equal_objects(self, response, TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS)
         Assertion.expect_call_argument(
@@ -588,7 +594,9 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             )
 
         RemoteMachineConnector(env.get_collaborators())._run_lan_scan_host_selection(
-            ip_discovery_range=ARG_IP_DISCOVERY_RANGE, dns_server=ARG_IP_DISCOVERY_DNS_SERVER, force_single_conn_info=True
+            ip_discovery_range=ARG_IP_DISCOVERY_RANGE,
+            dns_server=ARG_IP_DISCOVERY_DNS_SERVER,
+            force_single_conn_info=True,
         )
         Assertion.expect_call_argument(self, run_call, "force_single_conn_info", True)
         Assertion.expect_call_argument(self, run_call, "options_list", HOST_SELECTION_OPTIONS_LIST)
@@ -598,7 +606,9 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         env = TestEnv.create()
         env.get_collaborators().checks().on("is_tool_exist_fn", str).return_value = False
         response = RemoteMachineConnector(env.get_collaborators())._run_lan_scan_host_selection(
-            ip_discovery_range=ARG_IP_DISCOVERY_RANGE, dns_server=ARG_IP_DISCOVERY_DNS_SERVER, force_single_conn_info=True
+            ip_discovery_range=ARG_IP_DISCOVERY_RANGE,
+            dns_server=ARG_IP_DISCOVERY_DNS_SERVER,
+            force_single_conn_info=True,
         )
         self.assertIsNone(response)
 

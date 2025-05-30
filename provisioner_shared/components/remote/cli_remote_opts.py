@@ -33,7 +33,7 @@ REMOTE_OPT_IP_ADDRESS = "ip-address"
 REMOTE_OPT_PORT = "port"
 REMOTE_OPT_HOSTNAME = "hostname"
 REMOTE_OPT_IP_DISCOVERY_RANGE = "ip-discovery-range"
-REMOTE_OPT_IP_DISCOVERY_DNS_SERVER= "dns-server"
+REMOTE_OPT_IP_DISCOVERY_DNS_SERVER = "dns-server"
 REMOTE_OPT_VERBOSITY = "verbosity"
 REMOTE_OPT_REMOTE_DRY_RUN = "remote-dry-run"
 
@@ -203,7 +203,9 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
                         port=port,
                         hostname=hostname,
                     ),
-                    scan_flags=RemoteOptsFromScanFlags(ip_discovery_range=ip_discovery_range, dns_server=ip_discovery_dns_server),
+                    scan_flags=RemoteOptsFromScanFlags(
+                        ip_discovery_range=ip_discovery_range, dns_server=ip_discovery_dns_server
+                    ),
                     config=RemoteOptsFromConfig(remote_config=remote_config),
                 )
                 logger.debug("Initialized RemoteOpts for the first time.")
