@@ -161,7 +161,7 @@ runs:
         if [ "${{ inputs.include_e2e }}" = "true" ]; then
           echo "Running tests WITH e2e tests (Docker-based)"
           export CI_PREBUILT_DOCKER_IMAGES=true
-          ./run_tests.py --all --report xml
+          ./run_tests.py --all --only-e2e --report xml
         else
           echo "Running tests WITHOUT e2e tests (skipping Docker)"
           ./run_tests.py --all --skip-e2e --report xml
