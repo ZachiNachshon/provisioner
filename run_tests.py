@@ -349,6 +349,11 @@ def save_dockerfile_hash(hash_value, hash_file_path):
 
 def build_docker_image(image_name: str, image_path: str):
     """Build Docker image if needed using content hash for caching."""
+    # Check if CI has pre-built the image (for GitHub Actions optimization)
+    if os.getenv("CI_PREBUILT_DOCKER_IMAGES") == "true":
+        print(f"✅ Skipping build for {image_name} - using CI pre-built image")
+        return
+
     # Check if image exists
     images_find_cmd = [
         "sh",

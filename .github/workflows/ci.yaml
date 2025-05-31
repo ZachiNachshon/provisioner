@@ -12,8 +12,8 @@ env:
   POETRY_VERSION: "1.8.4"
 
 jobs:
-  build:
-    name: Tests Suite
+  test:
+    name: Tests Suite (Unit + E2E)
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -32,16 +32,52 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python }}
           POETRY_VERSION: ${{ env.POETRY_VERSION }}
       
-      - name: Run Tests
+      # Run unit tests first (faster, less resource intensive)
+      - name: Run Unit Tests
         uses: ./.github/actions/tests
+        with:
+          include_e2e: false
 
-      # Requires CODECOV_TOKEN in GitHub repository secrets
-      - name: Upload coverage
-        # Do not upload code coverage for dependabot opened PRs 
-        if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
+      # Save unit test coverage
+      - name: Save Unit Test Coverage
+        run: |
+          if [ -f coverage.xml ]; then
+            mv coverage.xml coverage-unit.xml
+          fi
+        shell: bash
+
+      # Run E2E tests with Docker caching
+      - name: Run E2E Tests  
+        uses: ./.github/actions/tests
+        with:
+          include_e2e: true
+
+      # Save E2E test coverage
+      - name: Save E2E Test Coverage
+        run: |
+          if [ -f coverage.xml ]; then
+            mv coverage.xml coverage-e2e.xml
+          fi
+        shell: bash
+
+      # Upload unit test coverage
+      - name: Upload Unit Test Coverage
+        if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' && hashFiles('coverage-unit.xml') != ''
         uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}  # Only required for private repositories
-          file: ./coverage.xml
-          # file: ./provisioner/coverage.xml,./plugins/provisioner_features_lib/coverage.xml,./plugins/provisioner_examples_plugin/coverage.xml,./provisioner_installers_plugin/coverage.xml,./plugins/provisioner_single_board_plugin/coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage-unit.xml
+          flags: unit
+          name: codecov-unit
+          fail_ci_if_error: false
+
+      # Upload E2E test coverage  
+      - name: Upload E2E Test Coverage
+        if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' && hashFiles('coverage-e2e.xml') != ''
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage-e2e.xml
+          flags: e2e
+          name: codecov-e2e
           fail_ci_if_error: false
