@@ -4,7 +4,7 @@ from typing import Optional
 
 import nmap3
 from loguru import logger
-from nmap3 import NmapHostDiscovery
+from nmap3 import NmapHostDiscovery, NmapScanTechniques
 
 from provisioner_shared.components.runtime.infra.context import Context
 from provisioner_shared.components.runtime.utils.printer import Printer
@@ -18,6 +18,7 @@ class NetworkUtil:
 
     _nmap = None
     _host_discovery = None
+    _scan_techniques = None
     _progress_indicator = None
 
     def __init__(self, printer: Printer, progress_indicator: ProgressIndicator, dry_run: bool, verbose: bool):
@@ -27,6 +28,7 @@ class NetworkUtil:
         self._progress_indicator = progress_indicator
         self._nmap = nmap3.Nmap()
         self._host_discovery = NmapHostDiscovery()
+        self._scan_techniques = NmapScanTechniques()
 
     @staticmethod
     def create(ctx: Context, printer: Printer, progress_indicator: ProgressIndicator) -> "NetworkUtil":
@@ -66,7 +68,9 @@ class NetworkUtil:
                     response[ip_addr] = self._generate_scanned_item_desc(ip_addr, hostname, status)
         return response
 
-    def _get_all_lan_network_devices(self, ip_range: str, filter_str: Optional[str] = None) -> dict[str, dict]:
+    def _get_all_lan_network_devices(
+        self, ip_range: str, dns_server: Optional[str] = None, filter_str: Optional[str] = None
+    ) -> dict[str, dict]:
         """
         Every nmap response dict structure is as follows:
         {
@@ -98,10 +102,14 @@ class NetworkUtil:
         if self._dry_run:
             return result_dict
 
+        args = None
+        if dns_server:
+            args = f"--dns-server {dns_server}"
+
         # First do a fast host discovery scan
         # nmap_no_portscan is already optimized for quick host discovery
         fast_scan_result_dict = self._progress_indicator.get_status().long_running_process_fn(
-            call=lambda: self._host_discovery.nmap_no_portscan(target=ip_range),
+            call=lambda: self._host_discovery.nmap_no_portscan(target=ip_range, args=args),
             desc_run="Running fast LAN host discovery",
             desc_end="Fast LAN host discovery finished",
         )

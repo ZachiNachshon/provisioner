@@ -26,6 +26,7 @@ TEST_DATA_REMOTE_NODE_PASSWORD_2 = "test-pass-2"
 TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1 = "test-ssh-private-key-1"
 TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_2 = "test-ssh-private-key-2"
 TEST_DATA_REMOTE_IP_DISCOVERY_RANGE = "1.1.1.1/32"
+TEST_DATA_REMOTE_DNS_SERVER = "1.1.1.1"
 
 # TEST_REMOTE_HOSTS_DICT = {
 #     TEST_DATA_SSH_HOSTNAME_1: {
@@ -91,6 +92,7 @@ class TestDataRemoteOpts:
             ),
             scan_flags=RemoteOptsFromScanFlags(
                 ip_discovery_range=TEST_DATA_REMOTE_IP_DISCOVERY_RANGE,
+                dns_server=TEST_DATA_REMOTE_DNS_SERVER,
             ),
             config=RemoteOptsFromConfig(
                 remote_config=TestDataRemoteOpts.create_fake_remote_cfg(),

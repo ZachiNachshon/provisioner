@@ -33,6 +33,7 @@ REMOTE_OPT_IP_ADDRESS = "ip-address"
 REMOTE_OPT_PORT = "port"
 REMOTE_OPT_HOSTNAME = "hostname"
 REMOTE_OPT_IP_DISCOVERY_RANGE = "ip-discovery-range"
+REMOTE_OPT_IP_DISCOVERY_DNS_SERVER = "dns-server"
 REMOTE_OPT_VERBOSITY = "verbosity"
 REMOTE_OPT_REMOTE_DRY_RUN = "remote-dry-run"
 
@@ -40,6 +41,7 @@ REMOTE_OPT_REMOTE_DRY_RUN = "remote-dry-run"
 # Define modifiers globally
 def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
     from_cfg_ip_discovery_range = get_nested_value(remote_config, path="lan_scan.ip_discovery_range", default=None)
+    from_cfg_ip_discovery_dns_server = get_nested_value(remote_config, path="lan_scan.dns_server", default=None)
 
     # Important !
     # This is the actual click decorator, the signature is critical for click to work
@@ -125,6 +127,15 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             group=REMOTE_SCAN_LAN_OPTS_GROUP_NAME,
         )
         @click.option(
+            f"--{REMOTE_OPT_IP_DISCOVERY_DNS_SERVER}",
+            default=from_cfg_ip_discovery_dns_server,
+            show_default=True,
+            help="LAN network IP discovery scan DNS server",
+            envvar="PROV_IP_DISCOVERY_DNS_SERVER",
+            cls=GroupedOption,
+            group=REMOTE_SCAN_LAN_OPTS_GROUP_NAME,
+        )
+        @click.option(
             f"--{REMOTE_OPT_VERBOSITY}",
             default=RemoteVerbosity.Normal.value,
             show_default=True,
@@ -169,6 +180,7 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
             node_password = kwargs.pop(normalize_cli_item(REMOTE_OPT_NODE_PASSWORD), None)
             ssh_private_key_file_path = kwargs.pop(normalize_cli_item(REMOTE_OPT_SSH_PRIVATE_KEY_FILE_PATH), None)
             ip_discovery_range = kwargs.pop(normalize_cli_item(REMOTE_OPT_IP_DISCOVERY_RANGE), None)
+            ip_discovery_dns_server = kwargs.pop(normalize_cli_item(REMOTE_OPT_IP_DISCOVERY_DNS_SERVER), None)
             ip_address = kwargs.pop(normalize_cli_item(REMOTE_OPT_IP_ADDRESS), None)
             port = kwargs.pop(normalize_cli_item(REMOTE_OPT_PORT), None)
             hostname = kwargs.pop(normalize_cli_item(REMOTE_OPT_HOSTNAME), None)
@@ -191,7 +203,9 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
                         port=port,
                         hostname=hostname,
                     ),
-                    scan_flags=RemoteOptsFromScanFlags(ip_discovery_range=ip_discovery_range),
+                    scan_flags=RemoteOptsFromScanFlags(
+                        ip_discovery_range=ip_discovery_range, dns_server=ip_discovery_dns_server
+                    ),
                     config=RemoteOptsFromConfig(remote_config=remote_config),
                 )
                 logger.debug("Initialized RemoteOpts for the first time.")
@@ -237,6 +251,9 @@ def cli_remote_opts(remote_config: Optional[RemoteConfig] = None) -> Callable:
 
                 if ip_discovery_range and remote_opts._scan_flags.ip_discovery_range != ip_discovery_range:
                     remote_opts._scan_flags.ip_discovery_range = ip_discovery_range
+
+                if ip_discovery_dns_server and remote_opts._scan_flags.dns_server != ip_discovery_dns_server:
+                    remote_opts._scan_flags.dns_server = ip_discovery_dns_server
 
             return func(*args, **kwargs)
 

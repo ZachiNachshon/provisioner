@@ -41,12 +41,18 @@ class RemoteOptsFromScanFlags:
     def __init__(
         self,
         ip_discovery_range: Optional[str] = None,
+        dns_server: Optional[str] = None,
     ) -> None:
 
         self.ip_discovery_range = ip_discovery_range
+        self.dns_server = dns_server
 
     def print(self) -> None:
-        logger.debug("RemoteOptsFromScanFlags: \n" + f"  ip_discovery_range: {self.ip_discovery_range}\n")
+        logger.debug(
+            "RemoteOptsFromScanFlags: \n"
+            + f"  ip_discovery_range: {self.ip_discovery_range}\n"
+            + f"  dns_server: {self.dns_server}\n"
+        )
 
 
 class RemoteOptsFromConnFlags:

@@ -12,7 +12,7 @@ class EntryPoint:
         @click.group(invoke_without_command=True, no_args_is_help=True, cls=CustomGroup)
         @cli_modifiers
         @click.pass_context
-        def root_menu(ctx):
+        def root_menu(ctx: click.Context):
             if ctx.invoked_subcommand is None:
                 click.echo(ctx.get_help())
 

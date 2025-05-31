@@ -65,8 +65,8 @@ is_change_timezone() {
   [[ -n "${CHANGE_TIMEZONE}" ]]
 }
 
-is_change_locale() {
-  [[ -n "${CHANGE_LOCALE}" ]]
+get_locale() {
+  [[ -n "${LOCALE}" ]]
 }
 
 configure_node_system() {
@@ -83,9 +83,12 @@ configure_node_system() {
     log_indicator_good "Timezone successfully changed to UTC"
   fi
 
-  if is_change_locale; then
-    cmd_run "${RASPI_CONFIG_BINARY} nonint ${CHANGE_LOCALE}"
-    log_indicator_good "Locale successfully set to en_US.UTF-8"
+  if get_locale; then
+    local locale_file="/etc/locale.gen"
+    cmd_run "sudo sed -i '/^# *${LOCALE} UTF-8/s/^# *//' ${locale_file}"
+    cmd_run "sudo locale-gen"
+    cmd_run "sudo update-locale LANG=${LOCALE}"
+    log_indicator_good "Locale successfully set to ${LOCALE}"
   fi
 }
 

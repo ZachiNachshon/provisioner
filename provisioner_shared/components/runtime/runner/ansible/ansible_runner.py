@@ -299,7 +299,7 @@ class AnsibleRunnerLocal:
         ansible_hosts_list = self._prepare_ansible_host_items(selected_hosts)
         hosts_list = "\n".join(ansible_hosts_list)
         inventory = INVENTORY_FORMAT.format(hosts_list)
-        hosts_file_path = self._io_utils.write_file_fn(
+        hosts_file_path = self._io_utils.write_file_safe_fn(
             content=inventory, file_name=ANSIBLE_HOSTS_FILE_NAME, dir_path=ProvisionerAnsibleProjectPath
         )
         logger.debug(f"Created ansible hosts file. path: {hosts_file_path}")
@@ -352,7 +352,7 @@ class AnsibleRunnerLocal:
             f"{ProvisionerAnsibleProjectPath}/{ANSIBLE_PLAYBOOKS_DIR_NAME}"
         )
         logger.debug(f"Created playbook file. path: {playbooks_dest_dir}\n{content}")
-        return self._io_utils.write_file_fn(content=content, file_name=name, dir_path=playbooks_dest_dir)
+        return self._io_utils.write_file_safe_fn(content=content, file_name=name, dir_path=playbooks_dest_dir)
 
     def _clear_sensitive_data_from_args(self, ansible_args: Optional[List[str]] = None) -> str:
         if not ansible_args or len(ansible_args) == 0:
@@ -604,6 +604,9 @@ class AnsibleRunnerLocal:
         return "\n".join(extracted_messages)
 
     def _check_ssh_conn_on_hosts(self, ansible_hosts: List[AnsibleHost]) -> None:
+        if self._dry_run:
+            return
+
         for selected_host in ansible_hosts:
             if selected_host.ip_address == ANSIBLE_LOCAL_CONNECTION:
                 continue

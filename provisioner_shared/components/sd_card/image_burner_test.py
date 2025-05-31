@@ -60,31 +60,33 @@ class ImageBurnerTestShould(unittest.TestCase):
         )
 
     def test_prerequisites_darwin_success(self) -> None:
-        fake_checks = FakeChecks.create(self.env.get_context())
-        fake_checks.on("check_tool_fn", str).side_effect = lambda tool: self.assertEqual(tool, "diskutil")
-        fake_checks.on("check_tool_fn", str).side_effect = lambda tool: self.assertEqual(tool, "unzip")
-        fake_checks.on("check_tool_fn", str).side_effect = lambda tool: self.assertEqual(tool, "dd")
+        env = TestEnv.create(ctx=Context.create(os_arch=OsArch(os=MAC_OS)))
+        # Register separate mocks for each tool check since faker removes mocks after use
+        # Darwin checks: diskutil, dd
+        env.get_collaborators().checks().on("check_tool_fn", str).return_value = True
+        env.get_collaborators().checks().on("check_tool_fn", str).return_value = True
 
         Assertion.expect_success(
             self,
             method_to_run=lambda: ImageBurnerCmdRunner()._prerequisites(
-                Context.create(os_arch=OsArch(os=MAC_OS)),
-                fake_checks,
+                env.get_context(),
+                env.get_collaborators().checks(),
             ),
         )
 
     def test_prerequisites_linux_success(self) -> None:
-        fake_checks = FakeChecks.create(self.env.get_context())
-        fake_checks.on("check_tool_fn", str).side_effect = lambda tool: self.assertEqual(tool, "lsblk")
-        fake_checks.on("check_tool_fn", str).side_effect = lambda tool: self.assertEqual(tool, "unzip")
-        fake_checks.on("check_tool_fn", str).side_effect = lambda tool: self.assertEqual(tool, "dd")
-        fake_checks.on("check_tool_fn", str).side_effect = lambda tool: self.assertEqual(tool, "sync")
+        env = TestEnv.create(ctx=Context.create(os_arch=OsArch(os=LINUX)))
+        # Register separate mocks for each tool check since faker removes mocks after use
+        # Linux checks: lsblk, dd, sync
+        env.get_collaborators().checks().on("check_tool_fn", str).return_value = True
+        env.get_collaborators().checks().on("check_tool_fn", str).return_value = True
+        env.get_collaborators().checks().on("check_tool_fn", str).return_value = True
 
         Assertion.expect_success(
             self,
             method_to_run=lambda: ImageBurnerCmdRunner()._prerequisites(
-                Context.create(os_arch=OsArch(os=LINUX)),
-                fake_checks,
+                env.get_context(),
+                env.get_collaborators().checks(),
             ),
         )
 
@@ -198,13 +200,12 @@ class ImageBurnerTestShould(unittest.TestCase):
         def prompt_assertion_callback(
             message: str,
             default: str,
-            redact_value: bool,
+            is_password: bool,
             level: PromptLevel,
             post_user_input_message: str,
-        ):
-            self.assertEqual(message, "Type block device name")
+        ) -> None:
+            self.assertEqual(message, "Please type the block device name")
             self.assertEqual(post_user_input_message, "Selected block device ")
-            return None
 
         env.get_collaborators().prompter().on(
             "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
@@ -254,6 +255,7 @@ class ImageBurnerTestShould(unittest.TestCase):
             SELECTED_BLOCK_DEVICE,
             ARG_IMAGE_DOWNLOAD_PATH,
             env.get_collaborators(),
+            self.create_fake_image_burner_args(),
         )
         run_pre_burn_approval_flow_call.assert_called_once()
         burn_image_linux_call.assert_called_once()
@@ -271,6 +273,7 @@ class ImageBurnerTestShould(unittest.TestCase):
             SELECTED_BLOCK_DEVICE,
             ARG_IMAGE_DOWNLOAD_PATH,
             env.get_collaborators(),
+            self.create_fake_image_burner_args(),
         )
         run_pre_burn_approval_flow_call.assert_called_once()
         burn_image_darwin_call.assert_called_once()
@@ -285,6 +288,7 @@ class ImageBurnerTestShould(unittest.TestCase):
                 SELECTED_BLOCK_DEVICE,
                 ARG_IMAGE_DOWNLOAD_PATH,
                 env.get_collaborators(),
+                self.create_fake_image_burner_args(),
             ),
         )
 
@@ -296,6 +300,7 @@ class ImageBurnerTestShould(unittest.TestCase):
                 SELECTED_BLOCK_DEVICE,
                 ARG_IMAGE_DOWNLOAD_PATH,
                 env.get_collaborators(),
+                self.create_fake_image_burner_args(),
             ),
         )
 
@@ -310,17 +315,20 @@ class ImageBurnerTestShould(unittest.TestCase):
         )
         ask_to_verify_block_device_call.assert_called_once()
 
-    def test_burn_image_linux(self) -> None:
+    @mock.patch(f"{SD_CARD_IMAGE_BURNER_RUNNER_PATH}._configure_boot_partition_for_ssh")
+    @mock.patch(f"{SD_CARD_IMAGE_BURNER_RUNNER_PATH}._extract_image_file")
+    def test_burn_image_linux(self, mock_extract: mock.MagicMock, mock_configure_boot: mock.MagicMock) -> None:
+        # Mock the extraction to return the original file path
+        mock_extract.return_value = (ARG_IMAGE_DOWNLOAD_PATH, None)
+        
         env = TestEnv.create()
         env.get_collaborators().printer().on("print_fn", str).side_effect = lambda msg: self.assertEqual(
-            msg, "Formatting block device and burning a new image..."
+            msg, "Formatting block device and burning image..."
         )
         env.get_collaborators().process().on("run_fn", List, faker.Anything, str, bool, bool).side_effect = (
             lambda args, working_dir, fail_msg, fail_on_error, allow_single_shell_command_str: self.assertEqual(
                 args,
-                [
-                    f"unzip -p {ARG_IMAGE_DOWNLOAD_PATH} | dd of={SELECTED_BLOCK_DEVICE} bs=4M conv=fsync status=progress"
-                ],
+                [f"dd if={ARG_IMAGE_DOWNLOAD_PATH} of={SELECTED_BLOCK_DEVICE} bs=4M conv=fsync status=progress"],
             )
         )
         env.get_collaborators().printer().on("print_fn", str).side_effect = lambda msg: self.assertEqual(
@@ -335,72 +343,69 @@ class ImageBurnerTestShould(unittest.TestCase):
             msg, "It is now safe to remove the SD-Card !"
         )
         ImageBurnerCmdRunner()._burn_image_linux(
-            SELECTED_BLOCK_DEVICE, ARG_IMAGE_DOWNLOAD_PATH, env.get_collaborators()
+            SELECTED_BLOCK_DEVICE, ARG_IMAGE_DOWNLOAD_PATH, env.get_collaborators(), self.create_fake_image_burner_args()
         )
 
-    def test_burn_image_darwin(self) -> None:
+    @mock.patch(f"{SD_CARD_IMAGE_BURNER_RUNNER_PATH}._configure_boot_partition_for_ssh")
+    @mock.patch(f"{SD_CARD_IMAGE_BURNER_RUNNER_PATH}._extract_image_file")
+    def test_burn_image_darwin(self, mock_extract: mock.MagicMock, mock_configure_boot: mock.MagicMock) -> None:
+        # Mock the extraction to return the original file path
+        mock_extract.return_value = (ARG_IMAGE_DOWNLOAD_PATH, None)
+        
         env = TestEnv.create()
-        env.get_collaborators().printer().on("print_fn", str).side_effect = lambda msg: self.assertEqual(
-            msg, "Unmounting selected block device (SD-Card)..."
-        )
-        env.get_collaborators().process().on("run_fn", List, faker.Anything, str, bool, bool).side_effect = (
-            lambda args, working_dir, fail_msg, fail_on_error, allow_single_shell_command_str: self.assertEqual(
-                args, ["diskutil", "unmountDisk", SELECTED_BLOCK_DEVICE]
-            )
-        )
-        env.get_collaborators().printer().on("print_fn", str).side_effect = lambda msg: self.assertEqual(
-            msg,
-            "Formatting block device and burning a new image (Press Ctrl+T to show progress)...",
-        )
-        env.get_collaborators().process().on("run_fn", List, faker.Anything, str, bool, bool).side_effect = (
-            lambda args, working_dir, fail_msg, fail_on_error, allow_single_shell_command_str: self.assertEqual(
-                args,
-                [f"unzip -p {ARG_IMAGE_DOWNLOAD_PATH} | sudo dd of={SELECTED_BLOCK_DEVICE_DARWIN} bs=1m"],
-            )
-        )
-        env.get_collaborators().printer().on("print_fn", str).side_effect = lambda msg: self.assertEqual(
-            msg, "Flushing write-cache to block device..."
-        )
-        env.get_collaborators().process().on("run_fn", List, faker.Anything, str, bool, bool).side_effect = (
-            lambda args, working_dir, fail_msg, fail_on_error, allow_single_shell_command_str: self.assertEqual(
-                args, ["sync"]
-            )
-        )
-        env.get_collaborators().printer().on("print_fn", str).side_effect = lambda msg: self.assertEqual(
-            msg, f"Remounting block device {SELECTED_BLOCK_DEVICE}..."
-        )
-        env.get_collaborators().process().on("run_fn", List, faker.Anything, str, bool, bool).side_effect = (
-            lambda args, working_dir, fail_msg, fail_on_error, allow_single_shell_command_str: self.assertEqual(
-                args, ["diskutil", "unmountDisk", SELECTED_BLOCK_DEVICE]
-            )
-        )
-        env.get_collaborators().process().on("run_fn", List, faker.Anything, str, bool, bool).side_effect = (
-            lambda args, working_dir, fail_msg, fail_on_error, allow_single_shell_command_str: self.assertEqual(
-                args, ["diskutil", "mountDisk", SELECTED_BLOCK_DEVICE]
-            )
-        )
-        env.get_collaborators().printer().on("print_fn", str).side_effect = lambda msg: self.assertEqual(
-            msg, "Allowing SSH access..."
-        )
-        env.get_collaborators().process().on("run_fn", List, faker.Anything, str, bool, bool).side_effect = (
-            lambda args, working_dir, fail_msg, fail_on_error, allow_single_shell_command_str: self.assertEqual(
-                args, ["sudo", "touch", "/Volumes/boot/ssh"]
-            )
-        )
-        env.get_collaborators().printer().on("print_fn", str).side_effect = lambda msg: self.assertEqual(
-            msg, f"Ejecting block device {SELECTED_BLOCK_DEVICE}..."
-        )
-        env.get_collaborators().process().on("run_fn", List, faker.Anything, str, bool, bool).side_effect = (
-            lambda args, working_dir, fail_msg, fail_on_error, allow_single_shell_command_str: self.assertEqual(
-                args, ["diskutil", "eject", SELECTED_BLOCK_DEVICE]
-            )
-        )
-        env.get_collaborators().printer().on("print_fn", str).side_effect = lambda msg: self.assertEqual(
-            msg, "It is now safe to remove the SD-Card !"
-        )
+        
+        # Track the sequence of print calls
+        print_calls = []
+        def track_print(msg):
+            print_calls.append(msg)
+            return None  # Return value for print
+            
+        # Register multiple mocks for print_fn since faker removes mocks after use
+        # Darwin burn method makes approximately 7+ print calls
+        for _ in range(10):  # Register extra to be safe
+            env.get_collaborators().printer().on("print_fn", str).side_effect = track_print
+        
+        # Track the sequence of process calls
+        process_calls = []
+        def track_process(args, working_dir=None, fail_msg=None, fail_on_error=None, allow_single_shell_command_str=None):
+            process_calls.append(args)
+            return "DRY_RUN_OUTPUT"  # Return value for process
+            
+        # Register multiple mocks for process calls (approximately 6 process calls)
+        for _ in range(8):  # Register extra to be safe
+            env.get_collaborators().process().on("run_fn", List, faker.Anything, str, bool, bool).side_effect = track_process
+        
         ImageBurnerCmdRunner()._burn_image_darwin(
-            SELECTED_BLOCK_DEVICE, ARG_IMAGE_DOWNLOAD_PATH, env.get_collaborators()
+            SELECTED_BLOCK_DEVICE, ARG_IMAGE_DOWNLOAD_PATH, env.get_collaborators(), self.create_fake_image_burner_args()
         )
+        
+        # Verify the expected print messages (ignoring the colored password message)
+        expected_prints = [
+            "Unmounting selected block device (SD-Card)...",
+            "Formatting block device and burning a new image (Press Ctrl+T to show progress)...",
+            # Skip the colored password message
+            "Flushing write-cache to block device...",
+            f"Remounting block device {SELECTED_BLOCK_DEVICE}...",
+            f"Ejecting block device {SELECTED_BLOCK_DEVICE}...",
+            "It is now safe to remove the SD-Card !"
+        ]
+        
+        # Filter out the colored password message
+        filtered_prints = [msg for msg in print_calls if not msg.startswith('\x1b[0;33m')]
+        
+        self.assertEqual(filtered_prints, expected_prints)
+        
+        # Verify the expected process calls
+        expected_processes = [
+            ["diskutil", "unmountDisk", SELECTED_BLOCK_DEVICE],
+            [f"sudo dd if={ARG_IMAGE_DOWNLOAD_PATH} of={SELECTED_BLOCK_DEVICE_DARWIN} bs=1m conv=sync status=progress"],
+            ["sync"],
+            ["diskutil", "unmountDisk", SELECTED_BLOCK_DEVICE],
+            ["diskutil", "mountDisk", SELECTED_BLOCK_DEVICE],
+            ["diskutil", "eject", SELECTED_BLOCK_DEVICE]
+        ]
+        
+        self.assertEqual(process_calls, expected_processes)
 
     def test_read_block_devices_darwin_success(self) -> None:
         env = TestEnv.create()

@@ -22,7 +22,8 @@ RUN locale-gen en_US.UTF-8
 # Create pi user (similar to Raspberry Pi)
 RUN useradd -m -s /bin/bash pi && \
     echo "pi:raspberry" | chpasswd && \
-    adduser pi sudo
+    adduser pi sudo && \
+    echo 'pi ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/pi
 
 # Configure SSH
 RUN mkdir /var/run/sshd && \

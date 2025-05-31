@@ -66,6 +66,9 @@ deps-install: ## Update and install pyproject.toml dependencies on all virtual e
 .PHONY: run
 run: ## Run provisioner CLI from sources (Usage: make run 'config view')
 	@poetry run provisioner $(filter-out $@,$(MAKECMDGOALS))
+
+# Another alternative to run a installed provisioner CLI
+# ./.venv/bin/provisioner -h
 	
 .PHONY: typecheck
 typecheck: ## Check for Python static type errors
@@ -91,11 +94,11 @@ test-skip-e2e: ## Run only Unit/IT tests
 
 .PHONY: test-e2e
 test-e2e: ## Run only E2E tests in a Docker container
-	@./run_tests.py --only-e2e
+	@./run_tests.py --all --only-e2e
 
 .PHONY: test-coverage-html
 test-coverage-html: ## Run tests suite on runtime and all plugins (output: HTML report)
-	./run_tests.py --all --container --report html
+	@./run_tests.py --all --container --report html
 
 # This is the command used by GitHub Actions to run the tests
 # It must fail the GitHub action step if any of the tests fail
@@ -107,50 +110,21 @@ test-coverage-html: ## Run tests suite on runtime and all plugins (output: HTML 
 test-coverage-xml: ## Run tests suite on runtime and all plugins NO E2E (output: XML report)
 	./run_tests.py --all --skip-e2e --report xml
 
-.PHONY: pip-install-runtime-to-venv
-pip-install-runtime-to-venv: ## [LOCAL] Install provisioner runtime to local pip
-	@echo "\n========= PROJECT: provisioner_shared ==============\n"; \
-	uv pip uninstall provisioner_shared; \
-	cd provisioner_shared; poetry build-project -f wheel; cd ..; \
-	uv pip install provisioner_shared/dist/provisioner_shared*.whl; \
-	echo "\n========= PROJECT: provisioner ==============\n"; \
-	uv pip uninstall provisioner; \
-	cd provisioner; poetry build-project -f wheel; cd ..; \
-	uv pip install provisioner/dist/provisioner_*.whl;
+.PHONY: pip-install-runtime
+pip-install-runtime: ## [LOCAL] Install provisioner runtime to global pip
+	@./scripts/install_locally.sh install runtime wheel
 
-# @./scripts/install_to_global_pip.sh
-# @cd provisioner; poetry build-project -f sdist; cd ..
-# @pip3 install provisioner/dist/provisioner_*.tar.gz	
-
-.PHONY: pip-install-plugin-to-venv
-pip-install-plugin-to-venv: ## [LOCAL] Install any plugin to local pip (make pip-install-plugin examples)
-	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
-		echo "Error: plugin name is required. Usage: make pip-install-plugin <plugin_name>"; \
-		exit 1; \
-	fi
-	@PLUGIN=$(word 2, $(MAKECMDGOALS)); \
-	echo "\n========= PLUGIN: $$PLUGIN ==============\n"; \
-	uv pip uninstall provisioner_$${PLUGIN}_plugin; \
-	cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f wheel; cd ../..; \
-	uv pip install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.whl;
-
-# cd ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin; poetry build-project -f sdist; cd ../..; \
-# pip3 install ${PLUGINS_ROOT_FOLDER}/provisioner_$${PLUGIN}_plugin/dist/provisioner_*.tar.gz;
+.PHONY: pip-install-plugin
+pip-install-plugin: ## [LOCAL] Install any plugin to global pip (make pip-install-plugin examples)
+	@./scripts/install_locally.sh install plugin $(word 2, $(MAKECMDGOALS)) wheel
 
 .PHONY: pip-uninstall-runtime
-pip-uninstall-runtime: ## [LOCAL] Uninstall provisioner from local pip
-	@echo "\n========= PROJECT: provisioner ==============\n"
-	@cd provisioner; uv pip uninstall provisioner_shared provisioner_runtime; cd ..
+pip-uninstall-runtime: ## [LOCAL] Uninstall provisioner from global pip
+	@./scripts/install_locally.sh uninstall runtime wheel
 
 .PHONY: pip-uninstall-plugin
-pip-uninstall-plugin: ## [LOCAL] Uninstall any plugins source distributions from local pip (make pip-uninstall-plugin example)
-	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
-		echo "Error: plugin name is required. Usage: make pip-uninstall-plugin <plugin_name>"; \
-		exit 1; \
-	fi
-	@PLUGIN=$(word 2, $(MAKECMDGOALS)); \
-	echo "\n========= PLUGIN: $$PLUGIN ==============\n"; \
-	uv pip uninstall provisioner_$${PLUGIN}_plugin;
+pip-uninstall-plugin: ## [LOCAL] Uninstall any plugins source distributions from global pip (make pip-uninstall-plugin example)
+	@./scripts/install_locally.sh uninstall plugin $(word 2, $(MAKECMDGOALS)) wheel
 
 .PHONY: clear-project
 clear-project: ## Clear Poetry virtual environments and clear Python cache
@@ -194,5 +168,5 @@ plugins-fetch: ## Prompt for Provisioner Plugins commit-hash to update the sub-m
 
 .PHONY: help
 help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 

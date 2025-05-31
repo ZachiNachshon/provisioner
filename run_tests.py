@@ -11,7 +11,7 @@ import tarfile
 from pathlib import Path
 from typing import List, Optional, Set, Tuple
 
-import tomlkit
+import tomllib
 
 # Docker-related constants
 PROJECT_ROOT_PATH = str(pathlib.Path(__file__).parent.resolve())
@@ -66,8 +66,8 @@ def get_dependencies(project: str) -> Set[str]:
     pyproject_path = project_path / "pyproject.toml"
 
     try:
-        with open(pyproject_path, "r") as f:
-            pyproject = tomlkit.parse(f.read())
+        with open(pyproject_path, "rb") as f:
+            pyproject = tomllib.load(f)
 
         dependencies = pyproject.get("tool", {}).get("poetry", {}).get("dependencies", {})
 
@@ -349,6 +349,11 @@ def save_dockerfile_hash(hash_value, hash_file_path):
 
 def build_docker_image(image_name: str, image_path: str):
     """Build Docker image if needed using content hash for caching."""
+    # Check if CI has pre-built the image (for GitHub Actions optimization)
+    if os.getenv("CI_PREBUILT_DOCKER_IMAGES") == "true":
+        print(f"✅ Skipping build for {image_name} - using CI pre-built image")
+        return
+
     # Check if image exists
     images_find_cmd = [
         "sh",

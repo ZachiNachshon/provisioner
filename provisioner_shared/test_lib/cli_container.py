@@ -125,8 +125,7 @@ class RemoteSSHContainer(DockerContainer):
             print(f"Network {self.maybe_network_name} already exists")
         except docker.errors.NotFound:
             # Network doesn't exist, create it
-            # self.network = self.docker_client.networks.create(self.maybe_network_name, driver="bridge")
-            self.network = self.docker_client.networks.create(self.maybe_network_name, driver="host")
+            self.network = self.docker_client.networks.create(self.maybe_network_name, driver="bridge")
             self.network_created = True
             print(f"Created network: {self.maybe_network_name}")
         except Exception as e:

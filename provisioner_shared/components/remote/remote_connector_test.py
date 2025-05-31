@@ -7,7 +7,7 @@ from unittest import mock
 
 from provisioner_shared.components.remote.domain.config import RemoteConfig, RemoteConnectMode
 from provisioner_shared.components.remote.remote_connector import (
-    DHCPCDConfigurationInfo,
+    NetworkConfigurationInfo,
     NetworkDeviceAuthenticationMethod,
     NetworkDeviceSelectionMethod,
     RemoteMachineConnector,
@@ -31,11 +31,13 @@ from provisioner_shared.components.runtime.utils.prompter import PromptLevel
 from provisioner_shared.test_lib import faker
 from provisioner_shared.test_lib.assertions import Assertion
 from provisioner_shared.test_lib.test_env import TestEnv
+from provisioner_shared.components.runtime.errors.cli_errors import StepEvaluationFailure
 
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner_shared/components/remote/remote_connector_test.py
 #
 ARG_IP_DISCOVERY_RANGE = "1.1.1.1/24"
+ARG_IP_DISCOVERY_DNS_SERVER = "1.1.1.1"
 DRY_RUN_RESPONSE = "DRY_RUN_RESPONSE"
 
 COLLECT_AUTH_CUSTOM_USERNAME = "collect-ssh-info-test-user"
@@ -127,13 +129,17 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         env = TestEnv.create()
         remote_opts = RemoteOpts(
             connect_mode=RemoteConnectMode.ScanLAN,
-            scan_flags=RemoteOptsFromScanFlags(ip_discovery_range=ARG_IP_DISCOVERY_RANGE),
+            scan_flags=RemoteOptsFromScanFlags(
+                ip_discovery_range=ARG_IP_DISCOVERY_RANGE, dns_server=ARG_IP_DISCOVERY_DNS_SERVER
+            ),
         )
         RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
             ctx=env.get_context(), cli_remote_opts=remote_opts, force_single_conn_info=True
         )
         host_selection_call.assert_called_once_with(
-            ip_discovery_range=ARG_IP_DISCOVERY_RANGE, force_single_conn_info=True
+            ip_discovery_range=ARG_IP_DISCOVERY_RANGE,
+            dns_server=ARG_IP_DISCOVERY_DNS_SERVER,
+            force_single_conn_info=True,
         )
         collect_auth_info_call.assert_called_once()
 
@@ -169,12 +175,13 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         self, device_selection_call: mock.MagicMock
     ) -> None:
         env = TestEnv.create()
-        response = RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
-            env.get_context(), RemoteOpts()
-        )
-        self.assertIsNone(response)
+        with self.assertRaises(StepEvaluationFailure) as context:
+            RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
+                env.get_context(), RemoteOpts()
+            )
+        self.assertEqual(str(context.exception), "Failed to resolve network device selection method")
 
-    def test_collect_dhcpcd_configuration_info(self) -> None:
+    def test_collect_network_configuration_info(self) -> None:
         env = TestEnv.create()
         env.get_collaborators().printer().on("print_with_rich_table_fn", str, str).side_effect = None
 
@@ -203,7 +210,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             level: PromptLevel,
             post_user_input_message: str,
         ):
-            self.assertEqual(message, "Enter the gateway address")
+            self.assertEqual(message, "Enter the gateway address (example: 192.168.1.1)")
             self.assertEqual(post_user_input_message, "Selected gateway address ")
             return TestDataRemoteConnector.TEST_DATA_DHCP_GW_IP_ADDRESS
 
@@ -218,7 +225,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             level: PromptLevel,
             post_user_input_message: str,
         ):
-            self.assertEqual(message, "Enter the DNS resolver address")
+            self.assertEqual(message, "Enter the DNS resolver address (example: 192.168.1.1)")
             self.assertEqual(post_user_input_message, "Selected remote DNS resolver IP address ")
             return TestDataRemoteConnector.TEST_DATA_DHCP_DNS_IP_ADDRESS
 
@@ -226,14 +233,14 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             "prompt_user_input_fn", str, faker.Anything, bool, PromptLevel, str
         ).side_effect = dns_assertion_callback
 
-        response = RemoteMachineConnector(env.get_collaborators()).collect_dhcpcd_configuration_info(
+        response = RemoteMachineConnector(env.get_collaborators()).collect_network_configuration_info(
             env.get_context(), TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS
         )
 
         Assertion.expect_equal_objects(
             self,
             response,
-            DHCPCDConfigurationInfo(
+            NetworkConfigurationInfo(
                 TestDataRemoteConnector.TEST_DATA_DHCP_GW_IP_ADDRESS,
                 TestDataRemoteConnector.TEST_DATA_DHCP_DNS_IP_ADDRESS,
                 TestDataRemoteConnector.TEST_DATA_DHCP_STATIC_IP_ADDRESS,
@@ -403,7 +410,9 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             "prompt_yes_no_fn", str, PromptLevel, str, str
         ).side_effect = assertion_callback
         response = RemoteMachineConnector(env.get_collaborators())._run_scan_lan_host_selection(
-            ARG_IP_DISCOVERY_RANGE, force_single_conn_info=False
+            ip_discovery_range=ARG_IP_DISCOVERY_RANGE,
+            dns_server=ARG_IP_DISCOVERY_DNS_SERVER,
+            force_single_conn_info=False,
         )
         Assertion.expect_equal_objects(self, response, TestDataRemoteConnector.TEST_DATA_SSH_ANSIBLE_HOSTS)
         Assertion.expect_call_argument(
@@ -411,6 +420,12 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             run_call,
             arg_name="ip_discovery_range",
             expected_value=ARG_IP_DISCOVERY_RANGE,
+        )
+        Assertion.expect_call_argument(
+            self,
+            run_call,
+            arg_name="dns_server",
+            expected_value=ARG_IP_DISCOVERY_DNS_SERVER,
         )
 
     @mock.patch(
@@ -560,12 +575,13 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         env.get_collaborators().checks().on("is_tool_exist_fn", str).return_value = True
         env.get_collaborators().printer().on("print_with_rich_table_fn", str, str).side_effect = None
 
-        def get_all_lan_assertion_callback(ip_range: str, filter_str: str):
+        def get_all_lan_assertion_callback(ip_range: str, dns_server: str, filter_str=None):
             self.assertEqual(ip_range, ARG_IP_DISCOVERY_RANGE)
+            self.assertEqual(dns_server, ARG_IP_DISCOVERY_DNS_SERVER)
             return HOST_SELECTION_OPTIONS_DICT
 
         env.get_collaborators().network_util().on(
-            "get_all_lan_network_devices_fn", str, faker.Anything
+            "get_all_lan_network_devices_fn", str, str, faker.Anything
         ).side_effect = get_all_lan_assertion_callback
         env.get_collaborators().printer().on("new_line_fn", int).side_effect = None
 
@@ -580,7 +596,9 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
             )
 
         RemoteMachineConnector(env.get_collaborators())._run_lan_scan_host_selection(
-            ip_discovery_range=ARG_IP_DISCOVERY_RANGE, force_single_conn_info=True
+            ip_discovery_range=ARG_IP_DISCOVERY_RANGE,
+            dns_server=ARG_IP_DISCOVERY_DNS_SERVER,
+            force_single_conn_info=True,
         )
         Assertion.expect_call_argument(self, run_call, "force_single_conn_info", True)
         Assertion.expect_call_argument(self, run_call, "options_list", HOST_SELECTION_OPTIONS_LIST)
@@ -590,7 +608,9 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
         env = TestEnv.create()
         env.get_collaborators().checks().on("is_tool_exist_fn", str).return_value = False
         response = RemoteMachineConnector(env.get_collaborators())._run_lan_scan_host_selection(
-            ip_discovery_range=ARG_IP_DISCOVERY_RANGE, force_single_conn_info=True
+            ip_discovery_range=ARG_IP_DISCOVERY_RANGE,
+            dns_server=ARG_IP_DISCOVERY_DNS_SERVER,
+            force_single_conn_info=True,
         )
         self.assertIsNone(response)
 

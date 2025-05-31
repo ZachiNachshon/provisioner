@@ -12,6 +12,11 @@ inputs:
       - 'all'
     default: 'all'
     type: string
+  include_e2e:
+    description: 'Include E2E tests that use Docker'
+    required: false
+    default: 'false'
+    type: boolean
 
 runs:
   using: 'composite'
@@ -19,31 +24,133 @@ runs:
     - name: Print Action Arguments
       run: |
         echo "::group::Print test action arguments"
-        echo "No action arguments"
+        echo "module_to_test: ${{ inputs.module_to_test }}"
+        echo "include_e2e: ${{ inputs.include_e2e }}"
         echo "::endgroup::"
       shell: bash
 
-    # - name: Switch to DEV mode on all projects
-    #   run: |
-    #     echo "::group::Switching to DEV mode on all projects"
-    #     make dev-mode
-    #     echo "::endgroup::"
-    #   shell: bash
+    # Cache Docker buildx for faster builds
+    - name: Set up Docker Buildx
+      if: inputs.include_e2e == 'true'
+      uses: docker/setup-buildx-action@v3
+      with:
+        driver: docker-container
+        use: true
 
-    # 
-    # Temporary disable caching since the upload time takes longer than the actual action time
-    # 
-    # - name: (Cache) Try Load - provisioner monorepo
-    #   id: cached-venv-provisioner-monorepo
-    #   uses: actions/cache@v3
-    #   with:
-    #     path: ./.venv
-    #     key: provisioner-monorepo-venv-${{ runner.os }}-${{ hashFiles('./poetry.lock') }}-${{ hashFiles('./pyproject.toml') }}
+    # Cache Docker layers for the main poetry E2E image
+    - name: (Cache) Docker layers - Poetry E2E
+      if: inputs.include_e2e == 'true'
+      uses: actions/cache@v4
+      with:
+        path: /tmp/.buildx-cache-poetry
+        key: buildx-poetry-${{ runner.os }}-${{ hashFiles('dockerfiles/poetry/Dockerfile', 'dockerfiles/poetry/entrypoint.sh', 'pyproject.toml', 'poetry.lock') }}
+        restore-keys: |
+          buildx-poetry-${{ runner.os }}-
+
+    # Cache Docker layers for remote SSH image
+    - name: (Cache) Docker layers - Remote SSH
+      if: inputs.include_e2e == 'true'
+      uses: actions/cache@v4
+      with:
+        path: /tmp/.buildx-cache-remote-ssh
+        key: buildx-remote-ssh-${{ runner.os }}-${{ hashFiles('dockerfiles/remote_ssh/Dockerfile') }}
+        restore-keys: |
+          buildx-remote-ssh-${{ runner.os }}-
+
+    # Cache Docker layers for Raspbian OS image
+    - name: (Cache) Docker layers - Raspbian OS
+      if: inputs.include_e2e == 'true'
+      uses: actions/cache@v4
+      with:
+        path: /tmp/.buildx-cache-raspbian
+        key: buildx-raspbian-${{ runner.os }}-${{ hashFiles('dockerfiles/raspbian_os/Dockerfile') }}
+        restore-keys: |
+          buildx-raspbian-${{ runner.os }}-
+
+    # Cache the built sdist packages to avoid rebuilding if source hasn't changed
+    - name: (Cache) Built sdist packages
+      if: inputs.include_e2e == 'true'
+      uses: actions/cache@v4
+      with:
+        path: dockerfiles/poetry/dists/
+        key: sdists-${{ runner.os }}-${{ hashFiles('**/pyproject.toml', '**/poetry.lock', '**/*.py') }}
+        restore-keys: |
+          sdists-${{ runner.os }}-
+
+    # Cache the essential files archive to avoid recreation
+    - name: (Cache) E2E essential files archive
+      if: inputs.include_e2e == 'true'
+      uses: actions/cache@v4
+      with:
+        path: dockerfiles/poetry/e2e_docker_essential_files.tar.gz
+        key: e2e-archive-${{ runner.os }}-${{ hashFiles('pyproject.toml', 'poetry.toml', 'conftest.py', 'pytest.ini', 'Makefile') }}
+        restore-keys: |
+          e2e-archive-${{ runner.os }}-
+
+    # Pre-build Docker images with caching to reduce build time during tests
+    - name: (Pre-build) Docker images with cache
+      if: inputs.include_e2e == 'true'
+      run: |
+        echo "::group::Pre-building Docker images with cache"
+        
+        # Build poetry E2E image with cache
+        docker buildx build \
+          --file dockerfiles/poetry/Dockerfile \
+          --tag provisioner-poetry-e2e:latest \
+          --cache-from=type=local,src=/tmp/.buildx-cache-poetry \
+          --cache-to=type=local,dest=/tmp/.buildx-cache-poetry-new,mode=max \
+          --load \
+          dockerfiles/poetry/ || echo "Poetry image build failed, will fallback to regular build"
+        
+        # Build remote SSH image with cache
+        docker buildx build \
+          --file dockerfiles/remote_ssh/Dockerfile \
+          --tag provisioner-remote-ssh:latest \
+          --cache-from=type=local,src=/tmp/.buildx-cache-remote-ssh \
+          --cache-to=type=local,dest=/tmp/.buildx-cache-remote-ssh-new,mode=max \
+          --load \
+          dockerfiles/remote_ssh/ || echo "Remote SSH image build failed, will fallback to regular build"
+        
+        # Build raspbian OS image with cache  
+        docker buildx build \
+          --file dockerfiles/raspbian_os/Dockerfile \
+          --tag provisioner-raspbian-os:latest \
+          --cache-from=type=local,src=/tmp/.buildx-cache-raspbian \
+          --cache-to=type=local,dest=/tmp/.buildx-cache-raspbian-new,mode=max \
+          --load \
+          dockerfiles/raspbian_os/ || echo "Raspbian OS image build failed, will fallback to regular build"
+        
+        echo "::endgroup::"
+      shell: bash
+
+    # Move cache to avoid ever-growing cache
+    - name: (Cleanup) Move Docker cache
+      if: inputs.include_e2e == 'true'
+      run: |
+        echo "::group::Moving Docker cache"
+        rm -rf /tmp/.buildx-cache-poetry
+        rm -rf /tmp/.buildx-cache-remote-ssh  
+        rm -rf /tmp/.buildx-cache-raspbian
+        mv /tmp/.buildx-cache-poetry-new /tmp/.buildx-cache-poetry || true
+        mv /tmp/.buildx-cache-remote-ssh-new /tmp/.buildx-cache-remote-ssh || true
+        mv /tmp/.buildx-cache-raspbian-new /tmp/.buildx-cache-raspbian || true
+        echo "::endgroup::"
+      shell: bash
+
+    # Cache virtual environment (keep existing caching but uncommented)
+    - name: (Cache) Try Load - provisioner monorepo venv
+      id: cached-venv-provisioner-monorepo
+      uses: actions/cache@v4
+      with:
+        path: ./.venv
+        key: provisioner-monorepo-venv-${{ runner.os }}-${{ hashFiles('./poetry.lock', './pyproject.toml') }}
+        restore-keys: |
+          provisioner-monorepo-venv-${{ runner.os }}-
 
     - name: (Install) provisioner monorepo
       if: steps.cached-venv-provisioner-monorepo.outputs.cache-hit != 'true'
       run: |
-        echo "::group::Installing provisioner monorepo dependecies"
+        echo "::group::Installing provisioner monorepo dependencies"
         make deps-install
         echo "::endgroup::"
       shell: bash
@@ -51,6 +158,13 @@ runs:
     - name: (Test) provisioner monorepo
       run: |
         echo "::group::Running tests on provisioner monorepo"
-        make test-coverage-xml
+        if [ "${{ inputs.include_e2e }}" = "true" ]; then
+          echo "Running tests WITH e2e tests (Docker-based)"
+          export CI_PREBUILT_DOCKER_IMAGES=true
+          ./run_tests.py --all --only-e2e --report xml
+        else
+          echo "Running tests WITHOUT e2e tests (skipping Docker)"
+          ./run_tests.py --all --skip-e2e --report xml
+        fi
         echo "::endgroup::"
       shell: bash    

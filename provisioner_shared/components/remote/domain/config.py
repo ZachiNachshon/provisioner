@@ -31,6 +31,7 @@ from provisioner_shared.components.runtime.domain.serialize import Serialization
 
         lan_scan:
             ip_discovery_range: 192.168.1.1/24
+            dns_server: 192.168.1.1
     """
 
 
@@ -79,6 +80,7 @@ class RunEnvironment(str, Enum):
 
 class LanScan(SerializationBase):
     ip_discovery_range: str = ""
+    dns_server: str = ""
 
     def __init__(self, dict_obj: dict) -> None:
         super().__init__(dict_obj)
@@ -86,11 +88,15 @@ class LanScan(SerializationBase):
     def merge(self, other: "LanScan") -> SerializationBase:
         if hasattr(other, "ip_discovery_range") and len(other.ip_discovery_range) > 0:
             self.ip_discovery_range = other.ip_discovery_range
+        if hasattr(other, "dns_server") and len(other.dns_server) > 0:
+            self.dns_server = other.dns_server
         return self
 
     def _try_parse_config(self, dict_obj: dict) -> None:
         if "ip_discovery_range" in dict_obj:
             self.ip_discovery_range = dict_obj["ip_discovery_range"]
+        if "dns_server" in dict_obj:
+            self.dns_server = dict_obj["dns_server"]
 
 
 class Auth(SerializationBase):

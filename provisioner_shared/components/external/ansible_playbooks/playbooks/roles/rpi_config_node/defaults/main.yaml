@@ -24,5 +24,5 @@ audio: "do_audio 0"                        # Auto select audio output device
 #
 configure_keyboard: "do_configure_keyboard us"         # Specify US Keyboard
 change_timezone: "do_change_timezone UTC"              # Change timezone to UTC
-change_locale: "do_change_locale LANG=en_US.UTF-8"     # Set language to en_US English
+locale: "en_US.UTF-8"     # Set language to en_US English
 

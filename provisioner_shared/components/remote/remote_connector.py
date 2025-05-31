@@ -60,7 +60,7 @@ class SSHConnectionInfo:
         self.ansible_hosts = ansible_hosts
 
 
-class DHCPCDConfigurationInfo:
+class NetworkConfigurationInfo:
     gw_ip_address: str
     dns_ip_address: str
     static_ip_address: str
@@ -165,6 +165,9 @@ class RemoteMachineConnector:
                         if cli_remote_opts.get_scan_flags()
                         else None
                     ),
+                    dns_server=(
+                        cli_remote_opts.get_scan_flags().dns_server if cli_remote_opts.get_scan_flags() else None
+                    ),
                     force_single_conn_info=force_single_conn_info,
                 ),
                 ctx=ctx,
@@ -188,28 +191,28 @@ class RemoteMachineConnector:
         raise StepEvaluationFailure("Failed to resolve network device selection method")
         # return None
 
-    def collect_dhcpcd_configuration_info(
+    def collect_network_configuration_info(
         self,
         ctx: Context,
         ansible_hosts: str,
         static_ip_address: str = None,
         gw_ip_address: str = None,
         dns_ip_address: str = None,
-    ) -> DHCPCDConfigurationInfo:
+    ) -> NetworkConfigurationInfo:
 
-        # Check if DHCP flags were used
+        # Check if network flags were used
         if static_ip_address and gw_ip_address and dns_ip_address:
-            # All required DHCP flags are present, return configuration
-            return DHCPCDConfigurationInfo(
+            # All required network flags are present, return configuration
+            return NetworkConfigurationInfo(
                 gw_ip_address=gw_ip_address, dns_ip_address=dns_ip_address, static_ip_address=static_ip_address
             )
         elif any([static_ip_address, gw_ip_address, dns_ip_address]):
             # Only some flags were provided - this is an error
-            logger.error("All DHCP configuration flags must be provided together")
+            logger.error("All network configuration flags must be provided together")
             raise CliApplicationException("Must provide all of: static-ip-address, gw-ip-address, dns-ip-address")
 
         self.collaborators.printer().print_with_rich_table_fn(
-            generate_instructions_dhcpcd_config(
+            generate_instructions_network_config(
                 ansible_hosts=ansible_hosts,
                 default_gw_address=gw_ip_address,
                 default_dns_address=dns_ip_address,
@@ -228,7 +231,7 @@ class RemoteMachineConnector:
 
         selected_gw_address = Evaluator.eval_step_return_value_throw_on_failure(
             call=lambda: self.collaborators.prompter().prompt_user_input_fn(
-                message="Enter the gateway address",
+                message="Enter the gateway address (example: 192.168.1.1)",
                 default=gw_ip_address,
                 post_user_input_message="Selected gateway address ",
             ),
@@ -238,7 +241,7 @@ class RemoteMachineConnector:
 
         selected_dns_resolver_address = Evaluator.eval_step_return_value_throw_on_failure(
             call=lambda: self.collaborators.prompter().prompt_user_input_fn(
-                message="Enter the DNS resolver address",
+                message="Enter the DNS resolver address (example: 192.168.1.1)",
                 default=dns_ip_address,
                 post_user_input_message="Selected remote DNS resolver IP address ",
             ),
@@ -246,7 +249,7 @@ class RemoteMachineConnector:
             err_msg="Failed to read DNS resolver IP address",
         )
 
-        return DHCPCDConfigurationInfo(selected_gw_address, selected_dns_resolver_address, selected_static_ip)
+        return NetworkConfigurationInfo(selected_gw_address, selected_dns_resolver_address, selected_static_ip)
 
     def _ask_for_network_device_selection_method(self) -> NetworkDeviceSelectionMethod:
         options_list: List[dict] = []
@@ -272,7 +275,9 @@ class RemoteMachineConnector:
         )
         return NetworkDeviceAuthenticationMethod(network_device_auth_method) if network_device_auth_method else None
 
-    def _run_scan_lan_host_selection(self, ip_discovery_range: str, force_single_conn_info: bool) -> List[AnsibleHost]:
+    def _run_scan_lan_host_selection(
+        self, ip_discovery_range: str, dns_server: str, force_single_conn_info: bool
+    ) -> List[AnsibleHost]:
         if ip_discovery_range and len(ip_discovery_range) > 0:
             if self.collaborators.prompter().prompt_yes_no_fn(
                 message=f"Scan LAN network for IP addresses at range {ip_discovery_range}",
@@ -281,6 +286,7 @@ class RemoteMachineConnector:
             ):
                 return self._run_lan_scan_host_selection(
                     ip_discovery_range=ip_discovery_range,
+                    dns_server=dns_server,
                     force_single_conn_info=force_single_conn_info,
                 )
         return None
@@ -406,13 +412,17 @@ class RemoteMachineConnector:
             force_single_conn_info=force_single_conn_info,
         )
 
-    def _run_lan_scan_host_selection(self, ip_discovery_range: str, force_single_conn_info: bool) -> List[AnsibleHost]:
+    def _run_lan_scan_host_selection(
+        self, ip_discovery_range: str, dns_server: str, force_single_conn_info: bool
+    ) -> List[AnsibleHost]:
         if not self.collaborators.checks().is_tool_exist_fn("nmap"):
             logger.error("Missing mandatory utility. name: nmap")
             return None
 
-        self.collaborators.printer().print_with_rich_table_fn(generate_instructions_network_scan())
-        scan_dict = self.collaborators.network_util().get_all_lan_network_devices_fn(ip_range=ip_discovery_range)
+        self.collaborators.printer().print_with_rich_table_fn(generate_instructions_network_scan(dns_server=dns_server))
+        scan_dict = self.collaborators.network_util().get_all_lan_network_devices_fn(
+            ip_range=ip_discovery_range, dns_server=dns_server
+        )
         self.collaborators.printer().new_line_fn()
 
         options_list: List[str] = []
@@ -459,8 +469,12 @@ class RemoteMachineConnector:
         return cli_remote_opts and cli_remote_opts.get_conn_flags() and not cli_remote_opts.get_conn_flags().is_empty()
 
 
-def generate_instructions_network_scan() -> str:
-    return """
+def generate_instructions_network_scan(dns_server: str) -> str:
+    dns_server_str = ""
+    if dns_server and len(dns_server) > 0:
+        dns_server_str = f"\n  [yellow]DNS server: {dns_server}[/yellow]"
+
+    return f"""
   Required mandatory locally installed utility: [yellow]nmap[/yellow].
   [yellow]Elevated user permissions are required for this step ![/yellow]
 
@@ -468,6 +482,7 @@ def generate_instructions_network_scan() -> str:
 
     • IP Address
     • Device Name
+  {dns_server_str}
 """
 
 
@@ -490,7 +505,7 @@ def generate_instructions_connect_via_ssh(ansible_hosts: List[AnsibleHost]):
 """
 
 
-def generate_instructions_dhcpcd_config(
+def generate_instructions_network_config(
     ansible_hosts: List[AnsibleHost], default_gw_address: str, default_dns_address: str
 ):
     ip_addresses = ""
@@ -503,8 +518,12 @@ def generate_instructions_dhcpcd_config(
 {ip_addresses}
   Subnet mask used for static IPs is xxx.xxx.xxx.xxx/24 (255.255.255.0).
 
-  [red]Static IP address must be unique !
-  Make sure it is not used anywhere else within LAN network or DHCP address pool range.[/red]
+  [red]Static IP address must be unique ![/red]
+  You need to reserve the static IP address on the Router DHCP settings:
+  1. Open the DHCP settings on your Router
+  2. Define the Raspberry Pi MAC address to the desired static IP address
+  3. Make sure it is not used anywhere else within LAN network or DHCP address pool range
+  4. Save the changes and reboot the Router
 
   This step requires the following values (press ENTER for defaults):
     • Single board node desired static IP address
