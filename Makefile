@@ -94,7 +94,7 @@ test-skip-e2e: ## Run only Unit/IT tests
 
 .PHONY: test-e2e
 test-e2e: ## Run only E2E tests in a Docker container
-	@./run_tests.py --only-e2e
+	@./run_tests.py --all --only-e2e
 
 .PHONY: test-coverage-html
 test-coverage-html: ## Run tests suite on runtime and all plugins (output: HTML report)
