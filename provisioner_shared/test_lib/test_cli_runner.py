@@ -33,7 +33,7 @@ class TestCliRunner:
             print("Installer plugin testing mode is enabled")
             test_env_vars = {ENV_VAR_INSTALLER_PLUGIN_TEST: "true"}
 
-        result = CliRunner(mix_stderr=True).invoke(cli=cmd, args=args, env=test_env_vars)
+        result = CliRunner().invoke(cli=cmd, args=args, env=test_env_vars)
 
         # Check the exit code to see if there was an issue
         if result.exit_code != 0:
