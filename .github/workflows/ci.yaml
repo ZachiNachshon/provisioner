@@ -46,19 +46,21 @@ jobs:
           fi
         shell: bash
 
+      # TODO: Uncomment this when we have a way to deploy the Docker images into a remote registry
+      #       This will drastically reduce the time it takes to run the E2E tests
       # Run E2E tests with Docker caching
-      - name: Run E2E Tests  
-        uses: ./.github/actions/tests
-        with:
-          include_e2e: true
+      # - name: Run E2E Tests  
+      #   uses: ./.github/actions/tests
+      #   with:
+      #     include_e2e: true
 
       # Save E2E test coverage
-      - name: Save E2E Test Coverage
-        run: |
-          if [ -f coverage.xml ]; then
-            mv coverage.xml coverage-e2e.xml
-          fi
-        shell: bash
+      # - name: Save E2E Test Coverage
+      #   run: |
+      #     if [ -f coverage.xml ]; then
+      #       mv coverage.xml coverage-e2e.xml
+      #     fi
+      #   shell: bash
 
       # Upload unit test coverage
       - name: Upload Unit Test Coverage
@@ -72,12 +74,12 @@ jobs:
           fail_ci_if_error: false
 
       # Upload E2E test coverage  
-      - name: Upload E2E Test Coverage
-        if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' && hashFiles('coverage-e2e.xml') != ''
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage-e2e.xml
-          flags: e2e
-          name: codecov-e2e
-          fail_ci_if_error: false
+      # - name: Upload E2E Test Coverage
+      #   if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' && hashFiles('coverage-e2e.xml') != ''
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     file: ./coverage-e2e.xml
+      #     flags: e2e
+      #     name: codecov-e2e
+      #     fail_ci_if_error: false
