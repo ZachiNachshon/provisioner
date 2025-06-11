@@ -40,8 +40,8 @@ provisioner = "provisioner.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-provisioner_runtime = "^0.1.18"
-provisioner_shared = "^0.1.18"
+provisioner_runtime = "~0.1.19"
+provisioner_shared = "~0.1.19"
 provisioner_installers_plugin = "^0.1.6"
 provisioner_examples_plugin = "^0.1.8"
 provisioner_single_board_plugin = "^0.1.5"
