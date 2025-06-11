@@ -32,7 +32,7 @@ def load_plugin(plugin_module):
     plugin_module.append_to_cli(root_menu)
 
 
-cols.package_loader().load_modules_with_version_check_fn(
+cols.package_loader().load_modules_with_auto_version_check_fn(
     filter_keyword="provisioner",
     import_path="main",
     exclusions=["provisioner-runtime", "provisioner-shared"],

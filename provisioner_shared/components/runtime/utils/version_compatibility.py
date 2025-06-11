@@ -71,12 +71,22 @@ class VersionCompatibility:
                     return False
 
             # Handle caret range (^1.2.0 = >=1.2.0,<2.0.0)
+            # Special case for 0.x versions: ^0.y.z = >=0.y.z,<0.(y+1).0
             if version_range.startswith("^"):
                 base_version = version_range[1:]
                 base_tuple = VersionCompatibility.parse_version(base_version)
                 major, minor, patch = base_tuple
 
-                return version_tuple >= base_tuple and version_tuple < (major + 1, 0, 0)
+                if major == 0:
+                    if minor == 0:
+                        # For 0.0.x versions, only allow exact match
+                        return version_tuple == base_tuple
+                    else:
+                        # For 0.x versions (where x > 0), only allow patch updates within the same minor version
+                        return version_tuple >= base_tuple and version_tuple < (major, minor + 1, 0)
+                else:
+                    # For 1.x+ versions, allow minor and patch updates within the same major version
+                    return version_tuple >= base_tuple and version_tuple < (major + 1, 0, 0)
 
             # Handle tilde range (~1.2.0 = >=1.2.0,<1.3.0)
             if version_range.startswith("~"):
@@ -143,18 +153,11 @@ class VersionCompatibility:
             Version range string if found, None otherwise
         """
         try:
-            # Try to read from plugin-manifest.json first
-            manifest_path = Path(plugin_package_path) / "resources" / "plugin-manifest.json"
+            manifest_path = Path(plugin_package_path) / "resources" / "manifest.json"
             if manifest_path.exists():
                 with open(manifest_path, "r") as f:
                     manifest = json.load(f)
                     return manifest.get("runtime_version_range")
-
-            # Fallback: try to read from compatibility.txt
-            compat_path = Path(plugin_package_path) / "resources" / "compatibility.txt"
-            if compat_path.exists():
-                with open(compat_path, "r") as f:
-                    return f.read().strip()
 
         except Exception as e:
             logger.debug(f"Could not read plugin compatibility from {plugin_package_path}: {e}")
@@ -173,6 +176,17 @@ class VersionCompatibility:
             Version string if found, None otherwise
         """
         try:
+            # Try to read from manifest.json first
+            manifest_path = Path(runtime_package_path) / "resources" / "manifest.json"
+            if manifest_path.exists():
+                with open(manifest_path, "r") as f:
+                    manifest = json.load(f)
+                    # For runtime manifests, use 'version' field
+                    version = manifest.get("version")
+                    if version:
+                        return version
+            
+            # Fallback to version.txt for backward compatibility
             version_path = Path(runtime_package_path) / "resources" / "version.txt"
             if version_path.exists():
                 with open(version_path, "r") as f:

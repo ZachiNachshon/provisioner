@@ -15,8 +15,8 @@ from provisioner_shared.components.runtime.utils.version_compatibility import Ve
 def create_manifest_template(plugin_name: str, plugin_version: str, runtime_version_range: str) -> Dict[str, Any]:
     """Create a template plugin manifest"""
     return {
-        "plugin_name": plugin_name,
-        "plugin_version": plugin_version,
+        "name": plugin_name,
+        "version": plugin_version,
         "runtime_version_range": runtime_version_range,
         "description": "Plugin description here",
         "author": "Your Name",
@@ -31,33 +31,38 @@ def validate_manifest(manifest_path: Path) -> bool:
         with open(manifest_path, "r") as f:
             manifest = json.load(f)
 
-        # Check required fields
-        required_fields = ["plugin_name", "plugin_version", "runtime_version_range"]
-        missing_fields = [field for field in required_fields if field not in manifest]
-
-        if missing_fields:
-            print(f"❌ Missing required fields: {', '.join(missing_fields)}")
+        # Check required fields - support both old and new field names for backward compatibility
+        name_field = manifest.get("name") or manifest.get("plugin_name")
+        version_field = manifest.get("version") or manifest.get("plugin_version")
+        
+        if not name_field:
+            print(f"❌ Missing required field: 'name' (or 'plugin_name' for old format)")
+            return False
+            
+        if not version_field:
+            print(f"❌ Missing required field: 'version' (or 'plugin_version' for old format)")
             return False
 
-        # Validate version range format
-        version_range = manifest["runtime_version_range"]
-        try:
-            # Test with a dummy version to validate the range format
-            VersionCompatibility.version_satisfies_range("1.0.0", version_range)
-            print(f"✅ Version range format is valid: {version_range}")
-        except Exception as e:
-            print(f"❌ Invalid version range format '{version_range}': {e}")
-            return False
+        # runtime_version_range is optional for runtime manifests, required for plugins
+        version_range = manifest.get("runtime_version_range")
+        if version_range:
+            try:
+                # Test with a dummy version to validate the range format
+                VersionCompatibility.version_satisfies_range("1.0.0", version_range)
+                print(f"✅ Version range format is valid: {version_range}")
+            except Exception as e:
+                print(f"❌ Invalid version range format '{version_range}': {e}")
+                return False
 
         # Validate plugin version format
         try:
-            VersionCompatibility.parse_version(manifest["plugin_version"])
-            print(f"✅ Plugin version format is valid: {manifest['plugin_version']}")
+            VersionCompatibility.parse_version(version_field)
+            print(f"✅ Version format is valid: {version_field}")
         except Exception as e:
-            print(f"❌ Invalid plugin version format '{manifest['plugin_version']}': {e}")
+            print(f"❌ Invalid version format '{version_field}': {e}")
             return False
 
-        print(f"✅ Manifest validation passed for {manifest['plugin_name']}")
+        print(f"✅ Manifest validation passed for {name_field}")
         return True
 
     except json.JSONDecodeError as e:
@@ -77,8 +82,12 @@ def test_compatibility(manifest_path: Path, runtime_version: str) -> bool:
         with open(manifest_path, "r") as f:
             manifest = json.load(f)
 
-        version_range = manifest["runtime_version_range"]
-        plugin_name = manifest["plugin_name"]
+        version_range = manifest.get("runtime_version_range")
+        plugin_name = manifest.get("name") or manifest.get("plugin_name")
+
+        if not version_range:
+            print(f"ℹ️  Plugin {plugin_name} has no runtime version range specified (assuming compatible)")
+            return True
 
         is_compatible = VersionCompatibility.version_satisfies_range(runtime_version, version_range)
 

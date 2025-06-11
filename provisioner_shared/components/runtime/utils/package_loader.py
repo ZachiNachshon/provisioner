@@ -386,7 +386,7 @@ class PackageLoader:
         )
 
     load_modules_fn = _load_modules
-    load_modules_with_version_check_fn = _load_modules_with_auto_version_check
+    load_modules_with_auto_version_check_fn = _load_modules_with_auto_version_check
     import_modules_fn = _import_modules
     is_module_loaded_fn = _is_module_loaded
     create_module_instance_fn = _create_module_instance
