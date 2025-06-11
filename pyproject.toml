@@ -56,7 +56,7 @@ provisioner_single_board_plugin = "^0.1.5"
 # provisioner_single_board_plugin = {path = "/Users/zachin/codebase/github/provisioner/plugins/provisioner_single_board_plugin", develop = true}
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.10.0"
+black = "^25.1.0"
 pytest = "^8.3.2"
 mypy = "^1.16"
 coverage = "^7.8.0"
