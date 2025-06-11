@@ -46,6 +46,14 @@ provisioner_installers_plugin = "^0.1.6"
 provisioner_examples_plugin = "^0.1.8"
 provisioner_single_board_plugin = "^0.1.5"
 
+# 
+# Can be used only when running Unit/IT tests locally using 'poetry run coverage run -m pytest -s <path>'
+# 
+# provisioner_runtime = {path = "/Users/zachin/codebase/github/provisioner/provisioner", develop = true}
+# provisioner_shared = {path = "/Users/zachin/codebase/github/provisioner/provisioner_shared", develop = true}
+# provisioner_installers_plugin = {path = "/Users/zachin/codebase/github/provisioner/plugins/provisioner_installers_plugin", develop = true}
+# provisioner_examples_plugin = {path = "/Users/zachin/codebase/github/provisioner/plugins/provisioner_examples_plugin", develop = true}
+# provisioner_single_board_plugin = {path = "/Users/zachin/codebase/github/provisioner/plugins/provisioner_single_board_plugin", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"

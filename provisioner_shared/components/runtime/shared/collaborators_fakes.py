@@ -34,6 +34,8 @@ from provisioner_shared.components.runtime.utils.progress_indicator import Progr
 from provisioner_shared.components.runtime.utils.progress_indicator_fakes import FakeProgressIndicator
 from provisioner_shared.components.runtime.utils.prompter import Prompter
 from provisioner_shared.components.runtime.utils.prompter_fakes import FakePrompter
+from provisioner_shared.components.runtime.utils.pypi_registry import PyPiRegistry
+from provisioner_shared.components.runtime.utils.pypi_registry_fake import FakePyPiRegistry
 from provisioner_shared.components.runtime.utils.randomizer import Randomizer
 from provisioner_shared.components.runtime.utils.randomizer_fakes import FakeRandomizer
 from provisioner_shared.components.runtime.utils.summary import Summary
@@ -60,6 +62,7 @@ class FakeCoreCollaborators(CoreCollaborators):
         self.__http_client: HttpClient = None
         self.__editor: Editor = None
         self.__package_loader: PackageLoader = None
+        self.__pypi_registry: PyPiRegistry = None
         self.__randomizer: Randomizer = None
 
     def _lock_and_get(self, callback: Callable) -> Any:
@@ -229,6 +232,14 @@ class FakeCoreCollaborators(CoreCollaborators):
 
     def override_editor(self, editor: FakeEditor) -> None:
         self.__editor = editor
+
+    def pypi_registry(self) -> FakePyPiRegistry:
+        def create_pypi_registry():
+            if not self.__pypi_registry:
+                self.__pypi_registry = FakePyPiRegistry.create(self.__ctx)
+            return self.__pypi_registry
+
+        return self._lock_and_get(callback=create_pypi_registry)
 
     def package_loader(self) -> FakePackageLoader:
         def create_package_loader():

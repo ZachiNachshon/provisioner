@@ -82,7 +82,10 @@ runs:
         cd provisioner_shared
         poetry version patch
         shared_ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-        echo -n $shared_ver > resources/version.txt
+        
+        # Update version in manifest.json
+        jq --arg version "$shared_ver" '.version = $version' resources/manifest.json > resources/manifest.json.tmp
+        mv resources/manifest.json.tmp resources/manifest.json
 
         PYPI_API_TOKEN=${PYPI_API_TOKEN_SHARED} \
           ${publisher_script_path} publish --build-type wheel --release-type pypi -y
@@ -94,7 +97,10 @@ runs:
         cd ${publishable}
         poetry version patch
         ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-        echo -n $ver > resources/version.txt
+        
+        # Update version in manifest.json
+        jq --arg version "$ver" '.version = $version' resources/manifest.json > resources/manifest.json.tmp
+        mv resources/manifest.json.tmp resources/manifest.json
 
         # Update shared version in the runtime pyproject.toml
         ../scripts/update_shared_version.py --file_path pyproject.toml --package_name provisioner-shared --new_version "^${shared_ver}"
@@ -125,7 +131,7 @@ runs:
         # Open a GitHub PR with runtime & shared version bumps
         # 
         cd provisioner_shared
-        git add resources/version.txt
+        git add resources/manifest.json
         git add pyproject.toml
         cd ..
 
@@ -134,7 +140,7 @@ runs:
         # 
         cd ${publishable}
         ver=$(poetry version | awk '{print $2}' | tr -d '\n')
-        git add resources/version.txt
+        git add resources/manifest.json
         git add pyproject.toml
         cd ..
 

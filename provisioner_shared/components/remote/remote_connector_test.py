@@ -26,12 +26,12 @@ from provisioner_shared.components.remote.remote_opts_fakes import (
     TEST_DATA_REMOTE_SSH_PRIVATE_KEY_FILE_PATH_1,
     TestDataRemoteOpts,
 )
+from provisioner_shared.components.runtime.errors.cli_errors import StepEvaluationFailure
 from provisioner_shared.components.runtime.runner.ansible.ansible_runner import AnsibleHost
 from provisioner_shared.components.runtime.utils.prompter import PromptLevel
 from provisioner_shared.test_lib import faker
 from provisioner_shared.test_lib.assertions import Assertion
 from provisioner_shared.test_lib.test_env import TestEnv
-from provisioner_shared.components.runtime.errors.cli_errors import StepEvaluationFailure
 
 # To run as a single test target:
 #  poetry run coverage run -m pytest provisioner_shared/components/remote/remote_connector_test.py
@@ -176,9 +176,7 @@ class RemoteMachineConnectorTestShould(unittest.TestCase):
     ) -> None:
         env = TestEnv.create()
         with self.assertRaises(StepEvaluationFailure) as context:
-            RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(
-                env.get_context(), RemoteOpts()
-            )
+            RemoteMachineConnector(env.get_collaborators()).collect_ssh_connection_info(env.get_context(), RemoteOpts())
         self.assertEqual(str(context.exception), "Failed to resolve network device selection method")
 
     def test_collect_network_configuration_info(self) -> None:

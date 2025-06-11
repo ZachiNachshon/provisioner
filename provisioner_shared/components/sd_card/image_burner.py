@@ -229,7 +229,7 @@ class ImageBurnerCmdRunner:
             )
 
             blk_device_name = raw_block_device_name if raw_block_device_name else block_device_name
-            
+
             collaborators.process().run_fn(
                 allow_single_shell_command_str=True,
                 args=[f"sudo dd if={extracted_file_path} of={blk_device_name} bs=1m conv=sync status=progress"],
@@ -269,7 +269,7 @@ class ImageBurnerCmdRunner:
 
         try:
             collaborators.printer().print_fn("Formatting block device and burning image...")
-            
+
             collaborators.process().run_fn(
                 allow_single_shell_command_str=True,
                 args=[f"dd if={extracted_file_path} of={block_device_name} bs=4M conv=fsync status=progress"],
@@ -377,7 +377,7 @@ class ImageBurnerCmdRunner:
                 - temp_dir is the path to temporary directory (or None if no extraction needed)
         """
         collaborators.printer().print_fn("Checking image file type...")
-        
+
         file_ext = os.path.splitext(image_file_path)[1].lower()
 
         # If it's already an image file, just use it directly

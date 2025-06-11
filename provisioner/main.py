@@ -32,10 +32,10 @@ def load_plugin(plugin_module):
     plugin_module.append_to_cli(root_menu)
 
 
-cols.package_loader().load_modules_fn(
+cols.package_loader().load_modules_with_auto_version_check_fn(
     filter_keyword="provisioner",
     import_path="main",
-    exclusions=["provisioner-runtime", "provisioner_runtime", "provisioner_shared", "provisioner-shared"],
+    exclusions=["provisioner-runtime", "provisioner-shared"],
     callback=lambda module: load_plugin(plugin_module=module),
     debug=pre_run_args.debug_pre_init,
 )
