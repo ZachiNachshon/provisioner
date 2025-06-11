@@ -167,7 +167,7 @@ class VersionCompatibility:
     @staticmethod
     def read_runtime_version(runtime_package_path: str) -> Optional[str]:
         """
-        Read the current runtime version.
+        Read the current runtime version from manifest.json.
 
         Args:
             runtime_package_path: Path to the runtime package directory
@@ -176,7 +176,6 @@ class VersionCompatibility:
             Version string if found, None otherwise
         """
         try:
-            # Try to read from manifest.json first
             manifest_path = Path(runtime_package_path) / "resources" / "manifest.json"
             if manifest_path.exists():
                 with open(manifest_path, "r") as f:
@@ -185,12 +184,6 @@ class VersionCompatibility:
                     version = manifest.get("version")
                     if version:
                         return version
-            
-            # Fallback to version.txt for backward compatibility
-            version_path = Path(runtime_package_path) / "resources" / "version.txt"
-            if version_path.exists():
-                with open(version_path, "r") as f:
-                    return f.read().strip()
         except Exception as e:
             logger.debug(f"Could not read runtime version from {runtime_package_path}: {e}")
 

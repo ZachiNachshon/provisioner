@@ -34,13 +34,13 @@ def validate_manifest(manifest_path: Path) -> bool:
         # Check required fields - support both old and new field names for backward compatibility
         name_field = manifest.get("name") or manifest.get("plugin_name")
         version_field = manifest.get("version") or manifest.get("plugin_version")
-        
+
         if not name_field:
-            print(f"❌ Missing required field: 'name' (or 'plugin_name' for old format)")
+            print("❌ Missing required field: 'name' (or 'plugin_name' for old format)")
             return False
-            
+
         if not version_field:
-            print(f"❌ Missing required field: 'version' (or 'plugin_version' for old format)")
+            print("❌ Missing required field: 'version' (or 'plugin_version' for old format)")
             return False
 
         # runtime_version_range is optional for runtime manifests, required for plugins

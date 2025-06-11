@@ -8,6 +8,7 @@ from unittest import mock
 
 from provisioner_shared.components.runtime.utils.version_compatibility import VersionCompatibility
 
+
 #
 # To run these directly from the terminal use:
 #  poetry run coverage run -m pytest provisioner_shared/components/runtime/utils/version_compatibility_test.py
@@ -26,7 +27,7 @@ class VersionCompatibilityTest(unittest.TestCase):
             ("2.1.0-beta.1", (2, 1, 0)),
             ("1.2.3+build.1", (1, 2, 3)),
         ]
-        
+
         for version_str, expected in test_cases:
             with self.subTest(version=version_str):
                 result = VersionCompatibility.parse_version(version_str)
@@ -35,7 +36,7 @@ class VersionCompatibilityTest(unittest.TestCase):
     def test_parse_version_invalid_formats(self):
         """Test parsing invalid version strings raises ValueError"""
         invalid_versions = ["1.2", "1", "1.2.3.4", "a.b.c", "", "v", "1.2.x"]
-        
+
         for version_str in invalid_versions:
             with self.subTest(version=version_str):
                 with self.assertRaises(ValueError):
@@ -49,7 +50,7 @@ class VersionCompatibilityTest(unittest.TestCase):
             ("v1.2.3", "1.2.3", True),  # v prefix should be handled
             ("0.1.0", "0.1.0", True),
         ]
-        
+
         for version, range_spec, expected in test_cases:
             with self.subTest(version=version, range=range_spec):
                 result = VersionCompatibility.version_satisfies_range(version, range_spec)
@@ -67,7 +68,7 @@ class VersionCompatibilityTest(unittest.TestCase):
             ("0.1.5", ">=0.1.10,<0.2.0", False),
             ("0.2.0", ">=0.1.10,<0.2.0", False),
         ]
-        
+
         for version, range_spec, expected in test_cases:
             with self.subTest(version=version, range=range_spec):
                 result = VersionCompatibility.version_satisfies_range(version, range_spec)
@@ -86,7 +87,7 @@ class VersionCompatibilityTest(unittest.TestCase):
             ("1.5.0", "<=1.5.0", True),
             ("1.5.1", "<=1.5.0", False),
         ]
-        
+
         for version, range_spec, expected in test_cases:
             with self.subTest(version=version, range=range_spec):
                 result = VersionCompatibility.version_satisfies_range(version, range_spec)
@@ -107,7 +108,7 @@ class VersionCompatibilityTest(unittest.TestCase):
             ("0.1.9", "~0.1.10", False),
             ("0.2.0", "~0.1.10", False),
         ]
-        
+
         for version, range_spec, expected in test_cases:
             with self.subTest(version=version, range=range_spec):
                 result = VersionCompatibility.version_satisfies_range(version, range_spec)
@@ -128,7 +129,7 @@ class VersionCompatibilityTest(unittest.TestCase):
             ("2.1.0", "^2.0.0", True),
             ("3.0.0", "^2.0.0", False),
         ]
-        
+
         for version, range_spec, expected in test_cases:
             with self.subTest(version=version, range=range_spec):
                 result = VersionCompatibility.version_satisfies_range(version, range_spec)
@@ -149,7 +150,7 @@ class VersionCompatibilityTest(unittest.TestCase):
             ("0.9.5", "^0.9.0", True),
             ("0.10.0", "^0.9.0", False),
         ]
-        
+
         for version, range_spec, expected in test_cases:
             with self.subTest(version=version, range=range_spec):
                 result = VersionCompatibility.version_satisfies_range(version, range_spec)
@@ -167,7 +168,7 @@ class VersionCompatibilityTest(unittest.TestCase):
             ("0.0.1", "^0.0.1", True),
             ("0.0.2", "^0.0.1", False),
         ]
-        
+
         for version, range_spec, expected in test_cases:
             with self.subTest(version=version, range=range_spec):
                 result = VersionCompatibility.version_satisfies_range(version, range_spec)
@@ -179,18 +180,18 @@ class VersionCompatibilityTest(unittest.TestCase):
             plugin_dir = Path(temp_dir)
             resources_dir = plugin_dir / "resources"
             resources_dir.mkdir()
-            
+
             manifest_data = {
                 "plugin_name": "test_plugin",
                 "plugin_version": "1.0.0",
                 "runtime_version_range": ">=0.1.10,<0.2.0",
-                "description": "Test plugin"
+                "description": "Test plugin",
             }
-            
+
             manifest_path = resources_dir / "manifest.json"
             with open(manifest_path, "w") as f:
                 json.dump(manifest_data, f)
-            
+
             result = VersionCompatibility.read_plugin_compatibility(str(plugin_dir))
             self.assertEqual(result, ">=0.1.10,<0.2.0")
 
@@ -206,11 +207,11 @@ class VersionCompatibilityTest(unittest.TestCase):
             plugin_dir = Path(temp_dir)
             resources_dir = plugin_dir / "resources"
             resources_dir.mkdir()
-            
+
             manifest_path = resources_dir / "manifest.json"
             with open(manifest_path, "w") as f:
                 f.write("invalid json content")
-            
+
             result = VersionCompatibility.read_plugin_compatibility(str(plugin_dir))
             self.assertIsNone(result)
 
@@ -220,32 +221,15 @@ class VersionCompatibilityTest(unittest.TestCase):
             runtime_dir = Path(temp_dir)
             resources_dir = runtime_dir / "resources"
             resources_dir.mkdir()
-            
-            manifest_data = {
-                "version": "0.1.15",
-                "description": "Test runtime"
-            }
-            
+
+            manifest_data = {"version": "0.1.15", "description": "Test runtime"}
+
             manifest_path = resources_dir / "manifest.json"
             with open(manifest_path, "w") as f:
                 json.dump(manifest_data, f)
-            
+
             result = VersionCompatibility.read_runtime_version(str(runtime_dir))
             self.assertEqual(result, "0.1.15")
-
-    def test_read_runtime_version_from_version_txt(self):
-        """Test reading runtime version from version.txt fallback"""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            runtime_dir = Path(temp_dir)
-            resources_dir = runtime_dir / "resources"
-            resources_dir.mkdir()
-            
-            version_path = resources_dir / "version.txt"
-            with open(version_path, "w") as f:
-                f.write("0.1.16\n")
-            
-            result = VersionCompatibility.read_runtime_version(str(runtime_dir))
-            self.assertEqual(result, "0.1.16")
 
     def test_read_runtime_version_no_files(self):
         """Test reading runtime version when no version files exist"""
@@ -257,23 +241,21 @@ class VersionCompatibilityTest(unittest.TestCase):
     def test_get_package_version_from_pip_success(self, mock_run):
         """Test getting package version from pip successfully"""
         mock_run.return_value.stdout = "Name: test-package\nVersion: 1.2.3\nSummary: Test"
-        
+
         result = VersionCompatibility.get_package_version_from_pip(["pip"], "test-package")
         self.assertEqual(result, "1.2.3")
-        
+
         mock_run.assert_called_once_with(
-            ["pip", "show", "test-package", "--no-color"],
-            capture_output=True,
-            text=True,
-            check=True
+            ["pip", "show", "test-package", "--no-color"], capture_output=True, text=True, check=True
         )
 
     @mock.patch("provisioner_shared.components.runtime.utils.version_compatibility.subprocess.run")
     def test_get_package_version_from_pip_not_found(self, mock_run):
         """Test getting package version from pip when package not found"""
         from subprocess import CalledProcessError
+
         mock_run.side_effect = CalledProcessError(1, ["pip", "show", "nonexistent"])
-        
+
         result = VersionCompatibility.get_package_version_from_pip(["pip"], "nonexistent")
         self.assertIsNone(result)
 
@@ -281,7 +263,7 @@ class VersionCompatibilityTest(unittest.TestCase):
     def test_get_package_version_from_pip_no_version_line(self, mock_run):
         """Test getting package version from pip when output has no Version line"""
         mock_run.return_value.stdout = "Name: test-package\nSummary: Test package"
-        
+
         result = VersionCompatibility.get_package_version_from_pip(["pip"], "test-package")
         self.assertIsNone(result)
 
@@ -289,7 +271,7 @@ class VersionCompatibilityTest(unittest.TestCase):
         """Test plugin compatibility when no compatibility info is found (assume compatible)"""
         with mock.patch("importlib.util.find_spec") as mock_find_spec:
             mock_find_spec.return_value = None
-            
+
             result = VersionCompatibility.is_plugin_compatible("nonexistent_plugin", "0.1.15")
             self.assertTrue(result)  # Should assume compatible when package not found
 
@@ -297,18 +279,18 @@ class VersionCompatibilityTest(unittest.TestCase):
         """Test filtering plugins based on runtime compatibility"""
         plugins = ["plugin1", "plugin2", "plugin3"]
         runtime_version = "0.1.15"
-        
+
         # Mock the is_plugin_compatible method to return specific results
         compatibility_results = [True, False, True]
-        
+
         with mock.patch.object(VersionCompatibility, "is_plugin_compatible") as mock_is_compatible:
             mock_is_compatible.side_effect = compatibility_results
-            
+
             result = VersionCompatibility.filter_compatible_plugins(plugins, runtime_version)
-            
+
             # Should return plugin1 and plugin3 (compatible ones)
             self.assertEqual(result, ["plugin1", "plugin3"])
-            
+
             # Verify all plugins were checked
             expected_calls = [
                 mock.call("plugin1", runtime_version),
@@ -333,4 +315,4 @@ class VersionCompatibilityTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    unittest.main()

@@ -5,6 +5,7 @@ from unittest import mock
 
 from provisioner_shared.components.runtime.utils.pypi_registry import PyPiRegistry
 
+
 #
 # To run these directly from the terminal use:
 #  poetry run coverage run -m pytest provisioner_shared/components/runtime/utils/pypi_registry_test.py
@@ -23,7 +24,7 @@ class PyPiRegistryTest(unittest.TestCase):
         self.mock_http_client.get_fn.return_value = mock_response_json
 
         result = self.pypi_registry._get_package_version("test-package")
-        
+
         self.assertEqual(result, "1.2.3")
         self.mock_http_client.get_fn.assert_called_once_with("https://pypi.org/pypi/test-package/json", timeout=10)
 
@@ -32,16 +33,18 @@ class PyPiRegistryTest(unittest.TestCase):
         self.mock_http_client.get_fn.side_effect = Exception("404 Client Error")
 
         result = self.pypi_registry._get_package_version("nonexistent-package")
-        
+
         self.assertIsNone(result)
-        self.mock_http_client.get_fn.assert_called_once_with("https://pypi.org/pypi/nonexistent-package/json", timeout=10)
+        self.mock_http_client.get_fn.assert_called_once_with(
+            "https://pypi.org/pypi/nonexistent-package/json", timeout=10
+        )
 
     def test_get_package_version_timeout(self):
         """Test package version retrieval when request times out"""
         self.mock_http_client.get_fn.side_effect = Exception("Request timed out")
 
         result = self.pypi_registry._get_package_version("slow-package")
-        
+
         self.assertIsNone(result)
         self.mock_http_client.get_fn.assert_called_once_with("https://pypi.org/pypi/slow-package/json", timeout=10)
 
@@ -50,9 +53,11 @@ class PyPiRegistryTest(unittest.TestCase):
         self.mock_http_client.get_fn.side_effect = Exception("Connection failed")
 
         result = self.pypi_registry._get_package_version("unreachable-package")
-        
+
         self.assertIsNone(result)
-        self.mock_http_client.get_fn.assert_called_once_with("https://pypi.org/pypi/unreachable-package/json", timeout=10)
+        self.mock_http_client.get_fn.assert_called_once_with(
+            "https://pypi.org/pypi/unreachable-package/json", timeout=10
+        )
 
     def test_get_package_version_invalid_response(self):
         """Test package version retrieval when response format is invalid"""
@@ -60,18 +65,22 @@ class PyPiRegistryTest(unittest.TestCase):
         self.mock_http_client.get_fn.return_value = mock_response_json
 
         result = self.pypi_registry._get_package_version("invalid-response-package")
-        
+
         self.assertIsNone(result)
-        self.mock_http_client.get_fn.assert_called_once_with("https://pypi.org/pypi/invalid-response-package/json", timeout=10)
+        self.mock_http_client.get_fn.assert_called_once_with(
+            "https://pypi.org/pypi/invalid-response-package/json", timeout=10
+        )
 
     def test_get_package_version_json_decode_error(self):
         """Test package version retrieval when JSON decoding fails"""
         self.mock_http_client.get_fn.return_value = "invalid json content"
 
         result = self.pypi_registry._get_package_version("malformed-json-package")
-        
+
         self.assertIsNone(result)
-        self.mock_http_client.get_fn.assert_called_once_with("https://pypi.org/pypi/malformed-json-package/json", timeout=10)
+        self.mock_http_client.get_fn.assert_called_once_with(
+            "https://pypi.org/pypi/malformed-json-package/json", timeout=10
+        )
 
     @mock.patch("provisioner_shared.components.runtime.utils.pypi_registry.logger")
     def test_get_package_version_logs_errors(self, mock_logger):
@@ -79,7 +88,7 @@ class PyPiRegistryTest(unittest.TestCase):
         self.mock_http_client.get_fn.side_effect = Exception("404 Client Error")
 
         result = self.pypi_registry._get_package_version("test-package")
-        
+
         self.assertIsNone(result)
         mock_logger.debug.assert_called()
 
@@ -97,4 +106,4 @@ class PyPiRegistryTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    unittest.main()

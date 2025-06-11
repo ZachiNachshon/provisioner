@@ -287,32 +287,42 @@ class PackageLoader:
 
     def _get_runtime_version_from_local_files(self) -> Optional[str]:
         """
-        Try to get runtime version from local version.txt file (for development).
+        Try to get runtime version from local manifest.json file (for development).
 
         Returns:
             Runtime version string if found, None otherwise
         """
         try:
+            import json
             import pathlib
 
-            # Try different potential paths for the runtime
+            # Try different potential paths for the runtime manifest.json
             potential_paths = [
-                "provisioner/resources/version.txt",
-                "../provisioner/resources/version.txt",
-                "../../provisioner/resources/version.txt",
+                "provisioner/resources/manifest.json",
+                "../provisioner/resources/manifest.json",
+                "../../provisioner/resources/manifest.json",
                 # Also try relative to the current package
-                pathlib.Path(__file__).parent.parent.parent.parent.parent / "provisioner" / "resources" / "version.txt",
+                pathlib.Path(__file__).parent.parent.parent.parent.parent
+                / "provisioner"
+                / "resources"
+                / "manifest.json",
             ]
 
             for path in potential_paths:
-                version = self._io_utils.read_file_safe_fn(path)
-                if version:
-                    logger.debug(f"Found runtime version from local file {path}: {version}")
-                    version = version.strip()
-                    return version
+                manifest_content = self._io_utils.read_file_safe_fn(path)
+                if manifest_content:
+                    try:
+                        manifest_data = json.loads(manifest_content.strip())
+                        version = manifest_data.get("version")
+                        if version:
+                            logger.debug(f"Found runtime version from local manifest {path}: {version}")
+                            return version
+                    except json.JSONDecodeError as e:
+                        logger.debug(f"Invalid JSON in manifest file {path}: {e}")
+                        continue
 
         except Exception as e:
-            logger.debug(f"Error reading local version file: {e}")
+            logger.debug(f"Error reading local manifest files: {e}")
 
         return None
 
@@ -346,7 +356,7 @@ class PackageLoader:
             self._cached_runtime_version = runtime_version
             return runtime_version
 
-        # Method 2: Try to get from local version.txt file (for development)
+        # Method 2: Try to get from local manifest.json file (for development)
         runtime_version = self._get_runtime_version_from_local_files()
         if runtime_version:
             self._cached_runtime_version = runtime_version

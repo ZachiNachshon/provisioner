@@ -137,7 +137,7 @@ provisioner plugins install --name provisioner-docker-plugin
 The runtime version is detected using multiple fallback methods:
 
 1. **Pip Package**: Check installed `provisioner-runtime` package version
-2. **Local File**: Read from `provisioner/resources/version.txt` (development)  
+2. **Local File**: Read from `provisioner/resources/manifest.json` (for development)  
 3. **PyPI Fallback**: Query PyPI for `provisioner-runtime` package version (if not installed locally)
 4. **Fallback**: Assume compatibility if version cannot be determined
 
