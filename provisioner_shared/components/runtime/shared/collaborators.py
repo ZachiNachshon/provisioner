@@ -19,6 +19,7 @@ from provisioner_shared.components.runtime.utils.printer import Printer
 from provisioner_shared.components.runtime.utils.process import Process
 from provisioner_shared.components.runtime.utils.progress_indicator import ProgressIndicator
 from provisioner_shared.components.runtime.utils.prompter import Prompter
+from provisioner_shared.components.runtime.utils.pypi_registry import PyPiRegistry
 from provisioner_shared.components.runtime.utils.randomizer import Randomizer
 from provisioner_shared.components.runtime.utils.summary import Summary
 from provisioner_shared.components.runtime.utils.yaml_util import YamlUtil
@@ -43,6 +44,7 @@ class CoreCollaborators:
         self.__hosts_file: HostsFile = None
         self.__http_client: HttpClient = None
         self.__editor: Editor = None
+        self.__pypi_registry: PyPiRegistry = None
         self.__package_loader: PackageLoader = None
         self.__yaml_util: YamlUtil = None
         self.__randomizer: Randomizer = None
@@ -190,10 +192,20 @@ class CoreCollaborators:
 
         return self._lock_and_get(callback=create_editor)
 
+    def pypi_registry(self) -> PyPiRegistry:
+        def create_pypi_registry():
+            if not self.__pypi_registry:
+                self.__pypi_registry = PyPiRegistry.create(self.http_client())
+            return self.__pypi_registry
+
+        return self._lock_and_get(callback=create_pypi_registry)
+
     def package_loader(self) -> PackageLoader:
         def create_package_loader():
             if not self.__package_loader:
-                self.__package_loader = PackageLoader.create(self.__ctx, self.io_utils(), self.process())
+                self.__package_loader = PackageLoader.create(
+                    self.__ctx, self.io_utils(), self.process(), self.pypi_registry()
+                )
             return self.__package_loader
 
         return self._lock_and_get(callback=create_package_loader)
