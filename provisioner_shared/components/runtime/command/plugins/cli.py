@@ -10,6 +10,7 @@ from provisioner_shared.components.runtime.colors import colors
 from provisioner_shared.components.runtime.config.domain.config import PluginDefinition, ProvisionerConfig
 from provisioner_shared.components.runtime.config.manager.config_manager import ConfigManager
 from provisioner_shared.components.runtime.shared.collaborators import CoreCollaborators
+from provisioner_shared.components.runtime.utils.version_compatibility import VersionCompatibility
 
 
 def append_plugins_cmd_to_cli(root_menu: click.Group, collaborators: CoreCollaborators):
@@ -24,6 +25,19 @@ def append_plugins_cmd_to_cli(root_menu: click.Group, collaborators: CoreCollabo
     def list():
         """List locally installed provisioner plugins"""
         list_locally_installed_plugins(collaborators)
+
+    @plugins.command()
+    @cli_modifiers
+    @click.option(
+        "--show-incompatible",
+        is_flag=True,
+        default=False,
+        help="Also show plugins that are incompatible with current runtime version",
+        envvar="PROV_PLUGIN_SHOW_INCOMPATIBLE",
+    )
+    def compatibility(show_incompatible: bool):
+        """Show plugin compatibility information with current runtime version"""
+        show_plugin_compatibility(collaborators, show_incompatible)
 
     @plugins.command()
     @cli_modifiers
@@ -92,25 +106,32 @@ def install_available_plugins_from_args(plgn_name: str, collaborators: CoreColla
 
 
 def install_available_plugins_from_prompt(collaborators: CoreCollaborators) -> None:
+    # Check if there are already installed plugins
     packages_from_pip = _try_get_pip_installed_packages(collaborators)
     packages_from_pip_escaped: List[str] = []
+
     # Adjust pip plugin name to config plugin name
     for package_name in packages_from_pip:
         escaped_pkg_name = package_name.replace("-", "_")
         packages_from_pip_escaped.append(escaped_pkg_name)
 
     prov_cfg: ProvisionerConfig = ConfigManager.instance().get_config()
+    # The available plugins are the ones defined in the provisioner runtime config
     packages_from_cfg = prov_cfg.plugins_definitions.keys()
     options: List[str] = []
     hash_to_plgn_obj_dict: dict[str, PluginDefinition] = {}
 
     for package_name in packages_from_cfg:
-        # Do not show already installed plugins
+        # Do not suggest to install already installed plugins
         if package_name not in packages_from_pip_escaped:
             plgn_def: PluginDefinition = prov_cfg.plugins_definitions.get(package_name, None)
             display_str = f"{plgn_def.name} - {plgn_def.description} (Maintainer: {plgn_def.maintainer})"
             options.append(display_str)
             hash_to_plgn_obj_dict[hash(display_str)] = plgn_def
+
+    if len(options) == 0:
+        collaborators.printer().print_fn("No plugins found or plugins already installed.")
+        return
 
     selected_plugins: dict = collaborators.prompter().prompt_user_multi_selection_fn(
         message="Please select plugins to install", options=options
@@ -171,14 +192,96 @@ def uninstall_local_plugins_from_prompt(collaborators: CoreCollaborators) -> Non
         collaborators.printer().print_fn(f"Plugin {plgn_def.name} uninstalled successfully.")
 
 
-def _try_get_pip_installed_packages(collaborators: CoreCollaborators):
+def show_plugin_compatibility(collaborators: CoreCollaborators, show_incompatible: bool = False) -> None:
+    """Show plugin compatibility information with current runtime version"""
+    runtime_version = collaborators.package_loader().get_runtime_version_fn()
+
+    if not runtime_version:
+        collaborators.printer().print_fn("⚠️  Could not determine runtime version")
+        return
+
+    # Get all installed plugins (without version filtering)
+    all_packages = _try_get_pip_installed_packages(collaborators, enable_version_filtering=False)
+
+    if not all_packages or len(all_packages) == 0:
+        collaborators.printer().print_fn("No plugins found.")
+        return
+
+    output = "\n=== Plugin Compatibility Report ===\n\n"
+    output += f"Runtime Version: {colors.color_text(runtime_version, colors.LIGHT_CYAN)}\n\n"
+
+    prov_cfg: ProvisionerConfig = ConfigManager.instance().get_config()
+    compatible_count = 0
+    incompatible_count = 0
+
+    for package_name in all_packages:
+        pkg_name_escaped = package_name.replace("-", "_")
+        plgn_def = prov_cfg.plugins_definitions.get(pkg_name_escaped, None)
+
+        if not plgn_def:
+            continue
+
+        is_compatible = VersionCompatibility.is_plugin_compatible(package_name, runtime_version)
+
+        if is_compatible:
+            compatible_count += 1
+            status_icon = "✅"
+            status_color = colors.GREEN
+        else:
+            incompatible_count += 1
+            status_icon = "❌"
+            status_color = colors.RED
+
+        # Only show incompatible plugins if requested
+        if not is_compatible and not show_incompatible:
+            continue
+
+        output += f"{status_icon} {colors.color_text(plgn_def.name, colors.LIGHT_CYAN)}\n"
+        output += f"   Package: {package_name}\n"
+        output += f"   Status: {colors.color_text('Compatible' if is_compatible else 'Incompatible', status_color)}\n"
+
+        # Try to get the compatibility range
+        try:
+            import importlib.util
+
+            normalized_name = package_name.replace("-", "_")
+            spec = importlib.util.find_spec(normalized_name)
+            if spec and spec.origin:
+                from pathlib import Path
+
+                plugin_path = Path(spec.origin).parent
+                version_range = VersionCompatibility.read_plugin_compatibility(str(plugin_path))
+                if version_range:
+                    output += f"   Required Runtime: {version_range}\n"
+                else:
+                    output += f"   Required Runtime: {colors.color_text('Not specified (assumes compatible)', colors.YELLOW)}\n"
+        except Exception:
+            output += f"   Required Runtime: {colors.color_text('Could not determine', colors.YELLOW)}\n"
+
+        output += "\n"
+
+    # Summary
+    output += f"Summary: {colors.color_text(str(compatible_count), colors.GREEN)} compatible, "
+    output += f"{colors.color_text(str(incompatible_count), colors.RED)} incompatible\n"
+
+    if incompatible_count > 0 and not show_incompatible:
+        output += "\nUse --show-incompatible to see incompatible plugins\n"
+
+    collaborators.printer().print_fn(output)
+
+
+def _try_get_pip_installed_packages(collaborators: CoreCollaborators, enable_version_filtering: bool = True):
+    runtime_version = None
+    if enable_version_filtering:
+        runtime_version = collaborators.package_loader().get_runtime_version_fn()
+
     return collaborators.package_loader().get_pip_installed_packages_fn(
         filter_keyword="provisioner",
         exclusions=[
             "provisioner-shared",
-            "provisioner_shared",
             "provisioner-runtime",
-            "provisioner_runtime",
         ],
         debug=True,
+        enable_version_filtering=enable_version_filtering,
+        runtime_version=runtime_version,
     )
