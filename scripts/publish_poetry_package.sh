@@ -346,7 +346,7 @@ publish_pip_package_to_github() {
   publish_asset_to_github_release "${tag_ver}" "${output_folder}/${release_filename}"
 }
 
-publish_to_pypi() {
+publish_poetry_package() {
   local tag="${POETRY_PACKAGE_VERSION}"
   local username="__token__"
   local password="${PYPI_API_TOKEN}"
@@ -365,7 +365,7 @@ publish_package() {
     publish_pip_package_to_github
   elif is_pypi_release_type; then
     check_tool "twine"
-    publish_to_pypi
+    publish_poetry_package
   else
     log_fatal "Invalid publish release type. value: ${CLI_FLAG_RELEASE_TYPE}"
   fi

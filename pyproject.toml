@@ -40,11 +40,12 @@ provisioner = "provisioner.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-provisioner_runtime = "~0.1.19"
-provisioner_shared = "~0.1.19"
-provisioner_installers_plugin = "^0.1.6"
-provisioner_examples_plugin = "^0.1.8"
-provisioner_single_board_plugin = "^0.1.5"
+# Always use latest versions for runtime/shared and plugins during development/testing/CI
+provisioner_runtime = ">=0.0.1"
+provisioner_shared = ">=0.0.1"
+provisioner_installers_plugin = ">=0.0.1"
+provisioner_examples_plugin = ">=0.0.1"
+provisioner_single_board_plugin = ">=0.0.1"
 
 # 
 # Can be used only when running Unit/IT tests locally using 'poetry run coverage run -m pytest -s <path>'

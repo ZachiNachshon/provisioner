@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout repository code (with submodules)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true  # Fetch Git submodules
           token: ${{ secrets.PROVISIONER_PLUGINS_REPO_ACCESS_TOKEN }}

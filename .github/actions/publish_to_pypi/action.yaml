@@ -74,7 +74,7 @@ runs:
         publishable=${{ inputs.project_to_publish }}
 
         echo "Publishing provisioner runtime & shared packages"
-        publisher_script_path="../scripts/publish_to_pypi.sh"
+        publisher_script_path="../scripts/publish_poetry_package.sh"
 
         # 
         # Publish shared package
