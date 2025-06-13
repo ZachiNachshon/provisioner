@@ -1,6 +1,6 @@
 {
   "name": "provisioner_shared",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "Shared components and utilities for the provisioner runtime and plugins",
   "author": "Zachi Nachshon",
   "maintainer": "Zachi Nachshon"
