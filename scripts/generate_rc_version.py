@@ -42,12 +42,27 @@ def get_current_version(project_dir: Path) -> str:
 
 
 def check_tag_exists(version: str) -> bool:
-    """Check if a git tag exists for the given version."""
+    """Check if a git tag exists for the given version using GitHub CLI."""
     try:
-        tags = run_command("git tag -l")
-        return f"v{version}" in tags.split('\n')
+        # Use GitHub CLI to list all tags and check if our version exists
+        # This queries the remote repository without fetching all history
+        tags_output = run_command("gh api repos/:owner/:repo/tags --paginate --jq '.[].name'")
+        remote_tags = tags_output.split('\n') if tags_output else []
+        
+        if f"v{version}" in remote_tags:
+            return True
+            
+        # Fallback: check local git tags (for local development)
+        local_tags = run_command("git tag -l")
+        return f"v{version}" in local_tags.split('\n')
+        
     except:
-        return False
+        # If GitHub CLI fails, fallback to local git tags only
+        try:
+            tags = run_command("git tag -l")
+            return f"v{version}" in tags.split('\n')
+        except:
+            return False
 
 
 def parse_version(version: str) -> tuple:
