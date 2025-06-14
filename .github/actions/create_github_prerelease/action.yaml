@@ -59,6 +59,33 @@ runs:
         echo "::endgroup::"
       shell: bash
 
+    - name: Generate Release Notes
+      run: |
+        echo "::group::Generating release notes with commit history"
+        rc_version="${{ inputs.rc_version }}"
+        
+        # Get commits since last tag (if any) 
+        last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        
+        echo "⚠️ **Release Candidate** - Not recommended for production use. Release notes will be added when promoted to General Availability." > release_notes.md
+        echo "" >> release_notes.md
+        
+        if [ -n "$last_tag" ]; then
+          echo "### Changes since $last_tag:" >> release_notes.md
+          git log ${last_tag}..HEAD --oneline --no-merges | head -10 >> release_notes.md
+        else
+          echo "### Recent changes:" >> release_notes.md
+          git log --oneline --no-merges -10 >> release_notes.md
+        fi
+        
+        echo "" >> release_notes.md
+        echo "_This RC can be promoted to a stable release using the General Availability workflow._" >> release_notes.md
+        
+        echo "Generated release notes:"
+        cat release_notes.md
+        echo "::endgroup::"
+      shell: bash
+
     - name: Create GitHub Pre-Release
       run: |
         echo "::group::Creating GitHub pre-release"
@@ -78,14 +105,29 @@ runs:
           exit 1
         fi
         
-        # Create the pre-release with minimal notes
-        gh release create "v${rc_version}" \
-          --title "Release Candidate v${rc_version}" \
-          --notes "⚠️ **Release Candidate** - Not recommended for production use. Release notes will be added when promoted to General Availability." \
-          --prerelease \
-          --target master \
-          release-assets/* || echo "No assets to upload"
+        # Check if we have assets to upload
+        if [ -d "release-assets" ] && [ "$(ls -A release-assets 2>/dev/null)" ]; then
+          echo "Found assets to upload:"
+          ls -la release-assets/
+          
+          # Create the pre-release with assets
+          gh release create "v${rc_version}" \
+            --title "Release Candidate v${rc_version}" \
+            --notes-file release_notes.md \
+            --prerelease \
+            --target master \
+            release-assets/*
+        else
+          echo "No assets found to upload"
+          
+          # Create the pre-release without assets
+          gh release create "v${rc_version}" \
+            --title "Release Candidate v${rc_version}" \
+            --notes-file release_notes.md \
+            --prerelease \
+            --target master
+        fi
         
         echo "Successfully created pre-release v${rc_version}"
         echo "::endgroup::"
-      shell: bash 
+      shell: bash

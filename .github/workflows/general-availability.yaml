@@ -121,7 +121,7 @@ jobs:
             --title "Release v${stable_version}" \
             --notes "Promoted from Release Candidate v${rc_version}
 
-${release_notes}" \
+          ${release_notes}" \
             --latest \
             ./rc-assets/* || true
           
