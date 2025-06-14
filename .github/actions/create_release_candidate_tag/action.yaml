@@ -31,11 +31,6 @@ runs:
         echo "::endgroup::"
       shell: bash
 
-    - name: Install Required pip packages
-      run: |
-        pip install coverage twine
-      shell: bash    
-
     # Discard any potential changes to the git index which might
     # contain dependencies section in the pyproject.toml file
     # and other non version-bump from previous steps/actions

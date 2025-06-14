@@ -80,15 +80,22 @@ def generate_rc_version(project_to_release: str) -> str:
     rc_match = re.search(rc_pattern, current_version)
     
     if rc_match:
-        # Increment RC number
+        # Current version is already an RC, increment RC number
         base_version = re.sub(rc_pattern, '', current_version)
         rc_number = int(rc_match.group(1))
-        new_rc_number = rc_number + 1
-        rc_version = f"{base_version}-{RC_VERSION_SUFFIX}.{new_rc_number}"
+        
+        # Find the highest existing RC number for this base version
+        while True:
+            next_rc_number = rc_number + 1
+            candidate_rc_version = f"{base_version}-{RC_VERSION_SUFFIX}.{next_rc_number}"
+            if not check_tag_exists(candidate_rc_version):
+                rc_version = candidate_rc_version
+                break
+            rc_number = next_rc_number
     else:
-        # Check if this version already exists as a tag
+        # Current version is not an RC
         if check_tag_exists(current_version):
-            # Version exists, increment patch and add RC
+            # Version exists as tag, increment patch and add RC
             major, minor, patch = parse_version(current_version)
             new_patch = patch + 1
             base_version = f"{major}.{minor}.{new_patch}"
@@ -96,7 +103,14 @@ def generate_rc_version(project_to_release: str) -> str:
             # Use current version as base
             base_version = current_version
         
-        rc_version = f"{base_version}-{RC_VERSION_SUFFIX}.1"
+        # Find the first available RC number for this base version
+        rc_number = 1
+        while True:
+            candidate_rc_version = f"{base_version}-{RC_VERSION_SUFFIX}.{rc_number}"
+            if not check_tag_exists(candidate_rc_version):
+                rc_version = candidate_rc_version
+                break
+            rc_number += 1
     
     print(f"Generated RC version: {rc_version}")
     return rc_version
