@@ -1,0 +1,131 @@
+name: General Availability - Promote RC to PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      rc_version:
+        type: string
+        description: 'Release Candidate version to promote (e.g., 1.2.3-RC.1). Leave empty to auto-select latest RC.'
+        required: false
+      project_name:
+        type: choice
+        description: 'Select project to promote to GA'
+        options: 
+          - 'provisioner'
+        required: true
+
+env:
+  PYPI_API_TOKEN_PROVISIONER_RUNTIME: ${{ secrets.PROVISIONER_PYPI_API_TOKEN }}
+  PYPI_API_TOKEN_PROVISIONER_SHARED: ${{ secrets.PYPI_API_TOKEN_PROVISIONER_SHARED }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  POETRY_VERSION: "1.8.4"
+  
+jobs:
+  promote_rc_to_ga:
+    name: Promote RC to General Availability
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: [ '3.11' ]
+
+    steps:
+      - name: Checkout repository code (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: true  # Fetch Git submodules
+          token: ${{ secrets.PROVISIONER_PLUGINS_REPO_ACCESS_TOKEN }}
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+          POETRY_VERSION: ${{ env.POETRY_VERSION }}
+
+      - name: Validate RC Version (if provided)
+        run: |
+          rc_version="${{ github.event.inputs.rc_version }}"
+          if [ -n "$rc_version" ]; then
+            if [[ ! "$rc_version" =~ -RC\.[0-9]+$ ]]; then
+              echo "Error: Invalid RC version format. Expected format: x.y.z-RC.N"
+              exit 1
+            fi
+            echo "RC version validation passed: $rc_version"
+          else
+            echo "No RC version provided - will auto-detect latest RC"
+          fi
+
+      - name: Check if RC exists in GitHub releases (if specified)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          rc_version="${{ github.event.inputs.rc_version }}"
+          project_name="${{ github.event.inputs.project_name }}"
+          
+          if [ -n "$rc_version" ]; then
+            # Check if the RC version exists as a pre-release
+            if ! gh release view "v${rc_version}" --repo ${{ github.repository }}; then
+              echo "Error: RC version v${rc_version} not found in GitHub releases"
+              exit 1
+            fi
+            
+            # Verify it's marked as pre-release
+            is_prerelease=$(gh release view "v${rc_version}" --json isPrerelease --jq '.isPrerelease')
+            if [[ "$is_prerelease" != "true" ]]; then
+              echo "Error: Release v${rc_version} is not marked as pre-release"
+              exit 1
+            fi
+            
+            echo "RC version v${rc_version} validated as pre-release"
+          else
+            echo "No RC version specified - validation will happen during auto-detection"
+          fi
+
+      - name: Run Tests
+        uses: ./.github/actions/tests
+
+      - name: Promote RC to PyPI
+        uses: ./.github/actions/promote_rc_to_pypi
+        with:
+          project_name: ${{ github.event.inputs.project_name }}
+          rc_version: ${{ github.event.inputs.rc_version }}
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          # PyPi access tokens
+          PYPI_API_TOKEN_PROVISIONER_RUNTIME: ${{ env.PYPI_API_TOKEN_PROVISIONER_RUNTIME }}
+          PYPI_API_TOKEN_PROVISIONER_SHARED: ${{ env.PYPI_API_TOKEN_PROVISIONER_SHARED }}
+
+      - name: Create Stable GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          input_rc_version="${{ github.event.inputs.rc_version }}"
+          
+          # Get the actual RC version that was promoted (from the action output or input)
+          if [ -n "$input_rc_version" ]; then
+            rc_version="$input_rc_version"
+          else
+            # Get the latest RC version that was auto-detected
+            rc_version=$(git tag -l | grep -E 'v[0-9]+\.[0-9]+\.[0-9]+-RC\.[0-9]+$' | sort -V -r | head -1 | sed 's/^v//')
+          fi
+          
+          stable_version=$(echo "$rc_version" | sed 's/-RC\.[0-9]*$//')
+          project_name="${{ github.event.inputs.project_name }}"
+          
+          echo "Promoting RC v${rc_version} to stable release v${stable_version}"
+          
+          # Get the RC release assets and notes
+          gh release download "v${rc_version}" --pattern "*" --dir ./rc-assets || true
+          release_notes=$(gh release view "v${rc_version}" --json body --jq '.body')
+          
+          # Create stable release
+          gh release create "v${stable_version}" \
+            --title "Release v${stable_version}" \
+            --notes "Promoted from Release Candidate v${rc_version}
+
+${release_notes}" \
+            --latest \
+            ./rc-assets/* || true
+          
+          # Mark the RC as non-latest (if it was latest)
+          gh release edit "v${rc_version}" --prerelease
+          
+          echo "Successfully created stable release v${stable_version}" 

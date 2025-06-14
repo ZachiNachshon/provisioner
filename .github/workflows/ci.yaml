@@ -12,12 +12,15 @@ env:
   POETRY_VERSION: "1.8.4"
 
 jobs:
-  test:
-    name: Tests Suite (Unit + E2E)
+  test-and-tag-rc-ver:
+    name: Tests Suite (Unit + E2E) & Tag RC Version
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python: [ '3.11' ]
+    outputs:
+      rc_version: ${{ steps.create_rc.outputs.rc_version }}
+      project_name: ${{ steps.create_rc.outputs.project_name }}
 
     steps:
       - name: Checkout repository code (with submodules)
@@ -83,3 +86,42 @@ jobs:
       #     flags: e2e
       #     name: codecov-e2e
       #     fail_ci_if_error: false
+
+      # Create Release Candidate only on successful master builds
+      - name: Create Release Candidate
+        id: create_rc
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: ./.github/actions/create_release_candidate_tag
+        with:
+          project_to_release: 'provisioner'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Create GitHub Pre-Release for RC version (only runs after successful test job on master)
+  github-prerelease:
+    name: Create GitHub Pre-Release
+    runs-on: ubuntu-latest
+    needs: test-and-tag-rc-ver
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push' && needs.test-and-tag-rc-ver.outputs.rc_version != ''
+    strategy:
+      matrix:
+        python: [ '3.11' ]
+
+    steps:
+      - name: Checkout repository code (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: true  # Fetch Git submodules
+          token: ${{ secrets.PROVISIONER_PLUGINS_REPO_ACCESS_TOKEN }}
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+          POETRY_VERSION: ${{ env.POETRY_VERSION }}
+
+      - name: Create GitHub Pre-Release
+        uses: ./.github/actions/create_github_prerelease
+        with:
+          project_to_release: ${{ needs.test-and-tag-rc-ver.outputs.project_name }}
+          rc_version: ${{ needs.test-and-tag-rc-ver.outputs.rc_version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

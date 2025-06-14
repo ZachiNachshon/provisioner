@@ -1,0 +1,91 @@
+name: 'Create GitHub Pre-Release for RC'
+description: 'Create a GitHub pre-release from RC version with built artifacts'
+
+inputs:
+  GITHUB_TOKEN:
+    type: string
+    description: 'GitHub API token'
+    required: true
+  project_to_release:
+    type: string
+    description: 'Project name to release'
+    required: true
+  rc_version:
+    type: string
+    description: 'RC version to create pre-release for'
+    required: true
+
+runs:
+  using: 'composite'  
+  steps:
+    - name: Print Action Arguments
+      run: |
+        echo "::group::Print GitHub pre-release arguments"
+        echo "project_to_release: ${{ inputs.project_to_release }}"
+        echo "rc_version: ${{ inputs.rc_version }}"
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Map GitHub token
+      run: |
+        # Used by GitHub CLI client
+        echo "GH_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Prepare Release Assets
+      run: |
+        echo "::group::Preparing release assets"
+        project_to_release="${{ inputs.project_to_release }}"
+        rc_version="${{ inputs.rc_version }}"
+        
+        echo "Preparing assets for ${project_to_release} v${rc_version}"
+        
+        # Create assets directory
+        mkdir -p release-assets
+        
+        # Copy built wheels to assets directory
+        if [ -d "${project_to_release}/dist" ]; then
+          cp ${project_to_release}/dist/*.whl release-assets/ || true
+        fi
+        
+        if [ -d "provisioner_shared/dist" ]; then
+          cp provisioner_shared/dist/*.whl release-assets/ || true
+        fi
+        
+        # List assets
+        echo "Release assets:"
+        ls -la release-assets/
+        
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Create GitHub Pre-Release
+      run: |
+        echo "::group::Creating GitHub pre-release"
+        rc_version="${{ inputs.rc_version }}"
+        project_to_release="${{ inputs.project_to_release }}"
+        
+        echo "Creating GitHub pre-release for v${rc_version}"
+        
+        # Check if release already exists
+        if gh release view "v${rc_version}" >/dev/null 2>&1; then
+          echo "Error: Pre-release v${rc_version} already exists"
+          echo "This indicates the RC version was already created and published."
+          echo "To create a new pre-release, you need to:"
+          echo "1. Use a different RC version (e.g., increment the RC number)"
+          echo "2. Or manually delete the existing pre-release if you want to recreate it"
+          echo "3. Then run this action again"
+          exit 1
+        fi
+        
+        # Create the pre-release with minimal notes
+        gh release create "v${rc_version}" \
+          --title "Release Candidate v${rc_version}" \
+          --notes "⚠️ **Release Candidate** - Not recommended for production use. Release notes will be added when promoted to General Availability." \
+          --prerelease \
+          --target master \
+          release-assets/* || echo "No assets to upload"
+        
+        echo "Successfully created pre-release v${rc_version}"
+        echo "::endgroup::"
+      shell: bash 
