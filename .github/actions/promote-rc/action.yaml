@@ -14,9 +14,12 @@ inputs:
     required: true
 
 outputs:
-  rc_version:
-    description: 'Generated RC version'
-    value: ${{ steps.generate_rc.outputs.rc_version }}
+  package_version:
+    description: 'Final package version for build artifacts'
+    value: ${{ steps.generate_rc.outputs.package_version }}
+  rc_tag:
+    description: 'RC tag for git tagging'
+    value: ${{ steps.generate_rc.outputs.rc_tag }}
 
 runs:
   using: 'composite'  
@@ -42,46 +45,49 @@ runs:
         echo "GH_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
       shell: bash
 
-    - name: Generate RC Version
+    - name: Generate Release Versions
       id: generate_rc
       run: |
-        echo "::group::Calculating RC version"
+        echo "::group::Calculating release versions (build-once approach)"
         python scripts/github_actions/generate_rc_version.py ${{ inputs.project_to_release }}
         echo "::endgroup::" 
       shell: bash
 
     - name: Create Git Tag
       run: |
-        rc_version="${{ steps.generate_rc.outputs.rc_version }}"
+        package_version="${{ steps.generate_rc.outputs.package_version }}"
+        rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
         project_to_release="${{ inputs.project_to_release }}"
         
-        echo "Creating git tag for RC version: v${rc_version}"
+        echo "Creating git tag: v${rc_tag} (packages built with final version ${package_version})"
         
         git config --global user.email "zachi.nachshon@gmail.com"
         git config --global user.name "ZachiNachshon"
         
-        git tag "v${rc_version}" -m "Release Candidate v${rc_version} for ${project_to_release}"
-        git push origin "v${rc_version}"
+        git tag "v${rc_tag}" -m "Release Candidate v${rc_tag} for ${project_to_release} (package version: ${package_version})"
+        git push origin "v${rc_tag}"
       shell: bash
 
     - name: Build Release Assets
       run: |
-        echo "::group::Building release assets"
+        echo "::group::Building release assets with final version (build-once approach)"
         project_to_release="${{ inputs.project_to_release }}"
-        rc_version="${{ steps.generate_rc.outputs.rc_version }}"
+        package_version="${{ steps.generate_rc.outputs.package_version }}"
+        rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
         
-        echo "Building wheel packages for ${project_to_release} v${rc_version}"
+        echo "Building wheel packages for ${project_to_release} with final version ${package_version}"
+        echo "Git tag will be v${rc_tag}, but packages contain final version for GA promotion"
         
-        # Build main project wheel with RC version
-        echo "Building ${project_to_release} wheel package with version ${rc_version}..."
+        # Build main project wheel with final version
+        echo "Building ${project_to_release} wheel package with final version ${package_version}..."
         cd ${project_to_release}
-        ../scripts/github_actions/package_deployer.sh build --build-type wheel --version ${rc_version} -y
+        ../scripts/github_actions/package_deployer.sh build --build-type wheel --version ${package_version} -y
         cd ..
         
-        # Build provisioner_shared wheel (dependency) with RC version
-        echo "Building provisioner_shared wheel package with version ${rc_version}..."
+        # Build provisioner_shared wheel (dependency) with final version
+        echo "Building provisioner_shared wheel package with final version ${package_version}..."
         cd provisioner_shared
-        ../scripts/github_actions/package_deployer.sh build --build-type wheel --version ${rc_version} -y
+        ../scripts/github_actions/package_deployer.sh build --build-type wheel --version ${package_version} -y
         cd ..
         
         # Create assets directory and copy built wheels
@@ -107,12 +113,16 @@ runs:
     - name: Generate Release Notes
       run: |
         echo "::group::Generating release notes with commit history"
-        rc_version="${{ steps.generate_rc.outputs.rc_version }}"
+        rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
+        package_version="${{ steps.generate_rc.outputs.package_version }}"
         
         # Get commits since last tag (if any) 
         last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
         
-        echo "⚠️ **Release Candidate** - Not recommended for production use. Release notes will be added when promoted to General Availability." > release_notes.md
+        echo "⚠️ **Release Candidate** - Built with final version ${package_version} but marked as pre-release for testing." > release_notes.md
+        echo "" >> release_notes.md
+        echo "**Package Version:** ${package_version} (ready for GA promotion)" >> release_notes.md
+        echo "**Git Tag:** v${rc_tag}" >> release_notes.md
         echo "" >> release_notes.md
         
         if [ -n "$last_tag" ]; then
@@ -133,20 +143,23 @@ runs:
 
     - name: Create GitHub Pre-Release
       run: |
-        echo "::group::Creating GitHub pre-release using publish script"
-        rc_version="${{ steps.generate_rc.outputs.rc_version }}"
+        echo "::group::Creating GitHub pre-release with final version packages"
+        rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
+        package_version="${{ steps.generate_rc.outputs.package_version }}"
         
-        echo "Creating GitHub pre-release for v${rc_version} using standardized script"
+        echo "Creating GitHub pre-release for tag v${rc_tag}"
+        echo "Packages built with final version ${package_version} - ready for GA promotion"
         
         # Use the enhanced publish script to create pre-release
         scripts/github_actions/package_deployer.sh prerelease \
-          --release-tag "v${rc_version}" \
-          --release-title "Release Candidate v${rc_version}" \
+          --release-tag "v${rc_tag}" \
+          --release-title "Release Candidate v${rc_tag} (Package v${package_version})" \
           --release-notes-file "release_notes.md" \
           --assets-dir "release-assets" \
           --target-branch "master" \
           -y
         
-        echo "Successfully created pre-release v${rc_version}"
+        echo "Successfully created pre-release v${rc_tag} with final version packages"
+        echo "These same artifacts can be promoted directly to GA without rebuilding"
         echo "::endgroup::"
       shell: bash 

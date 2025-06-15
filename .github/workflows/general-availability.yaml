@@ -182,48 +182,53 @@ jobs:
           echo "Successfully uploaded v${stable_version} to PyPI"
           echo "::endgroup::"
 
-      - name: Update Project Versions and Create PR
+      - name: Update Project Versions for Next Development Cycle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "::group::Updating project versions and creating PR"
+          echo "::group::Updating project versions for next development cycle"
           project_name="${{ github.event.inputs.project_name }}"
           stable_version="${{ steps.determine_rc.outputs.stable_version }}"
           
-          echo "Updating project versions to ${stable_version}"
+          # Calculate next development version (patch bump)
+          IFS='.' read -r major minor patch <<< "${stable_version}"
+          next_version="${major}.${minor}.$((patch + 1))"
           
-          # Update project versions directly using poetry and manifest updates
+          echo "Released version: ${stable_version}"
+          echo "Next development version: ${next_version}"
+          
+          # Update project versions to next development version
           cd ${project_name}
-          poetry version ${stable_version}
+          poetry version ${next_version}
           
-          # Update manifest.json if it exists
-          if [ -f "resources/manifest.json" ]; then
-            python3 -c "
+                      # Update manifest.json if it exists
+            if [ -f "resources/manifest.json" ]; then
+              python3 -c "
 import json
 with open('resources/manifest.json', 'r') as f:
     data = json.load(f)
-data['version'] = '${stable_version}'
+data['version'] = '${next_version}'
 with open('resources/manifest.json', 'w') as f:
     json.dump(data, f, indent=2)
 "
-          fi
-          cd ..
-          
-          # Update provisioner_shared version
-          cd provisioner_shared
-          poetry version ${stable_version}
-          
-          # Update manifest.json if it exists
-          if [ -f "resources/manifest.json" ]; then
-            python3 -c "
+            fi
+            cd ..
+            
+            # Update provisioner_shared version to next development version
+            cd provisioner_shared
+            poetry version ${next_version}
+            
+            # Update manifest.json if it exists
+            if [ -f "resources/manifest.json" ]; then
+              python3 -c "
 import json
 with open('resources/manifest.json', 'r') as f:
     data = json.load(f)
-data['version'] = '${stable_version}'
+data['version'] = '${next_version}'
 with open('resources/manifest.json', 'w') as f:
     json.dump(data, f, indent=2)
 "
-          fi
+            fi
           cd ..
           
           # Prepare git for commit
@@ -239,17 +244,20 @@ with open('resources/manifest.json', 'w') as f:
           git add resources/manifest.json pyproject.toml || true
           cd ..
 
-          branch_name=released-${project_name}-ver-${stable_version}
-          git commit -m "Promote ${project_name} from RC to stable version ${stable_version}" || echo "No changes to commit"
+          branch_name=post-release-${project_name}-v${stable_version}-next-${next_version}
+          git commit -m "Post-release: bump ${project_name} to next development version ${next_version}" || echo "No changes to commit"
           git checkout -b ${branch_name}
           git push --set-upstream origin ${branch_name}
           
-          gh pr create --title "[skip ci] Released ${project_name} stable version ${stable_version}" \
-              --body "Promoted ${project_name} from RC to stable version ${stable_version}
+          gh pr create --title "[skip ci] Post-release: bump ${project_name} to v${next_version}" \
+              --body "Post-release version bump after promoting v${stable_version} to General Availability.
 
-          This release was promoted from a Release Candidate via the General Availability workflow." \
+          **Released:** v${stable_version} (promoted from RC, published to GitHub + PyPI)  
+          **Next Development:** v${next_version}
+          
+          This follows the 'build once, promote many' approach - artifacts were not rebuilt." \
               --base master --head ${branch_name} \
               --label "auto pr" \
-              --label "stable release"
+              --label "post-release"
               
           echo "::endgroup::" 

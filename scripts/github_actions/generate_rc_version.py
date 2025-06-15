@@ -2,8 +2,9 @@
 """
 Generate RC Version Script
 
-This script purely calculates the next RC version based on current version and existing tags.
-It does not modify any files - that responsibility belongs to the build tools.
+This script calculates the final stable version for packages and RC tag for git.
+Following "build once, promote many" principle - packages are built with final version,
+only git tags use RC suffix for channel management.
 """
 
 import os
@@ -81,9 +82,17 @@ def parse_version(version: str) -> tuple:
         sys.exit(1)
 
 
-def generate_rc_version(project_to_release: str) -> str:
-    """Generate the RC version based on current version and existing tags."""
-    print("Calculating next RC version")
+def generate_release_versions(project_to_release: str) -> tuple:
+    """
+    Generate both the package version (final) and RC tag (for git) following
+    'build once, promote many' principle.
+    
+    Returns:
+        tuple: (package_version, rc_tag)
+        - package_version: Final version for packages (e.g., "1.0.0")
+        - rc_tag: RC tag for git (e.g., "1.0.0-RC.1")
+    """
+    print("Calculating release versions using 'build once, promote many' approach")
     
     project_dir = Path(project_to_release)
     current_version = get_current_version(project_dir)
@@ -94,66 +103,73 @@ def generate_rc_version(project_to_release: str) -> str:
     rc_match = re.search(rc_pattern, current_version)
     
     if rc_match:
-        # Current version is already an RC, increment RC number
-        base_version = re.sub(rc_pattern, '', current_version)
+        # Current version is already an RC, use base version for package
+        package_version = re.sub(rc_pattern, '', current_version)
+        base_version = package_version
         rc_number = int(rc_match.group(1))
         
         # Find the highest existing RC number for this base version
         while True:
             next_rc_number = rc_number + 1
-            candidate_rc_version = f"{base_version}-{RC_VERSION_SUFFIX}.{next_rc_number}"
-            if not check_tag_exists(candidate_rc_version):
-                rc_version = candidate_rc_version
+            candidate_rc_tag = f"{base_version}-{RC_VERSION_SUFFIX}.{next_rc_number}"
+            if not check_tag_exists(candidate_rc_tag):
+                rc_tag = candidate_rc_tag
                 break
             rc_number = next_rc_number
     else:
         # Current version is not an RC
         if check_tag_exists(current_version):
-            # Version exists as tag, increment patch and add RC
+            # Version exists as tag, increment patch for next version
             major, minor, patch = parse_version(current_version)
             new_patch = patch + 1
-            base_version = f"{major}.{minor}.{new_patch}"
+            package_version = f"{major}.{minor}.{new_patch}"
         else:
-            # Use current version as base
-            base_version = current_version
+            # Use current version as package version
+            package_version = current_version
         
         # Find the first available RC number for this base version
         rc_number = 1
         while True:
-            candidate_rc_version = f"{base_version}-{RC_VERSION_SUFFIX}.{rc_number}"
-            if not check_tag_exists(candidate_rc_version):
-                rc_version = candidate_rc_version
+            candidate_rc_tag = f"{package_version}-{RC_VERSION_SUFFIX}.{rc_number}"
+            if not check_tag_exists(candidate_rc_tag):
+                rc_tag = candidate_rc_tag
                 break
             rc_number += 1
     
-    print(f"Calculated RC version: {rc_version}")
-    return rc_version
+    print(f"Package version (final): {package_version}")
+    print(f"RC git tag: {rc_tag}")
+    print("Packages will be built with final version, git tag will use RC suffix")
+    
+    return package_version, rc_tag
 
 
 def main():
-    """Main function that calculates and returns RC version information."""
+    """Main function that calculates release versions using build-once approach."""
     if len(sys.argv) != 2:
         print("Usage: python generate_rc_version.py <project_to_release>")
         sys.exit(1)
     
     project_to_release = sys.argv[1]
     
-    print(f"Calculating RC version for project: {project_to_release}")
+    print(f"Calculating release versions for project: {project_to_release}")
     
-    # Generate RC version (read-only operation)
-    rc_version = generate_rc_version(project_to_release)
+    # Generate versions using build-once approach
+    package_version, rc_tag = generate_release_versions(project_to_release)
     
-    print(f"Next RC version calculated: {rc_version}")
-    print("Note: Version updates and builds will be handled by package_deployer.sh")
+    print(f"Final package version: {package_version}")
+    print(f"RC git tag: {rc_tag}")
+    print("Note: package_deployer.sh will build packages with the final version")
     
     # Set GitHub Action outputs
     github_output = os.environ.get('GITHUB_OUTPUT')
     if github_output:
         with open(github_output, 'a') as f:
-            f.write(f"rc_version={rc_version}\n")
+            f.write(f"package_version={package_version}\n")
+            f.write(f"rc_tag={rc_tag}\n")
     else:
         # For local testing
-        print(f"rc_version={rc_version}")
+        print(f"package_version={package_version}")
+        print(f"rc_tag={rc_tag}")
 
 
 if __name__ == "__main__":
