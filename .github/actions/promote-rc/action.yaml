@@ -1,0 +1,152 @@
+name: 'Promote Release Candidate'
+description: 'Create RC version, build wheels, create git tag, and upload GitHub pre-release'
+
+inputs:
+  GITHUB_TOKEN:
+    type: string
+    description: 'GitHub API token'
+    required: true
+  project_to_release:
+    type: choice
+    description: 'Select project to create RC for'
+    options: 
+      - 'provisioner'
+    required: true
+
+outputs:
+  rc_version:
+    description: 'Generated RC version'
+    value: ${{ steps.generate_rc.outputs.rc_version }}
+
+runs:
+  using: 'composite'  
+  steps:
+    - name: Print Action Arguments
+      run: |
+        echo "::group::Print RC promotion arguments"
+        echo "project_to_release: ${{ inputs.project_to_release }}"
+        echo "::endgroup::"
+      shell: bash   
+
+    - name: Discard previous changes to git index
+      run: |
+        git reset --hard
+        cd plugins 
+        git reset --hard
+        cd ..
+      shell: bash    
+
+    - name: Map GitHub token
+      run: |
+        # Used by GitHub CLI client
+        echo "GH_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Generate RC Version
+      id: generate_rc
+      run: |
+        echo "::group::Calculating RC version"
+        python scripts/github_actions/generate_rc_version.py ${{ inputs.project_to_release }}
+        echo "::endgroup::" 
+      shell: bash
+
+    - name: Create Git Tag
+      run: |
+        rc_version="${{ steps.generate_rc.outputs.rc_version }}"
+        project_to_release="${{ inputs.project_to_release }}"
+        
+        echo "Creating git tag for RC version: v${rc_version}"
+        
+        git config --global user.email "zachi.nachshon@gmail.com"
+        git config --global user.name "ZachiNachshon"
+        
+        git tag "v${rc_version}" -m "Release Candidate v${rc_version} for ${project_to_release}"
+        git push origin "v${rc_version}"
+      shell: bash
+
+    - name: Build Release Assets
+      run: |
+        echo "::group::Building release assets"
+        project_to_release="${{ inputs.project_to_release }}"
+        rc_version="${{ steps.generate_rc.outputs.rc_version }}"
+        
+        echo "Building wheel packages for ${project_to_release} v${rc_version}"
+        
+        # Build main project wheel with RC version
+        echo "Building ${project_to_release} wheel package with version ${rc_version}..."
+        cd ${project_to_release}
+        ../scripts/github_actions/package_deployer.sh build --build-type wheel --version ${rc_version} -y
+        cd ..
+        
+        # Build provisioner_shared wheel (dependency) with RC version
+        echo "Building provisioner_shared wheel package with version ${rc_version}..."
+        cd provisioner_shared
+        ../scripts/github_actions/package_deployer.sh build --build-type wheel --version ${rc_version} -y
+        cd ..
+        
+        # Create assets directory and copy built wheels
+        mkdir -p release-assets
+        
+        # Copy built wheels to assets directory
+        if [ -d "${project_to_release}/dist" ]; then
+          cp ${project_to_release}/dist/*.whl release-assets/
+          echo "Copied ${project_to_release} wheel to release-assets/"
+        fi
+        
+        if [ -d "provisioner_shared/dist" ]; then
+          cp provisioner_shared/dist/*.whl release-assets/
+          echo "Copied provisioner_shared wheel to release-assets/"
+        fi
+        
+        echo "Built release assets:"
+        ls -la release-assets/
+        
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Generate Release Notes
+      run: |
+        echo "::group::Generating release notes with commit history"
+        rc_version="${{ steps.generate_rc.outputs.rc_version }}"
+        
+        # Get commits since last tag (if any) 
+        last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        
+        echo "⚠️ **Release Candidate** - Not recommended for production use. Release notes will be added when promoted to General Availability." > release_notes.md
+        echo "" >> release_notes.md
+        
+        if [ -n "$last_tag" ]; then
+          echo "### Changes since $last_tag:" >> release_notes.md
+          git log ${last_tag}..HEAD --oneline --no-merges | head -10 >> release_notes.md
+        else
+          echo "### Recent changes:" >> release_notes.md
+          git log --oneline --no-merges -10 >> release_notes.md
+        fi
+        
+        echo "" >> release_notes.md
+        echo "_This RC can be promoted to a stable release using the General Availability workflow._" >> release_notes.md
+        
+        echo "Generated release notes:"
+        cat release_notes.md
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Create GitHub Pre-Release
+      run: |
+        echo "::group::Creating GitHub pre-release using publish script"
+        rc_version="${{ steps.generate_rc.outputs.rc_version }}"
+        
+        echo "Creating GitHub pre-release for v${rc_version} using standardized script"
+        
+        # Use the enhanced publish script to create pre-release
+        scripts/github_actions/package_deployer.sh prerelease \
+          --release-tag "v${rc_version}" \
+          --release-title "Release Candidate v${rc_version}" \
+          --release-notes-file "release_notes.md" \
+          --assets-dir "release-assets" \
+          --target-branch "master" \
+          -y
+        
+        echo "Successfully created pre-release v${rc_version}"
+        echo "::endgroup::"
+      shell: bash 
