@@ -69,7 +69,7 @@ runs:
         git push origin "v${rc_tag}"
       shell: bash
 
-          - name: Build Release Assets
+    - name: Build Release Assets
       run: |
         echo "::group::Building wheel packages and compressing as tar.gz for release assets"
         project_to_release="${{ inputs.project_to_release }}"
