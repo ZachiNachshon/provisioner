@@ -80,9 +80,6 @@ jobs:
             echo "No RC version specified - validation will happen during auto-detection"
           fi
 
-      - name: Run Tests
-        uses: ./.github/actions/tests
-
       - name: Determine RC Version to Promote
         id: determine_rc
         env:
