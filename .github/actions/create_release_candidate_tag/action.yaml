@@ -52,7 +52,7 @@ runs:
       id: generate_rc
       run: |
         echo "::group::Generating RC version"
-        python scripts/generate_rc_version.py ${{ inputs.project_to_release }}
+        python scripts/github_actions/generate_rc_version.py ${{ inputs.project_to_release }}
         echo "::endgroup::" 
       shell: bash
 

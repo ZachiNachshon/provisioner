@@ -24,7 +24,7 @@ env:
   POETRY_VERSION: "1.8.4"
   
 jobs:
-  publish_poetry_package:
+  package_deployer:
     name: Publish provisioner to PyPi
     runs-on: ubuntu-latest
     strategy:
@@ -48,7 +48,7 @@ jobs:
         uses: ./.github/actions/tests
 
       - name: Publish to PyPi & GitHub
-        uses: ./.github/actions/publish_poetry_package
+        uses: ./.github/actions/github_actions/package_deployer
         with:
           project_to_publish: ${{ github.event.inputs.publishable_project }}
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}

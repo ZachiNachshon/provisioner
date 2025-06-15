@@ -83,49 +83,173 @@ jobs:
       - name: Run Tests
         uses: ./.github/actions/tests
 
-      - name: Promote RC to PyPI
-        uses: ./.github/actions/promote_rc_to_pypi
-        with:
-          project_name: ${{ github.event.inputs.project_name }}
-          rc_version: ${{ github.event.inputs.rc_version }}
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-          # PyPi access tokens
-          PYPI_API_TOKEN_PROVISIONER_RUNTIME: ${{ env.PYPI_API_TOKEN_PROVISIONER_RUNTIME }}
-          PYPI_API_TOKEN_PROVISIONER_SHARED: ${{ env.PYPI_API_TOKEN_PROVISIONER_SHARED }}
+      - name: Determine RC Version to Promote
+        id: determine_rc
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "::group::Determining RC version to promote"
+          input_rc_version="${{ github.event.inputs.rc_version }}"
+          
+          if [ -n "$input_rc_version" ]; then
+            echo "Using provided RC version: $input_rc_version"
+            rc_version="$input_rc_version"
+          else
+            echo "Auto-detecting latest RC version using GitHub API..."
+            # Get all RC tags from GitHub API, sort by version descending, take the first one
+            rc_tags=$(gh api repos/:owner/:repo/tags --paginate --jq '.[].name' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+-RC\.[0-9]+$' | sort -V -r)
+            
+            if [ -z "$rc_tags" ]; then
+              echo "Error: No RC versions found in GitHub releases"
+              echo "Available tags from GitHub:"
+              gh api repos/:owner/:repo/tags --paginate --jq '.[].name' | head -10
+              exit 1
+            fi
+            
+            rc_version=$(echo "$rc_tags" | head -1 | sed 's/^v//')
+            echo "Auto-detected latest RC version: $rc_version"
+          fi
+          
+          # Generate stable version by removing RC suffix
+          stable_version=$(echo "$rc_version" | sed 's/-RC\.[0-9]*$//')
+          
+          echo "rc_version=$rc_version" >> $GITHUB_OUTPUT
+          echo "stable_version=$stable_version" >> $GITHUB_OUTPUT
+          echo "Final RC version to promote: $rc_version -> $stable_version"
+          echo "::endgroup::"
 
       - name: Create Stable GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          input_rc_version="${{ github.event.inputs.rc_version }}"
-          
-          # Get the actual RC version that was promoted (from the action output or input)
-          if [ -n "$input_rc_version" ]; then
-            rc_version="$input_rc_version"
-          else
-            # Get the latest RC version that was auto-detected
-            rc_version=$(git tag -l | grep -E 'v[0-9]+\.[0-9]+\.[0-9]+-RC\.[0-9]+$' | sort -V -r | head -1 | sed 's/^v//')
-          fi
-          
-          stable_version=$(echo "$rc_version" | sed 's/-RC\.[0-9]*$//')
+          rc_version="${{ steps.determine_rc.outputs.rc_version }}"
+          stable_version="${{ steps.determine_rc.outputs.stable_version }}"
           project_name="${{ github.event.inputs.project_name }}"
           
+          echo "::group::Creating stable GitHub release"
           echo "Promoting RC v${rc_version} to stable release v${stable_version}"
           
-          # Get the RC release assets and notes
-          gh release download "v${rc_version}" --pattern "*" --dir ./rc-assets || true
-          release_notes=$(gh release view "v${rc_version}" --json body --jq '.body')
+          # Generate release notes for GA release
+          echo "Promoted from Release Candidate v${rc_version}" > ga_release_notes.md
+          echo "" >> ga_release_notes.md
+          echo "### Changes in this release:" >> ga_release_notes.md
           
-          # Create stable release
-          gh release create "v${stable_version}" \
-            --title "Release v${stable_version}" \
-            --notes "Promoted from Release Candidate v${rc_version}
+          # Get RC release notes and append them
+          gh release view "v${rc_version}" --json body --jq '.body' >> ga_release_notes.md || echo "No release notes available from RC" >> ga_release_notes.md
+          
+          # Use the enhanced publish script to promote RC to GA
+          scripts/github_actions/package_deployer.sh upload \
+            --upload-action promote-rc \
+            --source-tag "v${rc_version}" \
+            --release-tag "v${stable_version}" \
+            --release-title "Release v${stable_version}" \
+            --release-notes-file "ga_release_notes.md" \
+            -y
+          
+          # Mark the new release as latest
+          gh release edit "v${stable_version}" --latest
+          
+          echo "Successfully created stable release v${stable_version}"
+          echo "::endgroup::"
 
-          ${release_notes}" \
-            --latest \
-            ./rc-assets/* || true
+      - name: Upload Stable Release to PyPI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          stable_version="${{ steps.determine_rc.outputs.stable_version }}"
+          project_name="${{ github.event.inputs.project_name }}"
           
-          # Mark the RC as non-latest (if it was latest)
-          gh release edit "v${rc_version}" --prerelease
+          echo "::group::Uploading stable release to PyPI"
+          echo "Uploading v${stable_version} to PyPI"
           
-          echo "Successfully created stable release v${stable_version}" 
+          # Map PyPI API token based on project
+          case "$project_name" in
+            provisioner)
+              export PYPI_API_TOKEN="${{ env.PYPI_API_TOKEN_PROVISIONER_RUNTIME }}"
+              ;;
+            *)
+              echo "Unknown project_name: $project_name"
+              exit 1
+              ;;
+          esac
+          
+          # Use the enhanced publish script to upload GA release to PyPI
+          scripts/github_actions/package_deployer.sh upload \
+            --upload-action upload-to-pypi \
+            --source-tag "v${stable_version}" \
+            -y
+          
+          echo "Successfully uploaded v${stable_version} to PyPI"
+          echo "::endgroup::"
+
+      - name: Update Project Versions and Create PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "::group::Updating project versions and creating PR"
+          project_name="${{ github.event.inputs.project_name }}"
+          stable_version="${{ steps.determine_rc.outputs.stable_version }}"
+          
+          echo "Updating project versions to ${stable_version}"
+          
+          # Update project versions directly using poetry and manifest updates
+          cd ${project_name}
+          poetry version ${stable_version}
+          
+          # Update manifest.json if it exists
+          if [ -f "resources/manifest.json" ]; then
+            python3 -c "
+import json
+with open('resources/manifest.json', 'r') as f:
+    data = json.load(f)
+data['version'] = '${stable_version}'
+with open('resources/manifest.json', 'w') as f:
+    json.dump(data, f, indent=2)
+"
+          fi
+          cd ..
+          
+          # Update provisioner_shared version
+          cd provisioner_shared
+          poetry version ${stable_version}
+          
+          # Update manifest.json if it exists
+          if [ -f "resources/manifest.json" ]; then
+            python3 -c "
+import json
+with open('resources/manifest.json', 'r') as f:
+    data = json.load(f)
+data['version'] = '${stable_version}'
+with open('resources/manifest.json', 'w') as f:
+    json.dump(data, f, indent=2)
+"
+          fi
+          cd ..
+          
+          # Prepare git for commit
+          git config --global user.email "zachi.nachshon@gmail.com"
+          git config --global user.name "ZachiNachshon"
+          
+          # Create PR with version updates
+          cd provisioner_shared
+          git add resources/manifest.json pyproject.toml || true
+          cd ..
+
+          cd ${project_name}
+          git add resources/manifest.json pyproject.toml || true
+          cd ..
+
+          branch_name=released-${project_name}-ver-${stable_version}
+          git commit -m "Promote ${project_name} from RC to stable version ${stable_version}" || echo "No changes to commit"
+          git checkout -b ${branch_name}
+          git push --set-upstream origin ${branch_name}
+          
+          gh pr create --title "[skip ci] Released ${project_name} stable version ${stable_version}" \
+              --body "Promoted ${project_name} from RC to stable version ${stable_version}
+
+          This release was promoted from a Release Candidate via the General Availability workflow." \
+              --base master --head ${branch_name} \
+              --label "auto pr" \
+              --label "stable release"
+              
+          echo "::endgroup::" 

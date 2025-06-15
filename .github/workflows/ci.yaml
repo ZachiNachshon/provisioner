@@ -12,15 +12,12 @@ env:
   POETRY_VERSION: "1.8.4"
 
 jobs:
-  test-and-tag-rc-ver:
-    name: Tests Suite (Unit Only) & Tag RC Version
+  tests:
+    name: Run Tests & Upload Coverage
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python: [ '3.11' ]
-    outputs:
-      rc_version: ${{ steps.create_rc.outputs.rc_version }}
-      project_name: ${{ steps.create_rc.outputs.project_name }}
 
     steps:
       - name: Checkout repository code (with submodules)
@@ -87,21 +84,11 @@ jobs:
       #     name: codecov-e2e
       #     fail_ci_if_error: false
 
-      # Create Release Candidate only on successful master builds
-      - name: Create RC Tag
-        id: create_rc
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        uses: ./.github/actions/create_release_candidate_tag
-        with:
-          project_to_release: 'provisioner'
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # Create GitHub Pre-Release for RC version (only runs after successful test job on master)
-  github-prerelease:
-    name: Create GitHub Pre-Release
+  release-candidate:
+    name: Release Candidate
     runs-on: ubuntu-latest
-    needs: test-and-tag-rc-ver
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push' && needs.test-and-tag-rc-ver.outputs.rc_version != ''
+    needs: tests
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     strategy:
       matrix:
         python: [ '3.11' ]
@@ -119,9 +106,8 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python }}
           POETRY_VERSION: ${{ env.POETRY_VERSION }}
 
-      - name: Create GitHub Pre-Release
-        uses: ./.github/actions/create_github_prerelease
+      - name: Promote Release Candidate
+        uses: ./.github/actions/promote-rc
         with:
-          project_to_release: ${{ needs.test-and-tag-rc-ver.outputs.project_name }}
-          rc_version: ${{ needs.test-and-tag-rc-ver.outputs.rc_version }}
+          project_to_release: 'provisioner'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
