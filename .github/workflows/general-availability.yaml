@@ -187,74 +187,9 @@ jobs:
           project_name="${{ github.event.inputs.project_name }}"
           stable_version="${{ steps.determine_rc.outputs.stable_version }}"
           
-          # Calculate next development version (patch bump)
-          IFS='.' read -r major minor patch <<< "${stable_version}"
-          next_version="${major}.${minor}.$((patch + 1))"
+          # Use the Python script to handle version bumping
+          python3 scripts/github_actions/post_release_version_bump.py \
+            --project-name "${project_name}" \
+            --stable-version "${stable_version}"
           
-          echo "Released version: ${stable_version}"
-          echo "Next development version: ${next_version}"
-          
-          # Update project versions to next development version
-          cd ${project_name}
-          poetry version ${next_version}
-          
-                      # Update manifest.json if it exists
-            if [ -f "resources/manifest.json" ]; then
-              python3 -c "
-import json
-with open('resources/manifest.json', 'r') as f:
-    data = json.load(f)
-data['version'] = '${next_version}'
-with open('resources/manifest.json', 'w') as f:
-    json.dump(data, f, indent=2)
-"
-            fi
-            cd ..
-            
-            # Update provisioner_shared version to next development version
-            cd provisioner_shared
-            poetry version ${next_version}
-            
-            # Update manifest.json if it exists
-            if [ -f "resources/manifest.json" ]; then
-              python3 -c "
-import json
-with open('resources/manifest.json', 'r') as f:
-    data = json.load(f)
-data['version'] = '${next_version}'
-with open('resources/manifest.json', 'w') as f:
-    json.dump(data, f, indent=2)
-"
-            fi
-          cd ..
-          
-          # Prepare git for commit
-          git config --global user.email "zachi.nachshon@gmail.com"
-          git config --global user.name "ZachiNachshon"
-          
-          # Create PR with version updates
-          cd provisioner_shared
-          git add resources/manifest.json pyproject.toml || true
-          cd ..
-
-          cd ${project_name}
-          git add resources/manifest.json pyproject.toml || true
-          cd ..
-
-          branch_name=post-release-${project_name}-v${stable_version}-next-${next_version}
-          git commit -m "Post-release: bump ${project_name} to next development version ${next_version}" || echo "No changes to commit"
-          git checkout -b ${branch_name}
-          git push --set-upstream origin ${branch_name}
-          
-          gh pr create --title "[skip ci] Post-release: bump ${project_name} to v${next_version}" \
-              --body "Post-release version bump after promoting v${stable_version} to General Availability.
-
-          **Released:** v${stable_version} (promoted from RC, published to GitHub + PyPI)  
-          **Next Development:** v${next_version}
-          
-          This follows the 'build once, promote many' approach - artifacts were not rebuilt." \
-              --base master --head ${branch_name} \
-              --label "auto pr" \
-              --label "post-release"
-              
           echo "::endgroup::" 
