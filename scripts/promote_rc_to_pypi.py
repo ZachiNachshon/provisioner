@@ -118,7 +118,7 @@ def update_shared_dependency(project_dir: Path, shared_version: str):
 
 def publish_package(project_dir: Path, pypi_token: str):
     """Publish package to PyPI using the publisher script."""
-    publisher_script = Path("../scripts/publish_poetry_package.sh")
+    publisher_script = Path("../scripts/github_actions/package_deployer.sh")
     
     if not publisher_script.exists():
         print(f"Error: Publisher script not found at {publisher_script}")
