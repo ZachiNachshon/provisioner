@@ -41,8 +41,9 @@ runs:
 
     - name: Map GitHub token
       run: |
-        # Used by GitHub CLI client
+        # Used by GitHub CLI client and package_deployer.sh script
         echo "GH_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
+        echo "GITHUB_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
       shell: bash
 
     - name: Generate Release Versions
