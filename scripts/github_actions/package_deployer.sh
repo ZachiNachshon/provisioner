@@ -22,6 +22,7 @@ CLI_FLAG_RELEASE_TAG=""
 CLI_FLAG_RELEASE_TITLE=""
 CLI_FLAG_SOURCE_TAG=""
 CLI_FLAG_UPLOAD_ACTION=""  # options: promote-rc/upload-to-pypi
+CLI_FLAG_COMPRESS=""           # compress output to tar.gz format
 
 CLI_VALUE_BUILD_TYPE=""
 CLI_VALUE_VERSION=""
@@ -32,6 +33,7 @@ CLI_VALUE_RELEASE_TAG=""
 CLI_VALUE_RELEASE_TITLE=""
 CLI_VALUE_SOURCE_TAG=""
 CLI_VALUE_UPLOAD_ACTION=""
+CLI_VALUE_COMPRESS=""
 
 POETRY_PACKAGE_NAME=""
 POETRY_PACKAGE_VERSION=""
@@ -102,6 +104,18 @@ get_version() {
   echo "${CLI_VALUE_VERSION}"
 }
 
+get_compress() {
+  echo "${CLI_VALUE_COMPRESS}"
+}
+
+is_compress_enabled() {
+  [[ "${CLI_VALUE_COMPRESS}" == "tar.gz" ]]
+}
+
+is_release_candidate_format() {
+  [[ "${CLI_VALUE_COMPRESS}" == "tar.gz" ]]
+}
+
 is_promote_rc_action() {
   [[ "${CLI_VALUE_UPLOAD_ACTION}" == "promote-rc" ]]
 }
@@ -126,6 +140,21 @@ get_sdist_name() {
 get_wheel_name() {
   local escaped_pkg_name=$(get_escaped_package_path)
   echo "${escaped_pkg_name}-${POETRY_PACKAGE_VERSION}-py3-none-any.whl"
+}
+
+compress_and_rename_asset() {
+  local source_file=$1
+  local target_dir=$2
+  
+  if [[ -f "${source_file}" ]]; then
+    local new_name="${POETRY_PACKAGE_NAME}-v${POETRY_PACKAGE_VERSION}.tar.gz"
+    local target_path="${target_dir}/${new_name}"
+    
+    # Create tar.gz archive
+    tar -czf "${target_path}" -C "$(dirname "${source_file}")" "$(basename "${source_file}")"
+    log_info "Compressed and renamed to: ${new_name}"
+    echo "${target_path}"
+  fi
 }
 
 COLOR_RED='\033[0;31m'
@@ -295,7 +324,20 @@ build_sdist_tarball() {
   new_line
 
   local sdist_filename=$(get_sdist_name)
-  set_built_output_file_path "${sdist_filename}"
+  
+  # Handle compression if specified
+  if is_compress_enabled; then
+    local source_file="dist/${sdist_filename}"
+    local compressed_asset=$(compress_and_rename_asset "${source_file}" "dist")
+    if [[ -n "${compressed_asset}" ]]; then
+      # Use the compressed file as the build output
+      BUILD_OUTPUT_FILE_PATH="${compressed_asset}"
+    else
+      set_built_output_file_path "${sdist_filename}"
+    fi
+  else
+    set_built_output_file_path "${sdist_filename}"
+  fi
 }
 
 build_wheel_package() {
@@ -312,7 +354,20 @@ build_wheel_package() {
   ${build_cmd} || exit
 
   local wheel_filename=$(get_wheel_name)
-  set_built_output_file_path "${wheel_filename}"
+  
+  # Handle compression if specified
+  if is_compress_enabled; then
+    local source_file="dist/${wheel_filename}"
+    local compressed_asset=$(compress_and_rename_asset "${source_file}" "dist")
+    if [[ -n "${compressed_asset}" ]]; then
+      # Use the compressed file as the build output
+      BUILD_OUTPUT_FILE_PATH="${compressed_asset}"
+    else
+      set_built_output_file_path "${wheel_filename}"
+    fi
+  else
+    set_built_output_file_path "${wheel_filename}"
+  fi
 }
 
 build_pip_package() {
@@ -476,32 +531,45 @@ promote_rc_to_ga_release() {
 upload_ga_release_to_pypi() {
   local source_tag=$1
   
-  log_info "Uploading GA release to PyPI. source: ${source_tag}"
+  log_info "Uploading GA release to PyPI. source: ${source_tag}, package: ${POETRY_PACKAGE_NAME}"
   
   # Download assets from GA release
   local assets_dir=$(download_github_release_assets "${source_tag}")
   
-  # Find wheel files in downloaded assets
-  local wheel_files=($(find "${assets_dir}" -name "*.whl" 2>/dev/null))
+  # For PyPI uploads, we need to extract the wheel file from the compressed tar.gz asset
+  # First, find the compressed asset for this package
+  local compressed_asset=$(find "${assets_dir}" -name "${POETRY_PACKAGE_NAME}-v*.tar.gz" | head -1)
   
-  if [[ ${#wheel_files[@]} -eq 0 ]]; then
-    log_fatal "No wheel files found in release assets: ${source_tag}"
+  if [[ -z "${compressed_asset}" || ! -f "${compressed_asset}" ]]; then
+    log_fatal "Compressed asset not found for ${POETRY_PACKAGE_NAME} in release assets: ${source_tag}"
   fi
   
-  log_info "Found ${#wheel_files[@]} wheel file(s) to upload to PyPI"
+  log_info "Found compressed asset: $(basename "${compressed_asset}")"
   
-  # Upload each wheel file to PyPI
+  # Extract the tar.gz to get the original wheel file
+  local extract_dir=$(mktemp -d)
+  tar -xzf "${compressed_asset}" -C "${extract_dir}"
+  
+  # Find the wheel file in the extracted content
+  local wheel_file=$(find "${extract_dir}" -name "*.whl" | head -1)
+  
+  if [[ -z "${wheel_file}" || ! -f "${wheel_file}" ]]; then
+    log_fatal "Wheel file not found in compressed asset for ${POETRY_PACKAGE_NAME}"
+  fi
+  
+  log_info "Extracted wheel file: $(basename "${wheel_file}")"
+  
+  # Upload to PyPI
   local username="__token__"
   local password="${PYPI_API_TOKEN}"
   
-  for wheel_file in "${wheel_files[@]}"; do
-    log_info "Uploading to PyPI: $(basename "${wheel_file}")"
-    twine upload --username "${username}" --password "${password}" "${wheel_file}"
-  done
+  log_info "Uploading wheel to PyPI: $(basename "${wheel_file}")"
+  twine upload --username "${username}" --password "${password}" "${wheel_file}"
   
-  log_info "Successfully uploaded release to PyPI: ${source_tag}"
+  log_info "Successfully uploaded ${POETRY_PACKAGE_NAME} to PyPI: ${source_tag}"
   
-  # Cleanup downloaded assets
+  # Cleanup
+  rm -rf "${extract_dir}"
   rm -rf "${assets_dir}"
 }
 
@@ -596,6 +664,7 @@ print_help_menu_and_exit() {
   echo -e "  ${COLOR_LIGHT_CYAN}--source-tag${COLOR_NONE} <value>          Source GitHub release tag to download (${COLOR_GREEN}example: v1.0.0-RC.1${COLOR_NONE})"
   echo -e "  ${COLOR_LIGHT_CYAN}--release-tag${COLOR_NONE} <value>         Target release tag for promote-rc action (${COLOR_GREEN}example: v1.0.0${COLOR_NONE})"
   echo -e "  ${COLOR_LIGHT_CYAN}--release-title${COLOR_NONE} <value>       Target release title for promote-rc action"
+  echo -e "  ${COLOR_LIGHT_CYAN}--compress${COLOR_NONE} <option>          Release asset format [${COLOR_GREEN}options: tar.gz${COLOR_NONE}]"
   echo -e " "
   echo -e "${COLOR_WHITE}PRE-RELEASE FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--release-tag${COLOR_NONE} <value>         GitHub release tag (${COLOR_GREEN}example: v1.0.0-RC.1${COLOR_NONE})"
@@ -692,6 +761,13 @@ parse_program_arguments() {
         CLI_VALUE_UPLOAD_ACTION=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
         shift
         ;;
+      --compress)
+        CLI_FLAG_COMPRESS="compress"
+        shift
+        CLI_VALUE_COMPRESS=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
+        shift
+        ;;
+
       -y | --auto-prompt)
         # Used by prompter.sh
         export PROMPTER_SKIP_PROMPT="y"

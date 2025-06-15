@@ -156,27 +156,34 @@ jobs:
           stable_version="${{ steps.determine_rc.outputs.stable_version }}"
           project_name="${{ github.event.inputs.project_name }}"
           
-          echo "::group::Uploading stable release to PyPI"
-          echo "Uploading v${stable_version} to PyPI"
+          echo "::group::Uploading stable release to PyPI (both runtime and shared)"
+          echo "Uploading v${stable_version} to PyPI - separate uploads for runtime and shared"
           
-          # Map PyPI API token based on project
-          case "$project_name" in
-            provisioner)
-              export PYPI_API_TOKEN="${{ env.PYPI_API_TOKEN_PROVISIONER_RUNTIME }}"
-              ;;
-            *)
-              echo "Unknown project_name: $project_name"
-              exit 1
-              ;;
-          esac
-          
-          # Use the enhanced publish script to upload GA release to PyPI
-          scripts/github_actions/package_deployer.sh upload \
+          # Upload provisioner_runtime to PyPI (run from provisioner directory)
+          echo "Uploading provisioner_runtime to PyPI..."
+          export PYPI_API_TOKEN="${{ env.PYPI_API_TOKEN_PROVISIONER_RUNTIME }}"
+          cd provisioner
+          ../scripts/github_actions/package_deployer.sh upload \
             --upload-action upload-to-pypi \
             --source-tag "v${stable_version}" \
             -y
+          cd ..
           
-          echo "Successfully uploaded v${stable_version} to PyPI"
+          echo "Successfully uploaded provisioner_runtime v${stable_version} to PyPI"
+          
+          # Upload provisioner_shared to PyPI (run from provisioner_shared directory)
+          echo "Uploading provisioner_shared to PyPI..."
+          export PYPI_API_TOKEN="${{ env.PYPI_API_TOKEN_PROVISIONER_SHARED }}"
+          cd provisioner_shared
+          ../scripts/github_actions/package_deployer.sh upload \
+            --upload-action upload-to-pypi \
+            --source-tag "v${stable_version}" \
+            -y
+          cd ..
+          
+          echo "Successfully uploaded provisioner_shared v${stable_version} to PyPI"
+          
+          echo "Successfully uploaded both packages to PyPI: v${stable_version}"
           echo "::endgroup::"
 
       - name: Update Project Versions for Next Development Cycle
