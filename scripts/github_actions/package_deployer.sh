@@ -41,6 +41,7 @@ CLI_VALUE_OUTPUT_PATH=""
 
 POETRY_PACKAGE_NAME=""
 POETRY_PACKAGE_VERSION=""
+CUSTOM_PACKAGE_VERSION=""
 
 BUILD_OUTPUT_FILE_PATH=""
 
@@ -108,6 +109,14 @@ get_version() {
   echo "${CLI_VALUE_VERSION}"
 }
 
+get_effective_version() {
+  if [[ -n "${CUSTOM_PACKAGE_VERSION}" ]]; then
+    echo "${CUSTOM_PACKAGE_VERSION}"
+  else
+    echo "${POETRY_PACKAGE_VERSION}"
+  fi
+}
+
 get_compress() {
   echo "${CLI_VALUE_COMPRESS}"
 }
@@ -146,12 +155,14 @@ get_escaped_package_path() {
 
 get_sdist_name() {
   local escaped_pkg_name=$(get_escaped_package_path)
-  echo "${escaped_pkg_name}-${POETRY_PACKAGE_VERSION}.tar.gz"
+  local effective_version=$(get_effective_version)
+  echo "${escaped_pkg_name}-${effective_version}.tar.gz"
 }
 
 get_wheel_name() {
   local escaped_pkg_name=$(get_escaped_package_path)
-  echo "${escaped_pkg_name}-${POETRY_PACKAGE_VERSION}-py3-none-any.whl"
+  local effective_version=$(get_effective_version)
+  echo "${escaped_pkg_name}-${effective_version}-py3-none-any.whl"
 }
 
 compress_and_rename_asset() {
@@ -159,7 +170,8 @@ compress_and_rename_asset() {
   local target_dir=$2
   
   if [[ -f "${source_file}" ]]; then
-    local new_name="${POETRY_PACKAGE_NAME}-v${POETRY_PACKAGE_VERSION}.tar.gz"
+    local effective_version=$(get_effective_version)
+    local new_name="${POETRY_PACKAGE_NAME}-v${effective_version}.tar.gz"
     
     # Use output path if specified, otherwise use target_dir
     local output_path=$(get_output_path)
@@ -622,6 +634,9 @@ apply_version_if_specified() {
   
   if [[ -n "${custom_version}" ]]; then
     log_info "Applying custom version: ${custom_version}"
+    
+    # Set the global custom version variable
+    CUSTOM_PACKAGE_VERSION="${custom_version}"
     
     # Update poetry version
     update_poetry_version "${custom_version}"
