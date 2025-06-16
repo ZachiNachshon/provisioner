@@ -1,6 +1,6 @@
 {
   "name": "provisioner_runtime",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "Provisioner runtime core package",
   "author": "Zachi Nachshon",
   "maintainer": "Zachi Nachshon"
