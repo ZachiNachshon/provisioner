@@ -118,19 +118,23 @@ class PostReleaseVersionBumper:
         """Create a new branch and PR with the version changes."""
         branch_name = f"post-release-{self.project_name}-v{self.stable_version}-next-{self.next_version}"
         
-        # Create commit
-        commit_message = f"Post-release: bump {self.project_name} to next development version {self.next_version}"
-        result = self._run_command(["git", "commit", "-m", commit_message], check=False)
-        
-        if result.returncode != 0:
+        # Check if there are any changes to commit
+        status_result = self._run_command(["git", "status", "--porcelain"], check=False)
+        if not status_result.stdout.strip():
             print("No changes to commit")
             return
             
-        # Create and push branch
+        # Create and switch to new branch first
         self._run_command(["git", "checkout", "-b", branch_name])
+        
+        # Create commit
+        commit_message = f"Post-release: bump {self.project_name} to next development version {self.next_version}"
+        self._run_command(["git", "commit", "-m", commit_message])
+        
+        # Push branch
         self._run_command(["git", "push", "--set-upstream", "origin", branch_name])
         
-        # Create PR
+        # Create PR without labels to avoid dependency on non-existent labels
         pr_title = f"[skip ci] Post-release: bump {self.project_name} to v{self.next_version}"
         pr_body = f"""Post-release version bump after promoting v{self.stable_version} to General Availability.
 
@@ -139,17 +143,20 @@ class PostReleaseVersionBumper:
 
 This follows the 'build once, promote many' approach - artifacts were not rebuilt."""
         
-        self._run_command([
+        # Create PR without labels to avoid failures
+        pr_result = self._run_command([
             "gh", "pr", "create",
             "--title", pr_title,
             "--body", pr_body,
             "--base", "master",
-            "--head", branch_name,
-            "--label", "auto pr",
-            "--label", "post-release"
-        ])
+            "--head", branch_name
+        ], check=False)
         
-        print(f"Successfully created PR for post-release version bump: {branch_name}")
+        if pr_result.returncode != 0:
+            print(f"Warning: Failed to create PR, but branch {branch_name} was created and pushed")
+            print(f"PR creation error: {pr_result.stderr}")
+        else:
+            print(f"Successfully created PR for post-release version bump: {branch_name}")
     
     def run(self) -> None:
         """Execute the complete post-release version bump process."""
