@@ -968,6 +968,12 @@ main() {
     local assets_dir=$(get_assets_dir)
     local target_branch=$(get_target_branch)
     
+    # Resolve assets_dir to absolute path if it's relative
+    if [[ -n "${assets_dir}" && "${assets_dir}" != /* ]]; then
+      assets_dir=$(realpath "${assets_dir}")
+      log_info "Resolved assets directory to absolute: ${assets_dir}"
+    fi
+    
     # Use default title if not provided
     if [[ -z "${release_title}" ]]; then
       release_title="Release Candidate ${release_tag}"
