@@ -50,7 +50,7 @@ runs:
       id: generate_rc
       run: |
         echo "::group::Calculating release versions (build-once approach)"
-        python scripts/github_actions/generate_rc_version.py ${{ inputs.project_to_release }}
+        python scripts/github_actions/version_manager.py generate ${{ inputs.project_to_release }}
         echo "::endgroup::" 
       shell: bash
 

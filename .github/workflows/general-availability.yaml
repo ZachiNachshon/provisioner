@@ -41,78 +41,32 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python }}
           POETRY_VERSION: ${{ env.POETRY_VERSION }}
 
-      - name: Validate RC Version (if provided)
-        run: |
-          rc_version="${{ github.event.inputs.rc_version }}"
-          if [ -n "$rc_version" ]; then
-            if [[ ! "$rc_version" =~ -RC\.[0-9]+$ ]]; then
-              echo "Error: Invalid RC version format. Expected format: x.y.z-RC.N"
-              exit 1
-            fi
-            echo "RC version validation passed: $rc_version"
-          else
-            echo "No RC version provided - will auto-detect latest RC"
-          fi
-
-      - name: Check if RC exists in GitHub releases (if specified)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          rc_version="${{ github.event.inputs.rc_version }}"
-          project_name="${{ github.event.inputs.project_name }}"
-          
-          if [ -n "$rc_version" ]; then
-            # Check if the RC version exists as a pre-release
-            if ! gh release view "v${rc_version}" --repo ${{ github.repository }}; then
-              echo "Error: RC version v${rc_version} not found in GitHub releases"
-              exit 1
-            fi
-            
-            # Verify it's marked as pre-release
-            is_prerelease=$(gh release view "v${rc_version}" --json isPrerelease --jq '.isPrerelease')
-            if [[ "$is_prerelease" != "true" ]]; then
-              echo "Error: Release v${rc_version} is not marked as pre-release"
-              exit 1
-            fi
-            
-            echo "RC version v${rc_version} validated as pre-release"
-          else
-            echo "No RC version specified - validation will happen during auto-detection"
-          fi
-
       - name: Determine RC Version to Promote
         id: determine_rc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "::group::Determining RC version to promote"
-          input_rc_version="${{ github.event.inputs.rc_version }}"
           
-          if [ -n "$input_rc_version" ]; then
-            echo "Using provided RC version: $input_rc_version"
-            rc_version="$input_rc_version"
-          else
-            echo "Auto-detecting latest RC version using GitHub API..."
-            # Get all RC tags from GitHub API, sort by version descending, take the first one
-            rc_tags=$(gh api repos/:owner/:repo/tags --paginate --jq '.[].name' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+-RC\.[0-9]+$' | sort -V -r)
-            
-            if [ -z "$rc_tags" ]; then
-              echo "Error: No RC versions found in GitHub releases"
-              echo "Available tags from GitHub:"
-              gh api repos/:owner/:repo/tags --paginate --jq '.[].name' | head -10
-              exit 1
-            fi
-            
-            rc_version=$(echo "$rc_tags" | head -1 | sed 's/^v//')
-            echo "Auto-detected latest RC version: $rc_version"
-          fi
+          rc_version="${{ github.event.inputs.rc_version }}"
+          python3 scripts/github_actions/version_manager.py promote "$rc_version"
           
-          # Generate stable version by removing RC suffix
-          stable_version=$(echo "$rc_version" | sed 's/-RC\.[0-9]*$//')
+          echo "::endgroup::"
+
+      - name: Prepare GA Release Notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "::group::Preparing GA release notes"
           
-          echo "rc_version=$rc_version" >> $GITHUB_OUTPUT
-          echo "stable_version=$stable_version" >> $GITHUB_OUTPUT
-          echo "Final RC version to promote: $rc_version -> $stable_version"
+          rc_version="${{ steps.determine_rc.outputs.rc_version }}"
+          stable_version="${{ steps.determine_rc.outputs.stable_version }}"
+          
+          python3 scripts/github_actions/release_notes_manager.py prepare \
+            "$rc_version" \
+            "$stable_version" \
+            "ga_release_notes.md"
+          
           echo "::endgroup::"
 
       - name: Create Stable GitHub Release
@@ -125,14 +79,6 @@ jobs:
           
           echo "::group::Creating stable GitHub release"
           echo "Promoting RC v${rc_version} to stable release v${stable_version}"
-          
-          # Generate release notes for GA release
-          echo "Promoted from Release Candidate v${rc_version}" > ga_release_notes.md
-          echo "" >> ga_release_notes.md
-          echo "### Changes in this release:" >> ga_release_notes.md
-          
-          # Get RC release notes and append them
-          gh release view "v${rc_version}" --json body --jq '.body' >> ga_release_notes.md || echo "No release notes available from RC" >> ga_release_notes.md
           
           # Use the enhanced publish script to promote RC to GA
           scripts/github_actions/package_deployer.sh upload \
@@ -159,27 +105,25 @@ jobs:
           echo "::group::Uploading stable release to PyPI (both runtime and shared)"
           echo "Uploading v${stable_version} to PyPI - separate uploads for runtime and shared"
           
-          # Upload provisioner_runtime to PyPI (run from provisioner directory)
+          # Upload provisioner_runtime to PyPI
           echo "Uploading provisioner_runtime to PyPI..."
           export PYPI_API_TOKEN="${{ env.PYPI_API_TOKEN_PROVISIONER_RUNTIME }}"
-          cd provisioner
-          ../scripts/github_actions/package_deployer.sh upload \
+          scripts/github_actions/package_deployer.sh upload \
             --upload-action upload-to-pypi \
             --source-tag "v${stable_version}" \
+            --project-path "provisioner" \
             -y
-          cd ..
           
           echo "Successfully uploaded provisioner_runtime v${stable_version} to PyPI"
           
-          # Upload provisioner_shared to PyPI (run from provisioner_shared directory)
+          # Upload provisioner_shared to PyPI
           echo "Uploading provisioner_shared to PyPI..."
           export PYPI_API_TOKEN="${{ env.PYPI_API_TOKEN_PROVISIONER_SHARED }}"
-          cd provisioner_shared
-          ../scripts/github_actions/package_deployer.sh upload \
+          scripts/github_actions/package_deployer.sh upload \
             --upload-action upload-to-pypi \
             --source-tag "v${stable_version}" \
+            --project-path "provisioner_shared" \
             -y
-          cd ..
           
           echo "Successfully uploaded provisioner_shared v${stable_version} to PyPI"
           

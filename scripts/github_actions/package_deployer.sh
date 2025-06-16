@@ -23,6 +23,7 @@ CLI_FLAG_RELEASE_TITLE=""
 CLI_FLAG_SOURCE_TAG=""
 CLI_FLAG_UPLOAD_ACTION=""  # options: promote-rc/upload-to-pypi
 CLI_FLAG_COMPRESS=""           # compress output to tar.gz format
+CLI_FLAG_PROJECT_PATH=""       # project directory path
 
 CLI_VALUE_BUILD_TYPE=""
 CLI_VALUE_VERSION=""
@@ -34,6 +35,7 @@ CLI_VALUE_RELEASE_TITLE=""
 CLI_VALUE_SOURCE_TAG=""
 CLI_VALUE_UPLOAD_ACTION=""
 CLI_VALUE_COMPRESS=""
+CLI_VALUE_PROJECT_PATH=""
 
 POETRY_PACKAGE_NAME=""
 POETRY_PACKAGE_VERSION=""
@@ -106,6 +108,10 @@ get_version() {
 
 get_compress() {
   echo "${CLI_VALUE_COMPRESS}"
+}
+
+get_project_path() {
+  echo "${CLI_VALUE_PROJECT_PATH}"
 }
 
 is_compress_enabled() {
@@ -614,6 +620,21 @@ apply_version_if_specified() {
   fi
 }
 
+change_to_project_directory() {
+  local project_path=$(get_project_path)
+  
+  if [[ -n "${project_path}" ]]; then
+    if [[ ! -d "${project_path}" ]]; then
+      log_fatal "Project path does not exist: ${project_path}"
+    fi
+    
+    log_info "Changing to project directory: ${project_path}"
+    cd "${project_path}" || log_fatal "Failed to change to project directory: ${project_path}"
+  else
+    log_info "Using current directory as project path"
+  fi
+}
+
 poetry_resolve_project_name_version() {
   # POETRY_PACKAGE_NAME="provisioner"
   # POETRY_PACKAGE_VERSION="0.0.0"
@@ -664,7 +685,8 @@ print_help_menu_and_exit() {
   echo -e "  ${COLOR_LIGHT_CYAN}--source-tag${COLOR_NONE} <value>          Source GitHub release tag to download (${COLOR_GREEN}example: v1.0.0-RC.1${COLOR_NONE})"
   echo -e "  ${COLOR_LIGHT_CYAN}--release-tag${COLOR_NONE} <value>         Target release tag for promote-rc action (${COLOR_GREEN}example: v1.0.0${COLOR_NONE})"
   echo -e "  ${COLOR_LIGHT_CYAN}--release-title${COLOR_NONE} <value>       Target release title for promote-rc action"
-  echo -e "  ${COLOR_LIGHT_CYAN}--compress${COLOR_NONE} <option>          Release asset format [${COLOR_GREEN}options: tar.gz${COLOR_NONE}]"
+  echo -e "  ${COLOR_LIGHT_CYAN}--compress${COLOR_NONE} <option>           Release asset format [${COLOR_GREEN}options: tar.gz${COLOR_NONE}]"
+  echo -e "  ${COLOR_LIGHT_CYAN}--project-path${COLOR_NONE} <path>         Path to project directory (${COLOR_GREEN}default: current directory${COLOR_NONE})"
   echo -e " "
   echo -e "${COLOR_WHITE}PRE-RELEASE FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--release-tag${COLOR_NONE} <value>         GitHub release tag (${COLOR_GREEN}example: v1.0.0-RC.1${COLOR_NONE})"
@@ -767,6 +789,12 @@ parse_program_arguments() {
         CLI_VALUE_COMPRESS=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
         shift
         ;;
+      --project-path)
+        CLI_FLAG_PROJECT_PATH="project-path"
+        shift
+        CLI_VALUE_PROJECT_PATH=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
+        shift
+        ;;
 
       -y | --auto-prompt)
         # Used by prompter.sh
@@ -865,6 +893,7 @@ main() {
   parse_program_arguments "$@"
   verify_program_arguments
 
+  change_to_project_directory
   prerequisites
   poetry_resolve_project_name_version
 
