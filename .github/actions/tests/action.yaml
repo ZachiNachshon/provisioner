@@ -151,7 +151,18 @@ runs:
       if: steps.cached-venv-provisioner-monorepo.outputs.cache-hit != 'true'
       run: |
         echo "::group::Installing provisioner monorepo dependencies"
-        make deps-install
+        echo "Poetry version: $(poetry --version)"
+        echo "Python version: $(python --version)"
+        echo "Virtual environment path: $(poetry env info --path 2>/dev/null || echo 'No venv yet')"
+        if ! make deps-install; then
+          echo "Standard deps-install failed, attempting clean installation..."
+          echo "Checking for problematic files before cleanup..."
+          find .venv/bin/ -name "*test_runner*" 2>/dev/null || echo "No test_runner files found"
+          make clear-project
+          make deps-install
+        fi
+        echo "Final virtual environment info:"
+        poetry env info
         echo "::endgroup::"
       shell: bash
     
