@@ -143,7 +143,6 @@ class ReleaseNotesManager:
             # Create GA release notes with draft content
             with open(output_file, 'w') as f:
                 f.write(f"**Promoted from Release Candidate v{rc_version}**\n\n")
-                f.write(f"_Release notes compiled from draft release {draft_tag}_\n\n")
                 f.write(draft_notes)
             
             print(f"Created GA release notes using draft: {draft_tag}")

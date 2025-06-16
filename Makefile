@@ -41,7 +41,7 @@ dev-mode-sources: ## Enable local development from sources using abs file path o
 .PHONY: deps-install
 deps-install: ## Update and install pyproject.toml dependencies on all virtual environments
 	@poetry lock
-	@poetry install --with dev --sync -v
+	@poetry sync --with dev -v
 	@poetry lock
 	
 # .PHONY: dev-mode-pip-sdists
