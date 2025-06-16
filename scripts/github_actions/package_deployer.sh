@@ -638,6 +638,16 @@ apply_version_if_specified() {
 change_to_project_directory() {
   local project_path=$(get_project_path)
   
+  # If we have both project-path and output-path, resolve output-path to absolute before changing directories
+  if [[ -n "${project_path}" && -n "$(get_output_path)" ]]; then
+    local output_path=$(get_output_path)
+    if [[ "${output_path}" != /* ]]; then
+      # Convert relative output path to absolute path before changing directories
+      CLI_VALUE_OUTPUT_PATH=$(realpath "${output_path}")
+      log_info "Resolved output path to absolute: ${CLI_VALUE_OUTPUT_PATH}"
+    fi
+  fi
+  
   if [[ -n "${project_path}" ]]; then
     if [[ ! -d "${project_path}" ]]; then
       log_fatal "Project path does not exist: ${project_path}"
