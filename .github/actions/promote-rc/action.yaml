@@ -81,15 +81,21 @@ runs:
         
         # Build main project wheel with final version and compression
         echo "Building ${project_to_release} wheel package with final version ${package_version}..."
-        cd ${project_to_release}
-        ../scripts/github_actions/package_deployer.sh build --build-type wheel --version ${package_version} --compress tar.gz -y
-        cd ..
+        scripts/github_actions/package_deployer.sh build \
+          --build-type wheel \
+          --version ${package_version} \
+          --compress tar.gz \
+          --project-path ${project_to_release} \
+          -y
         
         # Build provisioner_shared wheel (dependency) with final version and compression
         echo "Building provisioner_shared wheel package with final version ${package_version}..."
-        cd provisioner_shared
-        ../scripts/github_actions/package_deployer.sh build --build-type wheel --version ${package_version} --compress tar.gz -y
-        cd ..
+        scripts/github_actions/package_deployer.sh build \
+          --build-type wheel \
+          --version ${package_version} \
+          --compress tar.gz \
+          --project-path provisioner_shared \
+          -y
         
         # Create assets directory and copy renamed packages
         mkdir -p release-assets
@@ -111,56 +117,22 @@ runs:
         echo "::endgroup::"
       shell: bash
 
-    - name: Generate Release Notes
-      run: |
-        echo "::group::Generating release notes with commit history"
-        rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
-        package_version="${{ steps.generate_rc.outputs.package_version }}"
-        
-        # Get commits since last tag (if any) 
-        last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-        
-        echo "⚠️ **Release Candidate** - Built with final version ${package_version}, do not use in production." > release_notes.md
-        echo "" >> release_notes.md
-        echo "**Package Version:** ${package_version} (ready for GA promotion)" >> release_notes.md
-        echo "**Git Tag:** v${rc_tag}" >> release_notes.md
-        echo "" >> release_notes.md
-        
-        if [ -n "$last_tag" ]; then
-          echo "### Changes since $last_tag:" >> release_notes.md
-          git log ${last_tag}..HEAD --oneline --no-merges | head -10 >> release_notes.md
-        else
-          echo "### Recent changes:" >> release_notes.md
-          git log --oneline --no-merges -10 >> release_notes.md
-        fi
-        
-        echo "" >> release_notes.md
-        echo "_This RC can be promoted to a stable release using the General Availability workflow._" >> release_notes.md
-        
-        echo "Generated release notes:"
-        cat release_notes.md
-        echo "::endgroup::"
-      shell: bash
-
     - name: Create GitHub Pre-Release
       run: |
-        echo "::group::Creating GitHub pre-release with final version packages"
+        echo "::group::Creating GitHub pre-release with minimal title"
         rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
-        package_version="${{ steps.generate_rc.outputs.package_version }}"
         
         echo "Creating GitHub pre-release for tag v${rc_tag}"
-        echo "Packages built with final version ${package_version} - ready for GA promotion"
+        echo "Pre-release will have minimal title with no body content"
         
-        # Use the enhanced publish script to create pre-release
+        # Use the enhanced publish script to create pre-release with minimal title and no notes
         scripts/github_actions/package_deployer.sh prerelease \
           --release-tag "v${rc_tag}" \
-          --release-title "Release Candidate v${rc_tag} (Package v${package_version})" \
-          --release-notes-file "release_notes.md" \
+          --release-title "v${rc_tag}" \
           --assets-dir "release-assets" \
           --target-branch "master" \
           -y
         
-        echo "Successfully created pre-release v${rc_tag} with final version packages"
-        echo "These same artifacts can be promoted directly to GA without rebuilding"
+        echo "Successfully created pre-release v${rc_tag} with minimal title"
         echo "::endgroup::"
       shell: bash 
