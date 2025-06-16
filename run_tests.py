@@ -128,7 +128,7 @@ def build_sdists(projects: Set[str]):
 
         except subprocess.CalledProcessError as e:
             print(f"❌ Error building {project}: {e.stderr}")
-            print(f"   This might indicate missing dependencies or manifest.json files.")
+            print("   This might indicate missing dependencies or manifest.json files.")
             print(f"   Try running 'poetry install' in the {project} directory.")
             sys.exit(1)
         except Exception as e:
@@ -141,29 +141,27 @@ def check_venv_health():
     try:
         # Check if there are any stale executable files that might cause issues
         result = subprocess.run(
-            ["poetry", "run", "python", "-c", "import sys; print(sys.executable)"],
-            capture_output=True,
-            text=True
+            ["poetry", "run", "python", "-c", "import sys; print(sys.executable)"], capture_output=True, text=True
         )
         if result.returncode == 0:
             venv_bin_dir = Path(result.stdout.strip()).parent
-            
+
             # Look for common problematic files
             problematic_files = ["test_runner", "pytest_runner"]
             found_issues = []
-            
+
             for file in problematic_files:
                 file_path = venv_bin_dir / file
                 if file_path.exists():
                     found_issues.append(str(file_path))
-            
+
             if found_issues:
                 print("⚠️  Warning: Found potentially problematic files in virtual environment:")
                 for issue in found_issues:
                     print(f"   - {issue}")
                 print("   These files might cause pip uninstall failures.")
                 print("   Consider running 'make clear-project' if you encounter issues.")
-                
+
     except Exception:
         # Silently ignore venv health check failures
         pass
@@ -180,10 +178,10 @@ def install_sdists():
     check_venv_health()
 
     print("Installing sdist packages:")
-    
+
     # Get package names to uninstall
     package_names = [p.stem.split("-")[0] for p in output_dir.glob("*.tar.gz")]
-    
+
     # Uninstall existing packages (ignore errors for packages that don't exist or have issues)
     print("Uninstalling existing packages from local virtual environment...")
     for package_name in package_names:
@@ -192,7 +190,7 @@ def install_sdists():
                 ["poetry", "run", "pip", "uninstall", package_name, "-y"],
                 capture_output=True,
                 text=True,
-                timeout=30  # Add timeout to prevent hanging
+                timeout=30,  # Add timeout to prevent hanging
             )
             if result.returncode == 0:
                 print(f"  - Successfully uninstalled {package_name}")
