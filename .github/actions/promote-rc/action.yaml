@@ -79,6 +79,9 @@ runs:
         echo "Building wheel packages for ${project_to_release} with final version ${package_version}"
         echo "Git tag will be v${rc_tag}, packages will be compressed for release assets"
         
+        # Create assets directory first
+        mkdir -p release-assets
+        
         # Build main project wheel with final version and compression
         echo "Building ${project_to_release} wheel package with final version ${package_version}..."
         scripts/github_actions/package_deployer.sh build \
@@ -86,6 +89,7 @@ runs:
           --version ${package_version} \
           --compress tar.gz \
           --project-path ${project_to_release} \
+          --output-path release-assets \
           -y
         
         # Build provisioner_shared wheel (dependency) with final version and compression
@@ -95,23 +99,10 @@ runs:
           --version ${package_version} \
           --compress tar.gz \
           --project-path provisioner_shared \
+          --output-path release-assets \
           -y
         
-        # Create assets directory and copy renamed packages
-        mkdir -p release-assets
-        
-        # Copy compressed wheel assets
-        if [ -d "${project_to_release}/dist" ]; then
-          cp ${project_to_release}/dist/*-v${package_version}.tar.gz release-assets/ 2>/dev/null || true
-          echo "Copied ${project_to_release} compressed wheel assets"
-        fi
-        
-        if [ -d "provisioner_shared/dist" ]; then
-          cp provisioner_shared/dist/*-v${package_version}.tar.gz release-assets/ 2>/dev/null || true
-          echo "Copied provisioner_shared compressed wheel assets"
-        fi
-        
-        echo "Built release assets:"
+        echo "Final release assets collected:"
         ls -la release-assets/
         
         echo "::endgroup::"

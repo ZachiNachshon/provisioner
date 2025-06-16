@@ -24,6 +24,7 @@ CLI_FLAG_SOURCE_TAG=""
 CLI_FLAG_UPLOAD_ACTION=""  # options: promote-rc/upload-to-pypi
 CLI_FLAG_COMPRESS=""           # compress output to tar.gz format
 CLI_FLAG_PROJECT_PATH=""       # project directory path
+CLI_FLAG_OUTPUT_PATH=""        # output directory for compressed assets
 
 CLI_VALUE_BUILD_TYPE=""
 CLI_VALUE_VERSION=""
@@ -36,6 +37,7 @@ CLI_VALUE_SOURCE_TAG=""
 CLI_VALUE_UPLOAD_ACTION=""
 CLI_VALUE_COMPRESS=""
 CLI_VALUE_PROJECT_PATH=""
+CLI_VALUE_OUTPUT_PATH=""
 
 POETRY_PACKAGE_NAME=""
 POETRY_PACKAGE_VERSION=""
@@ -114,6 +116,10 @@ get_project_path() {
   echo "${CLI_VALUE_PROJECT_PATH}"
 }
 
+get_output_path() {
+  echo "${CLI_VALUE_OUTPUT_PATH}"
+}
+
 is_compress_enabled() {
   [[ "${CLI_VALUE_COMPRESS}" == "tar.gz" ]]
 }
@@ -154,7 +160,16 @@ compress_and_rename_asset() {
   
   if [[ -f "${source_file}" ]]; then
     local new_name="${POETRY_PACKAGE_NAME}-v${POETRY_PACKAGE_VERSION}.tar.gz"
-    local target_path="${target_dir}/${new_name}"
+    
+    # Use output path if specified, otherwise use target_dir
+    local output_path=$(get_output_path)
+    if [[ -n "${output_path}" ]]; then
+      # Create output directory if it doesn't exist
+      mkdir -p "${output_path}"
+      local target_path="${output_path}/${new_name}"
+    else
+      local target_path="${target_dir}/${new_name}"
+    fi
     
     # Create tar.gz archive
     tar -czf "${target_path}" -C "$(dirname "${source_file}")" "$(basename "${source_file}")"
@@ -680,6 +695,7 @@ print_help_menu_and_exit() {
   echo -e "  ${COLOR_LIGHT_CYAN}--build-type${COLOR_NONE} <option>         Package build type [${COLOR_GREEN}options: sdist/wheel${COLOR_NONE}]"
   echo -e "  ${COLOR_LIGHT_CYAN}--version${COLOR_NONE} <value>             Custom version to build (${COLOR_GREEN}default: current poetry version${COLOR_NONE})"
   echo -e "  ${COLOR_LIGHT_CYAN}--compress${COLOR_NONE} <option>           Release asset format [${COLOR_GREEN}options: tar.gz${COLOR_NONE}]"
+  echo -e "  ${COLOR_LIGHT_CYAN}--output-path${COLOR_NONE} <path>          Output directory for compressed assets (${COLOR_GREEN}default: dist${COLOR_NONE})"
   echo -e " "
   echo -e "${COLOR_WHITE}UPLOAD FLAGS${COLOR_NONE}"
   echo -e "  ${COLOR_LIGHT_CYAN}--upload-action${COLOR_NONE} <option>      Upload action [${COLOR_GREEN}options: promote-rc/upload-to-pypi${COLOR_NONE}]"
@@ -793,6 +809,12 @@ parse_program_arguments() {
         CLI_FLAG_PROJECT_PATH="project-path"
         shift
         CLI_VALUE_PROJECT_PATH=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
+        shift
+        ;;
+      --output-path)
+        CLI_FLAG_OUTPUT_PATH="output-path"
+        shift
+        CLI_VALUE_OUTPUT_PATH=$(cut -d ' ' -f 2- <<<"${1}" | xargs)
         shift
         ;;
 
