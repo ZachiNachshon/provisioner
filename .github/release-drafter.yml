@@ -1,4 +1,4 @@
-name-template: 'v$NEXT_PATCH_VERSION'
+name-template: 'v$NEXT_PATCH_VERSION-draft'
 tag-template: 'v$NEXT_PATCH_VERSION-draft'
 
 template: |
