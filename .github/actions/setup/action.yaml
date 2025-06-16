@@ -56,6 +56,6 @@ runs:
     - name: (Install) pip packages
       if: steps.cache-pip-packages.outputs.cache-hit != 'true'
       run: |
-        pip3 install tomlkit --disable-pip-version-check --no-python-version-warning
+        pip3 install tomlkit twine coverage --disable-pip-version-check --no-python-version-warning
       shell: bash
 
