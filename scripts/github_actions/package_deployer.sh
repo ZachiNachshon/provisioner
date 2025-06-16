@@ -418,7 +418,7 @@ build_pip_package() {
 
 github_is_release_tag_prefix_exist() {
   local tag=$1
-  log_info "Checking if release tag exist. tag: ${tag}"
+  log_info "Checking if release tag exist. tag: ${tag}" >&2
   if gh release view "${tag}" >/dev/null 2>&1; then
     return 0 # Tag exists
   else
@@ -512,7 +512,7 @@ download_github_release_assets() {
   local source_tag=$1
   local download_dir=${2:-"downloaded-assets"}
   
-  log_info "Downloading assets from GitHub release: ${source_tag}"
+  log_info "Downloading assets from GitHub release: ${source_tag}" >&2
   
   # Create download directory
   mkdir -p "${download_dir}"
@@ -522,12 +522,27 @@ download_github_release_assets() {
     log_fatal "GitHub release not found: ${source_tag}"
   fi
   
+  # List assets first to see what's available
+  log_info "Checking available assets for release: ${source_tag}" >&2
+  gh release view "${source_tag}" --json assets --jq '.assets[].name' >&2 || log_warning "Failed to list assets for ${source_tag}" >&2
+  
   # Download all assets from the release
-  gh release download "${source_tag}" --dir "${download_dir}"
+  log_info "Attempting to download assets from: ${source_tag}" >&2
+  if ! gh release download "${source_tag}" --dir "${download_dir}" >&2; then
+    log_warning "gh release download failed for ${source_tag}, but continuing..." >&2
+  fi
   
   local asset_count=$(ls -1 "${download_dir}" 2>/dev/null | wc -l)
-  log_info "Downloaded ${asset_count} assets to: ${download_dir}"
+  log_info "Downloaded ${asset_count} assets to: ${download_dir}" >&2
   
+  # If no assets were downloaded, this is likely the problem
+  if [[ ${asset_count} -eq 0 ]]; then
+    log_warning "No assets found in release ${source_tag}. This will cause PyPI upload to fail." >&2
+    log_info "Available assets in release:" >&2
+    gh release view "${source_tag}" --json assets --jq '.assets[] | "\(.name) (\(.size) bytes)"' >&2 || log_warning "Could not list release assets" >&2
+  fi
+  
+  # Only output the directory path to stdout (for command substitution)
   echo "${download_dir}"
 }
 
@@ -542,6 +557,14 @@ promote_rc_to_ga_release() {
   # Download assets from RC release
   local assets_dir=$(download_github_release_assets "${source_tag}")
   
+  # Verify that assets were actually downloaded
+  local asset_count=$(ls -1 "${assets_dir}" 2>/dev/null | wc -l)
+  if [[ ${asset_count} -eq 0 ]]; then
+    log_fatal "Cannot promote RC to GA: No assets found in source release ${source_tag}. RC releases must have assets to be promoted."
+  fi
+  
+  log_info "Found ${asset_count} assets in RC release, proceeding with promotion"
+  
   # Check if target release already exists
   if github_is_release_tag_prefix_exist "${target_tag}"; then
     log_fatal "Target release already exists: ${target_tag}"
@@ -551,9 +574,7 @@ promote_rc_to_ga_release() {
   github_create_release_tag "${target_tag}" "${target_title}" "${notes_file}" "false" "master"
   
   # Upload assets to new release
-  if [[ -d "${assets_dir}" ]]; then
-    github_upload_multiple_assets "${target_tag}" "${assets_dir}"
-  fi
+  github_upload_multiple_assets "${target_tag}" "${assets_dir}"
   
   log_info "Successfully promoted RC to GA release: ${target_tag}"
   
