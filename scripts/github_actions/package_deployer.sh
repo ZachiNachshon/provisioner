@@ -697,14 +697,17 @@ change_to_project_directory() {
 }
 
 poetry_resolve_project_name_version() {
-  # POETRY_PACKAGE_NAME="provisioner"
-  # POETRY_PACKAGE_VERSION="0.0.0"
+  # Read package name and version from poetry command (which parses pyproject.toml)
+  if [[ ! -f "pyproject.toml" ]]; then
+    log_fatal "pyproject.toml not found in current directory"
+  fi
 
-  local poetry_project_info=$(poetry version)
-  local poetry_project_info=$(poetry version --no-ansi)
-  local name_ver_array=(${poetry_project_info})
-  POETRY_PACKAGE_NAME=$(printf ${name_ver_array[0]})
-  POETRY_PACKAGE_VERSION=$(printf ${name_ver_array[1]})
+  local poetry_version_output=$(poetry version --no-ansi)
+  
+  # Extract package name (all fields except the last one) and version (last field)
+  # poetry version output format: "package-name x.y.z"
+  POETRY_PACKAGE_NAME=$(echo "${poetry_version_output}" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//')
+  POETRY_PACKAGE_VERSION=$(echo "${poetry_version_output}" | awk '{print $NF}')
 
   if [[ -z "${POETRY_PACKAGE_NAME}" || -z "${POETRY_PACKAGE_VERSION}" ]]; then
     log_fatal "Poetry project name or version could not be resolved"

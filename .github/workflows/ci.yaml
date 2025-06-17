@@ -109,5 +109,12 @@ jobs:
       - name: Promote Release Candidate
         uses: ./.github/actions/promote-rc
         with:
-          project_to_release: 'provisioner'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          projects: |
+            [
+              {
+                "project_path": "provisioner",
+                "is_plugin": false,
+                "github_repo": "ZachiNachshon/provisioner"
+              }
+            ]
