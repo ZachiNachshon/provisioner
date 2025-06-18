@@ -66,10 +66,10 @@ runs:
         
         if [[ "$is_plugin" == "true" ]]; then
           echo "Plugin mode for: ${project_name}"
-          rc_stable_output=$(python3 scripts/github_actions/version_manager.py promote "$rc_version" --plugin-mode --github-repo "${github_repo}")
+          rc_stable_output=$(python3 scripts/github_actions/version_manager.py promote "${project_path}" "$rc_version" --plugin-mode --github-repo "${github_repo}")
         else
           echo "Main project mode for: ${project_name}"
-          rc_stable_output=$(python3 scripts/github_actions/version_manager.py promote "$rc_version" --github-repo "${github_repo}")
+          rc_stable_output=$(python3 scripts/github_actions/version_manager.py promote "${project_path}" "$rc_version" --github-repo "${github_repo}")
         fi
         
         # The version manager now outputs pure JSON and sets GITHUB_OUTPUT automatically

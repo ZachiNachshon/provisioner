@@ -94,19 +94,44 @@ jobs:
         python: [ '3.11' ]
 
     steps:
+      - name: Check for source code changes
+        id: check-changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            source:
+              - '**/*.py'
+              - '**/*.yaml'
+              - '**/*.yml'
+              - '**/*.toml'
+              - '**/*.json'
+              - '**/*.sh'
+              - 'Dockerfile*'
+              - '**/Dockerfile*'
+              - '!**/*.lock'
+              - '!**/*.md'
+              - '!**/README*'
+              - '!**/CHANGELOG*'
+              - '!**/LICENSE*'
+              - '!**/.gitignore'
+              - '!**/.cursorignore'
+              
       - name: Checkout repository code (with submodules)
+        if: steps.check-changes.outputs.source == 'true'
         uses: actions/checkout@v4
         with:
           submodules: true  # Fetch Git submodules
           token: ${{ secrets.PROVISIONER_PLUGINS_REPO_ACCESS_TOKEN }}
 
       - name: Setup Environment
+        if: steps.check-changes.outputs.source == 'true'
         uses: ./.github/actions/setup
         env:
           PYTHON_VERSION: ${{ matrix.python }}
           POETRY_VERSION: ${{ env.POETRY_VERSION }}
 
       - name: Promote Release Candidate
+        if: steps.check-changes.outputs.source == 'true'
         uses: ./.github/actions/promote-rc
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -443,11 +443,12 @@ def print_help():
     print("    Example: python version_manager.py generate provisioner --github-repo ZachiNachshon/provisioner")
     print("             python version_manager.py generate plugins/provisioner_examples_plugin --plugin-mode --github-repo ZachiNachshon/provisioner-plugins")
     print()
-    print("  promote [rc_version] [--plugin-mode] [--github-repo <owner/repo>]")
+    print("  promote <project_folder_path> [rc_version] [--plugin-mode] [--github-repo <owner/repo>]")
     print("    Purpose: Promote an existing RC to General Availability (GA/stable)")
     print("    Usage:   Used during GA promotion workflows to convert RC to stable")
     print("    Action:  READ-ONLY - No changes to remote repositories, only calculates promotion data")
-    print("    Inputs:  rc_version (optional) - specific RC to promote (auto-detects latest if omitted)")
+    print("    Inputs:  project_folder_path - path to project directory")
+    print("             rc_version (optional) - specific RC to promote (auto-detects latest if omitted)")
     print("    JSON Response Fields:")
     print("             - rc_version: RC version being promoted (e.g., '1.2.3-RC.1')")
     print("             - stable_version: Final stable version (e.g., '1.2.3')")
@@ -455,8 +456,8 @@ def print_help():
     print("             - package_name: PyPI package name")
     print("             - is_plugin: Boolean indicating if this is a plugin")
     print("             - input_rc_version: Input RC version or 'auto-detected'")
-    print("    Example: python version_manager.py promote --github-repo ZachiNachshon/provisioner")
-    print("             python version_manager.py promote 1.2.3-RC.1 --plugin-mode --github-repo ZachiNachshon/provisioner-plugins")
+    print("    Example: python version_manager.py promote provisioner --github-repo ZachiNachshon/provisioner")
+    print("             python version_manager.py promote plugins/provisioner_examples_plugin 1.2.3-RC.1 --plugin-mode --github-repo ZachiNachshon/provisioner-plugins")
     print()
     print("  detect-plugins --plugin-mode")
     print("    Purpose: Analyze git changes to identify which plugins have been modified")
@@ -521,9 +522,11 @@ def main():
     # For detect-plugins action, we don't require plugin context
     require_context = action != "detect-plugins"
     
-            # For generate command, pass project_folder_path for better plugin detection
+    # For generate and promote commands, pass project_folder_path for better plugin detection
     project_path_hint = None
     if action == "generate" and len(sys.argv) >= 3:
+        project_path_hint = sys.argv[2]
+    elif action == "promote" and len(sys.argv) >= 3:
         project_path_hint = sys.argv[2]
     
     version_manager = VersionManager(
@@ -575,7 +578,31 @@ def main():
             print(json_response)
 
         elif action == "promote":
-            input_rc_version = sys.argv[2] if len(sys.argv) > 2 else None
+            if len(sys.argv) < 3:
+                error_response = {
+                    "error": "promote command requires at least one argument",
+                    "usage": "python version_manager.py promote <project_folder_path> [rc_version] [--plugin-mode] [--github-repo <owner/repo>]",
+                    "purpose": "Promote existing RC to General Availability"
+                }
+                print(json.dumps(error_response, indent=2))
+                sys.exit(1)
+
+            project_folder_path = sys.argv[2]
+            input_rc_version = sys.argv[3] if len(sys.argv) > 3 else None
+            
+            # Validate project path and read package name from pyproject.toml
+            try:
+                package_name = version_manager.validate_project_path(project_folder_path)
+            except ValueError as e:
+                error_response = {
+                    "error": str(e),
+                    "action": "promote",
+                    "project_path": project_folder_path,
+                    "requirement": "Project path must contain a valid pyproject.toml with [tool.poetry] section and 'name' attribute"
+                }
+                print(json.dumps(error_response, indent=2))
+                sys.exit(1)
+            
             rc_version, stable_version = version_manager.determine_rc_to_promote(input_rc_version)
 
             # Create structured JSON response
@@ -585,7 +612,8 @@ def main():
                 "plugin_name": version_manager.plugin_name or "",
                 "package_name": version_manager._get_package_name(),
                 "is_plugin": plugin_mode,
-                "input_rc_version": input_rc_version or "auto-detected"
+                "input_rc_version": input_rc_version or "auto-detected",
+                "project_folder_path": project_folder_path
             }
             
             json_response = version_manager._output_json_response(response_data)
