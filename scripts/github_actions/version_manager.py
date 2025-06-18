@@ -205,8 +205,9 @@ class VersionManager:
                     continue
 
                 # Check if the changed file is in a plugin directory
+                # Handle both "plugins/plugin_name/" and "plugin_name/" patterns
                 for plugin in plugin_names:
-                    if line.startswith(f"{plugin}/"):
+                    if line.startswith(f"plugins/{plugin}/") or line.startswith(f"{plugin}/"):
                         if plugin not in affected_plugins:
                             affected_plugins.append(plugin)
                         break
