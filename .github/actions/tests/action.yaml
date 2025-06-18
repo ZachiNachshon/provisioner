@@ -154,9 +154,16 @@ runs:
         echo "Poetry version: $(poetry --version)"
         echo "Python version: $(python --version)"
         echo "Virtual environment path: $(poetry env info --path 2>/dev/null || echo 'No venv yet')"
+        
+        # Proactive cleanup for known Poetry sync issues
+        if [ -d ".venv/bin" ]; then
+          echo "Checking for potentially problematic files..."
+          find .venv/bin/ -name "*test_runner*" 2>/dev/null && echo "Found test_runner files, clearing project preemptively" && make clear-project || echo "No problematic files found"
+        fi
+        
         if ! make deps-install; then
           echo "Standard deps-install failed, attempting clean installation..."
-          echo "Checking for problematic files before cleanup..."
+          echo "Checking for problematic files after failure..."
           find .venv/bin/ -name "*test_runner*" 2>/dev/null || echo "No test_runner files found"
           make clear-project
           make deps-install
