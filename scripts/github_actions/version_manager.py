@@ -191,7 +191,12 @@ class VersionManager:
     def get_plugins_from_changes(self) -> List[str]:
         """Analyze changed files to identify affected plugins."""
         try:
+            # Get changed files from the last commit
             changed_files = self.run_command("git diff --name-only HEAD~1")
+
+            if not changed_files.strip():
+                return []
+
             affected_plugins = []
             plugin_names = self.discover_plugins()
 
@@ -199,12 +204,15 @@ class VersionManager:
                 if not line.strip():
                     continue
 
+                # Check if the changed file is in a plugin directory
                 for plugin in plugin_names:
-                    if line.startswith(plugin + "/"):
+                    if line.startswith(f"{plugin}/"):
                         if plugin not in affected_plugins:
                             affected_plugins.append(plugin)
+                        break
 
             return affected_plugins
+
         except Exception:
             return []
 
