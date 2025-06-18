@@ -21,10 +21,10 @@ class ReleaseNotesManager:
         self.github_token = os.environ.get("GITHUB_TOKEN")
         if not self.github_token:
             raise ValueError("GITHUB_TOKEN environment variable is required")
-        
+
         self.plugin_mode = plugin_mode
         self.plugin_name = None
-        
+
         if plugin_mode:
             self.plugin_name = self._detect_plugin_context()
             if not self.plugin_name:
@@ -32,51 +32,49 @@ class ReleaseNotesManager:
 
     def _detect_plugin_context(self) -> Optional[str]:
         """Detect plugin context from current directory using dynamic discovery."""
-        from pathlib import Path
         import re
-        
+        from pathlib import Path
+
         cwd = Path.cwd()
-        
+
         # Find plugins directory
         plugins_dir = None
         if cwd.name == "plugins":
             plugins_dir = cwd
-        elif (cwd.parent.name == "plugins"):
+        elif cwd.parent.name == "plugins":
             plugins_dir = cwd.parent
         elif "plugins" in cwd.parts:
             for i, part in enumerate(cwd.parts):
                 if part == "plugins":
-                    plugins_dir = Path("/".join(cwd.parts[:i+1]))
+                    plugins_dir = Path("/".join(cwd.parts[: i + 1]))
                     break
-        
+
         if not plugins_dir or not plugins_dir.exists():
             return None
-            
+
         # Get all available plugins
         plugin_candidates = []
         for item in plugins_dir.iterdir():
-            if (item.is_dir() and 
-                re.match(r"^provisioner_.*_plugin$", item.name) and
-                (item / "pyproject.toml").exists()):
+            if item.is_dir() and re.match(r"^provisioner_.*_plugin$", item.name) and (item / "pyproject.toml").exists():
                 plugin_candidates.append(item.name)
-        
+
         # Check which plugin matches current context
         for plugin in plugin_candidates:
             if plugin in str(cwd):
                 return plugin
-                
+
         return None
 
     def _format_tag(self, version: str) -> str:
         """Format version into appropriate tag name based on context."""
         if self.plugin_mode and self.plugin_name:
-            plugin_tag_name = self.plugin_name.replace('_', '-')
-            if version.startswith('v'):
+            plugin_tag_name = self.plugin_name.replace("_", "-")
+            if version.startswith("v"):
                 return f"{plugin_tag_name}-{version}"
             else:
                 return f"{plugin_tag_name}-v{version}"
         else:
-            return f"v{version}" if not version.startswith('v') else version
+            return f"v{version}" if not version.startswith("v") else version
 
     def run_command(self, cmd: str) -> str:
         """Run a shell command and return its output."""
@@ -93,7 +91,7 @@ class ReleaseNotesManager:
         try:
             self.run_command(f'gh release view "{tag}"')
             return True
-        except:
+        except Exception:
             return False
 
     def get_release_notes(self, tag: str) -> Optional[str]:
@@ -101,7 +99,7 @@ class ReleaseNotesManager:
         try:
             result = self.run_command(f"gh release view \"{tag}\" --json body --jq '.body'")
             return result if result and result != "null" else None
-        except:
+        except Exception:
             return None
 
     def parse_version_components(self, version: str) -> Tuple[int, int, int]:
@@ -268,7 +266,9 @@ def main():
     try:
         if action == "prepare":
             if len(sys.argv) < 4:
-                print("Usage: python release_notes_manager.py prepare <rc_version> <stable_version> [output_file] [--plugin-mode]")
+                print(
+                    "Usage: python release_notes_manager.py prepare <rc_version> <stable_version> [output_file] [--plugin-mode]"
+                )
                 sys.exit(1)
 
             rc_version = sys.argv[2]

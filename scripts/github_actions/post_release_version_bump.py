@@ -135,7 +135,7 @@ class PostReleaseVersionBumper:
         pr_title = f"[skip ci] Post-release: bump {self.project_name} to v{self.next_version}"
         pr_body = f"""Post-release version bump after promoting v{self.stable_version} to General Availability.
 
-**Released:** v{self.stable_version} (promoted from RC, published to GitHub + PyPI)  
+**Released:** v{self.stable_version} (promoted from RC, published to GitHub + PyPI)
 **Next Development:** v{self.next_version}
 
 This follows the 'build once, promote many' approach - artifacts were not rebuilt."""
@@ -206,7 +206,9 @@ def main():
     """Main entry point for the script."""
     parser = argparse.ArgumentParser(description="Bump project versions for next development cycle after GA release")
     parser.add_argument(
-        "--project-name", required=True, help="Name of the project that was released (e.g., 'provisioner' or 'provisioner_examples_plugin')"
+        "--project-name",
+        required=True,
+        help="Name of the project that was released (e.g., 'provisioner' or 'provisioner_examples_plugin')",
     )
     parser.add_argument(
         "--stable-version", required=True, help="The stable version that was just released (e.g., '1.2.3')"

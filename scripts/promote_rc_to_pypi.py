@@ -41,7 +41,7 @@ def check_pypi_version_exists(package_name: str, version: str) -> bool:
         # Use pip index to check if version exists
         output = run_command(f"pip index versions {package_name}")
         return version in output
-    except:
+    except Exception:
         # If command fails, assume version doesn't exist
         return False
 
