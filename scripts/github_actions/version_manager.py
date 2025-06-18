@@ -44,15 +44,15 @@ class VersionManager:
         Returns:
             JSON string of the response
         """
-        json_response = json.dumps(data, indent=2)
+        # Output compact JSON without indentation for GitHub Actions compatibility
+        json_response = json.dumps(data, separators=(',', ':'))
         
         # Set GitHub Action outputs - ONLY the JSON string
         github_output = os.environ.get("GITHUB_OUTPUT")
         if github_output:
             with open(github_output, "a") as f:
-                # Set only the complete JSON response (escape newlines for GITHUB_OUTPUT)
-                escaped_json = json_response.replace('\n', '\\n')
-                f.write(f"json_response={escaped_json}\n")
+                # Set the compact JSON response (no newlines to escape)
+                f.write(f"json_response={json_response}\n")
         
         return json_response
 

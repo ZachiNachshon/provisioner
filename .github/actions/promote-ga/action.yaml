@@ -18,10 +18,10 @@ inputs:
 outputs:
   rc_version:
     description: 'RC version that was promoted'
-    value: ${{ steps.determine_rc.outputs.rc_version }}
+    value: ${{ fromJSON(steps.determine_rc.outputs.json_response).rc_version }}
   stable_version:
     description: 'Stable version that was created'
-    value: ${{ steps.determine_rc.outputs.stable_version }}
+    value: ${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}
   json_response:
     description: 'Complete JSON response from version manager'
     value: ${{ steps.determine_rc.outputs.json_response }}
@@ -92,8 +92,8 @@ runs:
       run: |
         echo "::group::Preparing GA release notes"
         projects='${{ inputs.projects }}'
-        rc_version="${{ steps.determine_rc.outputs.rc_version }}"
-        stable_version="${{ steps.determine_rc.outputs.stable_version }}"
+        rc_version="${{ fromJSON(steps.determine_rc.outputs.json_response).rc_version }}"
+        stable_version="${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}"
         
         project=$(echo "${projects}" | jq -c '.[0]')
         project_path=$(echo "${project}" | jq -r '.project_path')
@@ -126,8 +126,8 @@ runs:
       run: |
         echo "::group::Creating stable GitHub release"
         projects='${{ inputs.projects }}'
-        rc_version="${{ steps.determine_rc.outputs.rc_version }}"
-        stable_version="${{ steps.determine_rc.outputs.stable_version }}"
+        rc_version="${{ fromJSON(steps.determine_rc.outputs.json_response).rc_version }}"
+        stable_version="${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}"
         
         project=$(echo "${projects}" | jq -c '.[0]')
         project_path=$(echo "${project}" | jq -r '.project_path')
@@ -185,7 +185,7 @@ runs:
       run: |
         echo "::group::Updating project version for next development cycle"
         projects='${{ inputs.projects }}'
-        stable_version="${{ steps.determine_rc.outputs.stable_version }}"
+        stable_version="${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}"
         
         project=$(echo "${projects}" | jq -c '.[0]')
         project_path=$(echo "${project}" | jq -r '.project_path')

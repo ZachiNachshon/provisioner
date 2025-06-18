@@ -14,10 +14,10 @@ inputs:
 outputs:
   package_version:
     description: 'Final package version for build artifacts'
-    value: ${{ steps.generate_rc.outputs.package_version }}
+    value: ${{ fromJSON(steps.generate_rc.outputs.json_response).package_version }}
   rc_tag:
     description: 'RC tag for git tagging'
-    value: ${{ steps.generate_rc.outputs.rc_tag }}
+    value: ${{ fromJSON(steps.generate_rc.outputs.json_response).rc_tag }}
   json_response:
     description: 'Complete JSON response from version manager'
     value: ${{ steps.generate_rc.outputs.json_response }}
@@ -92,8 +92,8 @@ runs:
 
     - name: Create Git Tag
       run: |
-        package_version="${{ steps.generate_rc.outputs.package_version }}"
-        rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
+        package_version="${{ fromJSON(steps.generate_rc.outputs.json_response).package_version }}"
+        rc_tag="${{ fromJSON(steps.generate_rc.outputs.json_response).rc_tag }}"
         projects='${{ inputs.projects }}'
         
         project=$(echo "${projects}" | jq -c '.[0]')
@@ -126,8 +126,8 @@ runs:
       run: |
         echo "::group::Building wheel packages and compressing as tar.gz for release assets"
         projects='${{ inputs.projects }}'
-        package_version="${{ steps.generate_rc.outputs.package_version }}"
-        rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
+        package_version="${{ fromJSON(steps.generate_rc.outputs.json_response).package_version }}"
+        rc_tag="${{ fromJSON(steps.generate_rc.outputs.json_response).rc_tag }}"
         
         echo "Building wheel packages with final version ${package_version}"
         echo "Git tag will be ${rc_tag}, packages will be compressed for release assets"
@@ -188,7 +188,7 @@ runs:
     - name: Create GitHub Pre-Release
       run: |
         echo "::group::Creating GitHub pre-release with minimal title"
-        rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
+        rc_tag="${{ fromJSON(steps.generate_rc.outputs.json_response).rc_tag }}"
         projects='${{ inputs.projects }}'
         
         project=$(echo "${projects}" | jq -c '.[0]')
