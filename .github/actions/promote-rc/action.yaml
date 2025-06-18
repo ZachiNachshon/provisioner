@@ -14,13 +14,13 @@ inputs:
 outputs:
   package_version:
     description: 'Final package version for build artifacts'
-    value: ${{ fromJSON(steps.generate_rc.outputs.json_response).package_version }}
+    value: '${{ fromJSON(steps.generate_rc.outputs.json_response).package_version }}'
   rc_tag:
     description: 'RC tag for git tagging'
-    value: ${{ fromJSON(steps.generate_rc.outputs.json_response).rc_tag }}
+    value: '${{ fromJSON(steps.generate_rc.outputs.json_response).rc_tag }}'
   json_response:
     description: 'Complete JSON response from version manager'
-    value: ${{ steps.generate_rc.outputs.json_response }}
+    value: '${{ steps.generate_rc.outputs.json_response }}'
 
 runs:
   using: 'composite'  

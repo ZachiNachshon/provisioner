@@ -18,13 +18,13 @@ inputs:
 outputs:
   rc_version:
     description: 'RC version that was promoted'
-    value: ${{ fromJSON(steps.determine_rc.outputs.json_response).rc_version }}
+    value: '${{ fromJSON(steps.determine_rc.outputs.json_response).rc_version }}'
   stable_version:
     description: 'Stable version that was created'
-    value: ${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}
+    value: '${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}'
   json_response:
     description: 'Complete JSON response from version manager'
-    value: ${{ steps.determine_rc.outputs.json_response }}
+    value: '${{ steps.determine_rc.outputs.json_response }}'
 
 runs:
   using: 'composite'  
