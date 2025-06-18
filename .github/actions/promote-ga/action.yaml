@@ -18,10 +18,10 @@ inputs:
 outputs:
   rc_version:
     description: 'RC version that was promoted'
-    value: ${{ fromJSON(steps.determine_rc.outputs.json_response).rc_version }}
+    value: ${{ steps.determine_rc.outputs.rc_version }}
   stable_version:
     description: 'Stable version that was created'
-    value: ${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}
+    value: ${{ steps.determine_rc.outputs.stable_version }}
   json_response:
     description: 'Complete JSON response from version manager'
     value: ${{ steps.determine_rc.outputs.json_response }}
@@ -75,6 +75,16 @@ runs:
         # The version manager now outputs pure JSON and sets GITHUB_OUTPUT automatically
         echo "Version Manager JSON Response:"
         echo "${rc_stable_output}"
+        
+        # Parse JSON and set individual outputs for GitHub Actions compatibility
+        rc_version_output=$(echo "${rc_stable_output}" | jq -r '.rc_version')
+        stable_version_output=$(echo "${rc_stable_output}" | jq -r '.stable_version')
+        
+        # Set individual outputs
+        echo "rc_version=${rc_version_output}" >> $GITHUB_OUTPUT
+        echo "stable_version=${stable_version_output}" >> $GITHUB_OUTPUT
+        echo "json_response=${rc_stable_output}" >> $GITHUB_OUTPUT
+        
         echo "::endgroup::"
       shell: bash
 
@@ -82,8 +92,8 @@ runs:
       run: |
         echo "::group::Preparing GA release notes"
         projects='${{ inputs.projects }}'
-        rc_version="${{ fromJSON(steps.determine_rc.outputs.json_response).rc_version }}"
-        stable_version="${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}"
+        rc_version="${{ steps.determine_rc.outputs.rc_version }}"
+        stable_version="${{ steps.determine_rc.outputs.stable_version }}"
         
         project=$(echo "${projects}" | jq -c '.[0]')
         project_path=$(echo "${project}" | jq -r '.project_path')
@@ -116,8 +126,8 @@ runs:
       run: |
         echo "::group::Creating stable GitHub release"
         projects='${{ inputs.projects }}'
-        rc_version="${{ fromJSON(steps.determine_rc.outputs.json_response).rc_version }}"
-        stable_version="${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}"
+        rc_version="${{ steps.determine_rc.outputs.rc_version }}"
+        stable_version="${{ steps.determine_rc.outputs.stable_version }}"
         
         project=$(echo "${projects}" | jq -c '.[0]')
         project_path=$(echo "${project}" | jq -r '.project_path')
@@ -175,7 +185,7 @@ runs:
       run: |
         echo "::group::Updating project version for next development cycle"
         projects='${{ inputs.projects }}'
-        stable_version="${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}"
+        stable_version="${{ steps.determine_rc.outputs.stable_version }}"
         
         project=$(echo "${projects}" | jq -c '.[0]')
         project_path=$(echo "${project}" | jq -r '.project_path')
