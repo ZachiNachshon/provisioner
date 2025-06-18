@@ -362,9 +362,9 @@ class VersionManager:
             # Find the highest existing RC number for this base version
             while True:
                 next_rc_number = rc_number + 1
-                candidate_rc_tag = f"{base_version}-{RC_VERSION_SUFFIX}.{next_rc_number}"
-                if not self.check_tag_exists(candidate_rc_tag):
-                    rc_tag = candidate_rc_tag
+                candidate_rc_version = f"{base_version}-{RC_VERSION_SUFFIX}.{next_rc_number}"
+                if not self.check_tag_exists(candidate_rc_version):
+                    rc_tag = self._get_tag_name(candidate_rc_version)
                     break
                 rc_number = next_rc_number
         else:
@@ -381,9 +381,9 @@ class VersionManager:
             # Find the first available RC number for this base version
             rc_number = 1
             while True:
-                candidate_rc_tag = f"{package_version}-{RC_VERSION_SUFFIX}.{rc_number}"
-                if not self.check_tag_exists(candidate_rc_tag):
-                    rc_tag = candidate_rc_tag
+                candidate_rc_version = f"{package_version}-{RC_VERSION_SUFFIX}.{rc_number}"
+                if not self.check_tag_exists(candidate_rc_version):
+                    rc_tag = self._get_tag_name(candidate_rc_version)
                     break
                 rc_number += 1
 
