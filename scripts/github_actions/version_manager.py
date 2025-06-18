@@ -199,22 +199,28 @@ class VersionManager:
 
             affected_plugins = []
             plugin_names = self.discover_plugins()
+            
+            # Split changed files into a list for easier processing
+            changed_file_list = [f.strip() for f in changed_files.split("\n") if f.strip()]
 
-            for line in changed_files.split("\n"):
-                if not line.strip():
-                    continue
-
-                # Check if the changed file is in a plugin directory
-                # Handle both "plugins/plugin_name/" and "plugin_name/" patterns
+            # Check each changed file against each plugin directory
+            for changed_file in changed_file_list:
                 for plugin in plugin_names:
-                    if line.startswith(f"plugins/{plugin}/") or line.startswith(f"{plugin}/"):
+                    # Check if the changed file belongs to this plugin
+                    # Handle multiple directory structures:
+                    # - plugins/plugin_name/... (main repo with plugins submodule)
+                    # - plugin_name/... (direct plugin repo)
+                    if (changed_file.startswith(f"plugins/{plugin}/") or 
+                        changed_file.startswith(f"{plugin}/")):
                         if plugin not in affected_plugins:
                             affected_plugins.append(plugin)
                         break
 
             return affected_plugins
 
-        except Exception:
+        except Exception as e:
+            # Add some debugging for troubleshooting
+            print(f"Error detecting plugin changes: {e}")
             return []
 
     def _get_tag_name(self, version: str) -> str:
