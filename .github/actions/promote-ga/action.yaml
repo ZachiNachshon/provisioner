@@ -66,10 +66,24 @@ runs:
         
         if [[ "$is_plugin" == "true" ]]; then
           echo "Plugin mode for: ${project_name}"
-          rc_stable_output=$(python3 scripts/github_actions/version_manager.py promote "${project_path}" "$rc_version" --plugin-mode --github-repo "${github_repo}")
+          rc_stable_output=$(python3 scripts/github_actions/version_manager.py promote "${project_path}" "$rc_version" --plugin-mode --github-repo "${github_repo}" 2>&1)
         else
           echo "Main project mode for: ${project_name}"
-          rc_stable_output=$(python3 scripts/github_actions/version_manager.py promote "${project_path}" "$rc_version" --github-repo "${github_repo}")
+          rc_stable_output=$(python3 scripts/github_actions/version_manager.py promote "${project_path}" "$rc_version" --github-repo "${github_repo}" 2>&1)
+        fi
+        
+        # Check if the command succeeded and produced valid JSON
+        if [[ $? -ne 0 ]]; then
+          echo "Error: version_manager.py failed with output:"
+          echo "${rc_stable_output}"
+          exit 1
+        fi
+        
+        # Validate that the output is valid JSON
+        if ! echo "${rc_stable_output}" | jq empty 2>/dev/null; then
+          echo "Error: version_manager.py did not produce valid JSON output:"
+          echo "${rc_stable_output}"
+          exit 1
         fi
         
         # The version manager now outputs pure JSON and sets GITHUB_OUTPUT automatically
@@ -79,6 +93,15 @@ runs:
         # Parse JSON and set individual outputs for GitHub Actions compatibility
         rc_version_output=$(echo "${rc_stable_output}" | jq -r '.rc_version')
         stable_version_output=$(echo "${rc_stable_output}" | jq -r '.stable_version')
+        
+        # Validate that required fields exist
+        if [[ "${rc_version_output}" == "null" || "${stable_version_output}" == "null" ]]; then
+          echo "Error: version_manager.py output missing required fields:"
+          echo "rc_version: ${rc_version_output}"
+          echo "stable_version: ${stable_version_output}"
+          echo "Full output: ${rc_stable_output}"
+          exit 1
+        fi
         
         # Set individual outputs
         echo "rc_version=${rc_version_output}" >> $GITHUB_OUTPUT
