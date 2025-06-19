@@ -132,13 +132,24 @@ runs:
         project=$(echo "${projects}" | jq -c '.[0]')
         project_path=$(echo "${project}" | jq -r '.project_path')
         is_plugin=$(echo "${project}" | jq -r '.is_plugin')
+        github_repo=$(echo "${project}" | jq -r '.github_repo')
         
         # Derive project name from project_path for logging
         project_name=$(basename "${project_path}")
         
-        # Check if this is a plugin release for proper tag format
+        # Use correct tag format based on plugin naming convention
         if [[ "$is_plugin" == "true" ]]; then
-          plugin_tag_name=$(echo "$project_name" | tr '_' '-')
+          # Apply same logic as version_manager.py _get_tag_name() method
+          # Remove "provisioner_" prefix and "_plugin" suffix, then add "-plugin"
+          plugin_core_name="${project_name}"
+          if [[ "$plugin_core_name" == provisioner_* ]]; then
+            plugin_core_name="${plugin_core_name#provisioner_}"
+          fi
+          if [[ "$plugin_core_name" == *_plugin ]]; then
+            plugin_core_name="${plugin_core_name%_plugin}"
+          fi
+          plugin_tag_name=$(echo "$plugin_core_name" | tr '_' '-')"-plugin"
+          
           source_tag="${plugin_tag_name}-v${rc_version}"
           release_tag="${plugin_tag_name}-v${stable_version}"
           release_title="Plugin ${project_name} v${stable_version}"
