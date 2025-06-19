@@ -329,35 +329,52 @@ class VersionManager:
 
     def get_latest_rc_version(self) -> Optional[str]:
         """Get the latest RC version from GitHub releases."""
+        # Create pattern based on context (plugin vs main project)
+        if self.plugin_mode and self.plugin_name:
+            # Use the same logic as _get_tag_name() method for consistency
+            plugin_core_name = self.plugin_name
+            if plugin_core_name.startswith("provisioner_"):
+                plugin_core_name = plugin_core_name[len("provisioner_") :]
+            if plugin_core_name.endswith("_plugin"):
+                plugin_core_name = plugin_core_name[: -len("_plugin")]
+            plugin_tag_name = plugin_core_name.replace("_", "-") + "-plugin"
+            rc_pattern = rf"^{re.escape(plugin_tag_name)}-v\d+\.\d+\.\d+-RC\.\d+$"
+            tag_prefix_len = len(f"{plugin_tag_name}-v")
+        else:
+            rc_pattern = r"^v\d+\.\d+\.\d+-RC\.\d+$"
+            tag_prefix_len = 1  # Just 'v'
+
+        # Try GitHub API first, then fall back to local git tags
         try:
             # Get all RC tags from GitHub API, sort by version descending
             repo_path = self.github_repo if self.github_repo else ":owner/:repo"
             tags_output = self.run_command(f"gh api repos/{repo_path}/tags --paginate --jq '.[].name'")
-            if not tags_output:
-                return None
-
-            # Create pattern based on context (plugin vs main project)
-            if self.plugin_mode and self.plugin_name:
-                plugin_tag_name = self.plugin_name.replace("_", "-")
-                rc_pattern = rf"^{re.escape(plugin_tag_name)}-v\d+\.\d+\.\d+-RC\.\d+$"
-                tag_prefix_len = len(f"{plugin_tag_name}-v")
-            else:
-                rc_pattern = r"^v\d+\.\d+\.\d+-RC\.\d+$"
-                tag_prefix_len = 1  # Just 'v'
-
-            rc_tags = [tag for tag in tags_output.split("\n") if re.match(rc_pattern, tag)]
-
-            if not rc_tags:
-                return None
-
-            # Sort by version (extract version numbers for sorting)
-            rc_tags.sort(key=lambda x: [int(i) for i in re.findall(r"\d+", x)], reverse=True)
-
-            # Return without prefix
-            return rc_tags[0][tag_prefix_len:] if rc_tags else None
-
+            if tags_output:
+                rc_tags = [tag for tag in tags_output.split("\n") if re.match(rc_pattern, tag)]
+                if rc_tags:
+                    # Sort by version (extract version numbers for sorting)
+                    rc_tags.sort(key=lambda x: [int(i) for i in re.findall(r"\d+", x)], reverse=True)
+                    # Return without prefix
+                    return rc_tags[0][tag_prefix_len:] if rc_tags else None
         except Exception:
-            return None
+            pass  # Fall back to local git tags
+
+        # Fallback: check local git tags
+        try:
+            # For plugins, check in the plugins directory
+            cwd = Path("plugins") if self.plugin_mode and Path("plugins").exists() else None
+            local_tags_output = self.run_command("git tag -l", cwd=cwd)
+            if local_tags_output:
+                rc_tags = [tag for tag in local_tags_output.split("\n") if re.match(rc_pattern, tag)]
+                if rc_tags:
+                    # Sort by version (extract version numbers for sorting)
+                    rc_tags.sort(key=lambda x: [int(i) for i in re.findall(r"\d+", x)], reverse=True)
+                    # Return without prefix
+                    return rc_tags[0][tag_prefix_len:] if rc_tags else None
+        except Exception:
+            pass
+
+        return None
 
     def generate_rc_versions(self, project_folder_path: str) -> Tuple[str, str]:
         """
@@ -420,7 +437,10 @@ class VersionManager:
         Returns:
             Tuple[str, str]: (rc_version, stable_version)
         """
-        if input_rc_version:
+        # Handle empty/whitespace-only input_rc_version
+        if input_rc_version and input_rc_version.strip():
+            input_rc_version = input_rc_version.strip()
+            
             # Validate format
             if not self.validate_rc_version_format(input_rc_version):
                 raise ValueError(f"Invalid RC version format: {input_rc_version}. Expected format: x.y.z-RC.N")
@@ -435,6 +455,7 @@ class VersionManager:
 
             rc_version = input_rc_version
         else:
+            # input_rc_version is None, empty, or whitespace-only - auto-detect latest
             rc_version = self.get_latest_rc_version()
 
             if not rc_version:
@@ -586,7 +607,7 @@ def main():
                     "usage": "python version_manager.py generate <project_folder_path> [--plugin-mode] [--github-repo <owner/repo>]",
                     "purpose": "Calculate RC versions for creating release candidates",
                 }
-                print(json.dumps(error_response, indent=2))
+                print(json.dumps(error_response, separators=(",", ":")))
                 sys.exit(1)
 
             project_folder_path = sys.argv[2]
@@ -601,7 +622,7 @@ def main():
                     "project_path": project_folder_path,
                     "requirement": "Project path must contain a valid pyproject.toml with [tool.poetry] section and 'name' attribute",
                 }
-                print(json.dumps(error_response, indent=2))
+                print(json.dumps(error_response, separators=(",", ":")))
                 sys.exit(1)
 
             package_version, rc_tag = version_manager.generate_rc_versions(project_folder_path)
@@ -626,7 +647,7 @@ def main():
                     "usage": "python version_manager.py promote <project_folder_path> [rc_version] [--plugin-mode] [--github-repo <owner/repo>]",
                     "purpose": "Promote existing RC to General Availability",
                 }
-                print(json.dumps(error_response, indent=2))
+                print(json.dumps(error_response, separators=(",", ":")))
                 sys.exit(1)
 
             project_folder_path = sys.argv[2]
@@ -642,7 +663,7 @@ def main():
                     "project_path": project_folder_path,
                     "requirement": "Project path must contain a valid pyproject.toml with [tool.poetry] section and 'name' attribute",
                 }
-                print(json.dumps(error_response, indent=2))
+                print(json.dumps(error_response, separators=(",", ":")))
                 sys.exit(1)
 
             rc_version, stable_version = version_manager.determine_rc_to_promote(input_rc_version)
@@ -669,7 +690,7 @@ def main():
                     "usage": "python version_manager.py detect-plugins <project_folder_path> --plugin-mode [--github-repo <owner/repo>]",
                     "purpose": "Analyze git changes to identify modified plugins for CI matrix",
                 }
-                print(json.dumps(error_response, indent=2))
+                print(json.dumps(error_response, separators=(",", ":")))
                 sys.exit(1)
 
             if len(sys.argv) != 3:
@@ -678,7 +699,7 @@ def main():
                     "usage": "python version_manager.py detect-plugins <project_folder_path> --plugin-mode [--github-repo <owner/repo>]",
                     "purpose": "Analyze git changes to identify modified plugins for CI matrix",
                 }
-                print(json.dumps(error_response, indent=2))
+                print(json.dumps(error_response, separators=(",", ":")))
                 sys.exit(1)
 
             project_folder_path = sys.argv[2]
@@ -700,12 +721,12 @@ def main():
                 ],
                 "help": "Use 'python version_manager.py' without arguments for full help.",
             }
-            print(json.dumps(error_response, indent=2))
+            print(json.dumps(error_response, separators=(",", ":")))
             sys.exit(1)
 
     except Exception as e:
         error_response = {"error": str(e), "action": action if "action" in locals() else "unknown"}
-        print(json.dumps(error_response, indent=2))
+        print(json.dumps(error_response, separators=(",", ":")))
         sys.exit(1)
 
 

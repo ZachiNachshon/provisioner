@@ -122,8 +122,8 @@ runs:
         else
           echo "Creating main project git tag: ${final_tag} (packages built with final version ${package_version})"
           # For main project, create and push tag in the main repository
-          git tag "${final_tag}" -m "Release Candidate ${final_tag} for ${project_name} (package version: ${package_version})"
-          git push origin "${final_tag}"
+        git tag "${final_tag}" -m "Release Candidate ${final_tag} for ${project_name} (package version: ${package_version})"
+        git push origin "${final_tag}"
         fi
       shell: bash
 
