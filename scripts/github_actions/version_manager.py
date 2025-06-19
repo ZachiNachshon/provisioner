@@ -227,8 +227,6 @@ class VersionManager:
             return affected_plugins
 
         except Exception as e:
-            # Add some debugging for troubleshooting
-            print(f"Error detecting plugin changes: {e}")
             return []
 
     def _get_tag_name(self, version: str) -> str:
