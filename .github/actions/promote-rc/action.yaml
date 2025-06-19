@@ -210,11 +210,14 @@ runs:
         echo "Pre-release will have minimal title with no body content"
         
         # Use --project-path flag to avoid cd commands
+        # Convert assets-dir to absolute path since script will change to project directory
+        assets_dir_abs=$(pwd)/release-assets
+        
         scripts/github_actions/package_deployer.sh prerelease \
           --project-path "${project_path}" \
           --release-tag "${final_tag}" \
           --release-title "${final_tag}" \
-          --assets-dir "release-assets" \
+          --assets-dir "${assets_dir_abs}" \
           --target-branch "master" \
           -y
         
