@@ -218,20 +218,32 @@ class VersionManager:
 
             # If plugins submodule exists, also check for changes within the submodule
             plugins_dir = Path("plugins")
+            print(f"Debug: Checking plugins directory: {plugins_dir.absolute()}")
+            print(f"Debug: Plugins dir exists: {plugins_dir.exists()}")
+            if plugins_dir.exists():
+                git_dir = plugins_dir / ".git"
+                print(f"Debug: Plugins .git exists: {git_dir.exists()}")
+                
             if plugins_dir.exists() and (plugins_dir / ".git").exists():
                 try:
+                    print("Debug: Checking submodule for changes...")
                     # Check if there are any changes in the plugins submodule
                     submodule_changed_files = self.run_command("git diff --name-only HEAD~1", cwd=plugins_dir)
+                    print(f"Debug: Submodule changed files: '{submodule_changed_files}'")
                     if submodule_changed_files.strip():
                         submodule_file_list = [f.strip() for f in submodule_changed_files.split("\n") if f.strip()]
+                        print(f"Debug: Submodule file list: {submodule_file_list}")
                         
                         # Check which plugins are affected by submodule changes
                         for changed_file in submodule_file_list:
                             for plugin in plugin_names:
                                 if changed_file.startswith(f"{plugin}/"):
+                                    print(f"Debug: Found plugin change: {plugin} affected by {changed_file}")
                                     if plugin not in affected_plugins:
                                         affected_plugins.append(plugin)
                                     break
+                    else:
+                        print("Debug: No changes found in submodule")
                 except Exception as e:
                     print(f"Could not check submodule changes: {e}")
 
