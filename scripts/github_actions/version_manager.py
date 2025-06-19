@@ -188,17 +188,27 @@ class VersionManager:
 
         return None
 
-    def get_plugins_from_changes(self) -> List[str]:
-        """Analyze changed files to identify affected plugins."""
+    def get_plugins_from_changes(self, project_folder_path: str) -> List[str]:
+        """Analyze changed files to identify affected plugins in the specified directory."""
         try:
-            # Get changed files from the last commit
-            changed_files = self.run_command("git diff --name-only HEAD~1")
+            project_dir = Path(project_folder_path)
+            
+            # Get changed files from the last commit in the specified directory
+            changed_files = self.run_command("git diff --name-only HEAD~1", cwd=project_dir)
 
             if not changed_files.strip():
                 return []
 
             affected_plugins = []
-            plugin_names = self.discover_plugins()
+            
+            # Discover plugins relative to the specified directory
+            # Save current directory and switch to target directory for discovery
+            original_cwd = Path.cwd()
+            try:
+                os.chdir(project_dir)
+                plugin_names = self.discover_plugins()
+            finally:
+                os.chdir(original_cwd)
             
             # Split changed files into a list for easier processing
             changed_file_list = [f.strip() for f in changed_files.split("\n") if f.strip()]
@@ -207,45 +217,12 @@ class VersionManager:
             for changed_file in changed_file_list:
                 for plugin in plugin_names:
                     # Check if the changed file belongs to this plugin
-                    # Handle multiple directory structures:
-                    # - plugins/plugin_name/... (main repo with plugins submodule)
-                    # - plugin_name/... (direct plugin repo)
-                    if (changed_file.startswith(f"plugins/{plugin}/") or 
-                        changed_file.startswith(f"{plugin}/")):
+                    # Since we're running git diff from the target directory,
+                    # the paths should be relative to that directory
+                    if changed_file.startswith(f"{plugin}/"):
                         if plugin not in affected_plugins:
                             affected_plugins.append(plugin)
                         break
-
-            # If plugins submodule exists, also check for changes within the submodule
-            plugins_dir = Path("plugins")
-            print(f"Debug: Checking plugins directory: {plugins_dir.absolute()}")
-            print(f"Debug: Plugins dir exists: {plugins_dir.exists()}")
-            if plugins_dir.exists():
-                git_dir = plugins_dir / ".git"
-                print(f"Debug: Plugins .git exists: {git_dir.exists()}")
-                
-            if plugins_dir.exists() and (plugins_dir / ".git").exists():
-                try:
-                    print("Debug: Checking submodule for changes...")
-                    # Check if there are any changes in the plugins submodule
-                    submodule_changed_files = self.run_command("git diff --name-only HEAD~1", cwd=plugins_dir)
-                    print(f"Debug: Submodule changed files: '{submodule_changed_files}'")
-                    if submodule_changed_files.strip():
-                        submodule_file_list = [f.strip() for f in submodule_changed_files.split("\n") if f.strip()]
-                        print(f"Debug: Submodule file list: {submodule_file_list}")
-                        
-                        # Check which plugins are affected by submodule changes
-                        for changed_file in submodule_file_list:
-                            for plugin in plugin_names:
-                                if changed_file.startswith(f"{plugin}/"):
-                                    print(f"Debug: Found plugin change: {plugin} affected by {changed_file}")
-                                    if plugin not in affected_plugins:
-                                        affected_plugins.append(plugin)
-                                    break
-                    else:
-                        print("Debug: No changes found in submodule")
-                except Exception as e:
-                    print(f"Could not check submodule changes: {e}")
 
             return affected_plugins
 
@@ -518,16 +495,18 @@ def print_help():
         "             python version_manager.py promote plugins/provisioner_examples_plugin 1.2.3-RC.1 --plugin-mode --github-repo ZachiNachshon/provisioner-plugins"
     )
     print()
-    print("  detect-plugins --plugin-mode")
-    print("    Purpose: Analyze git changes to identify which plugins have been modified")
+    print("  detect-plugins <project_folder_path> --plugin-mode [--github-repo <owner/repo>]")
+    print("    Purpose: Analyze git changes to identify which plugins have been modified in the specified directory")
     print("    Usage:   Used in CI matrix workflows to determine which plugins need RC creation")
     print("    Action:  READ-ONLY - No changes to remote repositories, only analyzes local git changes")
+    print("    Inputs:  project_folder_path - path to directory containing plugins (e.g., 'plugins' or '.')")
     print("    JSON Response Fields:")
     print(
         '             - plugins: Array of changed plugin names (e.g., ["provisioner_examples_plugin"] or [] if no changes)'
     )
     print("             - repository: Repository being analyzed")
-    print("    Example: python version_manager.py detect-plugins --plugin-mode")
+    print("    Example: python version_manager.py detect-plugins plugins --plugin-mode --github-repo ZachiNachshon/provisioner-plugins")
+    print("             python version_manager.py detect-plugins . --plugin-mode  # When running directly in plugins repo")
     print()
     print("FLAGS:")
     print("  --plugin-mode               Enable plugin-specific behavior (required for plugin operations)")
@@ -689,13 +668,23 @@ def main():
             if not plugin_mode:
                 error_response = {
                     "error": "detect-plugins command requires --plugin-mode flag",
-                    "usage": "python version_manager.py detect-plugins --plugin-mode [--github-repo <owner/repo>]",
+                    "usage": "python version_manager.py detect-plugins <project_folder_path> --plugin-mode [--github-repo <owner/repo>]",
                     "purpose": "Analyze git changes to identify modified plugins for CI matrix",
                 }
                 print(json.dumps(error_response, indent=2))
                 sys.exit(1)
 
-            affected_plugins = version_manager.get_plugins_from_changes()
+            if len(sys.argv) != 3:
+                error_response = {
+                    "error": "detect-plugins command requires exactly one argument",
+                    "usage": "python version_manager.py detect-plugins <project_folder_path> --plugin-mode [--github-repo <owner/repo>]",
+                    "purpose": "Analyze git changes to identify modified plugins for CI matrix",
+                }
+                print(json.dumps(error_response, indent=2))
+                sys.exit(1)
+
+            project_folder_path = sys.argv[2]
+            affected_plugins = version_manager.get_plugins_from_changes(project_folder_path)
 
             # Create structured JSON response
             response_data = {"plugins": affected_plugins, "repository": version_manager.github_repo or "local"}

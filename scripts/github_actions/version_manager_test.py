@@ -674,13 +674,14 @@ build-backend = "poetry.core.masonry.api"
         with patch("version_manager.VersionManager.get_plugins_from_changes") as mock_get_plugins:
             mock_get_plugins.return_value = ["provisioner_examples_plugin"]
 
-            exit_code, stdout, stderr = self.run_version_manager_cli(["detect-plugins", "--plugin-mode"])
+            exit_code, stdout, stderr = self.run_version_manager_cli(["detect-plugins", str(self.temp_path), "--plugin-mode"])
 
             self.assertEqual(exit_code, 0)
 
             # Parse JSON response
             response = json.loads(stdout)
             self.assertEqual(response["plugins"], ["provisioner_examples_plugin"])
+            mock_get_plugins.assert_called_once_with(str(self.temp_path))
 
     def test_cli_invalid_command(self):
         """Test CLI with invalid command."""
@@ -717,7 +718,7 @@ build-backend = "poetry.core.masonry.api"
 
     def test_cli_detect_plugins_without_plugin_mode(self):
         """Test CLI detect-plugins command without plugin mode flag."""
-        exit_code, stdout, stderr = self.run_version_manager_cli(["detect-plugins"])
+        exit_code, stdout, stderr = self.run_version_manager_cli(["detect-plugins", str(self.temp_path)])
 
         self.assertEqual(exit_code, 1)
 
@@ -725,6 +726,17 @@ build-backend = "poetry.core.masonry.api"
         response = json.loads(stdout)
         self.assertIn("error", response)
         self.assertIn("requires --plugin-mode flag", response["error"])
+
+    def test_cli_detect_plugins_missing_args(self):
+        """Test CLI detect-plugins command with missing arguments."""
+        exit_code, stdout, stderr = self.run_version_manager_cli(["detect-plugins", "--plugin-mode"])
+
+        self.assertEqual(exit_code, 1)
+
+        # Parse JSON error response
+        response = json.loads(stdout)
+        self.assertIn("error", response)
+        self.assertIn("requires exactly one argument", response["error"])
 
     def test_cli_github_repo_flag(self):
         """Test CLI with --github-repo flag."""
