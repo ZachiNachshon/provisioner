@@ -152,7 +152,7 @@ runs:
           
           source_tag="${plugin_tag_name}-v${rc_version}"
           release_tag="${plugin_tag_name}-v${stable_version}"
-          release_title="Plugin ${project_name} v${stable_version}"
+          release_title="${release_tag}"
           
           echo "Promoting plugin RC ${source_tag} to stable release ${release_tag}"
           cd "${project_path}"
@@ -160,7 +160,7 @@ runs:
         else
           source_tag="v${rc_version}"
           release_tag="v${stable_version}"
-          release_title="Release v${stable_version}"
+          release_title="${release_tag}"
           release_notes_file="ga_release_notes.md"
           
           echo "Promoting main project RC ${source_tag} to stable release ${release_tag}"

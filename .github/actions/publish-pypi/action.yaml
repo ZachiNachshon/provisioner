@@ -54,14 +54,8 @@ runs:
           # Set the PyPI token for this package
           export PYPI_API_TOKEN="${pypi_token}"
           
-          # Determine script path based on whether this is a plugin
-          if [[ "$is_plugin" == "true" ]]; then
-            # Plugin package - use relative path to parent scripts
-            scripts_path="../scripts/github_actions/package_deployer.sh"
-          else
-            # Main project package - use direct path to scripts
-            scripts_path="scripts/github_actions/package_deployer.sh"
-          fi
+          # Use script path from main repository root (works for both plugins and main packages)
+          scripts_path="scripts/github_actions/package_deployer.sh"
           
           # Upload to PyPI using package deployer
           $scripts_path upload \
