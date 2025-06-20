@@ -22,6 +22,9 @@ outputs:
   stable_version:
     description: 'Stable version that was created'
     value: ${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}
+  ga_release_tag:
+    description: 'GA release tag that was created'
+    value: ${{ steps.create_release.outputs.ga_release_tag }}
   json_response:
     description: 'Complete JSON response from version manager'
     value: ${{ steps.determine_rc.outputs.json_response }}
@@ -123,6 +126,7 @@ runs:
       shell: bash
 
     - name: Create Stable GitHub Release
+      id: create_release
       run: |
         echo "::group::Creating stable GitHub release"
         projects='${{ inputs.projects }}'
@@ -187,6 +191,9 @@ runs:
         
         # Mark the new release as latest
         gh release edit "${release_tag}" --latest
+        
+        # Output the GA release tag for use by subsequent steps
+        echo "ga_release_tag=${release_tag}" >> $GITHUB_OUTPUT
         
         echo "Successfully created stable release ${release_tag}"
         echo "::endgroup::"
