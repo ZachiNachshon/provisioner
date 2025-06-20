@@ -11,12 +11,31 @@ import os
 import re
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import tomllib
 
 RC_VERSION_SUFFIX = "RC"
+
+
+@dataclass
+class CliArguments:
+    """Container for parsed CLI arguments."""
+    action: str
+    project_folder_path: Optional[str] = None
+    rc_version: Optional[str] = None
+    plugin_mode: bool = False
+    github_repo: Optional[str] = None
+
+
+@dataclass
+class CommandResponse:
+    """Container for command response data."""
+    data: Dict
+    success: bool = True
+    error_message: Optional[str] = None
 
 
 class VersionManager:
@@ -29,19 +48,49 @@ class VersionManager:
         github_repo: Optional[str] = None,
         project_path_hint: Optional[str] = None,
     ):
+        """
+        Initialize VersionManager.
+        
+        Args:
+            plugin_mode: Enable plugin-specific behavior
+            require_plugin_context: Require plugin context when in plugin mode
+            github_repo: GitHub repository in format "owner/repo"
+            project_path_hint: Path hint for plugin detection
+        """
+        self._validate_github_token()
+        
+        self.plugin_mode = plugin_mode
+        self.github_repo = github_repo
+        self.package_name = None
+        
+        self.plugin_name = self._initialize_plugin_context(
+            plugin_mode, require_plugin_context, project_path_hint
+        )
+
+    def _validate_github_token(self) -> None:
+        """Validate that GITHUB_TOKEN environment variable is set."""
         self.github_token = os.environ.get("GITHUB_TOKEN")
         if not self.github_token:
             raise ValueError("GITHUB_TOKEN environment variable is required")
 
-        self.plugin_mode = plugin_mode
-        self.plugin_name = self.detect_plugin_context(project_path_hint) if plugin_mode else None
-        self.github_repo = github_repo  # Format: "owner/repo" (e.g., "ZachiNachshon/provisioner-plugins")
-        self.package_name = None  # Will be set when validating project path
-
-        if plugin_mode and require_plugin_context and not self.plugin_name:
+    def _initialize_plugin_context(
+        self, 
+        plugin_mode: bool, 
+        require_plugin_context: bool, 
+        project_path_hint: Optional[str]
+    ) -> Optional[str]:
+        """Initialize plugin context if needed."""
+        if not plugin_mode:
+            return None
+            
+        plugin_name = self.detect_plugin_context(project_path_hint)
+        
+        if require_plugin_context and not plugin_name:
             raise ValueError("Plugin mode enabled but no plugin detected in current context")
+            
+        return plugin_name
 
-    def _output_json_response(self, data: dict) -> str:
+    def output_json_response(self, data: dict) -> str:
         """
         Output structured JSON response and set GitHub Actions outputs.
 
@@ -51,50 +100,59 @@ class VersionManager:
         Returns:
             JSON string of the response
         """
-        # Output compact JSON without indentation for GitHub Actions compatibility
         json_response = json.dumps(data, separators=(",", ":"))
 
-        # Set GitHub Action outputs - ONLY the JSON string
         github_output = os.environ.get("GITHUB_OUTPUT")
         if github_output:
-            with open(github_output, "a") as f:
-                # Set the compact JSON response (no newlines to escape)
-                f.write(f"json_response={json_response}\n")
+            with open(github_output, "a") as file:
+                file.write(f"json_response={json_response}\n")
 
         return json_response
 
     def validate_project_path(self, project_path: str) -> str:
         """
-        Validate that the project path contains a pyproject.toml file and read the package name.
+        Validate that the project path contains a valid pyproject.toml file.
 
         Args:
             project_path: Path to the project directory
 
         Returns:
-            str: Package name from pyproject.toml
+            Package name from pyproject.toml
 
         Raises:
             ValueError: If pyproject.toml is missing or invalid
         """
         project_dir = Path(project_path)
-
-        if not project_dir.exists():
-            raise ValueError(f"Project path does not exist: {project_path}")
-
-        if not project_dir.is_dir():
-            raise ValueError(f"Project path is not a directory: {project_path}")
-
+        self._validate_project_directory(project_dir)
+        
         pyproject_path = project_dir / "pyproject.toml"
         if not pyproject_path.exists():
             raise ValueError(f"Project path does not contain pyproject.toml: {project_path}")
 
+        package_name = self._extract_package_name_from_pyproject(pyproject_path, project_path)
+        self.package_name = package_name
+        return package_name
+
+    def _validate_project_directory(self, project_dir: Path) -> None:
+        """Validate that project directory exists and is a directory."""
+        if not project_dir.exists():
+            raise ValueError(f"Project path does not exist: {project_dir}")
+
+        if not project_dir.is_dir():
+            raise ValueError(f"Project path is not a directory: {project_dir}")
+
+    def _extract_package_name_from_pyproject(self, pyproject_path: Path, project_path: str) -> str:
+        """Extract package name from pyproject.toml file."""
         try:
-            with open(pyproject_path, "rb") as f:
-                pyproject_data = tomllib.load(f)
+            with open(pyproject_path, "rb") as file:
+                pyproject_data = tomllib.load(file)
         except Exception as e:
             raise ValueError(f"Failed to parse pyproject.toml in {project_path}: {str(e)}")
 
-        # Extract package name from [tool.poetry] section
+        return self._get_package_name_from_toml_data(pyproject_data, project_path)
+
+    def _get_package_name_from_toml_data(self, pyproject_data: dict, project_path: str) -> str:
+        """Extract package name from parsed TOML data."""
         if "tool" not in pyproject_data:
             raise ValueError(f"pyproject.toml in {project_path} does not contain [tool] section")
 
@@ -110,78 +168,113 @@ class VersionManager:
         if not package_name or not isinstance(package_name, str):
             raise ValueError(f"Invalid package name in pyproject.toml: {package_name}")
 
-        # Store the package name for later use
-        self.package_name = package_name
         return package_name
 
     def discover_plugins(self) -> List[str]:
         """Dynamically discover plugin folders by scanning the plugins directory."""
-        plugin_names = []
+        plugins_dir = self._find_plugins_directory()
+        if not plugins_dir:
+            return []
 
-        # Try to find plugins directory relative to current working directory
-        plugins_dir = None
+        return self._scan_plugin_directories(plugins_dir)
+
+    def _find_plugins_directory(self) -> Optional[Path]:
+        """Find the plugins directory based on current working directory."""
         cwd = Path.cwd()
 
         # Check if we're already in plugins directory
         if cwd.name == "plugins":
-            plugins_dir = cwd
+            return cwd
+            
         # Check if plugins directory exists in current directory
-        elif (cwd / "plugins").exists():
-            plugins_dir = cwd / "plugins"
+        if (cwd / "plugins").exists():
+            return cwd / "plugins"
+            
         # Check if we're in a subdirectory of plugins
-        elif "plugins" in cwd.parts:
-            # Find the plugins directory in the path
+        if "plugins" in cwd.parts:
             for i, part in enumerate(cwd.parts):
                 if part == "plugins":
-                    plugins_dir = Path("/".join(cwd.parts[: i + 1]))
-                    break
+                    return Path("/".join(cwd.parts[: i + 1]))
 
-        if not plugins_dir or not plugins_dir.exists():
-            return []
+        return None
 
-        # Scan for directories matching provisioner_*_plugin pattern
+    def _scan_plugin_directories(self, plugins_dir: Path) -> List[str]:
+        """Scan for valid plugin directories."""
+        plugin_names = []
+        
         for item in plugins_dir.iterdir():
-            if item.is_dir() and re.match(r"^provisioner_.*_plugin$", item.name) and (item / "pyproject.toml").exists():
+            if self._is_valid_plugin_directory(item):
                 plugin_names.append(item.name)
 
-        plugin_names.sort()  # Sort for consistent ordering
+        plugin_names.sort()
         return plugin_names
+
+    def _is_valid_plugin_directory(self, directory: Path) -> bool:
+        """Check if a directory is a valid plugin directory."""
+        return (
+            directory.is_dir() 
+            and re.match(r"^provisioner_.*_plugin$", directory.name)
+            and (directory / "pyproject.toml").exists()
+        )
 
     def run_command(self, cmd: str, cwd: Path = None) -> str:
         """Run a shell command and return its output."""
         try:
-            result = subprocess.run(cmd, shell=True, cwd=cwd or Path.cwd(), capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                cmd, 
+                shell=True, 
+                cwd=cwd or Path.cwd(), 
+                capture_output=True, 
+                text=True, 
+                check=True
+            )
             return result.stdout.strip()
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Command failed: {cmd}. Error: {e.stderr}")
 
     def detect_plugin_context(self, project_path: Optional[str] = None) -> Optional[str]:
         """Detect if running in plugin context and return plugin name."""
-        cwd = Path.cwd()
         plugin_names = self.discover_plugins()
-
-        # If project_path is provided, try to extract plugin name from it
+        
+        # Try to detect from project_path first
         if project_path:
-            project_path_obj = Path(project_path)
+            plugin_from_path = self._detect_plugin_from_path(project_path, plugin_names)
+            if plugin_from_path:
+                return plugin_from_path
 
-            # Handle explicit paths like "plugins/provisioner_examples_plugin"
-            if project_path_obj.parts and project_path_obj.parts[0] == "plugins" and len(project_path_obj.parts) >= 2:
-                potential_plugin = project_path_obj.parts[1]
-                if potential_plugin in plugin_names:
-                    return potential_plugin
+        # Try to detect from current working directory
+        return self._detect_plugin_from_cwd(plugin_names)
 
-            # Check if the project path contains a plugin name (legacy behavior)
-            for plugin in plugin_names:
-                if plugin in str(project_path_obj) or project_path_obj.name == plugin:
-                    return plugin
+    def _detect_plugin_from_path(self, project_path: str, plugin_names: List[str]) -> Optional[str]:
+        """Detect plugin name from project path."""
+        project_path_obj = Path(project_path)
 
+        # Handle explicit paths like "plugins/provisioner_examples_plugin"
+        if (project_path_obj.parts 
+            and project_path_obj.parts[0] == "plugins" 
+            and len(project_path_obj.parts) >= 2):
+            potential_plugin = project_path_obj.parts[1]
+            if potential_plugin in plugin_names:
+                return potential_plugin
+
+        # Check if the project path contains a plugin name
+        for plugin in plugin_names:
+            if plugin in str(project_path_obj) or project_path_obj.name == plugin:
+                return plugin
+
+        return None
+
+    def _detect_plugin_from_cwd(self, plugin_names: List[str]) -> Optional[str]:
+        """Detect plugin name from current working directory."""
+        cwd = Path.cwd()
+        
         # Check if we're in plugins submodule directory
         if "plugins" in cwd.parts:
             for plugin in plugin_names:
                 if plugin in str(cwd):
                     return plugin
 
-        # Check if a specific plugin directory was passed as project_folder_path
+        # Check if current directory is a plugin directory
         for plugin in plugin_names:
             if cwd.name == plugin or plugin in str(cwd):
                 return plugin
@@ -191,63 +284,72 @@ class VersionManager:
     def get_plugins_from_changes(self, project_folder_path: str) -> List[str]:
         """Analyze changed files to identify affected plugins in the specified directory."""
         try:
-            project_dir = Path(project_folder_path)
-            
-            # Get changed files from the last commit in the specified directory
-            changed_files = self.run_command("git diff --name-only HEAD~1", cwd=project_dir)
-
-            if not changed_files.strip():
-                return []
-
-            affected_plugins = []
-            
-            # Discover plugins relative to the specified directory
-            # Save current directory and switch to target directory for discovery
-            original_cwd = Path.cwd()
-            try:
-                os.chdir(project_dir)
-                plugin_names = self.discover_plugins()
-            finally:
-                os.chdir(original_cwd)
-            
-            # Split changed files into a list for easier processing
-            changed_file_list = [f.strip() for f in changed_files.split("\n") if f.strip()]
-
-            # Check each changed file against each plugin directory
-            for changed_file in changed_file_list:
-                for plugin in plugin_names:
-                    # Check if the changed file belongs to this plugin
-                    # Since we're running git diff from the target directory,
-                    # the paths should be relative to that directory
-                    if changed_file.startswith(f"{plugin}/"):
-                        if plugin not in affected_plugins:
-                            affected_plugins.append(plugin)
-                        break
-
-            return affected_plugins
-
-        except Exception as e:
+            return self._analyze_git_changes(project_folder_path)
+        except Exception:
             return []
 
-    def _get_tag_name(self, version: str) -> str:
+    def _analyze_git_changes(self, project_folder_path: str) -> List[str]:
+        """Analyze git changes to find affected plugins."""
+        project_dir = Path(project_folder_path)
+        
+        changed_files = self.run_command("git diff --name-only HEAD~1", cwd=project_dir)
+        if not changed_files.strip():
+            return []
+
+        plugin_names = self._get_plugin_names_for_directory(project_dir)
+        changed_file_list = [f.strip() for f in changed_files.split("\n") if f.strip()]
+
+        return self._find_affected_plugins(changed_file_list, plugin_names)
+
+    def _get_plugin_names_for_directory(self, project_dir: Path) -> List[str]:
+        """Get plugin names relative to the specified directory."""
+        original_cwd = Path.cwd()
+        try:
+            os.chdir(project_dir)
+            return self.discover_plugins()
+        finally:
+            os.chdir(original_cwd)
+
+    def _find_affected_plugins(self, changed_files: List[str], plugin_names: List[str]) -> List[str]:
+        """Find which plugins are affected by the changed files."""
+        affected_plugins = []
+        
+        for changed_file in changed_files:
+            for plugin in plugin_names:
+                if changed_file.startswith(f"{plugin}/"):
+                    if plugin not in affected_plugins:
+                        affected_plugins.append(plugin)
+                    break
+
+        return affected_plugins
+
+    def get_tag_name(self, version: str) -> str:
         """Generate the appropriate tag name based on context (plugin vs main project)."""
         if self.plugin_mode and self.plugin_name:
-            # Convert plugin name to tag format: provisioner_examples_plugin -> examples-plugin
-            # Remove "provisioner_" prefix and "_plugin" suffix, then add "-plugin"
-            plugin_core_name = self.plugin_name
-            if plugin_core_name.startswith("provisioner_"):
-                plugin_core_name = plugin_core_name[len("provisioner_") :]
-            if plugin_core_name.endswith("_plugin"):
-                plugin_core_name = plugin_core_name[: -len("_plugin")]
-
-            plugin_tag_name = plugin_core_name.replace("_", "-") + "-plugin"
-            return f"{plugin_tag_name}-v{version}"
+            return self._generate_plugin_tag_name(version)
         else:
             return f"v{version}"
 
-    def _get_package_name(self) -> str:
+    def _generate_plugin_tag_name(self, version: str) -> str:
+        """Generate tag name for plugin."""
+        plugin_core_name = self._extract_plugin_core_name(self.plugin_name)
+        plugin_tag_name = plugin_core_name.replace("_", "-") + "-plugin"
+        return f"{plugin_tag_name}-v{version}"
+
+    def _extract_plugin_core_name(self, plugin_name: str) -> str:
+        """Extract core name from plugin name."""
+        core_name = plugin_name
+        
+        if core_name.startswith("provisioner_"):
+            core_name = core_name[len("provisioner_"):]
+            
+        if core_name.endswith("_plugin"):
+            core_name = core_name[:-len("_plugin")]
+            
+        return core_name
+
+    def get_package_name(self) -> str:
         """Get the package name for PyPI based on context."""
-        # If package name was read from pyproject.toml, use that
         if self.package_name:
             return self.package_name
 
@@ -255,7 +357,7 @@ class VersionManager:
         if self.plugin_mode and self.plugin_name:
             return self.plugin_name.replace("_", "-")
         else:
-            return "provisioner"  # Main project package name
+            return "provisioner"
 
     def get_current_version(self, project_dir: Path) -> str:
         """Get current version from poetry."""
@@ -266,29 +368,32 @@ class VersionManager:
 
     def check_tag_exists(self, version: str) -> bool:
         """Check if a git tag exists for the given version using GitHub CLI."""
-        # Get the appropriate tag name based on context
-        tag_name = self._get_tag_name(version)
+        tag_name = self.get_tag_name(version)
 
         try:
-            # Use GitHub CLI to list all tags and check if our version exists
-            repo_path = self.github_repo if self.github_repo else ":owner/:repo"
-            tags_output = self.run_command(f"gh api repos/{repo_path}/tags --paginate --jq '.[].name'")
-            remote_tags = tags_output.split("\n") if tags_output else []
-
-            if tag_name in remote_tags:
-                return True
-
-            # Fallback: check local git tags (for local development)
-            local_tags = self.run_command("git tag -l")
-            return tag_name in local_tags.split("\n")
-
+            return self._check_tag_exists_remote(tag_name) or self._check_tag_exists_local(tag_name)
         except Exception:
-            # If GitHub CLI fails, fallback to local git tags only
-            try:
-                tags = self.run_command("git tag -l")
-                return tag_name in tags.split("\n")
-            except Exception:
-                return False
+            return self._check_tag_exists_local_fallback(tag_name)
+
+    def _check_tag_exists_remote(self, tag_name: str) -> bool:
+        """Check if tag exists in remote repository."""
+        repo_path = self.github_repo if self.github_repo else ":owner/:repo"
+        tags_output = self.run_command(f"gh api repos/{repo_path}/tags --paginate --jq '.[].name'")
+        remote_tags = tags_output.split("\n") if tags_output else []
+        return tag_name in remote_tags
+
+    def _check_tag_exists_local(self, tag_name: str) -> bool:
+        """Check if tag exists in local repository."""
+        local_tags = self.run_command("git tag -l")
+        return tag_name in local_tags.split("\n")
+
+    def _check_tag_exists_local_fallback(self, tag_name: str) -> bool:
+        """Fallback method to check local tags when remote check fails."""
+        try:
+            tags = self.run_command("git tag -l")
+            return tag_name in tags.split("\n")
+        except Exception:
+            return False
 
     def check_release_exists(self, version: str) -> Tuple[bool, bool]:
         """
@@ -297,10 +402,9 @@ class VersionManager:
         Returns:
             Tuple[bool, bool]: (exists, is_prerelease)
         """
-        tag_name = self._get_tag_name(version)
+        tag_name = self.get_tag_name(version)
 
         try:
-            # Check if release exists
             repo_flag = f"--repo {self.github_repo}" if self.github_repo else ""
             result = self.run_command(f'gh release view "{tag_name}" --json isPrerelease {repo_flag}')
             release_data = json.loads(result)
@@ -315,7 +419,6 @@ class VersionManager:
 
     def parse_version(self, version: str) -> Tuple[int, int, int]:
         """Parse version string into major, minor, patch components."""
-        # Remove any RC suffix for parsing
         clean_version = re.sub(rf"-{RC_VERSION_SUFFIX}\.\d+$", "", version)
         parts = clean_version.split(".")
 
@@ -329,52 +432,65 @@ class VersionManager:
 
     def get_latest_rc_version(self) -> Optional[str]:
         """Get the latest RC version from GitHub releases."""
-        # Create pattern based on context (plugin vs main project)
+        rc_pattern, tag_prefix_len = self._build_rc_pattern()
+
+        # Try GitHub API first, then fall back to local git tags
+        try:
+            rc_tags = self._get_rc_tags_from_github(rc_pattern)
+            if rc_tags:
+                return self._get_latest_version_from_tags(rc_tags, tag_prefix_len)
+        except Exception:
+            pass
+
+        # Fallback: check local git tags
+        try:
+            rc_tags = self._get_rc_tags_from_local(rc_pattern)
+            if rc_tags:
+                return self._get_latest_version_from_tags(rc_tags, tag_prefix_len)
+        except Exception:
+            pass
+
+        return None
+
+    def _build_rc_pattern(self) -> Tuple[str, int]:
+        """Build RC pattern and tag prefix length based on context."""
         if self.plugin_mode and self.plugin_name:
-            # Use the same logic as _get_tag_name() method for consistency
-            plugin_core_name = self.plugin_name
-            if plugin_core_name.startswith("provisioner_"):
-                plugin_core_name = plugin_core_name[len("provisioner_") :]
-            if plugin_core_name.endswith("_plugin"):
-                plugin_core_name = plugin_core_name[: -len("_plugin")]
+            plugin_core_name = self._extract_plugin_core_name(self.plugin_name)
             plugin_tag_name = plugin_core_name.replace("_", "-") + "-plugin"
             rc_pattern = rf"^{re.escape(plugin_tag_name)}-v\d+\.\d+\.\d+-RC\.\d+$"
             tag_prefix_len = len(f"{plugin_tag_name}-v")
         else:
             rc_pattern = r"^v\d+\.\d+\.\d+-RC\.\d+$"
-            tag_prefix_len = 1  # Just 'v'
+            tag_prefix_len = 1
 
-        # Try GitHub API first, then fall back to local git tags
-        try:
-            # Get all RC tags from GitHub API, sort by version descending
-            repo_path = self.github_repo if self.github_repo else ":owner/:repo"
-            tags_output = self.run_command(f"gh api repos/{repo_path}/tags --paginate --jq '.[].name'")
-            if tags_output:
-                rc_tags = [tag for tag in tags_output.split("\n") if re.match(rc_pattern, tag)]
-                if rc_tags:
-                    # Sort by version (extract version numbers for sorting)
-                    rc_tags.sort(key=lambda x: [int(i) for i in re.findall(r"\d+", x)], reverse=True)
-                    # Return without prefix
-                    return rc_tags[0][tag_prefix_len:] if rc_tags else None
-        except Exception:
-            pass  # Fall back to local git tags
+        return rc_pattern, tag_prefix_len
 
-        # Fallback: check local git tags
-        try:
-            # For plugins, check in the plugins directory
-            cwd = Path("plugins") if self.plugin_mode and Path("plugins").exists() else None
-            local_tags_output = self.run_command("git tag -l", cwd=cwd)
-            if local_tags_output:
-                rc_tags = [tag for tag in local_tags_output.split("\n") if re.match(rc_pattern, tag)]
-                if rc_tags:
-                    # Sort by version (extract version numbers for sorting)
-                    rc_tags.sort(key=lambda x: [int(i) for i in re.findall(r"\d+", x)], reverse=True)
-                    # Return without prefix
-                    return rc_tags[0][tag_prefix_len:] if rc_tags else None
-        except Exception:
-            pass
+    def _get_rc_tags_from_github(self, rc_pattern: str) -> List[str]:
+        """Get RC tags from GitHub API."""
+        repo_path = self.github_repo if self.github_repo else ":owner/:repo"
+        tags_output = self.run_command(f"gh api repos/{repo_path}/tags --paginate --jq '.[].name'")
+        
+        if tags_output:
+            return [tag for tag in tags_output.split("\n") if re.match(rc_pattern, tag)]
+        return []
 
-        return None
+    def _get_rc_tags_from_local(self, rc_pattern: str) -> List[str]:
+        """Get RC tags from local git repository."""
+        cwd = Path("plugins") if self.plugin_mode and Path("plugins").exists() else None
+        local_tags_output = self.run_command("git tag -l", cwd=cwd)
+        
+        if local_tags_output:
+            return [tag for tag in local_tags_output.split("\n") if re.match(rc_pattern, tag)]
+        return []
+
+    def _get_latest_version_from_tags(self, rc_tags: List[str], tag_prefix_len: int) -> Optional[str]:
+        """Get the latest version from a list of RC tags."""
+        if not rc_tags:
+            return None
+            
+        # Sort by version (extract version numbers for sorting)
+        rc_tags.sort(key=lambda x: [int(i) for i in re.findall(r"\d+", x)], reverse=True)
+        return rc_tags[0][tag_prefix_len:]
 
     def generate_rc_versions(self, project_folder_path: str) -> Tuple[str, str]:
         """
@@ -387,45 +503,51 @@ class VersionManager:
         project_dir = Path(project_folder_path)
         current_version = self.get_current_version(project_dir)
 
-        # Check if current version is already an RC
+        return self._calculate_rc_versions(current_version)
+
+    def _calculate_rc_versions(self, current_version: str) -> Tuple[str, str]:
+        """Calculate RC versions based on current version."""
         rc_pattern = rf"-{RC_VERSION_SUFFIX}\.(\d+)$"
         rc_match = re.search(rc_pattern, current_version)
 
         if rc_match:
-            # Current version is already an RC, use base version for package
-            package_version = re.sub(rc_pattern, "", current_version)
-            base_version = package_version
-            rc_number = int(rc_match.group(1))
-
-            # Find the highest existing RC number for this base version
-            while True:
-                next_rc_number = rc_number + 1
-                candidate_rc_version = f"{base_version}-{RC_VERSION_SUFFIX}.{next_rc_number}"
-                if not self.check_tag_exists(candidate_rc_version):
-                    rc_tag = self._get_tag_name(candidate_rc_version)
-                    break
-                rc_number = next_rc_number
+            return self._handle_existing_rc_version(current_version, rc_match)
         else:
-            # Current version is not an RC
-            if self.check_tag_exists(current_version):
-                # Version exists as tag, increment patch for next version
-                major, minor, patch = self.parse_version(current_version)
-                new_patch = patch + 1
-                package_version = f"{major}.{minor}.{new_patch}"
-            else:
-                # Use current version as package version
-                package_version = current_version
+            return self._handle_new_rc_version(current_version)
 
-            # Find the first available RC number for this base version
-            rc_number = 1
-            while True:
-                candidate_rc_version = f"{package_version}-{RC_VERSION_SUFFIX}.{rc_number}"
-                if not self.check_tag_exists(candidate_rc_version):
-                    rc_tag = self._get_tag_name(candidate_rc_version)
-                    break
-                rc_number += 1
+    def _handle_existing_rc_version(self, current_version: str, rc_match) -> Tuple[str, str]:
+        """Handle case where current version is already an RC."""
+        package_version = re.sub(rf"-{RC_VERSION_SUFFIX}\.(\d+)$", "", current_version)
+        base_version = package_version
+        rc_number = int(rc_match.group(1))
 
-        return package_version, rc_tag
+        # Find the next available RC number
+        while True:
+            next_rc_number = rc_number + 1
+            candidate_rc_version = f"{base_version}-{RC_VERSION_SUFFIX}.{next_rc_number}"
+            if not self.check_tag_exists(candidate_rc_version):
+                rc_tag = self.get_tag_name(candidate_rc_version)
+                return package_version, rc_tag
+            rc_number = next_rc_number
+
+    def _handle_new_rc_version(self, current_version: str) -> Tuple[str, str]:
+        """Handle case where current version is not an RC."""
+        if self.check_tag_exists(current_version):
+            # Version exists as tag, increment patch for next version
+            major, minor, patch = self.parse_version(current_version)
+            package_version = f"{major}.{minor}.{patch + 1}"
+        else:
+            # Use current version as package version
+            package_version = current_version
+
+        # Find the first available RC number for this base version
+        rc_number = 1
+        while True:
+            candidate_rc_version = f"{package_version}-{RC_VERSION_SUFFIX}.{rc_number}"
+            if not self.check_tag_exists(candidate_rc_version):
+                rc_tag = self.get_tag_name(candidate_rc_version)
+                return package_version, rc_tag
+            rc_number += 1
 
     def determine_rc_to_promote(self, input_rc_version: Optional[str] = None) -> Tuple[str, str]:
         """
@@ -437,34 +559,263 @@ class VersionManager:
         Returns:
             Tuple[str, str]: (rc_version, stable_version)
         """
-        # Handle empty/whitespace-only input_rc_version
         if input_rc_version and input_rc_version.strip():
-            input_rc_version = input_rc_version.strip()
-            
-            # Validate format
-            if not self.validate_rc_version_format(input_rc_version):
-                raise ValueError(f"Invalid RC version format: {input_rc_version}. Expected format: x.y.z-RC.N")
-
-            # Check if RC exists and is a pre-release
-            exists, is_prerelease = self.check_release_exists(input_rc_version)
-            if not exists:
-                raise ValueError(f"RC version v{input_rc_version} not found in GitHub releases")
-
-            if not is_prerelease:
-                raise ValueError(f"Release v{input_rc_version} is not marked as pre-release")
-
-            rc_version = input_rc_version
+            rc_version = self._validate_and_get_provided_rc(input_rc_version.strip())
         else:
-            # input_rc_version is None, empty, or whitespace-only - auto-detect latest
-            rc_version = self.get_latest_rc_version()
+            rc_version = self._get_latest_rc_for_promotion()
 
-            if not rc_version:
-                raise ValueError("No RC versions found in GitHub releases")
-
-        # Generate stable version by removing RC suffix
         stable_version = re.sub(rf"-{RC_VERSION_SUFFIX}\.\d+$", "", rc_version)
-
         return rc_version, stable_version
+
+    def _validate_and_get_provided_rc(self, input_rc_version: str) -> str:
+        """Validate and return provided RC version."""
+        if not self.validate_rc_version_format(input_rc_version):
+            raise ValueError(f"Invalid RC version format: {input_rc_version}. Expected format: x.y.z-RC.N")
+
+        exists, is_prerelease = self.check_release_exists(input_rc_version)
+        if not exists:
+            raise ValueError(f"RC version v{input_rc_version} not found in GitHub releases")
+
+        if not is_prerelease:
+            raise ValueError(f"Release v{input_rc_version} is not marked as pre-release")
+
+        return input_rc_version
+
+    def _get_latest_rc_for_promotion(self) -> str:
+        """Get the latest RC version for promotion."""
+        rc_version = self.get_latest_rc_version()
+        if not rc_version:
+            raise ValueError("No RC versions found in GitHub releases")
+        return rc_version
+
+
+class VersionManagerCLI:
+    """Handles CLI operations for VersionManager."""
+
+    def __init__(self):
+        self.version_manager = None
+
+    def run(self) -> None:
+        """Main entry point for CLI execution."""
+        try:
+            args = self._parse_command_line_arguments()
+            self.version_manager = self._create_version_manager(args)
+            response = self._execute_command(args)
+            self._output_response(response)
+        except Exception as e:
+            self._handle_error(e)
+
+    def _parse_command_line_arguments(self) -> CliArguments:
+        """Parse and validate command line arguments."""
+        if len(sys.argv) < 2:
+            print_help()
+            sys.exit(1)
+
+        # Parse action
+        action = sys.argv[1]
+        
+        # Parse flags
+        plugin_mode = self._extract_flag("--plugin-mode")
+        github_repo = self._extract_flag_with_value("--github-repo")
+        
+        # Parse positional arguments based on action
+        project_folder_path, rc_version = self._parse_positional_arguments(action)
+
+        return CliArguments(
+            action=action,
+            project_folder_path=project_folder_path,
+            rc_version=rc_version,
+            plugin_mode=plugin_mode,
+            github_repo=github_repo
+        )
+
+    def _extract_flag(self, flag_name: str) -> bool:
+        """Extract and remove a boolean flag from sys.argv."""
+        if flag_name in sys.argv:
+            sys.argv.remove(flag_name)
+            return True
+        return False
+
+    def _extract_flag_with_value(self, flag_name: str) -> Optional[str]:
+        """Extract and remove a flag with value from sys.argv."""
+        for i, arg in enumerate(sys.argv):
+            if arg == flag_name and i + 1 < len(sys.argv):
+                value = sys.argv[i + 1]
+                # Remove both flag and value
+                sys.argv.pop(i + 1)
+                sys.argv.pop(i)
+                return value
+        return None
+
+    def _parse_positional_arguments(self, action: str) -> Tuple[Optional[str], Optional[str]]:
+        """Parse positional arguments based on action."""
+        if action == "generate":
+            if len(sys.argv) != 3:
+                raise ValueError("generate command requires exactly one argument: <project_folder_path>")
+            return sys.argv[2], None
+            
+        elif action == "promote":
+            if len(sys.argv) < 3:
+                raise ValueError("promote command requires at least one argument: <project_folder_path> [rc_version]")
+            project_folder_path = sys.argv[2]
+            rc_version = sys.argv[3] if len(sys.argv) > 3 else None
+            return project_folder_path, rc_version
+            
+        elif action == "detect-plugins":
+            if len(sys.argv) != 3:
+                raise ValueError("detect-plugins command requires exactly one argument: <project_folder_path>")
+            return sys.argv[2], None
+            
+        else:
+            return None, None
+
+    def _create_version_manager(self, args: CliArguments) -> VersionManager:
+        """Create VersionManager instance with appropriate configuration."""
+        require_context = args.action != "detect-plugins"
+        project_path_hint = args.project_folder_path
+
+        return VersionManager(
+            plugin_mode=args.plugin_mode,
+            require_plugin_context=require_context,
+            github_repo=args.github_repo,
+            project_path_hint=project_path_hint,
+        )
+
+    def _execute_command(self, args: CliArguments) -> CommandResponse:
+        """Execute the specified command and return response."""
+        command_handlers = {
+            "generate": self._handle_generate_command,
+            "promote": self._handle_promote_command,
+            "detect-plugins": self._handle_detect_plugins_command,
+        }
+
+        handler = command_handlers.get(args.action)
+        if not handler:
+            return self._create_unknown_action_response(args.action)
+
+        return handler(args)
+
+    def _handle_generate_command(self, args: CliArguments) -> CommandResponse:
+        """Handle the generate command."""
+        try:
+            self.version_manager.validate_project_path(args.project_folder_path)
+            package_version, rc_tag = self.version_manager.generate_rc_versions(args.project_folder_path)
+
+            response_data = {
+                "package_version": package_version,
+                "rc_tag": rc_tag,
+                "plugin_name": self.version_manager.plugin_name or "",
+                "package_name": self.version_manager.get_package_name(),
+                "project_folder_path": args.project_folder_path,
+                "is_plugin": args.plugin_mode,
+            }
+
+            return CommandResponse(data=response_data)
+
+        except ValueError as e:
+            return CommandResponse(
+                data={
+                    "error": str(e),
+                    "action": "generate",
+                    "project_path": args.project_folder_path,
+                    "requirement": "Project path must contain a valid pyproject.toml with [tool.poetry] section and 'name' attribute",
+                },
+                success=False
+            )
+
+    def _handle_promote_command(self, args: CliArguments) -> CommandResponse:
+        """Handle the promote command."""
+        try:
+            self.version_manager.validate_project_path(args.project_folder_path)
+            rc_version, stable_version = self.version_manager.determine_rc_to_promote(args.rc_version)
+
+            response_data = {
+                "rc_version": rc_version,
+                "stable_version": stable_version,
+                "plugin_name": self.version_manager.plugin_name or "",
+                "package_name": self.version_manager.get_package_name(),
+                "is_plugin": args.plugin_mode,
+                "input_rc_version": args.rc_version or "auto-detected",
+                "project_folder_path": args.project_folder_path,
+            }
+
+            return CommandResponse(data=response_data)
+
+        except ValueError as e:
+            return CommandResponse(
+                data={
+                    "error": str(e),
+                    "action": "promote",
+                    "project_path": args.project_folder_path,
+                    "requirement": "Project path must contain a valid pyproject.toml with [tool.poetry] section and 'name' attribute",
+                },
+                success=False
+            )
+
+    def _handle_detect_plugins_command(self, args: CliArguments) -> CommandResponse:
+        """Handle the detect-plugins command."""
+        if not args.plugin_mode:
+            return CommandResponse(
+                data={
+                    "error": "detect-plugins command requires --plugin-mode flag",
+                    "usage": "python version_manager.py detect-plugins <project_folder_path> --plugin-mode [--github-repo <owner/repo>]",
+                    "purpose": "Analyze git changes to identify modified plugins for CI matrix",
+                },
+                success=False
+            )
+
+        affected_plugins = self.version_manager.get_plugins_from_changes(args.project_folder_path)
+        response_data = {
+            "plugins": affected_plugins, 
+            "repository": self.version_manager.github_repo or "local"
+        }
+
+        return CommandResponse(data=response_data)
+
+    def _create_unknown_action_response(self, action: str) -> CommandResponse:
+        """Create response for unknown action."""
+        return CommandResponse(
+            data={
+                "error": f"Unknown action '{action}'",
+                "available_actions": [
+                    {"name": "generate", "description": "Calculate RC versions for release candidate creation"},
+                    {"name": "promote", "description": "Promote existing RC to General Availability"},
+                    {"name": "detect-plugins", "description": "Detect changed plugins for CI matrix workflows"},
+                ],
+                "help": "Use 'python version_manager.py' without arguments for full help.",
+            },
+            success=False
+        )
+
+    def _output_response(self, response: CommandResponse) -> None:
+        """Output the command response."""
+        json_response = self.version_manager.output_json_response(response.data)
+        print(json_response)
+        
+        if not response.success:
+            sys.exit(1)
+
+    def _handle_error(self, error: Exception) -> None:
+        """Handle unexpected errors."""
+        if isinstance(error, ValueError) and "argument" in str(error):
+            # Handle argument parsing errors
+            error_data = {"error": str(error)}
+        else:
+            # Handle unexpected errors
+            error_data = {"error": str(error), "action": "unknown"}
+
+        # Create a minimal version manager for output if needed
+        if not self.version_manager:
+            try:
+                self.version_manager = VersionManager(require_plugin_context=False)
+            except Exception:
+                # If we can't create version manager, output JSON directly
+                print(json.dumps(error_data, separators=(",", ":")))
+                sys.exit(1)
+
+        json_response = self.version_manager.output_json_response(error_data)
+        print(json_response)
+        sys.exit(1)
 
 
 def print_help():
@@ -556,178 +907,9 @@ def print_help():
 
 
 def main():
-    """Main function that handles both RC generation and GA promotion logic."""
-    if len(sys.argv) < 2:
-        print_help()
-        sys.exit(1)
-
-    action = sys.argv[1]
-
-    # Check for plugin mode flag
-    plugin_mode = "--plugin-mode" in sys.argv
-    if plugin_mode:
-        sys.argv.remove("--plugin-mode")
-
-    # Check for github-repo flag
-    github_repo = None
-    github_repo_index = None
-    for i, arg in enumerate(sys.argv):
-        if arg == "--github-repo" and i + 1 < len(sys.argv):
-            github_repo = sys.argv[i + 1]
-            github_repo_index = i
-            break
-
-    if github_repo_index is not None:
-        # Remove both --github-repo and its value
-        sys.argv.pop(github_repo_index + 1)  # Remove the value first
-        sys.argv.pop(github_repo_index)  # Then remove the flag
-
-    # For detect-plugins action, we don't require plugin context
-    require_context = action != "detect-plugins"
-
-    # For generate and promote commands, pass project_folder_path for better plugin detection
-    project_path_hint = None
-    if action == "generate" and len(sys.argv) >= 3:
-        project_path_hint = sys.argv[2]
-    elif action == "promote" and len(sys.argv) >= 3:
-        project_path_hint = sys.argv[2]
-
-    version_manager = VersionManager(
-        plugin_mode=plugin_mode,
-        require_plugin_context=require_context,
-        github_repo=github_repo,
-        project_path_hint=project_path_hint,
-    )
-
-    try:
-        if action == "generate":
-            if len(sys.argv) != 3:
-                error_response = {
-                    "error": "generate command requires exactly one argument",
-                    "usage": "python version_manager.py generate <project_folder_path> [--plugin-mode] [--github-repo <owner/repo>]",
-                    "purpose": "Calculate RC versions for creating release candidates",
-                }
-                print(json.dumps(error_response, separators=(",", ":")))
-                sys.exit(1)
-
-            project_folder_path = sys.argv[2]
-
-            # Validate project path and read package name from pyproject.toml
-            try:
-                package_name = version_manager.validate_project_path(project_folder_path)
-            except ValueError as e:
-                error_response = {
-                    "error": str(e),
-                    "action": "generate",
-                    "project_path": project_folder_path,
-                    "requirement": "Project path must contain a valid pyproject.toml with [tool.poetry] section and 'name' attribute",
-                }
-                print(json.dumps(error_response, separators=(",", ":")))
-                sys.exit(1)
-
-            package_version, rc_tag = version_manager.generate_rc_versions(project_folder_path)
-
-            # Create structured JSON response
-            response_data = {
-                "package_version": package_version,
-                "rc_tag": rc_tag,
-                "plugin_name": version_manager.plugin_name or "",
-                "package_name": version_manager._get_package_name(),
-                "project_folder_path": project_folder_path,
-                "is_plugin": plugin_mode,
-            }
-
-            json_response = version_manager._output_json_response(response_data)
-            print(json_response)
-
-        elif action == "promote":
-            if len(sys.argv) < 3:
-                error_response = {
-                    "error": "promote command requires at least one argument",
-                    "usage": "python version_manager.py promote <project_folder_path> [rc_version] [--plugin-mode] [--github-repo <owner/repo>]",
-                    "purpose": "Promote existing RC to General Availability",
-                }
-                print(json.dumps(error_response, separators=(",", ":")))
-                sys.exit(1)
-
-            project_folder_path = sys.argv[2]
-            input_rc_version = sys.argv[3] if len(sys.argv) > 3 else None
-
-            # Validate project path and read package name from pyproject.toml
-            try:
-                package_name = version_manager.validate_project_path(project_folder_path)
-            except ValueError as e:
-                error_response = {
-                    "error": str(e),
-                    "action": "promote",
-                    "project_path": project_folder_path,
-                    "requirement": "Project path must contain a valid pyproject.toml with [tool.poetry] section and 'name' attribute",
-                }
-                print(json.dumps(error_response, separators=(",", ":")))
-                sys.exit(1)
-
-            rc_version, stable_version = version_manager.determine_rc_to_promote(input_rc_version)
-
-            # Create structured JSON response
-            response_data = {
-                "rc_version": rc_version,
-                "stable_version": stable_version,
-                "plugin_name": version_manager.plugin_name or "",
-                "package_name": version_manager._get_package_name(),
-                "is_plugin": plugin_mode,
-                "input_rc_version": input_rc_version or "auto-detected",
-                "project_folder_path": project_folder_path,
-            }
-
-            json_response = version_manager._output_json_response(response_data)
-            print(json_response)
-
-        elif action == "detect-plugins":
-            # Special action to detect changed plugins - doesn't require specific plugin context
-            if not plugin_mode:
-                error_response = {
-                    "error": "detect-plugins command requires --plugin-mode flag",
-                    "usage": "python version_manager.py detect-plugins <project_folder_path> --plugin-mode [--github-repo <owner/repo>]",
-                    "purpose": "Analyze git changes to identify modified plugins for CI matrix",
-                }
-                print(json.dumps(error_response, separators=(",", ":")))
-                sys.exit(1)
-
-            if len(sys.argv) != 3:
-                error_response = {
-                    "error": "detect-plugins command requires exactly one argument",
-                    "usage": "python version_manager.py detect-plugins <project_folder_path> --plugin-mode [--github-repo <owner/repo>]",
-                    "purpose": "Analyze git changes to identify modified plugins for CI matrix",
-                }
-                print(json.dumps(error_response, separators=(",", ":")))
-                sys.exit(1)
-
-            project_folder_path = sys.argv[2]
-            affected_plugins = version_manager.get_plugins_from_changes(project_folder_path)
-
-            # Create structured JSON response
-            response_data = {"plugins": affected_plugins, "repository": version_manager.github_repo or "local"}
-
-            json_response = version_manager._output_json_response(response_data)
-            print(json_response)
-
-        else:
-            error_response = {
-                "error": f"Unknown action '{action}'",
-                "available_actions": [
-                    {"name": "generate", "description": "Calculate RC versions for release candidate creation"},
-                    {"name": "promote", "description": "Promote existing RC to General Availability"},
-                    {"name": "detect-plugins", "description": "Detect changed plugins for CI matrix workflows"},
-                ],
-                "help": "Use 'python version_manager.py' without arguments for full help.",
-            }
-            print(json.dumps(error_response, separators=(",", ":")))
-            sys.exit(1)
-
-    except Exception as e:
-        error_response = {"error": str(e), "action": action if "action" in locals() else "unknown"}
-        print(json.dumps(error_response, separators=(",", ":")))
-        sys.exit(1)
+    """Main function that handles CLI execution."""
+    cli = VersionManagerCLI()
+    cli.run()
 
 
 if __name__ == "__main__":

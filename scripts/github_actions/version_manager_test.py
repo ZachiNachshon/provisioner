@@ -149,7 +149,7 @@ description = "Test package"
     def test_get_tag_name_main_project(self):
         """Test tag name generation for main project."""
         vm = VersionManager(plugin_mode=False)
-        tag_name = vm._get_tag_name("1.2.3")
+        tag_name = vm.get_tag_name("1.2.3")
         self.assertEqual(tag_name, "v1.2.3")
 
     def test_get_tag_name_plugin(self):
@@ -157,7 +157,7 @@ description = "Test package"
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
         vm.plugin_name = "provisioner_examples_plugin"
 
-        tag_name = vm._get_tag_name("1.2.3")
+        tag_name = vm.get_tag_name("1.2.3")
         self.assertEqual(tag_name, "examples-plugin-v1.2.3")
 
     def test_get_package_name_main_project(self):
@@ -165,7 +165,7 @@ description = "Test package"
         vm = VersionManager(plugin_mode=False)
         vm.package_name = "provisioner-runtime"
 
-        package_name = vm._get_package_name()
+        package_name = vm.get_package_name()
         self.assertEqual(package_name, "provisioner-runtime")
 
     def test_get_package_name_plugin_fallback(self):
@@ -173,7 +173,7 @@ description = "Test package"
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
         vm.plugin_name = "provisioner_examples_plugin"
 
-        package_name = vm._get_package_name()
+        package_name = vm.get_package_name()
         self.assertEqual(package_name, "provisioner-examples-plugin")
 
     @patch("version_manager.VersionManager.run_command")
@@ -478,7 +478,7 @@ description = "Test package"
                 vm = VersionManager()
                 test_data = {"test": "value", "number": 123}
 
-                json_response = vm._output_json_response(test_data)
+                json_response = vm.output_json_response(test_data)
 
                 # Check that JSON is compact (no spaces after separators)
                 expected_json = '{"test":"value","number":123}'
