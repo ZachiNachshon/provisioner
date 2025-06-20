@@ -11,7 +11,7 @@ graph TD
     D --> D5["Return: package_version + rc_tag"]
     
     D5 --> E["Create RC Git Tag (v1.0.0-RC.1)"]
-    E --> F["package_deployer.sh build<br/>🔨 Build with Final Version"]
+    E --> F["package_deployer.py build<br/>🔨 Build with Final Version"]
     F --> F1["Update Poetry Version (1.0.0)"]
     F --> F2["Update Manifest Version (1.0.0)"]
     F --> F3["Build Main Project Wheel (1.0.0)"]
@@ -19,7 +19,7 @@ graph TD
     F --> F5["Copy to release-assets/"]
     
     F5 --> G["Generate Release Notes<br/>📝 Immutable Artifacts Ready"]
-    G --> H["package_deployer.sh prerelease<br/>🚀 GitHub Pre-Release"]
+    G --> H["package_deployer.py prerelease<br/>🚀 GitHub Pre-Release"]
     H --> H1["Create GitHub Pre-release (v1.0.0-RC.1)"]
     H --> H2["Upload Final Version Assets (1.0.0)"]
     

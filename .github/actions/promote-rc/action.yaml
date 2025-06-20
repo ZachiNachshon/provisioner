@@ -42,7 +42,7 @@ runs:
 
     - name: Map GitHub token
       run: |
-        # Used by GitHub CLI client and package_deployer.sh script
+        # Used by GitHub CLI client and package_deployer.py script
         echo "GH_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
         echo "GITHUB_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
       shell: bash
@@ -151,9 +151,9 @@ runs:
         if [[ "$is_plugin" == "true" ]]; then
           echo "Building plugin wheel package: ${project_name}"
           
-          # Build plugin wheel with final version and compression using package_deployer.sh
+          # Build plugin wheel with final version and compression using package_deployer.py
           echo "Building ${project_name} wheel package with final version ${package_version}..."
-          scripts/github_actions/package_deployer.sh build \
+          python scripts/github_actions/package_deployer.py build \
             --build-type wheel \
             --version ${package_version} \
             --compress tar.gz \
@@ -165,7 +165,7 @@ runs:
           
           # Build main project wheel with final version and compression
           echo "Building ${project_name} wheel package with final version ${package_version}..."
-          scripts/github_actions/package_deployer.sh build \
+          python scripts/github_actions/package_deployer.py build \
             --build-type wheel \
             --version ${package_version} \
             --compress tar.gz \
@@ -175,7 +175,7 @@ runs:
           
           # Build provisioner_shared wheel (dependency) with final version and compression
           echo "Building provisioner_shared wheel package with final version ${package_version}..."
-          scripts/github_actions/package_deployer.sh build \
+          python scripts/github_actions/package_deployer.py build \
             --build-type wheel \
             --version ${package_version} \
             --compress tar.gz \
@@ -213,7 +213,7 @@ runs:
         # Convert assets-dir to absolute path since script will change to project directory
         assets_dir_abs=$(pwd)/release-assets
         
-        scripts/github_actions/package_deployer.sh prerelease \
+        python scripts/github_actions/package_deployer.py prerelease \
           --project-path "${project_path}" \
           --release-tag "${final_tag}" \
           --release-title "${final_tag}" \

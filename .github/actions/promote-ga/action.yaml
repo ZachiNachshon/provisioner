@@ -172,7 +172,7 @@ runs:
         
         # Use the package deployer to promote RC to GA
         if [[ "$is_plugin" == "true" ]]; then
-          ../../scripts/github_actions/package_deployer.sh upload \
+          python ../../scripts/github_actions/package_deployer.py upload \
             --upload-action promote-rc \
             --source-tag "${source_tag}" \
             --release-tag "${release_tag}" \
@@ -180,7 +180,7 @@ runs:
             --release-notes-file "${release_notes_file}" \
             -y
         else
-          scripts/github_actions/package_deployer.sh upload \
+          python scripts/github_actions/package_deployer.py upload \
             --upload-action promote-rc \
             --source-tag "${source_tag}" \
             --release-tag "${release_tag}" \

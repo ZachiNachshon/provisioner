@@ -55,7 +55,7 @@ runs:
           export PYPI_API_TOKEN="${pypi_token}"
           
           # Use script path from main repository root (works for both plugins and main packages)
-          scripts_path="scripts/github_actions/package_deployer.sh"
+          scripts_path="python scripts/github_actions/package_deployer.py"
           
           # Upload to PyPI using package deployer
           $scripts_path upload \
