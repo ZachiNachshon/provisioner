@@ -126,6 +126,8 @@ jobs:
               - 'provisioner_shared/**/*.json'
               - 'provisioner_shared/**/*.sh'
               - 'provisioner_shared/**/Dockerfile*'
+              - '!**/pyproject.toml'
+              - '!**/manifest.json'
               - '!**/*.lock'
               - '!**/*.md'
               - '!**/README*'
