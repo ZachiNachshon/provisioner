@@ -261,7 +261,7 @@ description = "Test package"
     def test_get_latest_rc_version_plugin(self, mock_run_command):
         """Test getting latest RC version for plugin."""
         mock_run_command.return_value = (
-            "provisioner-examples-plugin-v1.2.3-RC.2\nprovisioner-examples-plugin-v1.2.3-RC.1"
+            "examples-plugin-v1.2.3-RC.2\nexamples-plugin-v1.2.3-RC.1"
         )
 
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
@@ -358,155 +358,103 @@ description = "Test package"
         mock_run_command.return_value = "provisioner_examples_plugin/main.py\nother_file.py"
 
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
-        affected_plugins = vm.get_plugins_from_changes()
+        affected_plugins = vm.get_plugins_from_changes(".")
 
         self.assertEqual(affected_plugins, ["provisioner_examples_plugin"])
 
+    @patch("version_manager.os.chdir")
     @patch("version_manager.VersionManager.run_command")
     @patch("version_manager.VersionManager.discover_plugins") 
-    @patch("version_manager.Path")
-    def test_get_plugins_from_changes_single_plugin_in_submodule(self, mock_path, mock_discover, mock_run_command):
-        """Test detecting changes for a single plugin in submodule."""
+    def test_get_plugins_from_changes_single_plugin_in_submodule(self, mock_discover, mock_run_command, mock_chdir):
+        """Test detecting changes for a single plugin."""
         # Mock plugin discovery
         mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin", "provisioner_single_board_plugin"]
         
-        # Mock Path for plugins directory
-        mock_plugins_dir = mock_path.return_value
-        mock_plugins_dir.exists.return_value = True
-        mock_plugins_dir.__truediv__.return_value.exists.return_value = True  # plugins/.git exists
-        
-        # Mock git commands - main repo shows no direct plugin changes, submodule shows one plugin changed
-        def mock_run_command_side_effect(cmd, cwd=None):
-            if cwd is None:  # Main repository
-                return "scripts/github_actions/version_manager.py\nREADME.md"  # No plugin files
-            else:  # Plugins submodule
-                return "provisioner_examples_plugin/main.py\nprovisioner_examples_plugin/poetry.toml"
-        
-        mock_run_command.side_effect = mock_run_command_side_effect
+        # Mock git command showing one plugin changed
+        mock_run_command.return_value = "provisioner_examples_plugin/main.py\nprovisioner_examples_plugin/poetry.toml"
         
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
-        affected_plugins = vm.get_plugins_from_changes()
+        affected_plugins = vm.get_plugins_from_changes(".")
         
         self.assertEqual(affected_plugins, ["provisioner_examples_plugin"])
-        # Verify both main repo and submodule were checked
-        self.assertEqual(mock_run_command.call_count, 2)
 
+    @patch("version_manager.os.chdir")
     @patch("version_manager.VersionManager.run_command")
     @patch("version_manager.VersionManager.discover_plugins")
-    @patch("version_manager.Path")
-    def test_get_plugins_from_changes_multiple_plugins_in_submodule(self, mock_path, mock_discover, mock_run_command):
-        """Test detecting changes for multiple plugins in submodule."""
+    def test_get_plugins_from_changes_multiple_plugins_in_submodule(self, mock_discover, mock_run_command, mock_chdir):
+        """Test detecting changes for multiple plugins."""
         # Mock plugin discovery
         mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin", "provisioner_single_board_plugin"]
         
-        # Mock Path for plugins directory
-        mock_plugins_dir = mock_path.return_value
-        mock_plugins_dir.exists.return_value = True
-        mock_plugins_dir.__truediv__.return_value.exists.return_value = True  # plugins/.git exists
-        
-        # Mock git commands - main repo shows no direct changes, submodule shows multiple plugins changed
-        def mock_run_command_side_effect(cmd, cwd=None):
-            if cwd is None:  # Main repository
-                return "scripts/github_actions/version_manager.py"  # No plugin files
-            else:  # Plugins submodule
-                return ("provisioner_examples_plugin/main.py\n"
-                       "provisioner_installers_plugin/main.py\n"
-                       "provisioner_installers_plugin/poetry.toml\n"
-                       "README.md")
-        
-        mock_run_command.side_effect = mock_run_command_side_effect
+        # Mock git command showing multiple plugins changed
+        mock_run_command.return_value = ("provisioner_examples_plugin/main.py\n"
+                                       "provisioner_installers_plugin/main.py\n"
+                                       "provisioner_installers_plugin/poetry.toml\n"
+                                       "README.md")
         
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
-        affected_plugins = vm.get_plugins_from_changes()
+        affected_plugins = vm.get_plugins_from_changes(".")
         
         # Should detect both plugins, sorted alphabetically 
         expected_plugins = ["provisioner_examples_plugin", "provisioner_installers_plugin"]
         self.assertEqual(sorted(affected_plugins), expected_plugins)
 
+    @patch("version_manager.os.chdir")
     @patch("version_manager.VersionManager.run_command")
     @patch("version_manager.VersionManager.discover_plugins")
-    @patch("version_manager.Path")
-    def test_get_plugins_from_changes_main_repo_and_submodule(self, mock_path, mock_discover, mock_run_command):
-        """Test detecting changes in both main repo and submodule."""
+    def test_get_plugins_from_changes_main_repo_and_submodule(self, mock_discover, mock_run_command, mock_chdir):
+        """Test detecting changes in plugins directory."""
         # Mock plugin discovery
         mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin", "provisioner_single_board_plugin"]
         
-        # Mock Path for plugins directory
-        mock_plugins_dir = mock_path.return_value
-        mock_plugins_dir.exists.return_value = True
-        mock_plugins_dir.__truediv__.return_value.exists.return_value = True  # plugins/.git exists
-        
-        # Mock git commands - main repo shows plugin changes AND submodule shows different plugin changes
-        def mock_run_command_side_effect(cmd, cwd=None):
-            if cwd is None:  # Main repository
-                return "plugins/provisioner_single_board_plugin/main.py\nscripts/version_manager.py"
-            else:  # Plugins submodule  
-                return "provisioner_examples_plugin/main.py"
-        
-        mock_run_command.side_effect = mock_run_command_side_effect
+        # Mock git command showing plugin changes
+        mock_run_command.return_value = "provisioner_single_board_plugin/main.py\nprovisioner_examples_plugin/main.py"
         
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
-        affected_plugins = vm.get_plugins_from_changes()
+        affected_plugins = vm.get_plugins_from_changes(".")
         
-        # Should detect plugins from both main repo and submodule
+        # Should detect both plugins
         expected_plugins = ["provisioner_examples_plugin", "provisioner_single_board_plugin"]
         self.assertEqual(sorted(affected_plugins), expected_plugins)
 
+    @patch("version_manager.os.chdir")
     @patch("version_manager.VersionManager.run_command")
     @patch("version_manager.VersionManager.discover_plugins")
-    @patch("version_manager.Path")
-    def test_get_plugins_from_changes_no_submodule(self, mock_path, mock_discover, mock_run_command):
-        """Test detecting changes when plugins directory is not a submodule."""
+    def test_get_plugins_from_changes_no_submodule(self, mock_discover, mock_run_command, mock_chdir):
+        """Test detecting changes in plugin directory."""
         # Mock plugin discovery
         mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin"]
         
-        # Mock Path for plugins directory - exists but no .git (not a submodule)
-        mock_plugins_dir = mock_path.return_value
-        mock_plugins_dir.exists.return_value = True
-        mock_plugins_dir.__truediv__.return_value.exists.return_value = False  # plugins/.git does NOT exist
-        
-        # Mock git command - only main repo call should happen
+        # Mock git command showing plugin changes
         mock_run_command.return_value = "provisioner_examples_plugin/main.py\nother_file.py"
         
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
-        affected_plugins = vm.get_plugins_from_changes()
+        affected_plugins = vm.get_plugins_from_changes(".")
         
         self.assertEqual(affected_plugins, ["provisioner_examples_plugin"])
-        # Should only call git diff once (no submodule check)
-        self.assertEqual(mock_run_command.call_count, 1)
 
+    @patch("version_manager.os.chdir")
     @patch("version_manager.VersionManager.run_command")
     @patch("version_manager.VersionManager.discover_plugins")
-    @patch("version_manager.Path")
-    def test_get_plugins_from_changes_submodule_error(self, mock_path, mock_discover, mock_run_command):
-        """Test graceful handling of submodule git command errors."""
+    def test_get_plugins_from_changes_submodule_error(self, mock_discover, mock_run_command, mock_chdir):
+        """Test graceful handling of git command errors."""
         # Mock plugin discovery
         mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin"]
         
-        # Mock Path for plugins directory
-        mock_plugins_dir = mock_path.return_value
-        mock_plugins_dir.exists.return_value = True
-        mock_plugins_dir.__truediv__.return_value.exists.return_value = True  # plugins/.git exists
-        
-        # Mock git commands - main repo succeeds, submodule fails
-        def mock_run_command_side_effect(cmd, cwd=None):
-            if cwd is None:  # Main repository
-                return "provisioner_examples_plugin/main.py"
-            else:  # Plugins submodule - simulate failure
-                raise subprocess.CalledProcessError(1, "git diff")
-        
-        mock_run_command.side_effect = mock_run_command_side_effect
+        # Mock git command failure
+        mock_run_command.side_effect = subprocess.CalledProcessError(1, "git diff")
         
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
-        affected_plugins = vm.get_plugins_from_changes()
+        affected_plugins = vm.get_plugins_from_changes(".")
         
-        # Should still return plugins from main repo despite submodule error
-        self.assertEqual(affected_plugins, ["provisioner_examples_plugin"])
+        # Should return empty list on error
+        self.assertEqual(affected_plugins, [])
 
+    @patch("version_manager.os.chdir")
     @patch("version_manager.VersionManager.run_command")
     @patch("version_manager.VersionManager.discover_plugins")
-    def test_get_plugins_from_changes_direct_plugin_repo(self, mock_discover, mock_run_command):
-        """Test detecting changes when running directly in plugin repository (no plugins/ prefix)."""
+    def test_get_plugins_from_changes_direct_plugin_repo(self, mock_discover, mock_run_command, mock_chdir):
+        """Test detecting changes when running directly in plugin repository."""
         # Mock plugin discovery - simulating being in the plugins repo directly
         mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin", "provisioner_single_board_plugin"]
         
@@ -514,7 +462,7 @@ description = "Test package"
         mock_run_command.return_value = "provisioner_examples_plugin/main.py\nprovisioner_installers_plugin/src/cli/cli.py\nREADME.md"
         
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
-        affected_plugins = vm.get_plugins_from_changes()
+        affected_plugins = vm.get_plugins_from_changes(".")
         
         expected_plugins = ["provisioner_examples_plugin", "provisioner_installers_plugin"]  
         self.assertEqual(sorted(affected_plugins), expected_plugins)
