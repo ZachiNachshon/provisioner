@@ -120,7 +120,7 @@ class CommandRunner:
             result = subprocess.run(
                 command,
                 shell=True,
-                cwd=cwd,
+                cwd=str(cwd) if cwd else None,
                 capture_output=capture_output,
                 text=True,
                 check=True
@@ -568,6 +568,10 @@ class PackageDeployer:
         if self.args.project_path:
             self._change_to_project_directory()
         
+        # Reinitialize managers after directory change
+        self.poetry_manager = PoetryManager(self.project_path)
+        self.manifest_manager = ManifestManager(self.project_path)
+        
         # Update lock file
         self.poetry_manager.update_lock_file()
         
@@ -595,7 +599,7 @@ class PackageDeployer:
         Logger.info(f"Changing to project directory: {project_path}")
         try:
             os.chdir(project_path)
-            self.project_path = project_path
+            self.project_path = Path(os.getcwd())  # Use current working directory
         except (FileNotFoundError, NotADirectoryError) as e:
             Logger.fatal(f"Failed to change to directory {project_path}: {e}")
 
@@ -817,6 +821,13 @@ class PackageDeployerCLI:
         # Commands (subparsers)
         subparsers = parser.add_subparsers(dest='command', help='Available commands')
 
+        # Helper function to add global arguments to each subparser
+        def add_global_arguments(subparser):
+            subparser.add_argument('--project-path',
+                                 help='Path to project directory (default: current directory)')
+            subparser.add_argument('-y', '--auto-prompt', action='store_true',
+                                 help='Do not prompt for approval and accept everything')
+
         # Build command
         build_parser = subparsers.add_parser('build', help='Build pip package (sdist/wheel) to dist folder')
         build_parser.add_argument('--build-type', required=True, choices=['sdist', 'wheel'],
@@ -829,6 +840,7 @@ class PackageDeployerCLI:
                                 help='Output directory for compressed assets (default: dist)')
         build_parser.add_argument('--multi-project', action='store_true',
                                 help='Use multi-project build mode (bundled projects)')
+        add_global_arguments(build_parser)
 
         # Upload command
         upload_parser = subparsers.add_parser('upload', help='Download GitHub release and promote RC to GA or upload GA to PyPI')
@@ -843,6 +855,7 @@ class PackageDeployerCLI:
                                  help='Target release title for promote-rc action')
         upload_parser.add_argument('--release-notes-file',
                                  help='Path to release notes file')
+        add_global_arguments(upload_parser)
 
         # Prerelease command  
         prerelease_parser = subparsers.add_parser('prerelease', help='Create GitHub pre-release with assets')
@@ -856,12 +869,7 @@ class PackageDeployerCLI:
                                      help='Directory containing assets to upload')
         prerelease_parser.add_argument('--target-branch', default='master',
                                      help='Target branch for release (default: master)')
-
-        # Global arguments
-        parser.add_argument('--project-path',
-                          help='Path to project directory (default: current directory)')
-        parser.add_argument('-y', '--auto-prompt', action='store_true',
-                          help='Do not prompt for approval and accept everything')
+        add_global_arguments(prerelease_parser)
 
         args = parser.parse_args()
 
@@ -907,7 +915,7 @@ class PackageDeployerCLI:
             release_notes_file=getattr(args, 'release_notes_file', None),
             assets_dir=getattr(args, 'assets_dir', None),
             target_branch=getattr(args, 'target_branch', None),
-            auto_prompt=args.auto_prompt
+            auto_prompt=getattr(args, 'auto_prompt', False)
         )
 
     def _get_help_epilog(self) -> str:
