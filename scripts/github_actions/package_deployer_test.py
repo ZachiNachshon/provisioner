@@ -631,8 +631,14 @@ class TestPackageDeployerCLI(unittest.TestCase):
     def test_parse_arguments_prerelease_no_token(self):
         """Test prerelease command without GitHub token."""
         with patch.dict(os.environ, {}, clear=True):
+            # Environment validation now happens when GitHubReleaseManager is accessed
+            args = self.cli._parse_arguments()
+            self.assertEqual(args.command, 'prerelease')  # Should parse successfully
+            
+            # Token validation occurs when manager is used
             with patch('package_deployer.Logger.fatal') as mock_fatal:
-                self.cli._parse_arguments()
+                deployer = PackageDeployer(args)
+                deployer.github_manager  # This should trigger validation
                 mock_fatal.assert_called_once()
 
     @patch('sys.argv', ['package_deployer.py', 'upload', '--upload-action', 'upload-to-pypi',
@@ -640,8 +646,14 @@ class TestPackageDeployerCLI(unittest.TestCase):
     def test_parse_arguments_upload_pypi_no_token(self):
         """Test PyPI upload without token."""
         with patch.dict(os.environ, {'GITHUB_TOKEN': 'test'}, clear=True):
+            # Environment validation now happens when PyPIUploader is accessed
+            args = self.cli._parse_arguments()
+            self.assertEqual(args.command, 'upload')  # Should parse successfully
+            
+            # Token validation occurs when manager is used
             with patch('package_deployer.Logger.fatal') as mock_fatal:
-                self.cli._parse_arguments()
+                deployer = PackageDeployer(args)
+                deployer.pypi_uploader  # This should trigger validation
                 mock_fatal.assert_called_once()
 
     @patch('package_deployer.PackageDeployer')

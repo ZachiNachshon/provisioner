@@ -516,15 +516,29 @@ class PackageDeployer:
         self.prompter = Prompter(args.auto_prompt)
         self.project_path = Path(args.project_path or ".")
         
-        # Initialize managers
+        # Initialize managers (lazy-loaded as needed)
         self.poetry_manager = PoetryManager(self.project_path)
         self.manifest_manager = ManifestManager(self.project_path)
-        self.github_manager = GitHubReleaseManager()
-        self.pypi_uploader = PyPIUploader()
+        self._github_manager: Optional[GitHubReleaseManager] = None
+        self._pypi_uploader: Optional[PyPIUploader] = None
         
         # Package info will be set during execution
         self.package_info: Optional[PackageInfo] = None
         self.built_package_path: Optional[Path] = None
+
+    @property
+    def github_manager(self) -> GitHubReleaseManager:
+        """Lazy-load GitHub manager only when needed."""
+        if self._github_manager is None:
+            self._github_manager = GitHubReleaseManager()
+        return self._github_manager
+
+    @property
+    def pypi_uploader(self) -> PyPIUploader:
+        """Lazy-load PyPI uploader only when needed."""
+        if self._pypi_uploader is None:
+            self._pypi_uploader = PyPIUploader()
+        return self._pypi_uploader
 
     def execute_command(self) -> None:
         """Execute the specified command."""
@@ -889,14 +903,8 @@ class PackageDeployerCLI:
             if args.upload_action == 'promote-rc' and not args.release_tag:
                 Logger.fatal("promote-rc action requires --release-tag")
 
-        # Environment variable validation
-        if args.command in ['upload', 'prerelease']:
-            if not os.environ.get('GITHUB_TOKEN'):
-                Logger.fatal("GITHUB_TOKEN environment variable is required")
-
-        if args.command == 'upload' and args.upload_action == 'upload-to-pypi':
-            if not os.environ.get('PYPI_API_TOKEN'):
-                Logger.fatal("PYPI_API_TOKEN environment variable is required")
+        # Note: Environment variable validation is moved to when managers are actually used
+        # This matches the bash script behavior where tokens are only checked when needed
 
     def _convert_to_cli_arguments(self, args) -> CliArguments:
         """Convert argparse Namespace to CliArguments."""
