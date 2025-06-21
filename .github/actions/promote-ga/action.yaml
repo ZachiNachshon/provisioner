@@ -1,0 +1,233 @@
+name: 'Promote RC to General Availability'
+description: 'Promote RC to GA by creating stable release and publishing to PyPI'
+
+inputs:
+  GITHUB_TOKEN:
+    type: string
+    description: 'GitHub API token'
+    required: true
+  projects:
+    type: string
+    description: 'JSON array of projects to promote. Each project should have "project_path", "is_plugin", and "github_repo" fields.'
+    required: true
+  rc_version:
+    type: string
+    description: 'RC version to promote (optional - auto-detects latest if empty)'
+    required: false
+
+outputs:
+  rc_version:
+    description: 'RC version that was promoted'
+    value: ${{ fromJSON(steps.determine_rc.outputs.json_response).rc_version }}
+  stable_version:
+    description: 'Stable version that was created'
+    value: ${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}
+  ga_release_tag:
+    description: 'GA release tag that was created'
+    value: ${{ steps.create_release.outputs.ga_release_tag }}
+  json_response:
+    description: 'Complete JSON response from version manager'
+    value: ${{ steps.determine_rc.outputs.json_response }}
+
+runs:
+  using: 'composite'  
+  steps:
+    - name: Print Action Arguments
+      run: |
+        echo "::group::Print GA promotion arguments"
+        echo "projects: ${{ inputs.projects }}"
+        echo "rc_version: ${{ inputs.rc_version }}"
+        echo "::endgroup::"
+      shell: bash   
+
+    - name: Map GitHub token
+      run: |
+        # Used by GitHub CLI client and scripts
+        echo "GH_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
+        echo "GITHUB_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Determine RC Version to Promote
+      id: determine_rc
+      run: |
+        echo "::group::Determining RC version to promote"
+        projects='${{ inputs.projects }}'
+        rc_version="${{ inputs.rc_version }}"
+        
+        echo "Processing projects for GA promotion: ${projects}"
+        
+        # Parse the first project from the JSON array (should contain only one project per action call)
+        project=$(echo "${projects}" | jq -c '.[0]')
+        project_path=$(echo "${project}" | jq -r '.project_path')
+        is_plugin=$(echo "${project}" | jq -r '.is_plugin')
+        github_repo=$(echo "${project}" | jq -r '.github_repo')
+        
+        # Derive project name from project_path for logging
+        project_name=$(basename "${project_path}")
+        
+        echo "Processing project: ${project_name} (is_plugin: ${is_plugin})"
+        
+        if [[ "$is_plugin" == "true" ]]; then
+          echo "Plugin mode for: ${project_name}"
+          rc_stable_output=$(python3 scripts/github_actions/version_manager.py promote "${project_path}" "$rc_version" --plugin-mode --github-repo "${github_repo}")
+        else
+          echo "Main project mode for: ${project_name}"
+          rc_stable_output=$(python3 scripts/github_actions/version_manager.py promote "${project_path}" "$rc_version" --github-repo "${github_repo}")
+        fi
+        
+        # The version manager now outputs pure JSON and sets GITHUB_OUTPUT automatically
+        echo "Version Manager JSON Response:"
+        echo "${rc_stable_output}"
+        
+        # Parse JSON and set individual outputs for GitHub Actions compatibility
+        rc_version_output=$(echo "${rc_stable_output}" | jq -r '.rc_version')
+        stable_version_output=$(echo "${rc_stable_output}" | jq -r '.stable_version')
+
+        # Set individual outputs
+        echo "rc_version=${rc_version_output}" >> $GITHUB_OUTPUT
+        echo "stable_version=${stable_version_output}" >> $GITHUB_OUTPUT
+        echo "json_response=${rc_stable_output}" >> $GITHUB_OUTPUT
+        
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Prepare GA Release Notes
+      run: |
+        echo "::group::Preparing GA release notes"
+        projects='${{ inputs.projects }}'
+        rc_version="${{ fromJSON(steps.determine_rc.outputs.json_response).rc_version }}"
+        stable_version="${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}"
+        
+        project=$(echo "${projects}" | jq -c '.[0]')
+        project_path=$(echo "${project}" | jq -r '.project_path')
+        is_plugin=$(echo "${project}" | jq -r '.is_plugin')
+        
+        # Derive project name from project_path for logging
+        project_name=$(basename "${project_path}")
+        
+        # Check if this is a plugin release
+        if [[ "$is_plugin" == "true" ]]; then
+          echo "Preparing plugin release notes for: ${project_name}"
+          cd "${project_path}"
+          python3 ../../scripts/github_actions/release_notes_manager.py prepare \
+            "$rc_version" \
+            "$stable_version" \
+            "ga_release_notes.md" \
+            --plugin-mode
+          cd ../..
+        else
+          echo "Preparing main project release notes for: ${project_name}"
+          python3 scripts/github_actions/release_notes_manager.py prepare \
+            "$rc_version" \
+            "$stable_version" \
+            "ga_release_notes.md"
+        fi
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Create Stable GitHub Release
+      id: create_release
+      run: |
+        echo "::group::Creating stable GitHub release"
+        projects='${{ inputs.projects }}'
+        rc_version="${{ fromJSON(steps.determine_rc.outputs.json_response).rc_version }}"
+        stable_version="${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}"
+        
+        project=$(echo "${projects}" | jq -c '.[0]')
+        project_path=$(echo "${project}" | jq -r '.project_path')
+        is_plugin=$(echo "${project}" | jq -r '.is_plugin')
+        github_repo=$(echo "${project}" | jq -r '.github_repo')
+        
+        # Derive project name from project_path for logging
+        project_name=$(basename "${project_path}")
+        
+        # Use correct tag format based on plugin naming convention
+        if [[ "$is_plugin" == "true" ]]; then
+          # Apply same logic as version_manager.py _get_tag_name() method
+          # Remove "provisioner_" prefix and "_plugin" suffix, then add "-plugin"
+          plugin_core_name="${project_name}"
+          if [[ "$plugin_core_name" == provisioner_* ]]; then
+            plugin_core_name="${plugin_core_name#provisioner_}"
+          fi
+          if [[ "$plugin_core_name" == *_plugin ]]; then
+            plugin_core_name="${plugin_core_name%_plugin}"
+          fi
+          plugin_tag_name=$(echo "$plugin_core_name" | tr '_' '-')"-plugin"
+          
+          source_tag="${plugin_tag_name}-v${rc_version}"
+          release_tag="${plugin_tag_name}-v${stable_version}"
+          release_title="${release_tag}"
+          
+          echo "Promoting plugin RC ${source_tag} to stable release ${release_tag}"
+          cd "${project_path}"
+          release_notes_file="ga_release_notes.md"
+        else
+          source_tag="v${rc_version}"
+          release_tag="v${stable_version}"
+          release_title="${release_tag}"
+          release_notes_file="ga_release_notes.md"
+          
+          echo "Promoting main project RC ${source_tag} to stable release ${release_tag}"
+        fi
+        
+        # Use the package deployer to promote RC to GA
+        if [[ "$is_plugin" == "true" ]]; then
+          python ../../scripts/github_actions/package_deployer.py upload \
+            --upload-action promote-rc \
+            --source-tag "${source_tag}" \
+            --release-tag "${release_tag}" \
+            --release-title "${release_title}" \
+            --release-notes-file "${release_notes_file}" \
+            -y
+        else
+          python scripts/github_actions/package_deployer.py upload \
+            --upload-action promote-rc \
+            --source-tag "${source_tag}" \
+            --release-tag "${release_tag}" \
+            --release-title "${release_title}" \
+            --release-notes-file "${release_notes_file}" \
+            -y
+        fi
+        
+        # Mark the new release as latest
+        gh release edit "${release_tag}" --latest
+        
+        # Output the GA release tag for use by subsequent steps
+        echo "ga_release_tag=${release_tag}" >> $GITHUB_OUTPUT
+        
+        echo "Successfully created stable release ${release_tag}"
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Update Project Version for Next Development Cycle
+      run: |
+        echo "::group::Updating project version for next development cycle"
+        projects='${{ inputs.projects }}'
+        stable_version="${{ fromJSON(steps.determine_rc.outputs.json_response).stable_version }}"
+        
+        project=$(echo "${projects}" | jq -c '.[0]')
+        project_path=$(echo "${project}" | jq -r '.project_path')
+        is_plugin=$(echo "${project}" | jq -r '.is_plugin')
+        
+        # Derive project name from project_path for logging
+        project_name=$(basename "${project_path}")
+        
+        # Check if this is a plugin release
+        if [[ "$is_plugin" == "true" ]]; then
+          echo "Updating plugin version for next development cycle: ${project_name}"
+          cd "${project_path}"
+          
+          python3 ../../scripts/github_actions/post_release_version_bump.py \
+            --project-name "${project_name}" \
+            --stable-version "${stable_version}" \
+            --plugin-mode
+          cd ../..
+        else
+          echo "Updating main project version for next development cycle: ${project_name}"
+          
+          python3 scripts/github_actions/post_release_version_bump.py \
+            --project-name "${project_name}" \
+            --stable-version "${stable_version}"
+        fi
+        echo "::endgroup::"
+      shell: bash 

@@ -106,8 +106,46 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python }}
           POETRY_VERSION: ${{ env.POETRY_VERSION }}
 
+      - name: Check for source code changes
+        id: check-changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            source:
+              - 'provisioner/**/*.py'
+              - 'provisioner/**/*.yaml'
+              - 'provisioner/**/*.yml'
+              - 'provisioner/**/*.toml'
+              - 'provisioner/**/*.json'
+              - 'provisioner/**/*.sh'
+              - 'provisioner/**/Dockerfile*'
+              - 'provisioner_shared/**/*.py'
+              - 'provisioner_shared/**/*.yaml'
+              - 'provisioner_shared/**/*.yml'
+              - 'provisioner_shared/**/*.toml'
+              - 'provisioner_shared/**/*.json'
+              - 'provisioner_shared/**/*.sh'
+              - 'provisioner_shared/**/Dockerfile*'
+              - '!**/pyproject.toml'
+              - '!**/manifest.json'
+              - '!**/*.lock'
+              - '!**/*.md'
+              - '!**/README*'
+              - '!**/CHANGELOG*'
+              - '!**/LICENSE*'
+              - '!**/.gitignore'
+              - '!**/.cursorignore'
+
       - name: Promote Release Candidate
+        if: steps.check-changes.outputs.source == 'true'
         uses: ./.github/actions/promote-rc
         with:
-          project_to_release: 'provisioner'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          projects: |
+            [
+              {
+                "project_path": "provisioner",
+                "is_plugin": false,
+                "github_repo": "ZachiNachshon/provisioner"
+              }
+            ]

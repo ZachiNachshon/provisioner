@@ -41,7 +41,7 @@ def check_pypi_version_exists(package_name: str, version: str) -> bool:
         # Use pip index to check if version exists
         output = run_command(f"pip index versions {package_name}")
         return version in output
-    except:
+    except Exception:
         # If command fails, assume version doesn't exist
         return False
 
@@ -112,7 +112,7 @@ def update_shared_dependency(project_dir: Path, shared_version: str):
 
 def publish_package(project_dir: Path, pypi_token: str):
     """Publish package to PyPI using the publisher script."""
-    publisher_script = Path("../scripts/github_actions/package_deployer.sh")
+    publisher_script = Path("../scripts/github_actions/package_deployer.py")
 
     if not publisher_script.exists():
         print(f"Error: Publisher script not found at {publisher_script}")
@@ -123,7 +123,7 @@ def publish_package(project_dir: Path, pypi_token: str):
     env["PYPI_API_TOKEN"] = pypi_token
 
     # Run publisher script
-    run_command(f"{publisher_script} publish --build-type wheel --release-type pypi -y", cwd=project_dir, env=env)
+    run_command(f"python {publisher_script} upload --upload-action upload-to-pypi --source-tag $(git describe --tags --abbrev=0) -y", cwd=project_dir, env=env)
 
 
 def publish_shared_package(stable_version: str, pypi_token_shared: str):

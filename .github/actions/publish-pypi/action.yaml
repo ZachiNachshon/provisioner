@@ -1,0 +1,73 @@
+name: 'Publish to PyPI'
+description: 'Publish one or more packages to PyPI using package deployer'
+
+inputs:
+  GITHUB_TOKEN:
+    type: string
+    description: 'GitHub API token'
+    required: true
+  source_tag:
+    type: string
+    description: 'Source tag to publish (e.g., "v1.2.3")'
+    required: true
+  packages:
+    type: string
+    description: 'JSON array of packages to publish. Each package should have "project_path", "pypi_token", and "is_plugin" fields.'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Print Publishing Arguments
+      run: |
+        echo "::group::Print PyPI publishing arguments"
+        echo "source_tag: ${{ inputs.source_tag }}"
+        echo "packages: ${{ inputs.packages }}"
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Map GitHub token
+      run: |
+        # Used by GitHub CLI client and scripts
+        echo "GH_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
+        echo "GITHUB_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Publish Packages to PyPI
+      run: |
+        echo "::group::Publishing packages to PyPI"
+        source_tag="${{ inputs.source_tag }}"
+        packages='${{ inputs.packages }}'
+        
+        echo "Processing packages for source tag: ${source_tag}"
+        echo "Packages to publish: ${packages}"
+        
+        # Parse the JSON array of packages
+        echo "${packages}" | jq -c '.[]' | while read -r package; do
+          project_path=$(echo "${package}" | jq -r '.project_path')
+          pypi_token=$(echo "${package}" | jq -r '.pypi_token')
+          is_plugin=$(echo "${package}" | jq -r '.is_plugin')
+          
+          echo "::group::Uploading package from ${project_path} to PyPI"
+          echo "Uploading package from ${project_path} to PyPI (is_plugin: ${is_plugin})..."
+          
+          # Set the PyPI token for this package
+          export PYPI_API_TOKEN="${pypi_token}"
+          
+          # Use script path from main repository root (works for both plugins and main packages)
+          scripts_path="python scripts/github_actions/package_deployer.py"
+          
+          # Upload to PyPI using package deployer
+          $scripts_path upload \
+            --upload-action upload-to-pypi \
+            --source-tag "${source_tag}" \
+            --project-path "${project_path}" \
+            -y
+          
+          echo "Successfully uploaded package to PyPI from ${project_path}"
+          echo "::endgroup::"
+        done
+        
+        echo "All packages successfully published to PyPI"
+        echo "::endgroup::"
+      shell: bash 

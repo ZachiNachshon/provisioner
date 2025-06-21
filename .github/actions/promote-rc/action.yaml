@@ -6,20 +6,21 @@ inputs:
     type: string
     description: 'GitHub API token'
     required: true
-  project_to_release:
-    type: choice
-    description: 'Select project to create RC for'
-    options: 
-      - 'provisioner'
+  projects:
+    type: string
+    description: 'JSON array of projects to create RC for. Each project should have "project_path", "is_plugin", and "github_repo" fields.'
     required: true
 
 outputs:
   package_version:
     description: 'Final package version for build artifacts'
-    value: ${{ steps.generate_rc.outputs.package_version }}
+    value: ${{ fromJSON(steps.generate_rc.outputs.json_response).package_version }}
   rc_tag:
     description: 'RC tag for git tagging'
-    value: ${{ steps.generate_rc.outputs.rc_tag }}
+    value: ${{ fromJSON(steps.generate_rc.outputs.json_response).rc_tag }}
+  json_response:
+    description: 'Complete JSON response from version manager'
+    value: ${{ steps.generate_rc.outputs.json_response }}
 
 runs:
   using: 'composite'  
@@ -27,7 +28,7 @@ runs:
     - name: Print Action Arguments
       run: |
         echo "::group::Print RC promotion arguments"
-        echo "project_to_release: ${{ inputs.project_to_release }}"
+        echo "projects: ${{ inputs.projects }}"
         echo "::endgroup::"
       shell: bash   
 
@@ -41,7 +42,7 @@ runs:
 
     - name: Map GitHub token
       run: |
-        # Used by GitHub CLI client and package_deployer.sh script
+        # Used by GitHub CLI client and package_deployer.py script
         echo "GH_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
         echo "GITHUB_TOKEN=${{ inputs.GITHUB_TOKEN }}" >> $GITHUB_ENV
       shell: bash
@@ -50,57 +51,138 @@ runs:
       id: generate_rc
       run: |
         echo "::group::Calculating release versions (build-once approach)"
-        python scripts/github_actions/version_manager.py generate ${{ inputs.project_to_release }}
+        projects='${{ inputs.projects }}'
+        
+        echo "Processing projects for RC creation: ${projects}"
+        
+        # Parse the first project from the JSON array (should contain only one project per action call)
+        project=$(echo "${projects}" | jq -c '.[0]')
+        project_path=$(echo "${project}" | jq -r '.project_path')
+        is_plugin=$(echo "${project}" | jq -r '.is_plugin')
+        github_repo=$(echo "${project}" | jq -r '.github_repo')
+        
+        # Derive project name from project_path for logging
+        project_name=$(basename "${project_path}")
+        
+        echo "Processing project: ${project_name} (is_plugin: ${is_plugin})"
+        
+        if [[ "$is_plugin" == "true" ]]; then
+          echo "Plugin mode for: ${project_name}"
+          rc_output=$(python scripts/github_actions/version_manager.py generate "${project_path}" --plugin-mode --github-repo "${github_repo}")
+        else
+          echo "Main project mode for: ${project_name}"
+          rc_output=$(python scripts/github_actions/version_manager.py generate "${project_path}" --github-repo "${github_repo}")
+        fi
+        
+        # The version manager now outputs pure JSON and sets GITHUB_OUTPUT automatically
+        echo "Version Manager JSON Response:"
+        echo "${rc_output}"
+        
+        # Parse JSON and set individual outputs for GitHub Actions compatibility
+        package_version=$(echo "${rc_output}" | jq -r '.package_version')
+        rc_tag=$(echo "${rc_output}" | jq -r '.rc_tag')
+        
+        # Set individual outputs
+        echo "package_version=${package_version}" >> $GITHUB_OUTPUT
+        echo "rc_tag=${rc_tag}" >> $GITHUB_OUTPUT
+        echo "json_response=${rc_output}" >> $GITHUB_OUTPUT
+        
         echo "::endgroup::" 
       shell: bash
 
     - name: Create Git Tag
       run: |
-        package_version="${{ steps.generate_rc.outputs.package_version }}"
-        rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
-        project_to_release="${{ inputs.project_to_release }}"
+        package_version="${{ fromJSON(steps.generate_rc.outputs.json_response).package_version }}"
+        rc_tag="${{ fromJSON(steps.generate_rc.outputs.json_response).rc_tag }}"
+        projects='${{ inputs.projects }}'
         
-        echo "Creating git tag: v${rc_tag} (packages built with final version ${package_version})"
+        project=$(echo "${projects}" | jq -c '.[0]')
+        project_path=$(echo "${project}" | jq -r '.project_path')
+        is_plugin=$(echo "${project}" | jq -r '.is_plugin')
+        
+        # Derive project name from project_path for logging
+        project_name=$(basename "${project_path}")
+        
+        # Use the rc_tag directly from version_manager.py (already includes proper prefix/format)
+        # version_manager.py returns complete tag names:
+        # - Main project: "v1.0.0-RC.1" 
+        # - Plugins: "examples-plugin-v1.0.0-RC.1"
+        final_tag="${rc_tag}"
         
         git config --global user.email "zachi.nachshon@gmail.com"
         git config --global user.name "ZachiNachshon"
         
-        git tag "v${rc_tag}" -m "Release Candidate v${rc_tag} for ${project_to_release} (package version: ${package_version})"
-        git push origin "v${rc_tag}"
+        if [[ "$is_plugin" == "true" ]]; then
+          echo "Creating plugin git tag: ${final_tag} (packages built with final version ${package_version})"
+          # For plugins, create and push tag in the plugins repository
+          cd plugins
+          git tag "${final_tag}" -m "Release Candidate ${final_tag} for ${project_name} (package version: ${package_version})"
+          git push origin "${final_tag}"
+          cd ..
+        else
+          echo "Creating main project git tag: ${final_tag} (packages built with final version ${package_version})"
+          # For main project, create and push tag in the main repository
+        git tag "${final_tag}" -m "Release Candidate ${final_tag} for ${project_name} (package version: ${package_version})"
+        git push origin "${final_tag}"
+        fi
       shell: bash
 
     - name: Build Release Assets
       run: |
         echo "::group::Building wheel packages and compressing as tar.gz for release assets"
-        project_to_release="${{ inputs.project_to_release }}"
-        package_version="${{ steps.generate_rc.outputs.package_version }}"
-        rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
+        projects='${{ inputs.projects }}'
+        package_version="${{ fromJSON(steps.generate_rc.outputs.json_response).package_version }}"
+        rc_tag="${{ fromJSON(steps.generate_rc.outputs.json_response).rc_tag }}"
         
-        echo "Building wheel packages for ${project_to_release} with final version ${package_version}"
-        echo "Git tag will be v${rc_tag}, packages will be compressed for release assets"
+        echo "Building wheel packages with final version ${package_version}"
+        echo "Git tag will be ${rc_tag}, packages will be compressed for release assets"
         
         # Create assets directory first
         mkdir -p release-assets
         
-        # Build main project wheel with final version and compression
-        echo "Building ${project_to_release} wheel package with final version ${package_version}..."
-        scripts/github_actions/package_deployer.sh build \
-          --build-type wheel \
-          --version ${package_version} \
-          --compress tar.gz \
-          --project-path ${project_to_release} \
-          --output-path release-assets \
-          -y
+        project=$(echo "${projects}" | jq -c '.[0]')
+        project_path=$(echo "${project}" | jq -r '.project_path')
+        is_plugin=$(echo "${project}" | jq -r '.is_plugin')
         
-        # Build provisioner_shared wheel (dependency) with final version and compression
-        echo "Building provisioner_shared wheel package with final version ${package_version}..."
-        scripts/github_actions/package_deployer.sh build \
-          --build-type wheel \
-          --version ${package_version} \
-          --compress tar.gz \
-          --project-path provisioner_shared \
-          --output-path release-assets \
-          -y
+        # Derive project name from project_path for logging
+        project_name=$(basename "${project_path}")
+        
+        # Check if this is a plugin release
+        if [[ "$is_plugin" == "true" ]]; then
+          echo "Building plugin wheel package: ${project_name}"
+          
+          # Build plugin wheel with final version and compression using package_deployer.py
+          echo "Building ${project_name} wheel package with final version ${package_version}..."
+          python scripts/github_actions/package_deployer.py build \
+            --build-type wheel \
+            --version ${package_version} \
+            --compress tar.gz \
+            --project-path ${project_path} \
+            --output-path release-assets \
+            -y
+        else
+          echo "Building main project wheels: ${project_name} + provisioner_shared"
+          
+          # Build main project wheel with final version and compression
+          echo "Building ${project_name} wheel package with final version ${package_version}..."
+          python scripts/github_actions/package_deployer.py build \
+            --build-type wheel \
+            --version ${package_version} \
+            --compress tar.gz \
+            --project-path ${project_path} \
+            --output-path release-assets \
+            -y
+          
+          # Build provisioner_shared wheel (dependency) with final version and compression
+          echo "Building provisioner_shared wheel package with final version ${package_version}..."
+          python scripts/github_actions/package_deployer.py build \
+            --build-type wheel \
+            --version ${package_version} \
+            --compress tar.gz \
+            --project-path provisioner_shared \
+            --output-path release-assets \
+            -y
+        fi
         
         echo "Final release assets collected:"
         ls -la release-assets/
@@ -111,19 +193,34 @@ runs:
     - name: Create GitHub Pre-Release
       run: |
         echo "::group::Creating GitHub pre-release with minimal title"
-        rc_tag="${{ steps.generate_rc.outputs.rc_tag }}"
+        rc_tag="${{ fromJSON(steps.generate_rc.outputs.json_response).rc_tag }}"
+        projects='${{ inputs.projects }}'
         
-        echo "Creating GitHub pre-release for tag v${rc_tag}"
+        project=$(echo "${projects}" | jq -c '.[0]')
+        project_path=$(echo "${project}" | jq -r '.project_path')
+        is_plugin=$(echo "${project}" | jq -r '.is_plugin')
+        
+        # Derive project name from project_path for logging  
+        project_name=$(basename "${project_path}")
+        
+        # Use the rc_tag directly from version_manager.py (already includes proper prefix/format)
+        final_tag="${rc_tag}"
+        
+        echo "Creating GitHub pre-release for tag ${final_tag}"
         echo "Pre-release will have minimal title with no body content"
         
-        # Use the enhanced publish script to create pre-release with minimal title and no notes
-        scripts/github_actions/package_deployer.sh prerelease \
-          --release-tag "v${rc_tag}" \
-          --release-title "v${rc_tag}" \
-          --assets-dir "release-assets" \
+        # Use --project-path flag to avoid cd commands
+        # Convert assets-dir to absolute path since script will change to project directory
+        assets_dir_abs=$(pwd)/release-assets
+        
+        python scripts/github_actions/package_deployer.py prerelease \
+          --project-path "${project_path}" \
+          --release-tag "${final_tag}" \
+          --release-title "${final_tag}" \
+          --assets-dir "${assets_dir_abs}" \
           --target-branch "master" \
           -y
         
-        echo "Successfully created pre-release v${rc_tag} with minimal title"
+        echo "Successfully created pre-release ${final_tag} with minimal title"
         echo "::endgroup::"
       shell: bash 

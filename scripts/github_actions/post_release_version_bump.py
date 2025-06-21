@@ -6,7 +6,7 @@ This script handles the post-release version bump process after promoting an RC 
 It updates project versions to the next development cycle and creates a PR with the changes.
 
 Usage:
-    python post_release_version_bump.py --project-name <name> --stable-version <version>
+    python post_release_version_bump.py --project-name <name> --stable-version <version> [--plugin-mode]
 
 Requirements:
     - poetry (for version management)
@@ -25,16 +25,18 @@ from typing import Optional
 class PostReleaseVersionBumper:
     """Handles post-release version bumping for projects."""
 
-    def __init__(self, project_name: str, stable_version: str):
+    def __init__(self, project_name: str, stable_version: str, plugin_mode: bool = False):
         """
         Initialize the version bumper.
 
         Args:
-            project_name: Name of the project (e.g., 'provisioner')
+            project_name: Name of the project (e.g., 'provisioner' or 'provisioner_examples_plugin')
             stable_version: The stable version that was just released (e.g., '1.2.3')
+            plugin_mode: Whether this is a plugin release (affects which files are updated)
         """
         self.project_name = project_name
         self.stable_version = stable_version
+        self.plugin_mode = plugin_mode
         self.next_version = self._calculate_next_version(stable_version)
         self.root_dir = Path.cwd()
 
@@ -133,7 +135,7 @@ class PostReleaseVersionBumper:
         pr_title = f"[skip ci] Post-release: bump {self.project_name} to v{self.next_version}"
         pr_body = f"""Post-release version bump after promoting v{self.stable_version} to General Availability.
 
-**Released:** v{self.stable_version} (promoted from RC, published to GitHub + PyPI)  
+**Released:** v{self.stable_version} (promoted from RC, published to GitHub + PyPI)
 **Next Development:** v{self.next_version}
 
 This follows the 'build once, promote many' approach - artifacts were not rebuilt."""
@@ -155,31 +157,46 @@ This follows the 'build once, promote many' approach - artifacts were not rebuil
         print(f"Starting post-release version bump for {self.project_name}")
         print(f"Released version: {self.stable_version}")
         print(f"Next development version: {self.next_version}")
+        print(f"Plugin mode: {self.plugin_mode}")
 
-        # Update main project
-        main_project_dir = self.root_dir / self.project_name
-        main_updated = self._update_poetry_version(main_project_dir)
-        if main_updated:
-            self._update_manifest_version(main_project_dir)
+        updated_projects = []
 
-        # Update provisioner_shared
-        shared_project_dir = self.root_dir / "provisioner_shared"
-        shared_updated = self._update_poetry_version(shared_project_dir)
-        if shared_updated:
-            self._update_manifest_version(shared_project_dir)
+        if self.plugin_mode:
+            # For plugins, only update the specific plugin directory
+            plugin_dir = self.root_dir / self.project_name
+            if plugin_dir.exists():
+                print(f"Updating plugin: {self.project_name}")
+                plugin_updated = self._update_poetry_version(plugin_dir)
+                if plugin_updated:
+                    self._update_manifest_version(plugin_dir)
+                    updated_projects.append(plugin_dir)
+            else:
+                print(f"Warning: Plugin directory {plugin_dir} not found")
+        else:
+            # For main project, update both main project and provisioner_shared
+            main_project_dir = self.root_dir / self.project_name
+            main_updated = self._update_poetry_version(main_project_dir)
+            if main_updated:
+                self._update_manifest_version(main_project_dir)
+                updated_projects.append(main_project_dir)
 
-        if not main_updated and not shared_updated:
+            # Update provisioner_shared
+            shared_project_dir = self.root_dir / "provisioner_shared"
+            shared_updated = self._update_poetry_version(shared_project_dir)
+            if shared_updated:
+                self._update_manifest_version(shared_project_dir)
+                updated_projects.append(shared_project_dir)
+
+        if not updated_projects:
             print("No projects were updated. Exiting.")
             return
 
         # Setup git and create PR
         self._setup_git_config()
 
-        # Stage changes from both projects
-        if main_updated:
-            self._stage_project_changes(main_project_dir)
-        if shared_updated:
-            self._stage_project_changes(shared_project_dir)
+        # Stage changes from all updated projects
+        for project_dir in updated_projects:
+            self._stage_project_changes(project_dir)
 
         self._create_branch_and_pr()
         print("Post-release version bump completed successfully!")
@@ -189,16 +206,21 @@ def main():
     """Main entry point for the script."""
     parser = argparse.ArgumentParser(description="Bump project versions for next development cycle after GA release")
     parser.add_argument(
-        "--project-name", required=True, help="Name of the project that was released (e.g., 'provisioner')"
+        "--project-name",
+        required=True,
+        help="Name of the project that was released (e.g., 'provisioner' or 'provisioner_examples_plugin')",
     )
     parser.add_argument(
         "--stable-version", required=True, help="The stable version that was just released (e.g., '1.2.3')"
+    )
+    parser.add_argument(
+        "--plugin-mode", action="store_true", help="Enable plugin mode (only update the specific plugin)"
     )
 
     args = parser.parse_args()
 
     try:
-        bumper = PostReleaseVersionBumper(args.project_name, args.stable_version)
+        bumper = PostReleaseVersionBumper(args.project_name, args.stable_version, args.plugin_mode)
         bumper.run()
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
