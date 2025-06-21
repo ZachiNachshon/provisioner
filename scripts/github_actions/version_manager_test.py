@@ -260,9 +260,7 @@ description = "Test package"
     @patch("version_manager.VersionManager.run_command")
     def test_get_latest_rc_version_plugin(self, mock_run_command):
         """Test getting latest RC version for plugin."""
-        mock_run_command.return_value = (
-            "examples-plugin-v1.2.3-RC.2\nexamples-plugin-v1.2.3-RC.1"
-        )
+        mock_run_command.return_value = "examples-plugin-v1.2.3-RC.2\nexamples-plugin-v1.2.3-RC.1"
 
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
         vm.plugin_name = "provisioner_examples_plugin"
@@ -364,18 +362,22 @@ description = "Test package"
 
     @patch("version_manager.os.chdir")
     @patch("version_manager.VersionManager.run_command")
-    @patch("version_manager.VersionManager.discover_plugins") 
+    @patch("version_manager.VersionManager.discover_plugins")
     def test_get_plugins_from_changes_single_plugin_in_submodule(self, mock_discover, mock_run_command, mock_chdir):
         """Test detecting changes for a single plugin."""
         # Mock plugin discovery
-        mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin", "provisioner_single_board_plugin"]
-        
+        mock_discover.return_value = [
+            "provisioner_examples_plugin",
+            "provisioner_installers_plugin",
+            "provisioner_single_board_plugin",
+        ]
+
         # Mock git command showing one plugin changed
         mock_run_command.return_value = "provisioner_examples_plugin/main.py\nprovisioner_examples_plugin/poetry.toml"
-        
+
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
         affected_plugins = vm.get_plugins_from_changes(".")
-        
+
         self.assertEqual(affected_plugins, ["provisioner_examples_plugin"])
 
     @patch("version_manager.os.chdir")
@@ -384,18 +386,24 @@ description = "Test package"
     def test_get_plugins_from_changes_multiple_plugins_in_submodule(self, mock_discover, mock_run_command, mock_chdir):
         """Test detecting changes for multiple plugins."""
         # Mock plugin discovery
-        mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin", "provisioner_single_board_plugin"]
-        
+        mock_discover.return_value = [
+            "provisioner_examples_plugin",
+            "provisioner_installers_plugin",
+            "provisioner_single_board_plugin",
+        ]
+
         # Mock git command showing multiple plugins changed
-        mock_run_command.return_value = ("provisioner_examples_plugin/main.py\n"
-                                       "provisioner_installers_plugin/main.py\n"
-                                       "provisioner_installers_plugin/poetry.toml\n"
-                                       "README.md")
-        
+        mock_run_command.return_value = (
+            "provisioner_examples_plugin/main.py\n"
+            "provisioner_installers_plugin/main.py\n"
+            "provisioner_installers_plugin/poetry.toml\n"
+            "README.md"
+        )
+
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
         affected_plugins = vm.get_plugins_from_changes(".")
-        
-        # Should detect both plugins, sorted alphabetically 
+
+        # Should detect both plugins, sorted alphabetically
         expected_plugins = ["provisioner_examples_plugin", "provisioner_installers_plugin"]
         self.assertEqual(sorted(affected_plugins), expected_plugins)
 
@@ -405,14 +413,18 @@ description = "Test package"
     def test_get_plugins_from_changes_main_repo_and_submodule(self, mock_discover, mock_run_command, mock_chdir):
         """Test detecting changes in plugins directory."""
         # Mock plugin discovery
-        mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin", "provisioner_single_board_plugin"]
-        
+        mock_discover.return_value = [
+            "provisioner_examples_plugin",
+            "provisioner_installers_plugin",
+            "provisioner_single_board_plugin",
+        ]
+
         # Mock git command showing plugin changes
         mock_run_command.return_value = "provisioner_single_board_plugin/main.py\nprovisioner_examples_plugin/main.py"
-        
+
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
         affected_plugins = vm.get_plugins_from_changes(".")
-        
+
         # Should detect both plugins
         expected_plugins = ["provisioner_examples_plugin", "provisioner_single_board_plugin"]
         self.assertEqual(sorted(affected_plugins), expected_plugins)
@@ -424,13 +436,13 @@ description = "Test package"
         """Test detecting changes in plugin directory."""
         # Mock plugin discovery
         mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin"]
-        
+
         # Mock git command showing plugin changes
         mock_run_command.return_value = "provisioner_examples_plugin/main.py\nother_file.py"
-        
+
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
         affected_plugins = vm.get_plugins_from_changes(".")
-        
+
         self.assertEqual(affected_plugins, ["provisioner_examples_plugin"])
 
     @patch("version_manager.os.chdir")
@@ -440,13 +452,13 @@ description = "Test package"
         """Test graceful handling of git command errors."""
         # Mock plugin discovery
         mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin"]
-        
+
         # Mock git command failure
         mock_run_command.side_effect = subprocess.CalledProcessError(1, "git diff")
-        
+
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
         affected_plugins = vm.get_plugins_from_changes(".")
-        
+
         # Should return empty list on error
         self.assertEqual(affected_plugins, [])
 
@@ -456,15 +468,21 @@ description = "Test package"
     def test_get_plugins_from_changes_direct_plugin_repo(self, mock_discover, mock_run_command, mock_chdir):
         """Test detecting changes when running directly in plugin repository."""
         # Mock plugin discovery - simulating being in the plugins repo directly
-        mock_discover.return_value = ["provisioner_examples_plugin", "provisioner_installers_plugin", "provisioner_single_board_plugin"]
-        
+        mock_discover.return_value = [
+            "provisioner_examples_plugin",
+            "provisioner_installers_plugin",
+            "provisioner_single_board_plugin",
+        ]
+
         # Mock git command - files without plugins/ prefix (direct plugin repo structure)
-        mock_run_command.return_value = "provisioner_examples_plugin/main.py\nprovisioner_installers_plugin/src/cli/cli.py\nREADME.md"
-        
+        mock_run_command.return_value = (
+            "provisioner_examples_plugin/main.py\nprovisioner_installers_plugin/src/cli/cli.py\nREADME.md"
+        )
+
         vm = VersionManager(plugin_mode=True, require_plugin_context=False)
         affected_plugins = vm.get_plugins_from_changes(".")
-        
-        expected_plugins = ["provisioner_examples_plugin", "provisioner_installers_plugin"]  
+
+        expected_plugins = ["provisioner_examples_plugin", "provisioner_installers_plugin"]
         self.assertEqual(sorted(affected_plugins), expected_plugins)
 
     @patch.dict(os.environ, {"GITHUB_OUTPUT": ""})
@@ -622,7 +640,9 @@ build-backend = "poetry.core.masonry.api"
         with patch("version_manager.VersionManager.get_plugins_from_changes") as mock_get_plugins:
             mock_get_plugins.return_value = ["provisioner_examples_plugin"]
 
-            exit_code, stdout, stderr = self.run_version_manager_cli(["detect-plugins", str(self.temp_path), "--plugin-mode"])
+            exit_code, stdout, stderr = self.run_version_manager_cli(
+                ["detect-plugins", str(self.temp_path), "--plugin-mode"]
+            )
 
             self.assertEqual(exit_code, 0)
 
