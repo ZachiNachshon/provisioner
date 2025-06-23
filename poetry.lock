@@ -1095,17 +1095,17 @@ virtualenv = ">=20.10.0"
 
 [[package]]
 name = "provisioner-examples-plugin"
-version = "0.1.9"
+version = "0.1.11"
 description = "Python Examples Library"
 optional = false
 python-versions = "<4.0,>=3.11"
 groups = ["main"]
 files = [
-    {file = "provisioner_examples_plugin-0.1.9-py3-none-any.whl", hash = "sha256:be3d92769c6ed89ca817f270228f565477a39ecb18b4d7fce9c6437ac2769f56"},
+    {file = "provisioner_examples_plugin-0.1.11-py3-none-any.whl", hash = "sha256:4a6e29b7bc77bd1fa114369d8c53f90f67841648947d2c166003a1c21bf2248f"},
 ]
 
 [package.dependencies]
-provisioner-shared = ">=0.1.11,<0.2.0"
+provisioner_shared = ">=0.0.1"
 
 [[package]]
 name = "provisioner-installers-plugin"
