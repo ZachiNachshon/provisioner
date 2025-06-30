@@ -782,14 +782,14 @@ test = ["coverage", "python-daemon[build,static-analysis]", "testscenarios (>=0.
 
 [[package]]
 name = "python-hosts"
-version = "1.0.7"
+version = "1.1.2"
 description = "A hosts file manager library written in python"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "python_hosts-1.0.7-py3-none-any.whl", hash = "sha256:7fb9c42e2f75d6e2c2ef7e11ffd7aa6a7d59a1fb54bcc5d0f0bba021aa8d5175"},
-    {file = "python_hosts-1.0.7.tar.gz", hash = "sha256:4c56991e22f6bffc28096833de787f92350e85b7cdd6086706725c55c4f04ab9"},
+    {file = "python-hosts-1.1.2.tar.gz", hash = "sha256:5e253a68ee848455608f583b4d831d6e083b22f8e45360c5a22c188a4ac1d770"},
+    {file = "python_hosts-1.1.2-py2-none-any.whl", hash = "sha256:a8dc2dcd6d1ccc84c6dfbafcb6fba3c87305150d75fa6e4af35f8394c4edc0d9"},
 ]
 
 [[package]]
