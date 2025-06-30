@@ -64,7 +64,7 @@ coverage = "^7.8.2"
 diagrams = "^0.24.1"
 ruff = "^0.11.13"
 docker = "^7.1.0"
-testcontainers = "^4.11.0"
+testcontainers = "^4.10.0"
 paramiko = "^3.5.1"
 tomlkit = "^0.13.2"
 
