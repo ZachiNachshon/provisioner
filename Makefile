@@ -20,48 +20,21 @@ PLUGINS_ROOT_FOLDER=plugins
 
 .PHONY: init
 init: ## Initialize project using uv package manager
-	@uv venv --python $(PYTHON_VERSION)
-	@source .venv/bin/activate
-	@source .venv/bin/python -m ensurepip --upgrade
-	@source .venv/bin/pip3 install --upgrade pip setuptools wheel
+	@uv venv --python $(PYTHON_VERSION) --seed
+	@.venv/bin/python -m ensurepip --upgrade
+	@.venv/bin/pip3 install --upgrade pip setuptools wheel
 	@poetry self add poetry-multiproject-plugin
-
-.PHONY: prod-mode
-prod-mode: ## Enable production mode for packaging and distribution
-	@poetry self add poetry-multiproject-plugin
-	@./scripts/switch_mode.py prod
-	@poetry lock
-
-.PHONY: dev-mode-sources
-dev-mode-sources: ## Enable local development from sources using abs file path on pyproject.toml
-	@pip3 install tomlkit --disable-pip-version-check --no-python-version-warning
-	@./scripts/switch_mode.py dev --force
-	@poetry lock
 
 .PHONY: deps-install
 deps-install: ## Update and install pyproject.toml dependencies on all virtual environments
 	@poetry lock
 	@poetry sync --with dev -v
 	@poetry lock
-	
-# .PHONY: dev-mode-pip-sdists
-# dev-mode-pip-sdists: ## Enable local development from built sdists into project .venv
-# 	@rm -rf provisioner_shared/dist
-# 	@cd provisioner_shared; poetry build-project -f sdist; cd ..
-# 	@mv provisioner_shared/dist/provisioner_shared*.tar.gz dockerfiles/poetry/dists/
-# 	@rm -rf provisioner/dist
-# 	$(MAKE) pip-install-runtime
-# 	@mv provisioner/dist/provisioner*.tar.gz dockerfiles/poetry/dists/
-# 	@rm -rf plugins/provisioner_installers_plugin/dist
-# 	@cd plugins/provisioner_installers_plugin; poetry build-project -f sdist; cd ../..
-# 	@mv plugins/provisioner_installers_plugin/dist/provisioner_*_plugin*.tar.gz dockerfiles/poetry/dists/
 
-# $(MAKE) prod-mode
-# @./.venv/bin/pip3 install provisioner_shared/dist/provisioner_shared*.tar.gz
-# @rm -r plugins/provisioner_examples_plugin/dist
-# $(MAKE) "pip-install-plugin examples"
-# @rm -r plugins/provisioner_single_board_plugin/dist
-# $(MAKE) "pip-install-plugin single-board"
+.PHONY: clear-project
+clear-project: ## Clear Poetry virtual environments and clear Python cache
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
+	@poetry env remove --all
 
 .PHONY: run
 run: ## Run provisioner CLI from sources (Usage: make run 'config view')
@@ -125,11 +98,6 @@ pip-uninstall-runtime: ## [LOCAL] Uninstall provisioner from global pip
 .PHONY: pip-uninstall-plugin
 pip-uninstall-plugin: ## [LOCAL] Uninstall any plugins source distributions from global pip (make pip-uninstall-plugin example)
 	@./scripts/install_locally.sh uninstall plugin $(word 2, $(MAKECMDGOALS)) wheel
-
-.PHONY: clear-project
-clear-project: ## Clear Poetry virtual environments and clear Python cache
-	@find . -type d -name "__pycache__" -exec rm -rf {} +
-	@poetry env remove --all
 
 # http://localhost:9001/provisioner/
 .PHONY: docs-site
