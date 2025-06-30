@@ -304,7 +304,8 @@ class PoetryManager:
     def _get_build_command(self, build_type: str, multi_project: bool) -> str:
         """Get the appropriate Poetry build command."""
         if multi_project:
-            return f"poetry build-project -f {build_type} -vv"
+            # return f"poetry build-project -f {build_type} -vv"
+            return f"poetry build -f {build_type} -vv"
         else:
             return f"poetry build -f {build_type} -vv"
 

@@ -77,7 +77,8 @@ install_package() {
   # Save current directory
   local CURRENT_DIR=$(pwd)
   cd "$pkg_dir"
-  poetry build-project $BUILD_ARG
+  # poetry build-project $BUILD_ARG
+  poetry build $BUILD_ARG
   cd "$CURRENT_DIR"
   
   # Install the generated package

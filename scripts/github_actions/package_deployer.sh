@@ -345,7 +345,8 @@ build_sdist_tarball() {
 
   if is_multi_project; then
     log_info "Building a local Python source distribution ${COLOR_YELLOW}BUNDLED MULTI PROJECT${COLOR_NONE} (sdist tarball)"
-    build_cmd="poetry build-project -f sdist -vv"
+    # build_cmd="poetry build-project -f sdist -vv"
+    build_cmd="poetry build -f sdist -vv"
   else
     log_info "Building a local Python source distribution ${COLOR_YELLOW}NON-BUNDLED SINGLE PROJECT${COLOR_NONE} (sdist tarball)"
     build_cmd="poetry build -f sdist -vv"
@@ -378,7 +379,8 @@ build_wheel_package() {
 
   if is_multi_project; then
     log_info "Building a local Python wheel ${COLOR_YELLOW}BUNDLED MULTI PROJECT${COLOR_NONE}"
-    build_cmd="poetry build-project -f wheel -vv"
+    # build_cmd="poetry build-project -f wheel -vv"
+    build_cmd="poetry build -f wheel -vv"
   else
     log_info "Building a local Python wheel ${COLOR_YELLOW}NON-BUNDLED SINGLE PROJECT${COLOR_NONE}"
     build_cmd="poetry build -f wheel -vv"
