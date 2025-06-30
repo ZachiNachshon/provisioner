@@ -401,10 +401,16 @@ class TestManifestManager(unittest.TestCase):
 class TestGitHubReleaseManager(unittest.TestCase):
     """Test GitHubReleaseManager class."""
 
-    @patch.dict(os.environ, {"GITHUB_TOKEN": "test-token"})
     def setUp(self):
         """Set up test fixtures."""
+        # Mock environment variables
+        self.env_patcher = patch.dict(os.environ, {"GITHUB_TOKEN": "test-token"})
+        self.env_patcher.start()
         self.github_manager = GitHubReleaseManager()
+
+    def tearDown(self):
+        """Clean up test fixtures."""
+        self.env_patcher.stop()
 
     def test_init_no_token(self):
         """Test initialization without GitHub token."""
@@ -488,10 +494,16 @@ class TestGitHubReleaseManager(unittest.TestCase):
 class TestPyPIUploader(unittest.TestCase):
     """Test PyPIUploader class."""
 
-    @patch.dict(os.environ, {"PYPI_API_TOKEN": "test-token"})
     def setUp(self):
         """Set up test fixtures."""
+        # Mock environment variables
+        self.env_patcher = patch.dict(os.environ, {"PYPI_API_TOKEN": "test-token"})
+        self.env_patcher.start()
         self.uploader = PyPIUploader()
+
+    def tearDown(self):
+        """Clean up test fixtures."""
+        self.env_patcher.stop()
 
     def test_init_no_token(self):
         """Test initialization without PyPI token."""
