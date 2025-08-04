@@ -40,7 +40,7 @@ inquirer = ">=2.10,<4.0"
 python-hosts = "^1.0.3"
 ansible-core = "^2.18.5"
 ansible-runner = "^2.4.1"
-paramiko = "^3.5.1"
+paramiko = ">=3.5.1,<5.0.0"
 passlib = "^1.7.4"
 
 # GitPython = "^3.1.18" # - GitPython provides object model access to your git repository (https://github.com/gitpython-developers/GitPython)
