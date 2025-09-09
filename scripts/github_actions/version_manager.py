@@ -23,6 +23,7 @@ RC_VERSION_SUFFIX = "RC"
 @dataclass
 class CliArguments:
     """Container for parsed CLI arguments."""
+
     action: str
     project_folder_path: Optional[str] = None
     rc_version: Optional[str] = None
@@ -33,6 +34,7 @@ class CliArguments:
 @dataclass
 class CommandResponse:
     """Container for command response data."""
+
     data: Dict
     success: bool = True
     error_message: Optional[str] = None
@@ -50,7 +52,7 @@ class VersionManager:
     ):
         """
         Initialize VersionManager.
-        
+
         Args:
             plugin_mode: Enable plugin-specific behavior
             require_plugin_context: Require plugin context when in plugin mode
@@ -58,14 +60,12 @@ class VersionManager:
             project_path_hint: Path hint for plugin detection
         """
         self._validate_github_token()
-        
+
         self.plugin_mode = plugin_mode
         self.github_repo = github_repo
         self.package_name = None
-        
-        self.plugin_name = self._initialize_plugin_context(
-            plugin_mode, require_plugin_context, project_path_hint
-        )
+
+        self.plugin_name = self._initialize_plugin_context(plugin_mode, require_plugin_context, project_path_hint)
 
     def _validate_github_token(self) -> None:
         """Validate that GITHUB_TOKEN environment variable is set."""
@@ -74,20 +74,17 @@ class VersionManager:
             raise ValueError("GITHUB_TOKEN environment variable is required")
 
     def _initialize_plugin_context(
-        self, 
-        plugin_mode: bool, 
-        require_plugin_context: bool, 
-        project_path_hint: Optional[str]
+        self, plugin_mode: bool, require_plugin_context: bool, project_path_hint: Optional[str]
     ) -> Optional[str]:
         """Initialize plugin context if needed."""
         if not plugin_mode:
             return None
-            
+
         plugin_name = self.detect_plugin_context(project_path_hint)
-        
+
         if require_plugin_context and not plugin_name:
             raise ValueError("Plugin mode enabled but no plugin detected in current context")
-            
+
         return plugin_name
 
     def output_json_response(self, data: dict) -> str:
@@ -124,7 +121,7 @@ class VersionManager:
         """
         project_dir = Path(project_path)
         self._validate_project_directory(project_dir)
-        
+
         pyproject_path = project_dir / "pyproject.toml"
         if not pyproject_path.exists():
             raise ValueError(f"Project path does not contain pyproject.toml: {project_path}")
@@ -185,11 +182,11 @@ class VersionManager:
         # Check if we're already in plugins directory
         if cwd.name == "plugins":
             return cwd
-            
+
         # Check if plugins directory exists in current directory
         if (cwd / "plugins").exists():
             return cwd / "plugins"
-            
+
         # Check if we're in a subdirectory of plugins
         if "plugins" in cwd.parts:
             for i, part in enumerate(cwd.parts):
@@ -201,7 +198,7 @@ class VersionManager:
     def _scan_plugin_directories(self, plugins_dir: Path) -> List[str]:
         """Scan for valid plugin directories."""
         plugin_names = []
-        
+
         for item in plugins_dir.iterdir():
             if self._is_valid_plugin_directory(item):
                 plugin_names.append(item.name)
@@ -212,7 +209,7 @@ class VersionManager:
     def _is_valid_plugin_directory(self, directory: Path) -> bool:
         """Check if a directory is a valid plugin directory."""
         return (
-            directory.is_dir() 
+            directory.is_dir()
             and re.match(r"^provisioner_.*_plugin$", directory.name)
             and (directory / "pyproject.toml").exists()
         )
@@ -220,14 +217,7 @@ class VersionManager:
     def run_command(self, cmd: str, cwd: Path = None) -> str:
         """Run a shell command and return its output."""
         try:
-            result = subprocess.run(
-                cmd, 
-                shell=True, 
-                cwd=cwd or Path.cwd(), 
-                capture_output=True, 
-                text=True, 
-                check=True
-            )
+            result = subprocess.run(cmd, shell=True, cwd=cwd or Path.cwd(), capture_output=True, text=True, check=True)
             return result.stdout.strip()
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Command failed: {cmd}. Error: {e.stderr}")
@@ -235,7 +225,7 @@ class VersionManager:
     def detect_plugin_context(self, project_path: Optional[str] = None) -> Optional[str]:
         """Detect if running in plugin context and return plugin name."""
         plugin_names = self.discover_plugins()
-        
+
         # Try to detect from project_path first
         if project_path:
             plugin_from_path = self._detect_plugin_from_path(project_path, plugin_names)
@@ -250,9 +240,7 @@ class VersionManager:
         project_path_obj = Path(project_path)
 
         # Handle explicit paths like "plugins/provisioner_examples_plugin"
-        if (project_path_obj.parts 
-            and project_path_obj.parts[0] == "plugins" 
-            and len(project_path_obj.parts) >= 2):
+        if project_path_obj.parts and project_path_obj.parts[0] == "plugins" and len(project_path_obj.parts) >= 2:
             potential_plugin = project_path_obj.parts[1]
             if potential_plugin in plugin_names:
                 return potential_plugin
@@ -267,7 +255,7 @@ class VersionManager:
     def _detect_plugin_from_cwd(self, plugin_names: List[str]) -> Optional[str]:
         """Detect plugin name from current working directory."""
         cwd = Path.cwd()
-        
+
         # Check if we're in plugins submodule directory
         if "plugins" in cwd.parts:
             for plugin in plugin_names:
@@ -291,7 +279,7 @@ class VersionManager:
     def _analyze_git_changes(self, project_folder_path: str) -> List[str]:
         """Analyze git changes to find affected plugins."""
         project_dir = Path(project_folder_path)
-        
+
         changed_files = self.run_command("git diff --name-only HEAD~1", cwd=project_dir)
         if not changed_files.strip():
             return []
@@ -313,7 +301,7 @@ class VersionManager:
     def _find_affected_plugins(self, changed_files: List[str], plugin_names: List[str]) -> List[str]:
         """Find which plugins are affected by the changed files."""
         affected_plugins = []
-        
+
         for changed_file in changed_files:
             for plugin in plugin_names:
                 if changed_file.startswith(f"{plugin}/"):
@@ -339,13 +327,13 @@ class VersionManager:
     def _extract_plugin_core_name(self, plugin_name: str) -> str:
         """Extract core name from plugin name."""
         core_name = plugin_name
-        
+
         if core_name.startswith("provisioner_"):
-            core_name = core_name[len("provisioner_"):]
-            
+            core_name = core_name[len("provisioner_") :]
+
         if core_name.endswith("_plugin"):
-            core_name = core_name[:-len("_plugin")]
-            
+            core_name = core_name[: -len("_plugin")]
+
         return core_name
 
     def get_package_name(self) -> str:
@@ -469,7 +457,7 @@ class VersionManager:
         """Get RC tags from GitHub API."""
         repo_path = self.github_repo if self.github_repo else ":owner/:repo"
         tags_output = self.run_command(f"gh api repos/{repo_path}/tags --paginate --jq '.[].name'")
-        
+
         if tags_output:
             return [tag for tag in tags_output.split("\n") if re.match(rc_pattern, tag)]
         return []
@@ -478,7 +466,7 @@ class VersionManager:
         """Get RC tags from local git repository."""
         cwd = Path("plugins") if self.plugin_mode and Path("plugins").exists() else None
         local_tags_output = self.run_command("git tag -l", cwd=cwd)
-        
+
         if local_tags_output:
             return [tag for tag in local_tags_output.split("\n") if re.match(rc_pattern, tag)]
         return []
@@ -487,7 +475,7 @@ class VersionManager:
         """Get the latest version from a list of RC tags."""
         if not rc_tags:
             return None
-            
+
         # Sort by version (extract version numbers for sorting)
         rc_tags.sort(key=lambda x: [int(i) for i in re.findall(r"\d+", x)], reverse=True)
         return rc_tags[0][tag_prefix_len:]
@@ -613,11 +601,11 @@ class VersionManagerCLI:
 
         # Parse action
         action = sys.argv[1]
-        
+
         # Parse flags
         plugin_mode = self._extract_flag("--plugin-mode")
         github_repo = self._extract_flag_with_value("--github-repo")
-        
+
         # Parse positional arguments based on action
         project_folder_path, rc_version = self._parse_positional_arguments(action)
 
@@ -626,7 +614,7 @@ class VersionManagerCLI:
             project_folder_path=project_folder_path,
             rc_version=rc_version,
             plugin_mode=plugin_mode,
-            github_repo=github_repo
+            github_repo=github_repo,
         )
 
     def _extract_flag(self, flag_name: str) -> bool:
@@ -653,19 +641,19 @@ class VersionManagerCLI:
             if len(sys.argv) != 3:
                 raise ValueError("generate command requires exactly one argument: <project_folder_path>")
             return sys.argv[2], None
-            
+
         elif action == "promote":
             if len(sys.argv) < 3:
                 raise ValueError("promote command requires at least one argument: <project_folder_path> [rc_version]")
             project_folder_path = sys.argv[2]
             rc_version = sys.argv[3] if len(sys.argv) > 3 else None
             return project_folder_path, rc_version
-            
+
         elif action == "detect-plugins":
             if len(sys.argv) != 3:
                 raise ValueError("detect-plugins command requires exactly one argument: <project_folder_path>")
             return sys.argv[2], None
-            
+
         else:
             return None, None
 
@@ -720,7 +708,7 @@ class VersionManagerCLI:
                     "project_path": args.project_folder_path,
                     "requirement": "Project path must contain a valid pyproject.toml with [tool.poetry] section and 'name' attribute",
                 },
-                success=False
+                success=False,
             )
 
     def _handle_promote_command(self, args: CliArguments) -> CommandResponse:
@@ -749,7 +737,7 @@ class VersionManagerCLI:
                     "project_path": args.project_folder_path,
                     "requirement": "Project path must contain a valid pyproject.toml with [tool.poetry] section and 'name' attribute",
                 },
-                success=False
+                success=False,
             )
 
     def _handle_detect_plugins_command(self, args: CliArguments) -> CommandResponse:
@@ -761,14 +749,11 @@ class VersionManagerCLI:
                     "usage": "python version_manager.py detect-plugins <project_folder_path> --plugin-mode [--github-repo <owner/repo>]",
                     "purpose": "Analyze git changes to identify modified plugins for CI matrix",
                 },
-                success=False
+                success=False,
             )
 
         affected_plugins = self.version_manager.get_plugins_from_changes(args.project_folder_path)
-        response_data = {
-            "plugins": affected_plugins, 
-            "repository": self.version_manager.github_repo or "local"
-        }
+        response_data = {"plugins": affected_plugins, "repository": self.version_manager.github_repo or "local"}
 
         return CommandResponse(data=response_data)
 
@@ -784,14 +769,14 @@ class VersionManagerCLI:
                 ],
                 "help": "Use 'python version_manager.py' without arguments for full help.",
             },
-            success=False
+            success=False,
         )
 
     def _output_response(self, response: CommandResponse) -> None:
         """Output the command response."""
         json_response = self.version_manager.output_json_response(response.data)
         print(json_response)
-        
+
         if not response.success:
             sys.exit(1)
 
@@ -875,8 +860,12 @@ def print_help():
         '             - plugins: Array of changed plugin names (e.g., ["provisioner_examples_plugin"] or [] if no changes)'
     )
     print("             - repository: Repository being analyzed")
-    print("    Example: python version_manager.py detect-plugins plugins --plugin-mode --github-repo ZachiNachshon/provisioner-plugins")
-    print("             python version_manager.py detect-plugins . --plugin-mode  # When running directly in plugins repo")
+    print(
+        "    Example: python version_manager.py detect-plugins plugins --plugin-mode --github-repo ZachiNachshon/provisioner-plugins"
+    )
+    print(
+        "             python version_manager.py detect-plugins . --plugin-mode  # When running directly in plugins repo"
+    )
     print()
     print("FLAGS:")
     print("  --plugin-mode               Enable plugin-specific behavior (required for plugin operations)")

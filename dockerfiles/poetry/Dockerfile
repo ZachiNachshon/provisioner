@@ -16,7 +16,7 @@ FROM python:3.11-alpine
 ENV PROVISIONER_INSTALLER_PLUGIN_TEST="true" \
     TEST_SDSIT_OUTPUTS_HOST_PATH="dists/*.tar.gz" \
     TEST_SDIST_OUTPUTS_CONTAINER_PATH="/tmp/provisioner-sdists/" \
-    POETRY_VERSION=1.8.4 \
+    POETRY_VERSION=2.1.3 \
     POETRY_HOME="/.local" \
     PATH="/.local/bin:$PATH"
 

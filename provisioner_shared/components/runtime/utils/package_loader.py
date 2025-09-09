@@ -258,7 +258,8 @@ class PackageLoader:
             # Build package with `poetry build`
             print(f"Building {package_name} in {project_path}...")
             self._process.run_fn(
-                args=["poetry", "build-project", "-f", "sdist"],
+                # args=["poetry", "build-project", "-f", "sdist"],
+                args=["poetry", "build", "-f", "sdist"],
                 working_dir=project_path,
                 fail_msg=f"Failed to install dependencies with Poetry. project: {project_path}",
                 fail_on_error=True,

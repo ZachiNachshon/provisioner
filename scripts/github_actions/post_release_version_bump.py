@@ -16,6 +16,7 @@ Requirements:
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -96,6 +97,37 @@ class PostReleaseVersionBumper:
             print(f"Warning: Failed to update manifest.json in {project_dir}: {e}")
             return False
 
+    def _update_docs_config_version(self) -> bool:
+        """Update current_version in docs-site/config.yml."""
+        config_file = self.root_dir / "docs-site" / "config.yml"
+        if not config_file.exists():
+            print(f"Warning: Docs config file {config_file} does not exist")
+            return False
+
+        try:
+            with open(config_file, "r") as f:
+                content = f.read()
+
+            # Use regex to find and replace the current_version field
+            # Pattern matches: current_version: followed by optional spaces and quoted version
+            pattern = r'(current_version:\s*")([^"]*)(")'
+            replacement = rf'\1{self.next_version}\3'
+            
+            updated_content = re.sub(pattern, replacement, content)
+            
+            if updated_content == content:
+                print(f"Warning: current_version field not found or not updated in {config_file}")
+                return False
+
+            with open(config_file, "w") as f:
+                f.write(updated_content)
+
+            print(f"Updated docs config current_version to {self.next_version}")
+            return True
+        except Exception as e:
+            print(f"Warning: Failed to update docs config: {e}")
+            return False
+
     def _setup_git_config(self) -> None:
         """Configure git user for commits."""
         self._run_command(["git", "config", "--global", "user.email", "zachi.nachshon@gmail.com"])
@@ -110,6 +142,12 @@ class PostReleaseVersionBumper:
         for file_path in [manifest_file, pyproject_file]:
             if file_path.exists():
                 self._run_command(["git", "add", str(file_path)])
+
+    def _stage_docs_config(self) -> None:
+        """Stage docs config file changes."""
+        config_file = self.root_dir / "docs-site" / "config.yml"
+        if config_file.exists():
+            self._run_command(["git", "add", str(config_file)])
 
     def _create_branch_and_pr(self) -> None:
         """Create a new branch and PR with the version changes."""
@@ -191,12 +229,19 @@ This follows the 'build once, promote many' approach - artifacts were not rebuil
             print("No projects were updated. Exiting.")
             return
 
+        # Update docs configuration
+        docs_updated = self._update_docs_config_version()
+
         # Setup git and create PR
         self._setup_git_config()
 
         # Stage changes from all updated projects
         for project_dir in updated_projects:
             self._stage_project_changes(project_dir)
+
+        # Stage docs config if it was updated
+        if docs_updated:
+            self._stage_docs_config()
 
         self._create_branch_and_pr()
         print("Post-release version bump completed successfully!")

@@ -111,7 +111,8 @@ def build_sdists(projects: Set[str]):
                 f.write("exclude *_test/*\n")
 
             subprocess.run(
-                ["poetry", "build-project", "--format", "sdist"],
+                # ["poetry", "build-project", "--format", "sdist"],
+                ["poetry", "build", "--format", "sdist"],
                 cwd=project_path,
                 check=True,
                 capture_output=True,

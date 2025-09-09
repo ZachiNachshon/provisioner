@@ -123,7 +123,11 @@ def publish_package(project_dir: Path, pypi_token: str):
     env["PYPI_API_TOKEN"] = pypi_token
 
     # Run publisher script
-    run_command(f"python {publisher_script} upload --upload-action upload-to-pypi --source-tag $(git describe --tags --abbrev=0) -y", cwd=project_dir, env=env)
+    run_command(
+        f"python {publisher_script} upload --upload-action upload-to-pypi --source-tag $(git describe --tags --abbrev=0) -y",
+        cwd=project_dir,
+        env=env,
+    )
 
 
 def publish_shared_package(stable_version: str, pypi_token_shared: str):
