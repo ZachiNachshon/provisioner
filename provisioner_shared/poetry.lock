@@ -2,22 +2,22 @@
 
 [[package]]
 name = "ansible-core"
-version = "2.18.6"
+version = "2.19.1"
 description = "Radically simple IT automation"
 optional = false
 python-versions = ">=3.11"
 groups = ["main"]
 files = [
-    {file = "ansible_core-2.18.6-py3-none-any.whl", hash = "sha256:12a34749a7b20f0f1536bd3e3b2e137341867e4642e351273e96647161f595c0"},
-    {file = "ansible_core-2.18.6.tar.gz", hash = "sha256:25bb20ce1516a1b7307831b263cef684043b3720711466bd9d4164e5fd576557"},
+    {file = "ansible_core-2.19.1-py3-none-any.whl", hash = "sha256:ef42569dc9bb1641ef1adcc7e5bc6b4567b7383c7daf46d3a1885117c93a83e4"},
+    {file = "ansible_core-2.19.1.tar.gz", hash = "sha256:affd33b38d32b57cfc2cd6daf3aafcb384297039e4c5600196a2ee9aa027b75d"},
 ]
 
 [package.dependencies]
 cryptography = "*"
-jinja2 = ">=3.0.0"
+jinja2 = ">=3.1.0"
 packaging = "*"
 PyYAML = ">=5.1"
-resolvelib = ">=0.5.3,<1.1.0"
+resolvelib = ">=0.5.3,<2.0.0"
 
 [[package]]
 name = "ansible-runner"
@@ -437,20 +437,32 @@ all = ["flake8 (>=7.1.1)", "mypy (>=1.11.2)", "pytest (>=8.3.2)", "ruff (>=0.6.2
 
 [[package]]
 name = "inquirer"
-version = "3.4.0"
+version = "3.4.1"
 description = "Collection of common interactive command line user interfaces, based on Inquirer.js"
 optional = false
-python-versions = ">=3.8.1"
+python-versions = ">=3.9.2"
 groups = ["main"]
 files = [
-    {file = "inquirer-3.4.0-py3-none-any.whl", hash = "sha256:bb0ec93c833e4ce7b51b98b1644b0a4d2bb39755c39787f6a504e4fee7a11b60"},
-    {file = "inquirer-3.4.0.tar.gz", hash = "sha256:8edc99c076386ee2d2204e5e3653c2488244e82cb197b2d498b3c1b5ffb25d0b"},
+    {file = "inquirer-3.4.1-py3-none-any.whl", hash = "sha256:717bf146d547b595d2495e7285fd55545cff85e5ce01decc7487d2ec6a605412"},
+    {file = "inquirer-3.4.1.tar.gz", hash = "sha256:60d169fddffe297e2f8ad54ab33698249ccfc3fc377dafb1e5cf01a0efb9cbe5"},
 ]
 
 [package.dependencies]
 blessed = ">=1.19.0"
 editor = ">=1.6.0"
 readchar = ">=4.2.0"
+
+[[package]]
+name = "invoke"
+version = "2.2.0"
+description = "Pythonic task execution"
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "invoke-2.2.0-py3-none-any.whl", hash = "sha256:6ea924cc53d4f78e3d98bc436b08069a03077e6f85ad1ddaa8a116d7dad15820"},
+    {file = "invoke-2.2.0.tar.gz", hash = "sha256:ee6cbb101af1a859c7fe84f2a264c059020b0cb7fe3535f9424300ab568f6bd5"},
+]
 
 [[package]]
 name = "jinja2"
@@ -639,25 +651,24 @@ files = [
 
 [[package]]
 name = "paramiko"
-version = "3.5.1"
+version = "4.0.0"
 description = "SSH2 protocol library"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "paramiko-3.5.1-py3-none-any.whl", hash = "sha256:43b9a0501fc2b5e70680388d9346cf252cfb7d00b0667c39e80eb43a408b8f61"},
-    {file = "paramiko-3.5.1.tar.gz", hash = "sha256:b2c665bc45b2b215bd7d7f039901b14b067da00f3a11e6640995fd58f2664822"},
+    {file = "paramiko-4.0.0-py3-none-any.whl", hash = "sha256:0e20e00ac666503bf0b4eda3b6d833465a2b7aff2e2b3d79a8bba5ef144ee3b9"},
+    {file = "paramiko-4.0.0.tar.gz", hash = "sha256:6a25f07b380cc9c9a88d2b920ad37167ac4667f8d9886ccebd8f90f654b5d69f"},
 ]
 
 [package.dependencies]
 bcrypt = ">=3.2"
 cryptography = ">=3.3"
+invoke = ">=2.0"
 pynacl = ">=1.5"
 
 [package.extras]
-all = ["gssapi (>=1.4.1) ; platform_system != \"Windows\"", "invoke (>=2.0)", "pyasn1 (>=0.1.7)", "pywin32 (>=2.1.8) ; platform_system == \"Windows\""]
 gssapi = ["gssapi (>=1.4.1) ; platform_system != \"Windows\"", "pyasn1 (>=0.1.7)", "pywin32 (>=2.1.8) ; platform_system == \"Windows\""]
-invoke = ["invoke (>=2.0)"]
 
 [[package]]
 name = "passlib"
@@ -782,14 +793,14 @@ test = ["coverage", "python-daemon[build,static-analysis]", "testscenarios (>=0.
 
 [[package]]
 name = "python-hosts"
-version = "1.0.7"
+version = "1.1.2"
 description = "A hosts file manager library written in python"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "python_hosts-1.0.7-py3-none-any.whl", hash = "sha256:7fb9c42e2f75d6e2c2ef7e11ffd7aa6a7d59a1fb54bcc5d0f0bba021aa8d5175"},
-    {file = "python_hosts-1.0.7.tar.gz", hash = "sha256:4c56991e22f6bffc28096833de787f92350e85b7cdd6086706725c55c4f04ab9"},
+    {file = "python-hosts-1.1.2.tar.gz", hash = "sha256:5e253a68ee848455608f583b4d831d6e083b22f8e45360c5a22c188a4ac1d770"},
+    {file = "python_hosts-1.1.2-py2-none-any.whl", hash = "sha256:a8dc2dcd6d1ccc84c6dfbafcb6fba3c87305150d75fa6e4af35f8394c4edc0d9"},
 ]
 
 [[package]]
@@ -938,14 +949,14 @@ test = ["commentjson", "packaging", "pytest"]
 
 [[package]]
 name = "rich"
-version = "14.0.0"
+version = "14.1.0"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 optional = false
 python-versions = ">=3.8.0"
 groups = ["main"]
 files = [
-    {file = "rich-14.0.0-py3-none-any.whl", hash = "sha256:1c9491e1951aac09caffd42f448ee3d04e58923ffe14993f6e83068dc395d7e0"},
-    {file = "rich-14.0.0.tar.gz", hash = "sha256:82f1bc23a6a21ebca4ae0c45af9bdbc492ed20231dcb63f297d6d1021a9d5725"},
+    {file = "rich-14.1.0-py3-none-any.whl", hash = "sha256:536f5f1785986d6dbdea3c75205c473f970777b4a0d6c6dd1b696aa05a3fa04f"},
+    {file = "rich-14.1.0.tar.gz", hash = "sha256:e497a48b844b0320d45007cdebfeaeed8db2a4f4bcf49f15e455cfc4af11eaa8"},
 ]
 
 [package.dependencies]
@@ -1163,4 +1174,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "7bb150dcbcb0f8dae2e283a28a52b93a131c2ba79242976475a83ca8a0ed07f0"
+content-hash = "abc935da41e4401a79d0ea47c69346885f9f902b0f7552996398f1e616006ad0"
