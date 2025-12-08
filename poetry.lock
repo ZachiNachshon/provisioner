@@ -578,20 +578,20 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "diagrams"
-version = "0.24.4"
+version = "0.25.1"
 description = "Diagram as Code"
 optional = false
-python-versions = "<4.0,>=3.9"
+python-versions = "~=3.9"
 groups = ["dev"]
 files = [
-    {file = "diagrams-0.24.4-py3-none-any.whl", hash = "sha256:41c5c03e1317ada0a64287f704e5e9d9c8794addce96b66dd831a536aa7e6507"},
-    {file = "diagrams-0.24.4.tar.gz", hash = "sha256:367b3056bc8875b5a32dcf66c7aad961cb83527b8f345dced82f17ee82781f72"},
+    {file = "diagrams-0.25.1-py3-none-any.whl", hash = "sha256:90698eaa74c027dfffd8306ba7f08ee543959205024050a6357f34eae9961345"},
+    {file = "diagrams-0.25.1.tar.gz", hash = "sha256:87480ba0b2d26987a69f7d553aa0cb1cebf1406adc03fef7031bdfff026bfc51"},
 ]
 
 [package.dependencies]
 graphviz = ">=0.13.2,<0.21.0"
 jinja2 = ">=2.10,<4.0"
-pre-commit = ">=4.0.1,<5.0.0"
+pre-commit = ">=4.0.1,<5"
 
 [[package]]
 name = "distlib"
@@ -1963,4 +1963,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "0e4dbb90d89b1a25ee3e17a68ac826b086f459c642d7457e48689b4668105eb4"
+content-hash = "ad9e441ed19e14dc923ca8bbe01136e27c480f95d0bc3766b7fe6e70a14b8e8f"
